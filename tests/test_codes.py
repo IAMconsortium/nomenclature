@@ -22,3 +22,13 @@ def test_duplicate_tag_raises():
     """Check that code conflicts across different files raises"""
     with pytest.raises(ValueError, match="Duplicate tag: <Tag>"):
         CodeList("foo").parse_files(TEST_DATA_DIR / "duplicate_tag_raises")
+
+
+def test_tagged_codelist():
+    """Check that multiple tags in a code are correctly replaced"""
+    code = CodeList("tagged").parse_files(TEST_DATA_DIR / "tagged_codelist")
+
+    v = "Final Energy|Industry|Renewables"
+    d = "Final energy consumption of renewables in the industrial sector"
+    assert v in code
+    assert code[v]["definition"] == d
