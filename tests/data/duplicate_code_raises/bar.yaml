@@ -1,0 +1,4 @@
+# This variable will create a code conflict with `foo.yaml`
+Some Variable:
+  definition: Some basic variable
+  unit: EJ  # Some SI-compatible unit
