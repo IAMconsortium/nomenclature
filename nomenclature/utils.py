@@ -17,7 +17,7 @@ def parse_yaml(path, codes, file=None, ext=".yaml"):
             # check if this file contains a dictionary with a single, <tag>-style key
             if len(_dct) == 1 and re.match(re.compile("<.*>$"), list(_dct)[0]):
                 if list(_dct)[0] in tag_dict:
-                    raise ValueError(f"Duplicate tag {list(_dct)[0]}")
+                    raise ValueError(f"Duplicate tag: {list(_dct)[0]}")
                 tag_dict.update(_dct)
 
             # else, add `file` attribute to each element and add to main dictionary

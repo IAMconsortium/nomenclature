@@ -16,3 +16,9 @@ def test_duplicate_code_raises():
     """Check that code conflicts across different files raises"""
     with pytest.raises(ValueError, match="Duplicate foo key: Some Variable"):
         CodeList("foo").parse_files(TEST_DATA_DIR / "duplicate_code_raises")
+
+
+def test_duplicate_tag_raises():
+    """Check that code conflicts across different files raises"""
+    with pytest.raises(ValueError, match="Duplicate tag: <Tag>"):
+        CodeList("foo").parse_files(TEST_DATA_DIR / "duplicate_tag_raises")
