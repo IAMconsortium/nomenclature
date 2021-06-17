@@ -35,3 +35,28 @@ download or git-clone this repository and run the following command in the root 
 ```
 pip install --editable .
 ```
+
+Then, open a Python console and import a suitable nomenclature structure from a folder
+and run the following code to inspect the variables defined in the nomenclature.
+
+```python
+import nomenclature
+nc = nomenclature.Nomenclature()
+nc.variable
+```
+
+## Acknowledgement
+
+<img src="./_static/open_entrance-logo.png" width="202" height="129" align="right" alt="openENTRANCE logo" />
+
+This package is based on the work initially done in the
+[Horizon 2020 openENTRANCE](https://openentrance.eu) project, which aims to  develop,
+use and disseminate an open, transparent and integrated  modelling platform
+for assessing low-carbon transition pathways in Europe.
+
+Refer to the [openENTRANCE/nomenclature](https://github.com/openENTRANCE/nomenclature)
+repository for more information.
+
+<img src="./_static/EU-logo-300x201.jpg" width="80" height="54" align="left" alt="EU logo" />
+This project has received funding from the European Union’s Horizon 2020 research
+and innovation programme under grant agreement No. 835896.
