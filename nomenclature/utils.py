@@ -2,7 +2,7 @@ import re
 import yaml
 
 
-def parse_yaml(path, codes, file=None, ext=".yaml"):
+def parse_yaml(path, codes, file=None, ext=".yaml", top_level_attr=None):
     """Parse `file` in `path` (or all files in subfolders if `file=None`)"""
     new_codes, tag_dict = [], {}
 
@@ -19,12 +19,20 @@ def parse_yaml(path, codes, file=None, ext=".yaml"):
                 if list(_dct)[0] in tag_dict:
                     raise ValueError(f"Duplicate tag: {list(_dct)[0]}")
                 tag_dict.update(_dct)
+                continue
 
-            # else, add `file` attribute to each element and add to main dictionary
-            else:
-                for key, value in _dct.items():
-                    value["file"] = str(f)
-                new_codes.append(_dct)
+            # if specified, set top-level key as attribute instead
+            if top_level_attr is not None:
+                _original_dict, _dct = _dct.copy(), dict()
+                for top_key, _codes in _original_dict.items():
+                    for code, attributes in _codes.items():
+                        attributes[top_level_attr] = top_key
+                        _dct[code] = attributes
+
+            # add `file` attribute to each element and add to main dictionary
+            for key, value in _dct.items():
+                value["file"] = str(f)
+            new_codes.append(_dct)
 
     return replace_tags(codes, new_codes, tag_dict)
 

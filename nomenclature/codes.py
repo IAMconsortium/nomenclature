@@ -30,7 +30,18 @@ class CodeList(Mapping):
     def __repr__(self):
         return self._codes.__repr__()
 
-    def parse_files(self, path, file=None):
-        """Parse all files in `path` and add them to the codelist"""
-        parse_yaml(path=path, codes=self, file=file)
+    def parse_files(self, path, file=None, top_level_attr=None):
+        """Parse all files in `path` and add them to the codelist
+
+        Parameters
+        ----------
+        path
+        file
+        top_level_attr
+
+        Returns
+        -------
+        Nomenclature
+        """
+        parse_yaml(path=path, codes=self, file=file, top_level_attr=top_level_attr)
         return self  # allows to do `foo = CodeList("foo").parse_files(path)`
