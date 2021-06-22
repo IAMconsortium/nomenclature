@@ -35,13 +35,16 @@ class CodeList(Mapping):
 
         Parameters
         ----------
-        path
-        file
-        top_level_attr
+        path: :class:`pathlib.Path`
+            The path to a folder with yaml files of a suitable structure.
+        file: str, optional
+            Passed to :code:`path.glob()`, defaults to "**/*" (all files in subfolders).
+        top_level_attr: str, optional
+            Converting the top-level key in dictionaries to an attribute of the codes.
 
         Returns
         -------
-        Nomenclature
+        CodeList
         """
         parse_yaml(path=path, codes=self, file=file, top_level_attr=top_level_attr)
         return self  # allows to do `foo = CodeList("foo").parse_files(path)`
