@@ -74,7 +74,26 @@ The variable name (code) should adhere to the following conventions:
 
 ### Regions
 
-Coming soon...
+The *region* codelist of the nomenclature will be read from all yaml files located
+in a folder of that name (including any sub-folders).
+To avoid repeating a "hierarchy" attribute many times (e.g., country, continent),
+the yaml files must have a nested dictionary structure:
+
+```yaml
+<Hierarchy Level>:
+  Region Code:
+    Attribute: Attribute value
+```
+
+When importing the codelist, the hierarchy will be added as attribute,
+such that it can be retrieved as
+
+```python
+nomenclature.CodeList["Region Code"]["Hierarchy"] = "<Hierarchy Level>"
+```
+
+Other attributes specified in the yaml file can include (for countries) ISO2/3-codes,
+or the list of countries for aggregate regions.
 
 ## The pyam package
 
