@@ -1,5 +1,7 @@
 import pytest
 
+MATCH_FAIL_VALIDATION = "The validation failed. Please check the log for details."
+
 
 def test_validation(simple_nomenclature, simple_df):
     """A simple validation passes as expected"""
@@ -7,18 +9,17 @@ def test_validation(simple_nomenclature, simple_df):
 
 
 def test_validation_fails_variable(simple_nomenclature, simple_df):
-    """A simple validation passes as expected"""
+    """Changing a variable name raises"""
     simple_df.rename(variable={"Primary Energy": "foo"}, inplace=True)
 
-    match = "The validation failed. Please check the log for details."
-    with pytest.raises(ValueError, match=match):
+    with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         simple_nomenclature.validate(simple_df)
 
 
 def test_validation_fails_unit(simple_nomenclature, simple_df):
-    """A simple validation passes as expected"""
+    """Changing a unit raises"""
     simple_df.rename(unit={"EJ/yr": "GWh/yr"}, inplace=True)
 
-    match = "The validation failed. Please check the log for details."
-    with pytest.raises(ValueError, match=match):
+    with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
+        simple_nomenclature.validate(simple_df)
         simple_nomenclature.validate(simple_df)
