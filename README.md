@@ -19,12 +19,16 @@ the [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium
 A **Nomenclature** class contains **CodeLists** for *variables* (including units) and
 *regions* to be used in a model comparison or scenario exercise using the IAMC format.
 
+A **CodeList** is a list of "allowed terms" (or codes), where each term can have
+several attributes (e.g., description, unit, parent region).
+
 The **Nomenclature** is initialized from a folder with the following structure:
 
 ### Variables
 
-The *variables* of the Nomenclature will be read from all yaml files located in a folder
-of that name (including any sub-folders). They must be formatted as dictionaries.
+The *variable* codelist of the nomenclature will be read from all yaml files located
+in a folder of that name (including any sub-folders).
+They must be formatted as dictionaries.
 
 ```yaml
 Some Variable:
