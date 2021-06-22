@@ -19,12 +19,13 @@ def is_subset(x, y):
 def validate(nc, df):
     """Validation of an IamDataFrame against codelists of a Nomenclature"""
 
-    illegal_vars, illegal_units = [], []
     error = False
 
+    # combined validation of variables and units
+    invalid_vars, invalid_units = [], []
     for variable, unit in df.unit_mapping.items():
         if variable not in nc.variable:
-            illegal_vars.append(variable)
+            invalid_vars.append(variable)
         else:
             nc_unit = nc.variable[variable]["unit"]
             # fast-pass for unique units in df and the nomenclature
@@ -33,14 +34,14 @@ def validate(nc, df):
             # full-fledged subset validation
             if is_subset(unit, nc_unit):
                 continue
-            illegal_units.append((variable, unit, nc_unit))
+            invalid_units.append((variable, unit, nc_unit))
 
-    if illegal_vars:
-        log_error("variables", illegal_vars)
+    if invalid_vars:
+        log_error("variables", invalid_vars)
         error = True
 
-    if illegal_units:
-        lst = [f"{v} - expected: {e}, found: {u}" for v, u, e in illegal_units]
+    if invalid_units:
+        lst = [f"{v} - expected: {e}, found: {u}" for v, u, e in invalid_units]
         log_error("units", lst)
         error = True
 
