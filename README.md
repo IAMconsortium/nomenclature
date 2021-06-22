@@ -50,6 +50,8 @@ When importing the codelist, any occurrence of `<Tag>` in a variable name will b
 replaced by every element in the Tag dictionary. The `<Tag>` will also be replaced
 in any of the variable attributes.
 
+There must be only one top-level entry in any yaml file to be used as tag. 
+
 #### Guidelines and naming convention
 
 The variable name (code) should adhere to the following conventions:
