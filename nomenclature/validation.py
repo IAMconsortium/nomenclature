@@ -45,5 +45,16 @@ def validate(nc, df):
         log_error("units", lst)
         error = True
 
+    # loop over other dimenions for validation
+    cols = [
+        (df.region, nc.region, "regions"),
+    ]
+
+    for values, codelist, name in cols:
+        invalid = [c for c in values if c not in codelist]
+        if invalid:
+            error = True
+            log_error(name, invalid)
+
     if error:
         raise ValueError("The validation failed. Please check the log for details.")

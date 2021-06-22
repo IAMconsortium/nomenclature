@@ -22,4 +22,11 @@ def test_validation_fails_unit(simple_nomenclature, simple_df):
 
     with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         simple_nomenclature.validate(simple_df)
+
+
+def test_validation_fails_region(simple_nomenclature, simple_df):
+    """Changing a region name raises"""
+    simple_df.rename(region={"World": "foo"}, inplace=True)
+
+    with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         simple_nomenclature.validate(simple_df)
