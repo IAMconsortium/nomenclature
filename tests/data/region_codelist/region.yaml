@@ -1,0 +1,7 @@
+common:
+  World:
+    definition: The entire world
+countries:
+  Some Country:
+    iso2: XY
+    iso3: XYZ

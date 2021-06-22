@@ -32,3 +32,17 @@ def test_tagged_codelist():
     d = "Final energy consumption of renewables in the industrial sector"
     assert v in code
     assert code[v]["definition"] == d
+
+
+def test_region_codelist():
+    """Check replacing top-level hierarchy of yaml file as attribute for regions"""
+    code = CodeList("region").parse_files(
+        TEST_DATA_DIR / "region_codelist", top_level_attr="hierarchy",
+    )
+
+    assert "World" in code
+    assert code["World"]["hierarchy"] == "common"
+
+    assert "Some Country" in code
+    assert code["Some Country"]["hierarchy"] == "countries"
+    assert code["Some Country"]["iso2"] == "XY"
