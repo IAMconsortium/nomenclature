@@ -14,6 +14,62 @@ see the [LICENSE](LICENSE) for details.
 This package facilitates working with data templates that follow the format developed by
 the [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
 
+## The structure of a nomenclature folder
+
+A **Nomenclature** class contains **CodeLists** for *variables* (including units) and
+*regions* to be used in a model comparison or scenario exercise using the IAMC format.
+
+The **Nomenclature** is initialized from a folder with the following structure:
+
+### Variables
+
+The *variables* of the Nomenclature will be read from all yaml files located in a folder
+of that name (including any sub-folders). They must be formatted as dictionaries.
+
+```yaml
+Some Variable:
+  description: A short description
+  unit: A unit
+```
+
+Every variable must have a **unit**, which should be compatible with the 
+Python package [iam-units](https://github.com/iamconsortium/units).
+
+#### Tags
+
+To avoid repetition (and subsequent errors), any number of yaml files can be used
+as "tags" using nested dictionaries.
+
+```yaml
+<Tag>:
+  Some Key:
+    description: a short description of the key
+```
+
+When importing the codelist, any occurrence of `<Tag>` in a variable name will be
+replaced by every element in the Tag dictionary. The `<Tag>` will also be replaced
+in any of the variable attributes.
+
+#### Guidelines and naming convention
+
+The variable name (code) should adhere to the following conventions:
+
+- A `|` (pipe) character indicates levels of hierarchy
+- Do not use spaces before and after the `|` character,
+  but add a space between words (e.g., `Primary Energy|Non-Biomass Renewables`)
+- All words must be capitalised (except for 'and', 'w/', 'w/o', etc.)
+- Do not use abbreviations (e.g, 'PHEV') unless strictly necessary
+- Add hierarchy levels where it might be useful in the future, e.g., use 
+  `Electric Vehicle|Plugin-Hybrid` instead of 'Plugin-Hybrid Electric Vehicle'
+- Do not use abbreviations of statistical operations ('min', 'max', 'avg')
+  but always spell out the word
+- Do not include words like 'Level' or 'Quantity' in the variable,
+  because this should be clear from the context or unit
+
+### Regions
+
+Coming soon...
+
 ## The pyam package
 
 <img src="./_static/pyam-logo.png" width="133" height="100" align="right" alt="pyam logo" />
