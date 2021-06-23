@@ -2,8 +2,7 @@
 
 Copyright 2021 IIASA
 
-This repository is licensed under the Apache License, Version 2.0 (the "License");  
-see the [LICENSE](LICENSE) for details. 
+This repository is licensed under the Apache License, Version 2.0 (the "License"); see the [LICENSE](LICENSE) for details.
 
 [![license](https://img.shields.io/badge/License-Apache%202.0-black)](https://github.com/IAMconsortium/nomenclature/blob/main/LICENSE)
 [![python](https://img.shields.io/badge/python-3.7_|_3.8_|_3.9-blue?logo=python&logoColor=white)](https://github.com/IAMconsortium/nomenclature)
