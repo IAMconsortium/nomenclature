@@ -23,7 +23,10 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Install dependencies and package
+    - name: Install the latest pyam version from source
+      run: pip install git+https://github.com/IAMconsortium/pyam.git
+
+    - name: Install (other) dependencies and package
       run: pip install --editable .[tests]
 
     - name: Test with pytest

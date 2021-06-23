@@ -26,6 +26,7 @@ def parse_yaml(path, codes, file=None, ext=".yaml", top_level_attr=None):
                 _original_dict, _dct = _dct.copy(), dict()
                 for top_key, _codes in _original_dict.items():
                     for code, attributes in _codes.items():
+                        attributes = attributes or dict()
                         attributes[top_level_attr] = top_key
                         _dct[code] = attributes
 
