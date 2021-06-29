@@ -7,9 +7,12 @@ from nomenclature.validation import validate
 class Nomenclature:
     """A nomenclature with codelists for all dimensions used in the IAMC data format"""
 
-    def __init__(self, path="definitions"):
+    def __init__(self, path):
         if not isinstance(path, Path):
             path = Path(path)
+
+        if not path.exists():
+            raise ValueError(f"Path to definitions does not exist: {path}")
 
         self.variable = CodeList("variable").parse_files(path / "variables")
         self.region = CodeList("region").parse_files(
