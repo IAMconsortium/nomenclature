@@ -13,6 +13,87 @@ This repository is licensed under the Apache License, Version 2.0 (the "License"
 This package facilitates working with data templates that follow the format developed by
 the [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
 
+## The structure of a nomenclature folder
+
+A **Nomenclature** class contains **CodeLists** for *variables* (including units) and
+*regions* to be used in a model comparison or scenario exercise using the IAMC format.
+
+A **CodeList** is a list of "allowed terms" (or codes), where each term can have
+several attributes (e.g., description, unit, parent region).
+
+The **Nomenclature** is initialized from a folder with the following structure:
+
+### Variables
+
+The *variable* codelist of the nomenclature will be read from all yaml files located
+in a folder of that name (including any sub-folders).
+They must be formatted as dictionaries.
+
+```yaml
+Some Variable:
+  description: A short description
+  unit: A unit
+```
+
+Every variable must have a **unit**, which should be compatible with the 
+Python package [iam-units](https://github.com/iamconsortium/units).
+
+#### Tags
+
+To avoid repetition (and subsequent errors), any number of yaml files can be used
+as "tags" using nested dictionaries.
+
+```yaml
+<Tag>:
+  Some Key:
+    description: a short description of the key
+```
+
+When importing the codelist, any occurrence of `<Tag>` in a variable name will be
+replaced by every element in the Tag dictionary. The `<Tag>` will also be replaced
+in any of the variable attributes.
+
+There must be only one top-level entry in any yaml file to be used as tag. 
+
+#### Guidelines and naming convention
+
+The variable name (code) should adhere to the following conventions:
+
+- A `|` (pipe) character indicates levels of hierarchy
+- Do not use spaces before and after the `|` character,
+  but add a space between words (e.g., `Primary Energy|Non-Biomass Renewables`)
+- All words must be capitalised (except for 'and', 'w/', 'w/o', etc.)
+- Do not use abbreviations (e.g, 'PHEV') unless strictly necessary
+- Add hierarchy levels where it might be useful in the future, e.g., use 
+  `Electric Vehicle|Plugin-Hybrid` instead of 'Plugin-Hybrid Electric Vehicle'
+- Do not use abbreviations of statistical operations ('min', 'max', 'avg')
+  but always spell out the word
+- Do not include words like 'Level' or 'Quantity' in the variable,
+  because this should be clear from the context or unit
+
+### Regions
+
+The *region* codelist of the nomenclature will be read from all yaml files located
+in a folder of that name (including any sub-folders).
+To avoid repeating a "hierarchy" attribute many times (e.g., country, continent),
+the yaml files must have a nested dictionary structure:
+
+```yaml
+<Hierarchy Level>:
+  Region Code:
+    Attribute: Attribute value
+```
+
+When importing the codelist, the hierarchy will be added as attribute,
+such that it can be retrieved as
+
+```python
+nomenclature.CodeList["Region Code"]["Hierarchy"] = "<Hierarchy Level>"
+```
+
+Other attributes specified in the yaml file can include (for countries) ISO2/3-codes,
+or the list of countries for aggregate regions.
+
 ## The pyam package
 
 <img src="./_static/pyam-logo.png" width="133" height="100" align="right" alt="pyam logo" />
