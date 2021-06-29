@@ -1,5 +1,5 @@
 import logging
-from pyam import to_list
+from pyam import IamDataFrame, to_list
 
 # define logger for this script at logging level INFO
 logger = logging.getLogger(__name__)
@@ -18,6 +18,9 @@ def is_subset(x, y):
 
 def validate(nc, df):
     """Validation of an IamDataFrame against codelists of a Nomenclature"""
+
+    if not isinstance(df, IamDataFrame):
+        df = IamDataFrame(df)
 
     error = False
 
@@ -58,3 +61,5 @@ def validate(nc, df):
 
     if error:
         raise ValueError("The validation failed. Please check the log for details.")
+
+    return True
