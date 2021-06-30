@@ -11,8 +11,8 @@ class Nomenclature:
         if not isinstance(path, Path):
             path = Path(path)
 
-        if not path.exists():
-            raise ValueError(f"Path to definitions does not exist: {path}")
+        if not path.is_dir():
+            raise FileNotFoundError(f"Definitions directory not found: {path}")
 
         self.variable = CodeList("variable").parse_files(path / "variables")
         self.region = CodeList("region").parse_files(
