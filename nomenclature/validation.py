@@ -12,8 +12,8 @@ def log_error(name, lst):
 
 
 def is_subset(x, y):
-    """Check if x is a subset of y"""
-    return set(to_list(x)).issubset(to_list(y))
+    """Check if x is a subset of y (replacing None by "")"""
+    return set(to_list(x)).issubset([u or "" for u in to_list(y)])
 
 
 def validate(nc, df):
