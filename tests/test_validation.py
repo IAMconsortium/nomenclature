@@ -8,6 +8,14 @@ def test_validation(simple_nomenclature, simple_df):
     simple_nomenclature.validate(simple_df)
 
 
+def test_validation_dimensionless_unit(simple_nomenclature, simple_df):
+    """Assert that validating against a dimensionless quantity"""
+    mapping = dict(variable={"Primary Energy|Coal": "Share|Coal"}, unit={"EJ/yr": ""})
+    simple_df.rename(mapping, inplace=True)
+
+    simple_nomenclature.validate(simple_df)
+
+
 def test_validation_fails_variable(simple_nomenclature, simple_df):
     """Changing a variable name raises"""
     simple_df.rename(variable={"Primary Energy": "foo"}, inplace=True)
