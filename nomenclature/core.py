@@ -57,7 +57,7 @@ class Nomenclature:
         close = False
         if not isinstance(excel_writer, pd.ExcelWriter):
             close = True
-            excel_writer = pd.ExcelWriter(excel_writer, engine="openpyxl")
+            excel_writer = pd.ExcelWriter(excel_writer)
 
         # write definitions to sheet
         df = (
