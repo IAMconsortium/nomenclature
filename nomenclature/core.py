@@ -3,6 +3,8 @@ import pandas as pd
 import yaml
 
 from pyam import IamDataFrame
+from pyam.utils import write_sheet
+
 from nomenclature.codes import CodeList
 from nomenclature.validation import validate
 
@@ -40,6 +42,37 @@ class Nomenclature:
             If `df` fails validation against any codelist.
         """
         validate(self, df)
+
+    def to_excel(self, excel_writer, sheet_name="variable_definitions"):
+        """Write the variable codelist to an Excel sheet
+
+        Parameters
+        ----------
+        excel_writer : path-like, file-like, or :class:`pandas.ExcelWriter` object
+            File path or existing ExcelWriter.
+        sheet_name : str, optional
+            Name of sheet which will contain the CodeList.
+        """
+
+        close = False
+        if not isinstance(excel_writer, pd.ExcelWriter):
+            close = True
+            excel_writer = pd.ExcelWriter(excel_writer)
+
+        # write definitions to sheet
+        df = (
+            pd.DataFrame.from_dict(self.variable, orient="index")
+            .reset_index()
+            .rename(columns={"index": "variable"})
+            .drop(columns="file")
+        )
+        df.rename(columns={c: str(c).title() for c in df.columns}, inplace=True)
+
+        write_sheet(excel_writer, sheet_name, df)
+
+        # close the file if `excel_writer` arg was a file name
+        if close:
+            excel_writer.close()
 
 
 def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=[]):
