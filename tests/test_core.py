@@ -7,7 +7,8 @@ from conftest import TEST_DATA_DIR
 
 def test_nonexisting_path_raises():
     """Check that initializing a Nomenclature with a non-existing path raises"""
-    with pytest.raises(NotADirectoryError, match="Definitions directory not found: foo"):
+    match = "Definitions directory not found: foo"
+    with pytest.raises(NotADirectoryError, match=match):
         nc.Nomenclature("foo")
 
 
