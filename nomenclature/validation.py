@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 def log_error(name, lst):
     """Compile an error message and write to log"""
     msg = f"The following {name} are not defined in the nomenclature:"
-    logger.error("\n - ".join([msg] + lst))
+    logger.error("\n - ".join(map(str, [msg] + lst)))
 
 
 def is_subset(x, y):
