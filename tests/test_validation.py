@@ -38,3 +38,11 @@ def test_validation_fails_region(simple_nomenclature, simple_df):
 
     with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         simple_nomenclature.validate(simple_df)
+
+
+def test_validation_fails_region_as_int(simple_nomenclature, simple_df):
+    """Using a region name as integer raises the expected error"""
+    simple_df.rename(region={"World": 1}, inplace=True)
+
+    with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
+        simple_nomenclature.validate(simple_df)
