@@ -13,26 +13,28 @@ This repository is licensed under the Apache License, Version 2.0 (the "License"
 This package facilitates working with data templates that follow the format developed by
 the [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
 
-## The structure of a nomenclature folder
-
-A **Nomenclature** class contains **CodeLists** for *variables* (including units) and
-*regions* to be used in a model comparison or scenario exercise using the IAMC format.
+A **DataStructureDefinition** class contains **CodeLists** for *variables*
+(including units) and *regions* to be used in a model comparison or scenario exercise
+following the IAMC data format.
 
 A **CodeList** is a list of "allowed terms" (or codes), where each term can have
 several attributes (e.g., description, unit, parent region).
 
-The **Nomenclature** is initialized from a folder with the following structure:
+## The structure of a datastructure definition
+
+A **DataStructureDefinition** is initialized from a folder with the following structure:
 
 ### Variables
 
-The *variable* codelist of the nomenclature will be read from all yaml files located
-in a folder of that name (including any sub-folders).
+The *variable* codelist of the **DataStructureDefinition** will be read from all yaml
+files located  in a folder of that name (including any sub-folders).
 They must be formatted as dictionaries.
 
 ```yaml
 Some Variable:
   description: A short description
   unit: A unit
+  <other attribute>: Some text (optional) 
 ```
 
 Every variable must have a **unit**, which should be compatible with the 
@@ -88,7 +90,7 @@ When importing the codelist, the hierarchy will be added as attribute,
 such that it can be retrieved as
 
 ```python
-nomenclature.CodeList["Region Code"]["Hierarchy"] = "<Hierarchy Level>"
+DataStructureDefinition.region["Region Code"]["Hierarchy"] = "<Hierarchy Level>"
 ```
 
 Other attributes specified in the yaml file can include (for countries) ISO2/3-codes,
@@ -121,8 +123,8 @@ and run the following code to inspect the variables defined in the nomenclature.
 
 ```python
 import nomenclature
-nc = nomenclature.Nomenclature()
-nc.variable
+project = nomenclature.DataStructureDefinition("path/to/definition/folder")
+project.variable
 ```
 
 ## Acknowledgement
