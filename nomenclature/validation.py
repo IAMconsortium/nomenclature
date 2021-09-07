@@ -48,7 +48,7 @@ def validate(nc, df):
         log_error("units", lst)
         error = True
 
-    # loop over other dimenions for validation
+    # loop over other dimensions for validation
     cols = [
         (df.region, nc.region, "regions"),
     ]
