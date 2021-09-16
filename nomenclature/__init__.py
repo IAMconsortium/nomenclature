@@ -1,9 +1,8 @@
 import logging
 
-from nomenclature.utils import *
-from nomenclature.codes import CodeList
-from nomenclature.core import Nomenclature, create_yaml_from_xlsx
-from nomenclature.testing import assert_valid_yaml
+from nomenclature.codes import CodeList  # noqa
+from nomenclature.core import DataStructureDefinition, create_yaml_from_xlsx  # noqa
+from nomenclature.testing import assert_valid_yaml  # noqa
 
 
 # set up logging

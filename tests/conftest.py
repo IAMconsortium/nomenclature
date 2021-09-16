@@ -2,7 +2,7 @@ from pathlib import Path
 import pytest
 import pandas as pd
 from pyam import IamDataFrame, IAMC_IDX
-from nomenclature import Nomenclature
+from nomenclature import DataStructureDefinition
 
 
 here = Path(__file__).parent
@@ -21,7 +21,7 @@ TEST_DF = pd.DataFrame(
 
 @pytest.fixture(scope="session")
 def simple_nomenclature():
-    yield Nomenclature(TEST_DATA_DIR / "validation_nc")
+    yield DataStructureDefinition(TEST_DATA_DIR / "validation_nc")
 
 
 @pytest.fixture(scope="function")

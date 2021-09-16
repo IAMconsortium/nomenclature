@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-import nomenclature as nc
+from nomenclature import DataStructureDefinition
 
 from conftest import TEST_DATA_DIR
 
@@ -9,7 +9,7 @@ def test_nonexisting_path_raises():
     """Check that initializing a Nomenclature with a non-existing path raises"""
     match = "Definitions directory not found: foo"
     with pytest.raises(NotADirectoryError, match=match):
-        nc.Nomenclature("foo")
+        DataStructureDefinition("foo")
 
 
 def test_to_excel(simple_nomenclature, tmpdir):
