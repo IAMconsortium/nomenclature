@@ -1,0 +1,12 @@
+model: MESSAGEix-Materials 1.1
+native_regions: 
+- name: AFR
+  rename: Africa
+- name: WEU
+common_regions:
+- name: Africa
+  constituent_regions:
+  - name: AFR
+- name: Europe
+  constituent_regions:
+  - name: WEU
