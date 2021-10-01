@@ -90,10 +90,19 @@ def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=[]):
         Column from `sheet_name` to use as codes.
     attrs : list, optional
         Columns from `sheet_name` to use as attributes.
-
     """
-
     source = pd.read_excel(source, sheet_name=sheet_name)
+
+    # check for duplicates in the codelist
+    duplicate_rows = source[col].duplicated(keep=False).values
+    if any(duplicate_rows):
+        duplicates = source[duplicate_rows]
+        # set index to equal the row numbers to simplify identifying the issue
+        duplicates.index = pd.Index([i + 2 for i in duplicates.index])
+        msg = f"Duplicate values in the codelist:\n{duplicates.head(20)}"
+        raise ValueError(msg + ("\n..." if len(duplicates) > 20 else ""))
+
+    # set `col` as index and cast all attribute-names to lowercase
     variable = source[[col] + attrs].set_index(col)
     variable.rename(columns={c: str(c).lower() for c in variable.columns}, inplace=True)
 
