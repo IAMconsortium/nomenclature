@@ -36,7 +36,7 @@ def convert_region_mapping(file: Union[Path, str]) -> RegionAggregationMapping:
             "least one of the following: 'native_regions',"
             "'common_regions'"
         )
-    if "native_regions" in mapping_input.keys():
+    if "native_regions" in mapping_input:
         native_region_list: List[Dict] = []
         for nr in mapping_input["native_regions"]:
             if isinstance(nr, str):
@@ -47,12 +47,11 @@ def convert_region_mapping(file: Union[Path, str]) -> RegionAggregationMapping:
                 )
             else:
                 raise ValueError(
-                    f"Encountered error with {nr}, "
-                    "native_regions can only contain single "
-                    "entries, or single name: rename type mappings."
+                    f"Invalid specification of native-region `{nr}`, "
+                    "item must be a string or a mapping of the type `<name>: <rename>`."
                 )
         mapping_input["native_regions"] = native_region_list
-    if "common_regions" in mapping_input.keys():
+    if "common_regions" in mapping_input:
         common_region_list: List[Dict] = []
         for cr in mapping_input["common_regions"]:
             if not isinstance(cr, dict):
