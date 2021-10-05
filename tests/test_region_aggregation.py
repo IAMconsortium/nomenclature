@@ -1,18 +1,18 @@
+import pytest
+import yaml
 from nomenclature.region_mapping_models import (
     RegionAggregationMapping,
     convert_region_mapping,
 )
+
 from conftest import TEST_DATA_DIR
-import pytest
-import yaml
-from nomenclature import DataStructureDefinition
 
 test_folder = TEST_DATA_DIR / "region_aggregation"
 
 
 def test_properly_formatted_mapping():
     # test that the properly formatted file is read and represented correctly
-    file = test_folder / "message_mapping_proper.yml"
+    file = test_folder / "message_mapping_verbose.yml"
     with open(file, "r") as f:
         mapping = yaml.load(f)
     ram = RegionAggregationMapping(**mapping)
@@ -36,12 +36,15 @@ def test_properly_formatted_mapping():
     assert ram.dict() == reference
 
 
-def test_current_format():
+@pytest.mark.parametrize(
+    "mapping_file",
+    ["working_message_mapping_cr_dict.yml", "working_message_mapping_cr_list.yml"],
+)
+def test_current_format(mapping_file):
     # test that the file formatted according to current spec
-    properly_formatted_file = test_folder / "message_mapping_proper.yml"
+    properly_formatted_file = test_folder / "message_mapping_verbose.yml"
     with open(properly_formatted_file, "r") as f:
         mapping = yaml.load(f)
-    current_spec_file = test_folder / "message_mapping.yml"
-    ram_proper = RegionAggregationMapping(**mapping)
-    ram_current = convert_region_mapping(current_spec_file)
-    assert ram_current == ram_proper
+    ram_verbose = RegionAggregationMapping(**mapping)
+    ram_current = convert_region_mapping(test_folder / mapping_file)
+    assert ram_current == ram_verbose
