@@ -1,7 +1,10 @@
-from pydantic import BaseModel
-from typing import Dict, Optional, List, Union
+import json
 from pathlib import Path
+from typing import Dict, List, Optional, Union
+
 import yaml
+from jsonschema import validate
+from pydantic import BaseModel
 
 
 class NativeRegion(BaseModel):
@@ -26,45 +29,46 @@ class RegionAggregationMapping(BaseModel):
 
 # should probably be moved inside RegionAggregationMapping as a classmethod
 def convert_region_mapping(file: Union[Path, str]) -> RegionAggregationMapping:
-    with open(file, "r") as stream:
-        mapping_input = yaml.safe_load(stream)
-    # check if we have a key called
-    # we need a model name and either native or common regions
-    if not "model" and ("native_regions" or "common_regions") in mapping_input.keys():
-        raise ValueError(
-            "Region mapping needs an attribute 'model' and at "
-            "least one of the following: 'native_regions',"
-            "'common_regions'"
-        )
+    schema_file = Path(__file__).parent.absolute() / "region_mapping_schema.json"
+    with open(file, "r") as f:
+        mapping_input = yaml.safe_load(f)
+    with open(schema_file, "r") as f:
+        schema = json.load(f)
+
+    # Validate the input data using a json schema
+    validate(mapping_input, schema)
+
+    # Reformat the "native_regions"
     if "native_regions" in mapping_input:
         native_region_list: List[Dict] = []
         for nr in mapping_input["native_regions"]:
             if isinstance(nr, str):
                 native_region_list.append({"name": nr})
-            elif isinstance(nr, dict) and len(nr) == 1:
+            elif isinstance(nr, dict):
                 native_region_list.append(
                     {"name": list(nr)[0], "rename": list(nr.values())[0]}
                 )
-            else:
-                raise ValueError(
-                    f"Invalid specification of native-region `{nr}`, "
-                    "item must be a string or a mapping of the type `<name>: <rename>`."
-                )
         mapping_input["native_regions"] = native_region_list
+
+    # Reformat the "common_regions"
     if "common_regions" in mapping_input:
         common_region_list: List[Dict] = []
-        for cr in mapping_input["common_regions"]:
-            if not isinstance(cr, dict):
-                raise ValueError(
-                    "Common regions must be defined in the "
-                    "following way: ' - name: \n  - "
-                    "constituent_region1 ...'"
+        if isinstance(mapping_input["common_regions"], list):
+            for cr in mapping_input["common_regions"]:
+                common_region_list.append(
+                    {
+                        "name": list(cr)[0],
+                        "constituent_regions": [{"name": x} for x in cr[list(cr)[0]]],
+                    }
                 )
-            common_region_list.append(
-                {
-                    "name": list(cr)[0],
-                    "constituent_regions": [{"name": x} for x in cr[list(cr)[0]]],
-                }
-            )
+        elif isinstance(mapping_input["common_regions"], dict):
+            for name, cr_list in mapping_input["common_regions"].items():
+                common_region_list.append(
+                    {
+                        "name": name,
+                        "constituent_regions": [{"name": x} for x in cr_list],
+                    }
+                )
+
         mapping_input["common_regions"] = common_region_list
     return RegionAggregationMapping(**mapping_input)
