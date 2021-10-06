@@ -29,10 +29,10 @@ class RegionAggregationMapping(BaseModel):
 
 # should probably be moved inside RegionAggregationMapping as a classmethod
 def convert_region_mapping(file: Union[Path, str]) -> RegionAggregationMapping:
-    schema_file = Path(__file__).parent.absolute() / "region_mapping_schema.json"
+    SCHEMA_FILE = Path(__file__).parent.absolute() / "region_mapping_schema.json"
     with open(file, "r") as f:
         mapping_input = yaml.safe_load(f)
-    with open(schema_file, "r") as f:
+    with open(SCHEMA_FILE, "r") as f:
         schema = json.load(f)
 
     # Validate the input data using a json schema
