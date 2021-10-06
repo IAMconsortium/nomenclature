@@ -1,9 +1,11 @@
 model: MESSAGEix-Materials 1.1
 native_regions:
-  - AFR: Africa
+  - EEU: Central and Eastern Europe
+  - FSU: Former Soviet Union
   - WEU
 common_regions:
-  Africa:
-    - AFR
+  Eastern Europe, Caucasus and Central Asia:
+    - EEU
+    - FSU
   Europe:
     - WEU
