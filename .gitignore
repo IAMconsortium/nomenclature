@@ -8,8 +8,6 @@
 *pdf
 *zip
 *json
-# The json schema for the region mapping is required
-!nomenclature/region_mapping_schema.json
 
 # Apple file system
 *.DS_STORE
