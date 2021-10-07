@@ -1,22 +1,18 @@
 import pytest
 import yaml
-from nomenclature.region_mapping_models import (
-    RegionAggregationMapping,
-    convert_region_mapping,
-)
+from nomenclature.region_mapping_models import RegionAggregationMapping
 
 from conftest import TEST_DATA_DIR
 
 test_folder = TEST_DATA_DIR / "region_aggregation"
 
 
-@pytest.mark.parametrize(
-    "mapping_file",
-    ["working_message_mapping_cr_dict.yml", "working_message_mapping_cr_list.yml"],
-)
-def test_mapping(mapping_file):
+def test_mapping():
+    mapping_file = "working_mapping.yml"
     # Test that the file is read and represented correctly
-    ram = convert_region_mapping(test_folder / mapping_file)
+    ram = RegionAggregationMapping.create_from_region_mapping(
+        test_folder / mapping_file
+    )
     reference = {
         "model": "MESSAGEix-Materials 1.1",
         "native_regions": [
@@ -41,14 +37,21 @@ def test_mapping(mapping_file):
     assert ram.dict() == reference
 
 
-def test_model_only():
+@pytest.mark.skip(reason="No illegal files yet")
+@pytest.mark.parametrize("illegal_mapping", [""])
+def test_illegal_mappings(illegal_mapping):
+    # This is to test a few mappings that are illegal and should be found as such
+    assert False
+
+
+def test_model_only_mapping():
     # test that a region mapping runs also with only a model
     reference = {
         "model": "MESSAGEix-Materials 1.1",
         "native_regions": None,
         "common_regions": None,
     }
-    model_only_mapping = convert_region_mapping(
-        test_folder / "working_message_mapping_model_only.yml"
+    model_only_mapping = RegionAggregationMapping.create_from_region_mapping(
+        test_folder / "working_mapping_model_only.yml"
     )
     assert reference == model_only_mapping.dict()
