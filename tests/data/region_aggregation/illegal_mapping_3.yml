@@ -1,0 +1,7 @@
+# Native region rename overlaps with a common region
+model: MESSAGEix-Materials 1.1
+native_regions:
+  - EEU: Eastern Europe, Caucasus and Central Asia
+common_regions:
+  - Eastern Europe, Caucasus and Central Asia:
+    - EEU

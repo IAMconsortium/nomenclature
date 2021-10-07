@@ -1,0 +1,5 @@
+# Two native regions are being renamed to the same name
+model: MESSAGEix-Materials 1.1
+native_regions:
+  - EEU: Europe
+  - WEU: Europe

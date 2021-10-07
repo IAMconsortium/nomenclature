@@ -1,0 +1,5 @@
+# Missing list markers ("-") in "common_regions"
+model: MESSAGEix-Materials 1.1
+common_regions:
+  Eastern Europe, Caucasus and Central Asia:
+    - EEU

@@ -1,0 +1,7 @@
+# A common region is defined twice
+model: MESSAGEix-Materials 1.1
+common_regions:
+  - Eastern Europe, Caucasus and Central Asia:
+    - EEU
+  - Eastern Europe, Caucasus and Central Asia:
+    - Europe
