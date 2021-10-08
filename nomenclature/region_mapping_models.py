@@ -7,6 +7,8 @@ import yaml
 from jsonschema import validate
 from pydantic import BaseModel, validator, root_validator
 
+here = Path(__file__).parent.absolute()
+
 
 class NativeRegion(BaseModel):
     name: str
@@ -63,7 +65,7 @@ class RegionAggregationMapping(BaseModel):
 
     @classmethod
     def create_from_region_mapping(cls, file: Union[Path, str]):
-        SCHEMA_FILE = Path(__file__).parent.absolute() / "region_mapping_schema.yml"
+        SCHEMA_FILE = here / "validation_schemas" / "region_mapping_schema.yml"
         with open(file, "r") as f:
             mapping_input = yaml.safe_load(f)
         with open(SCHEMA_FILE, "r") as f:
