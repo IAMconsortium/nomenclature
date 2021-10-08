@@ -88,11 +88,11 @@ class RegionAggregationMapping(BaseModel):
         # Reformat the "common_regions"
         if "common_regions" in mapping_input:
             common_region_list: List[Dict[str, List[Dict[str, str]]]] = []
-            for cr in mapping_input["common_regions"]:
+            for cr, elements in mapping_input["common_regions"].items():
                 common_region_list.append(
                     {
-                        "name": list(cr)[0],
-                        "constituent_regions": [{"name": x} for x in cr[list(cr)[0]]],
+                        "name": cr,
+                        "constituent_regions": [{"name": x} for x in elements],
                     }
                 )
             mapping_input["common_regions"] = common_region_list
