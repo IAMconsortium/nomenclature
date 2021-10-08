@@ -1,0 +1,5 @@
+# Two native regions are being renamed to the same name
+model: model_a
+native_regions:
+  - region_a: alternative_name_a
+  - region_b: alternative_name_a

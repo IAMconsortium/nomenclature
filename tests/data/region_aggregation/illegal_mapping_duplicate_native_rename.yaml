@@ -1,5 +1,5 @@
 # A native region renaming overlaps with another native region
-model: MESSAGEix-Materials 1.1
+model: model_a
 native_regions:
-  - EEU: Europe
-  - Europe
+  - region_a: alternative_name_a
+  - alternative_name_a

@@ -1,0 +1,7 @@
+# Native region rename overlaps with a common region
+model: model_a
+native_regions:
+  - region_a: common_region_1
+common_regions:
+  - common_region_1:
+    - region_a
