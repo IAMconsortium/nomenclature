@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 from collections import Counter
@@ -60,7 +59,8 @@ class RegionAggregationMapping(BaseModel):
         if not overlap:
             return values
         raise ValueError(
-            f"Conflict between (renamed) native regions and aggregation mapping to common regions: {overlap}"
+            "Conflict between (renamed) native regions and aggregation mapping"
+            f" to common regions: {overlap}"
         )
 
     @classmethod

@@ -1,6 +1,4 @@
-from typing import Type, ValuesView
 import pytest
-import yaml
 from nomenclature.region_mapping_models import RegionAggregationMapping
 from jsonschema.exceptions import ValidationError
 
