@@ -9,31 +9,30 @@ from conftest import TEST_DATA_DIR
 test_folder = TEST_DATA_DIR / "region_aggregation"
 
 
-@pytest.mark.skip(reason="Testing only illegal files")
 def test_mapping():
-    mapping_file = "working_mapping.yml"
+    mapping_file = "working_mapping.yaml"
     # Test that the file is read and represented correctly
     ram = RegionAggregationMapping.create_from_region_mapping(
         test_folder / mapping_file
     )
     reference = {
-        "model": "MESSAGEix-Materials 1.1",
+        "model": "model_a",
         "native_regions": [
-            {"name": "EEU", "rename": "Central and Eastern Europe"},
-            {"name": "FSU", "rename": "Former Soviet Union"},
-            {"name": "WEU", "rename": None},
+            {"name": "region_a", "rename": "alternative_name_a"},
+            {"name": "region_b", "rename": "alternative_name_b"},
+            {"name": "region_c", "rename": None},
         ],
         "common_regions": [
             {
-                "name": "Eastern Europe, Caucasus and Central Asia",
+                "name": "common_region_1",
                 "constituent_regions": [
-                    {"name": "EEU", "rename": None},
-                    {"name": "FSU", "rename": None},
+                    {"name": "region_a", "rename": None},
+                    {"name": "region_b", "rename": None},
                 ],
             },
             {
-                "name": "Europe",
-                "constituent_regions": [{"name": "WEU", "rename": None}],
+                "name": "common_region_2",
+                "constituent_regions": [{"name": "region_c", "rename": None}],
             },
         ],
     }
@@ -44,26 +43,34 @@ def test_mapping():
     "file, error_type, error_msg_pattern",
     [
         (
-            "illegal_mapping_1.yml",
+            "illegal_mapping_invalid_format_dict.yaml",
             ValidationError,
-            ".*'Eastern Europe.*not.*'array'.*",
+            ".*common_region_1.*not.*'array'.*",
         ),
         (
-            "illegal_mapping_2.yml",
+            "illegal_mapping_illegal_attribute.yaml",
             ValidationError,
             "Additional properties are not allowed.*",
         ),
         (
-            "illegal_mapping_3.yml",
+            "illegal_mapping_conflict_regions.yaml",
             ValueError,
-            ".*Overlapping.*Eastern Europe, Caucasus.*",
+            ".*Conflict between \(renamed\).*common_region_1.*",
         ),
-        ("illegal_mapping_4.yml", ValueError, ".*Two or more.*Europe.*"),
-        ("illegal_mapping_5.yml", ValueError, ".*Two or more.*Europe.*"),
         (
-            "illegal_mapping_6.yml",
+            "illegal_mapping_duplicate_native.yaml",
             ValueError,
-            ".*common regions.*Eastern Europe, Caucasus.*",
+            ".*Two or more.*alternative_name_a.*",
+        ),
+        (
+            "illegal_mapping_duplicate_native_rename.yaml",
+            ValueError,
+            ".*Two or more.*alternative_name_a.*",
+        ),
+        (
+            "illegal_mapping_duplicate_common.yaml",
+            ValueError,
+            ".*common regions.*common_region_1.*",
         ),
     ],
 )
@@ -74,15 +81,14 @@ def test_illegal_mappings(file, error_type, error_msg_pattern):
         RegionAggregationMapping.create_from_region_mapping(test_folder / file)
 
 
-@pytest.mark.skip(reason="Testing only illegal files")
 def test_model_only_mapping():
     # test that a region mapping runs also with only a model
     reference = {
-        "model": "MESSAGEix-Materials 1.1",
+        "model": "model_a",
         "native_regions": None,
         "common_regions": None,
     }
     model_only_mapping = RegionAggregationMapping.create_from_region_mapping(
-        test_folder / "working_mapping_model_only.yml"
+        test_folder / "working_mapping_model_only.yaml"
     )
     assert reference == model_only_mapping.dict()
