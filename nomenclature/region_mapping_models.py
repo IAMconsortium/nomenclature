@@ -43,7 +43,7 @@ class RegionAggregationMapping(BaseModel):
         doubles = [item for item, count in Counter(names).items() if count > 1]
         if doubles:
             raise ValueError(
-                f"Two or more common regions share the same name: {doubles}"
+                f"Duplicated aggregation mapping to common regions: {doubles}"
             )
         return v
 
@@ -58,7 +58,7 @@ class RegionAggregationMapping(BaseModel):
         if not overlap:
             return values
         raise ValueError(
-            f"Overlapping between common regions and native region renaming in {overlap}"
+            f"Conflict between (renamed) native regions and aggregation mapping to common regions: {overlap}"
         )
 
     @classmethod
@@ -68,6 +68,7 @@ class RegionAggregationMapping(BaseModel):
             mapping_input = yaml.safe_load(f)
         with open(SCHEMA_FILE, "r") as f:
             schema = yaml.safe_load(f)
+
         # Validate the input data using jsonschema
         validate(mapping_input, schema)
 
