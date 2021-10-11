@@ -30,7 +30,7 @@ class RegionAggregationMapping(BaseModel):
 
     @validator("native_regions")
     def validate_native_regions(cls, v):
-        target_names = [nr.upload_name for nr in v]
+        target_names = [nr.target_native_region for nr in v]
         doubles = [item for item, count in Counter(target_names).items() if count > 1]
         if doubles:
             raise ValueError(
@@ -53,7 +53,9 @@ class RegionAggregationMapping(BaseModel):
         """Check if any renaming overlaps with common regions"""
         if values.get("native_regions") is None or values.get("common_regions") is None:
             return values
-        native_region_names = {nr.upload_name for nr in values["native_regions"]}
+        native_region_names = {
+            nr.target_native_region for nr in values["native_regions"]
+        }
         common_region_names = {cr.name for cr in values["common_regions"]}
         overlap = list(native_region_names & common_region_names)
         if not overlap:
