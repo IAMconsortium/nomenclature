@@ -53,7 +53,7 @@ def test_mapping():
         (
             "illegal_mapping_conflict_regions.yaml",
             ValueError,
-            ".*Conflict between \(renamed\).*common_region_1.*",
+            r".*Conflict between \(renamed\).*common_region_1.*",
         ),
         (
             "illegal_mapping_duplicate_native.yaml",
