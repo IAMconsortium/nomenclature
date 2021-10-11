@@ -147,5 +147,4 @@ dmypy.json
 .pyre/
 
 # prototyping files
-
 workbench.py
