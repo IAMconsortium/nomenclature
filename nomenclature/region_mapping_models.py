@@ -14,7 +14,7 @@ class NativeRegion(BaseModel):
     rename: Optional[str]
 
     @property
-    def upload_name(self):
+    def target_native_region(self):
         return self.rename if self.rename is not None else self.name
 
 
@@ -30,8 +30,8 @@ class RegionAggregationMapping(BaseModel):
 
     @validator("native_regions")
     def validate_native_regions(cls, v):
-        upload_names = [nr.upload_name for nr in v]
-        doubles = [item for item, count in Counter(upload_names).items() if count > 1]
+        target_names = [nr.upload_name for nr in v]
+        doubles = [item for item, count in Counter(target_names).items() if count > 1]
         if doubles:
             raise ValueError(
                 f"Two or more native regions share the same name: {doubles}"
