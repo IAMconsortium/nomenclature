@@ -1,5 +1,5 @@
-<Source>:
-  Fossil:
-    definition: fossil fuels
-  Renewables:
-    definition: renewables
+- <Source>:
+  - Fossil:
+      definition: fossil fuels
+  - Renewables:
+      definition: renewables

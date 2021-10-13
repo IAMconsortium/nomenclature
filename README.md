@@ -28,27 +28,29 @@ A **DataStructureDefinition** is initialized from a folder with the following st
 
 The *variable* codelist of the **DataStructureDefinition** will be read from all yaml
 files located  in a folder of that name (including any sub-folders).
-They must be formatted as dictionaries.
+They must be formatted as a list of dictionaries mapping the variable (key)
+to its attributes.
 
 ```yaml
-Some Variable:
-  description: A short description
-  unit: A unit
-  <other attribute>: Some text (optional) 
+- Some Variable:
+    description: A short description
+    unit: A unit
+    <other attribute>: Some text (optional)
 ```
 
 Every variable must have a **unit**, which should be compatible with the 
 Python package [iam-units](https://github.com/iamconsortium/units).
+The unit attribute can be empty, i.e., the variable is *dimensionless*.
 
 #### Tags
 
 To avoid repetition (and subsequent errors), any number of yaml files can be used
-as "tags" using nested dictionaries.
+as "tags" using a nested list of dictionaries.
 
 ```yaml
-<Tag>:
-  Some Key:
-    description: a short description of the key
+- <Tag>:
+  - Some Key:
+      description: a short description of the key
 ```
 
 When importing the codelist, any occurrence of `<Tag>` in a variable name will be
@@ -81,20 +83,20 @@ To avoid repeating a "hierarchy" attribute many times (e.g., country, continent)
 the yaml files must have a nested dictionary structure:
 
 ```yaml
-<Hierarchy Level>:
-  Region Code:
-    Attribute: Attribute value
+- <Hierarchy Level>:
+  - Region Name:
+      Attribute: Attribute value
 ```
 
 When importing the codelist, the hierarchy will be added as attribute,
 such that it can be retrieved as
 
 ```python
-DataStructureDefinition.region["Region Code"]["Hierarchy"] = "<Hierarchy Level>"
+DataStructureDefinition.region["Region Name"]["Hierarchy"] = "<Hierarchy Level>"
 ```
 
 Other attributes specified in the yaml file can include (for countries) ISO2/3-codes,
-or the list of countries for aggregate regions.
+or the list of countries included in a macro-region (i.e., a continent or large region).
 
 ## The pyam package
 

@@ -1,5 +1,5 @@
-<Tag>:
-  Energy:
-    description: energy carrier
-  Industry:
-    description: industrial use
+- <Tag>:
+  - Energy:
+      description: energy carrier
+  - Industry:
+      description: industrial use
