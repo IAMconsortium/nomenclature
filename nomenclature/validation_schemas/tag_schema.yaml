@@ -1,0 +1,17 @@
+$schema: 'https://json-schema.org/draft/2020-12/schema'
+title: VariableTagList
+description: >
+  This schema is used for the first stage of validation for yaml variable tag files.
+type: array
+items:
+  $ref: '#/definitions/VariableTag'
+
+definitions:
+  VariableTag:
+    title: VariableTag
+    type: object
+    patternProperties:
+      # The key of the dictionary is the variable tag
+      <^.+>$:
+        title: Attributes
+        type: object

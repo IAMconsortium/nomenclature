@@ -1,0 +1,17 @@
+$schema: 'https://json-schema.org/draft/2020-12/schema'
+title: VariableCodeList
+description: >
+  This schema is used for the first stage of validation for yaml variable files.
+type: array
+items:
+  $ref: '#/definitions/Region'
+
+definitions:
+  Region:
+    title: Variable
+    type: object
+    patternProperties:
+      # The key of the dictionary is the variable name
+      ^.+$:
+        title: Attributes
+        type: object
