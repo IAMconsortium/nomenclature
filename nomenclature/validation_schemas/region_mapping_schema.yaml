@@ -28,6 +28,7 @@ definitions:
     oneOf:
       - type: object
         patternProperties:
+          # The key of the dictionary is the native-region name
           ^.+$:
             title: Rename
             type: string
@@ -39,6 +40,7 @@ definitions:
     title: CommonRegion
     type: object
     patternProperties:
+      # The key of this dictionary is the common region name
       ^.+$:
         title: Constituent Regions
         type: array
