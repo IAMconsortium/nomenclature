@@ -31,7 +31,9 @@ class RegionAggregationMapping(BaseModel):
     @validator("native_regions")
     def validate_native_regions(cls, v):
         target_names = [nr.target_native_region for nr in v]
-        duplicates = [item for item, count in Counter(target_names).items() if count > 1]
+        duplicates = [
+            item for item, count in Counter(target_names).items() if count > 1
+        ]
         if duplicates:
             raise ValueError(
                 f"Two or more native regions share the same name: {duplicates}"
