@@ -1,8 +1,7 @@
 $schema: 'https://json-schema.org/draft/2020-12/schema'
 title: RegionAggregationMapping
 description: >
-  This schema is used to do the first stage of validation for yaml region
-  mapping files.
+  This schema is used for the first stage of validation for yaml region mapping files.
 type: object
 properties:
   model:

@@ -31,26 +31,27 @@ class RegionAggregationMapping(BaseModel):
     @validator("native_regions")
     def validate_native_regions(cls, v):
         target_names = [nr.target_native_region for nr in v]
-        doubles = [item for item, count in Counter(target_names).items() if count > 1]
-        if doubles:
+        duplicates = [item for item, count in Counter(target_names).items() if count > 1]
+        if duplicates:
             raise ValueError(
-                f"Two or more native regions share the same name: {doubles}"
+                f"Two or more native regions share the same name: {duplicates}"
             )
         return v
 
     @validator("common_regions")
     def validate_common_regions(cls, v):
         names = [cr.name for cr in v]
-        doubles = [item for item, count in Counter(names).items() if count > 1]
-        if doubles:
+        duplicates = [item for item, count in Counter(names).items() if count > 1]
+        if duplicates:
             raise ValueError(
-                f"Duplicated aggregation mapping to common regions: {doubles}"
+                f"Duplicated aggregation mapping to common regions: {duplicates}"
             )
         return v
 
     @root_validator()
     def check_illegal_renaming(cls, values):
         """Check if any renaming overlaps with common regions"""
+        # Skip if only either native-regions or common-regions are specified
         if values.get("native_regions") is None or values.get("common_regions") is None:
             return values
         native_region_names = {
@@ -58,12 +59,12 @@ class RegionAggregationMapping(BaseModel):
         }
         common_region_names = {cr.name for cr in values["common_regions"]}
         overlap = list(native_region_names & common_region_names)
-        if not overlap:
-            return values
-        raise ValueError(
-            "Conflict between (renamed) native regions and aggregation mapping"
-            f" to common regions: {overlap}"
-        )
+        if overlap:
+            raise ValueError(
+                "Conflict between (renamed) native regions and aggregation mapping"
+                f" to common regions: {overlap}"
+            )
+        return values
 
     @classmethod
     def create_from_region_mapping(cls, file: Union[Path, str]):
