@@ -10,10 +10,10 @@ test_folder = TEST_DATA_DIR / "region_aggregation"
 def test_mapping():
     mapping_file = "working_mapping.yaml"
     # Test that the file is read and represented correctly
-    ram = RegionAggregationMapping.create_from_region_mapping(
+    obs = RegionAggregationMapping.create_from_region_mapping(
         test_folder / mapping_file
     )
-    reference = {
+    exp = {
         "model": "model_a",
         "native_regions": [
             {"name": "region_a", "rename": "alternative_name_a"},
@@ -34,7 +34,7 @@ def test_mapping():
             },
         ],
     }
-    assert ram.dict() == reference
+    assert obs.dict() == exp
 
 
 @pytest.mark.parametrize(
@@ -81,12 +81,12 @@ def test_illegal_mappings(file, error_type, error_msg_pattern):
 
 def test_model_only_mapping():
     # test that a region mapping runs also with only a model
-    reference = {
+    exp = {
         "model": "model_a",
         "native_regions": None,
         "common_regions": None,
     }
-    model_only_mapping = RegionAggregationMapping.create_from_region_mapping(
+    obs = RegionAggregationMapping.create_from_region_mapping(
         test_folder / "working_mapping_model_only.yaml"
     )
-    assert reference == model_only_mapping.dict()
+    assert exp == obs.dict()
