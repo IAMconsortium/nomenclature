@@ -1,0 +1,7 @@
+# A common region is defined twice
+model: model_a
+common_regions:
+  - common_region_1:
+    - region_a
+  - common_region_1:
+    - region_b

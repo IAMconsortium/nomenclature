@@ -1,0 +1,5 @@
+# A native region renaming overlaps with another native region
+model: model_a
+native_regions:
+  - region_a: alternative_name_a
+  - alternative_name_a

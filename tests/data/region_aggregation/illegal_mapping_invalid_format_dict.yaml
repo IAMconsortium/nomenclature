@@ -1,0 +1,5 @@
+# Missing list markers ("-") in "common_regions"
+model: model_a
+common_regions:
+  common_region_1:
+    - region_a

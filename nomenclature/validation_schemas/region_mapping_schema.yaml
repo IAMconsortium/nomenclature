@@ -1,0 +1,53 @@
+$schema: 'https://json-schema.org/draft/2020-12/schema'
+title: RegionAggregationMapping
+description: >
+  This schema is used for the first stage of validation for yaml region mapping files.
+type: object
+properties:
+  model:
+    title: Model
+    type: string
+  native_regions:
+    title: Native Regions
+    type: array
+    items:
+      $ref: '#/definitions/NativeRegion'
+    minItems: 1
+  common_regions:
+    title: Common Regions
+    type: array
+    items:
+      $ref: '#/definitions/CommonRegion'
+    minItems: 1
+required:
+  - model
+additionalProperties: false
+definitions:
+  NativeRegion:
+    title: NativeRegion
+    oneOf:
+      - type: object
+        patternProperties:
+          # The key of the dictionary is the native-region name
+          ^.+$:
+            title: Rename
+            type: string
+        additionalProperties: false
+        maxProperties: 1
+        minProperties: 1
+      - type: string
+  CommonRegion:
+    title: CommonRegion
+    type: object
+    patternProperties:
+      # The key of this dictionary is the common region name
+      ^.+$:
+        title: Constituent Regions
+        type: array
+        items:
+          type: string
+        uniqueItems: true
+        minItems: 1
+    additionalProperties: false
+    maxProperties: 1
+    minProperties: 1

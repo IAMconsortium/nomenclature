@@ -1,0 +1,3 @@
+# Additional properties are not allowed
+model: model_a
+something_extra:

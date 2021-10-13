@@ -1,0 +1,11 @@
+model: model_a
+native_regions:
+  - region_a: alternative_name_a
+  - region_b: alternative_name_b
+  - region_c
+common_regions:
+  - common_region_1:
+    - region_a
+    - region_b
+  - common_region_2:
+    - region_c
