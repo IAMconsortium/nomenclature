@@ -45,7 +45,8 @@ The unit attribute can be empty, i.e., the variable is *dimensionless*.
 #### Tags
 
 To avoid repetition (and subsequent errors), any number of yaml files can be used
-as "tags" using a nested list of dictionaries.
+as "tags" using a nested list of dictionaries. The files defining the tags must
+have a name starting with `tag_`.
 
 ```yaml
 - <Tag>:
