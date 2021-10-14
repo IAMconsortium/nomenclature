@@ -1,17 +1,34 @@
 $schema: 'https://json-schema.org/draft/2020-12/schema'
 title: RegionCodeList
 description: >
-  This schema is used for the first stage of validation for yaml region files.
+  This schema is used for the validation of yaml region files.
 type: array
 items:
-  $ref: '#/definitions/Region'
+  $ref: '#/definitions/Hierarchy'
+minItems: 1
 
 definitions:
-  Region:
-    title: Region
+
+  Hierarchy:
     type: object
-    patternProperties:
-      # The key of the dictionary is the region name
-      <^.+>$:
-        title: Attributes
-        type: object
+    # The key of the dictionary is the hierarchy name
+    additionalProperties:
+      type: array
+      items:
+        $ref: '#/definitions/Region'
+    minProperties: 1
+    maxProperties: 1
+
+  Region:
+    oneOf:
+      - type: object
+        # The key of the top-level dictionary is the region name
+        additionalProperties:
+          type: object
+          # The lower-level dictionary are the attributes
+          additionalProperties:
+            type: [ string, number, "null" ]
+        minProperties: 1
+        maxProperties: 1
+        # The region can also be a simple string
+      - type: string
