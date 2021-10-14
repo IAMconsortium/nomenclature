@@ -6,6 +6,7 @@ type: array
 items:
   $ref: '#/definitions/Tag'
 minItems: 1
+maxItems: 1
 
 definitions:
 
