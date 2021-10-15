@@ -19,9 +19,9 @@ class DataStructureDefinition:
         if not path.is_dir():
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
-        self.variable = CodeList("variable").parse_files(path / "variables")
-        self.region = CodeList("region").parse_files(
-            path / "regions", top_level_attr="hierarchy"
+        self.variable = CodeList.from_directory("variable", path / "variables")
+        self.region = CodeList.from_directory(
+            "region", path / "regions", top_level_attr="hierarchy"
         )
 
     def validate(self, df: IamDataFrame) -> None:
