@@ -22,6 +22,7 @@ SCHEMA_MAPPING = dict([(i, read_validation_schema(i)) for i in SCHEMA_TYPES])
 
 class CodeList(BaseModel):
     """A class for nomenclature codelists & attributes"""
+
     name: str
     mapping: Optional[Dict] = {}
 

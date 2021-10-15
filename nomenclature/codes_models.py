@@ -8,6 +8,7 @@ TAG_PATTERN = compile("<.*>$")
 
 class Code(BaseModel):
     """A simple class for a mapping of a "code" to its attributes"""
+
     name: str
     attributes: dict[str, Union[str, dict, None]]
 
@@ -27,6 +28,7 @@ class Code(BaseModel):
 
 class Tag(Code):
     """A simple class for a mapping of a "<tag>" to "target codes" and attributes"""
+
     attributes: list[dict[str, Union[str, dict, None]]]
 
     @property
