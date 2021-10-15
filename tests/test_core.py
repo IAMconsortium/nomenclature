@@ -16,8 +16,6 @@ def test_to_excel(simple_nomenclature, tmpdir):
     """Check writing a nomenclature to file"""
     file = tmpdir / "testing_export.xlsx"
 
-    print(simple_nomenclature.variable)
-
     simple_nomenclature.to_excel(file)
 
     obs = pd.read_excel(file)
