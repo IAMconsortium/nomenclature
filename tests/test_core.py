@@ -23,6 +23,26 @@ def test_to_excel(simple_nomenclature, tmpdir):
     pd.testing.assert_frame_equal(obs, exp)
 
 
+def test_create_yaml_from_xlsx(tmpdir):
+    """Check that creating a yaml codelist from xlsx yields the expected output file"""
+    file = tmpdir / "foo.yaml"
+
+    create_yaml_from_xlsx(
+        source=TEST_DATA_DIR / "validation_nc.xlsx",
+        target=file,
+        sheet_name="variable_definitions",
+        col="Variable",
+        attrs=["Definition", "Unit"],
+    )
+
+    with open(file, "r") as f:
+        obs = f.read()
+    with open(TEST_DATA_DIR / "validation_nc_flat.yaml", "r") as f:
+        exp = f.read()
+
+    assert obs == exp
+
+
 def test_create_yaml_from_xlsx_duplicate():
     """Check that creating a yaml codelist from xlsx with duplicates raises"""
     with pytest.raises(ValueError):
