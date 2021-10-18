@@ -23,11 +23,11 @@ def test_to_excel(simple_nomenclature, tmpdir):
     pd.testing.assert_frame_equal(obs, exp)
 
 
-def test_create_yaml_from_xlsx():
+def test_create_yaml_from_xlsx_duplicate():
     """Check that creating a yaml codelist from xlsx with duplicates raises"""
     with pytest.raises(ValueError):
         create_yaml_from_xlsx(
-            source=TEST_DATA_DIR / "create_yaml_from_xlsx.xlsx",
+            source=TEST_DATA_DIR / "validation_nc_duplicates.xlsx",
             target="_",
             sheet_name="duplicate_index_raises",
             col="Variable",
