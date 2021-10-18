@@ -1,7 +1,7 @@
 from pathlib import Path
 import yaml
 from typing import Dict, Optional
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from jsonschema import validate
 
 from nomenclature.codes_models import Code, Tag, replace_tags
