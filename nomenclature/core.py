@@ -103,13 +103,12 @@ def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=[]):
         raise ValueError(msg + ("\n..." if len(duplicates) > 20 else ""))
 
     # set `col` as index and cast all attribute-names to lowercase
-    variable = source[[col] + attrs].set_index(col)[attrs].fillna("")
+    variable = source[[col] + attrs].set_index(col)[attrs]
     variable.rename(columns={c: str(c).lower() for c in variable.columns}, inplace=True)
 
-    # translate pd.DataFrame to list of nested dicts and write to yaml file
+    # translate to list of nested dicts, replace None by empty field, write to yaml file
+    stream = yaml.dump(
+        [{code: attrs} for code, attrs in variable.to_dict(orient="index").items()]
+    )
     with open(target, "w") as file:
-        yaml.dump(
-            [{code: attrs} for code, attrs in variable.to_dict(orient="index").items()],
-            file,
-            default_flow_style=False,
-        )
+        file.write(stream.replace(": .nan\n", ":\n"))
