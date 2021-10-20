@@ -32,5 +32,6 @@ definitions:
         type: object
         additionalProperties:
           type: [string, number, "null"]
+    additionalProperties: false
     minProperties: 1
     maxProperties: 1
