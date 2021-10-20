@@ -1,7 +1,7 @@
-Final Energy|<Sector>:
-  definition: Final energy consumption in the <Sector> sector
-  unit: EJ
+- Final Energy|<Sector>:
+    definition: Final energy consumption in the <Sector> sector
+    unit: EJ
 
-Final Energy|<Sector>|<Source>:
-  definition: Final energy consumption of <Source> in the <Sector> sector
-  unit: EJ
+- Final Energy|<Sector>|<Source>:
+    definition: Final energy consumption of <Source> in the <Sector> sector
+    unit: EJ

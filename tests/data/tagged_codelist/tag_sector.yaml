@@ -1,0 +1,5 @@
+- <Sector>:
+  - Energy:
+      definition: energy
+  - Industry:
+      definition: industrial

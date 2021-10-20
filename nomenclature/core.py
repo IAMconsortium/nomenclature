@@ -19,9 +19,9 @@ class DataStructureDefinition:
         if not path.is_dir():
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
-        self.variable = CodeList("variable").parse_files(path / "variables")
-        self.region = CodeList("region").parse_files(
-            path / "regions", top_level_attr="hierarchy"
+        self.variable = CodeList.from_directory("variable", path / "variables")
+        self.region = CodeList.from_directory(
+            "region", path / "regions", top_level_attr="hierarchy"
         )
 
     def validate(self, df: IamDataFrame) -> None:
@@ -103,8 +103,12 @@ def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=[]):
         raise ValueError(msg + ("\n..." if len(duplicates) > 20 else ""))
 
     # set `col` as index and cast all attribute-names to lowercase
-    variable = source[[col] + attrs].set_index(col)
+    variable = source[[col] + attrs].set_index(col)[attrs]
     variable.rename(columns={c: str(c).lower() for c in variable.columns}, inplace=True)
 
+    # translate to list of nested dicts, replace None by empty field, write to yaml file
+    stream = yaml.dump(
+        [{code: attrs} for code, attrs in variable.to_dict(orient="index").items()]
+    )
     with open(target, "w") as file:
-        yaml.dump(variable.to_dict(orient="index"), file, default_flow_style=False)
+        file.write(stream.replace(": .nan\n", ":\n"))
