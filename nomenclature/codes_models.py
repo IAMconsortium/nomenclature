@@ -31,10 +31,6 @@ class Tag(Code):
 
     attributes: List[Dict[str, Union[str, dict, None]]]
 
-    @property
-    def target(self):
-        return list(list(self.mapping.values())[0])
-
     @validator("name")
     def validate_tag_format(cls, v):
         if not match(TAG_PATTERN, v):
