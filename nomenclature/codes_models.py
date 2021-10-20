@@ -35,6 +35,7 @@ class Tag(Code):
 
     @validator("name")
     def validate_tag_format(cls, v):
+        # Note: the pattern is also enforced by json-schema via the tag_schema.yaml
         if not match(TAG_PATTERN, v):
             raise ValueError(f"The key is not formatted as a tag (`<..>`): {v}")
         return v

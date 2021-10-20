@@ -14,6 +14,7 @@ definitions:
     type: object
     patternProperties:
       # The key of the dictionary is the tag name and must be written as `<Tag>`
+      # Note: the pattern is also enforced by pydantic in the `Tag` class
       ^<.+>$:
         type: array
         items:
