@@ -16,7 +16,7 @@ def read_validation_schema(i):
     return schema
 
 
-SCHEMA_TYPES = ["variable", "tag", "region"]
+SCHEMA_TYPES = ("variable", "tag", "region")
 SCHEMA_MAPPING = dict([(i, read_validation_schema(i)) for i in SCHEMA_TYPES])
 
 
