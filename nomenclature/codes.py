@@ -24,7 +24,7 @@ class CodeList(BaseModel):
     """A class for nomenclature codelists & attributes"""
 
     name: str
-    mapping: Optional[Dict] = {}
+    mapping: Optional[Dict[str, Dict]] = {}
 
     def __setitem__(self, key, value):
         if key in self.mapping:
@@ -53,7 +53,14 @@ class CodeList(BaseModel):
         return self.mapping.values()
 
     @classmethod
-    def from_directory(cls, name, path, file=None, ext=".yaml", top_level_attr=None):
+    def from_directory(
+        cls,
+        name: str,
+        path: Path,
+        file: str = None,
+        ext: str = ".yaml",
+        top_level_attr: str = None,
+    ):
         """Initialize a CodeList from a directory with codelist files
 
         Parameters

@@ -1,5 +1,5 @@
 from re import compile, match
-from typing import Union
+from typing import Union, List, Dict
 from pydantic import BaseModel, validator
 
 
@@ -10,7 +10,7 @@ class Code(BaseModel):
     """A simple class for a mapping of a "code" to its attributes"""
 
     name: str
-    attributes: dict[str, Union[str, dict, None]]
+    attributes: Dict[str, Union[str, dict, None]]
 
     @classmethod
     def from_dict(cls, mapping):
@@ -29,7 +29,7 @@ class Code(BaseModel):
 class Tag(Code):
     """A simple class for a mapping of a "<tag>" to "target codes" and attributes"""
 
-    attributes: list[dict[str, Union[str, dict, None]]]
+    attributes: List[Dict[str, Union[str, dict, None]]]
 
     @property
     def target(self):
