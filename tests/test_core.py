@@ -45,7 +45,7 @@ def test_create_yaml_from_xlsx(tmpdir):
 
 def test_create_yaml_from_xlsx_duplicate():
     """Check that creating a yaml codelist from xlsx with duplicates raises"""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Duplicate values in the codelist:"):
         create_yaml_from_xlsx(
             source=TEST_DATA_DIR / "validation_nc_duplicates.xlsx",
             target="_",
