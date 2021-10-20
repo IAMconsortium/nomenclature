@@ -1,6 +1,6 @@
 from pathlib import Path
 import yaml
-from typing import Dict, Optional
+from typing import Union, Dict, Optional
 from pydantic import BaseModel
 from jsonschema import validate
 
@@ -24,7 +24,7 @@ class CodeList(BaseModel):
     """A class for nomenclature codelists & attributes"""
 
     name: str
-    mapping: Optional[Dict[str, Dict]] = {}
+    mapping: Optional[Dict[str, Dict[str, Union[str, float, int, None]]]] = {}
 
     def __setitem__(self, key, value):
         if key in self.mapping:
