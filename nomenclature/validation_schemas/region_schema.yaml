@@ -11,23 +11,25 @@ definitions:
 
   Hierarchy:
     type: object
+    patternProperties:
     # The key of the dictionary is the hierarchy name
-    additionalProperties:
-      type: array
-      items:
-        $ref: '#/definitions/Region'
+      ^.+$:
+        type: array
+        items:
+          $ref: '#/definitions/Region'
     minProperties: 1
     maxProperties: 1
 
   Region:
     oneOf:
       - type: object
+        patternProperties:
         # The key of the top-level dictionary is the region name
-        additionalProperties:
-          type: object
-          # The lower-level dictionary are the attributes
-          additionalProperties:
-            type: [ string, number, "null" ]
+          ^.+$:
+            type: object
+            # The lower-level dictionary are the attributes
+            additionalProperties:
+              type: [ string, number, "null" ]
         minProperties: 1
         maxProperties: 1
         # The region can also be a simple string

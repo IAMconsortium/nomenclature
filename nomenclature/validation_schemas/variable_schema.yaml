@@ -10,16 +10,17 @@ definitions:
 
   Variable:
     type: object
-    # The key of the dictionary is the variable name
-    additionalProperties:
-      type: object
-      # The lower-level dictionary are the attributes
-      properties:
-        unit:
-          type: [ string, "null" ]
-      required:
-        - unit
-      additionalProperties:
-        type: [ string, number, "null" ]
+    patternProperties:
+      # The key of this dictionary is the variable name (aka code)
+      ^.+$:
+        type: object
+        # The lower-level dictionary are the attributes
+        properties:
+          unit:
+            type: [ string, "null" ]
+        required:
+          - unit
+        additionalProperties:
+          type: [ string, number, "null" ]
     minProperties: 1
     maxProperties: 1

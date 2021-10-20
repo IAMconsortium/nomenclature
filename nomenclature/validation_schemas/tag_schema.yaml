@@ -24,12 +24,13 @@ definitions:
 
   TargetDict:
     type: object
-    # The key of the top-level dictionary is the target name
-    # (replace `<Tag>` by `Target` in the variable code)
-    additionalProperties:
-      # Attributes-dictionary (replace `<Tag>` by `value` in the `key` attribute)
-      type: object
-      additionalProperties:
-        type: [string, number, "null"]
+    patternProperties:
+      # The key of the top-level dictionary is the target name
+      # (replace `<Tag>` by `Target` in the variable code)
+      ^.+$:
+        # Attributes-dictionary (replace `<Tag>` by `value` in the `key` attribute)
+        type: object
+        additionalProperties:
+          type: [string, number, "null"]
     minProperties: 1
     maxProperties: 1
