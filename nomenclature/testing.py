@@ -2,10 +2,18 @@ import yaml
 import logging
 from pathlib import Path
 
+import click
 
 logger = logging.getLogger(__name__)
 
 
+@click.group(chain=True)
+def cli():
+    pass
+
+
+@cli.command('assert_valid_yaml')
+@click.argument("path", type=click.Path(exists=True))
 def assert_valid_yaml(path):
     """Assert that all yaml files in `path` can be parsed without errors"""
 
