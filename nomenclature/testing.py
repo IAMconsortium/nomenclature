@@ -4,16 +4,18 @@ from pathlib import Path
 
 import click
 
+import nomenclature
+
 logger = logging.getLogger(__name__)
 
 
-@click.group(chain=True)
-def cli():
-    pass
-
-
-@cli.command("assert_valid_yaml")
+@click.group(chain=True, invoke_without_command=True)
 @click.argument("path", type=click.Path(exists=True))
+def cli(path):
+    assert_valid_yaml(path)
+    assert_valid_structure(path)
+
+
 def assert_valid_yaml(path):
     """Assert that all yaml files in `path` can be parsed without errors"""
 
@@ -34,12 +36,8 @@ def assert_valid_yaml(path):
         )
 
 
-@cli.command("assert_valid_structure")
-@click.argument("path", type=click.Path(exists=True))
 def assert_valid_structure(path):
     """Assert that "definition" folder in `path` can be initialized without errors"""
-
-    import nomenclature
 
     # check if the directory has a sub-folder "definitions"
     for name in Path(path).glob("**"):
@@ -47,4 +45,4 @@ def assert_valid_structure(path):
             nomenclature.DataStructureDefinition(name)
             break
     else:
-        logger.warning("No sub-folder called definitions found")
+        logger.warning("No folder `definitions` found in the directory")
