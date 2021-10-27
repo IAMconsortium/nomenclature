@@ -32,3 +32,19 @@ def assert_valid_yaml(path):
         raise AssertionError(
             "Parsing the yaml files failed. Please check the log for details."
         )
+
+
+@cli.command('assert_valid_structure')
+@click.argument("path", type=click.Path(exists=True))
+def assert_valid_structure(path):
+    """Assert that "definition" folder in `path` can be initialized without errors"""
+
+    import nomenclature
+
+    # check if the directory has a sub-folder "definitions"
+    for name in Path(path).glob("**"):
+        if name.stem == "definitions":
+            nomenclature.DataStructureDefinition(name)
+            break
+    else:
+        logger.warning("No sub-folder called definitions found")
