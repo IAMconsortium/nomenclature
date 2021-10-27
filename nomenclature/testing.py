@@ -12,7 +12,7 @@ def cli():
     pass
 
 
-@cli.command('assert_valid_yaml')
+@cli.command("assert_valid_yaml")
 @click.argument("path", type=click.Path(exists=True))
 def assert_valid_yaml(path):
     """Assert that all yaml files in `path` can be parsed without errors"""
@@ -34,7 +34,7 @@ def assert_valid_yaml(path):
         )
 
 
-@cli.command('assert_valid_structure')
+@cli.command("assert_valid_structure")
 @click.argument("path", type=click.Path(exists=True))
 def assert_valid_structure(path):
     """Assert that "definition" folder in `path` can be initialized without errors"""
