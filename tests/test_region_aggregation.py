@@ -1,18 +1,18 @@
 import jsonschema
 import pydantic
 import pytest
-from nomenclature.region_mapping_models import RegionAggregationMapping
+from nomenclature.region_mapping_models import RegionAggregationMapping, RegionProcessor
 
 from conftest import TEST_DATA_DIR
 
-test_folder = TEST_DATA_DIR / "region_aggregation"
+test_folder_region_mapping = TEST_DATA_DIR / "region_aggregation"
 
 
 def test_mapping():
     mapping_file = "working_mapping.yaml"
     # Test that the file is read and represented correctly
     obs = RegionAggregationMapping.create_from_region_mapping(
-        test_folder / mapping_file
+        test_folder_region_mapping / mapping_file
     )
     exp = {
         "model": "model_a",
@@ -90,6 +90,16 @@ def test_model_only_mapping():
         "common_regions": None,
     }
     obs = RegionAggregationMapping.create_from_region_mapping(
-        test_folder / "working_mapping_model_only.yaml"
+        test_folder_region_mapping / "working_mapping_model_only.yaml"
     )
     assert exp == obs.dict()
+
+
+def test_working_region_processor():
+    rp = RegionProcessor(TEST_DATA_DIR / "regionprocessor_working")
+    assert {"model_a", "model_b"} == set(rp.keys())
+
+
+def test_duplicate_region_processor():
+    with pytest.raises(KeyError, match="model_a"):
+        RegionProcessor(TEST_DATA_DIR / "regionprocessor_duplicate")
