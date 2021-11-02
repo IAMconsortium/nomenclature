@@ -1,9 +1,10 @@
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 from collections import Counter
+from pydantic.types import FilePath
 
 import yaml
-from jsonschema import validate
+from jsonschema import validate, ValidationError
 from pydantic import BaseModel, validator, root_validator
 
 here = Path(__file__).parent.absolute()
@@ -25,28 +26,29 @@ class CommonRegion(BaseModel):
 
 class RegionAggregationMapping(BaseModel):
     model: str
+    mapping_file: FilePath
     native_regions: Optional[List[NativeRegion]]
     common_regions: Optional[List[CommonRegion]]
 
     @validator("native_regions")
-    def validate_native_regions(cls, v):
+    def validate_native_regions(cls, v, values):
         target_names = [nr.target_native_region for nr in v]
         duplicates = [
             item for item, count in Counter(target_names).items() if count > 1
         ]
         if duplicates:
             raise ValueError(
-                f"Two or more native regions share the same name: {duplicates}"
+                f"Two or more native regions share the same name: {duplicates} in {values['mapping_file']}"
             )
         return v
 
     @validator("common_regions")
-    def validate_common_regions(cls, v):
+    def validate_common_regions(cls, v, values):
         names = [cr.name for cr in v]
         duplicates = [item for item, count in Counter(names).items() if count > 1]
         if duplicates:
             raise ValueError(
-                f"Duplicated aggregation mapping to common regions: {duplicates}"
+                f"Duplicated aggregation mapping to common regions: {duplicates} in {values['mapping_file']}"
             )
         return v
 
@@ -64,7 +66,7 @@ class RegionAggregationMapping(BaseModel):
         if overlap:
             raise ValueError(
                 "Conflict between (renamed) native regions and aggregation mapping"
-                f" to common regions: {overlap}"
+                f" to common regions: {overlap} in {values['mapping_file']}"
             )
         return values
 
@@ -77,7 +79,14 @@ class RegionAggregationMapping(BaseModel):
             schema = yaml.safe_load(f)
 
         # Validate the input data using jsonschema
-        validate(mapping_input, schema)
+        try:
+            validate(mapping_input, schema)
+        except ValidationError as e:
+            # Add file information in case of error
+            raise ValidationError(f"{e.message} in {file}")
+
+        # Add the file name to mapping_input
+        mapping_input["mapping_file"] = file
 
         # Reformat the "native_regions"
         if "native_regions" in mapping_input:
