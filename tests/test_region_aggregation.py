@@ -75,7 +75,7 @@ def test_mapping():
 def test_illegal_mappings(file, error_type, error_msg_pattern):
     # This is to test a few different failure conditions
 
-    with pytest.raises(error_type, match=error_msg_pattern):
+    with pytest.raises(error_type, match=f"{error_msg_pattern}{file}.*"):
         RegionAggregationMapping.create_from_region_mapping(test_folder / file)
 
 
