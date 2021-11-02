@@ -26,7 +26,7 @@ class CommonRegion(BaseModel):
 
 class RegionAggregationMapping(BaseModel):
     model: str
-    mapping_file: FilePath
+    file: FilePath
     native_regions: Optional[List[NativeRegion]]
     common_regions: Optional[List[CommonRegion]]
 
@@ -66,7 +66,7 @@ class RegionAggregationMapping(BaseModel):
         if overlap:
             raise ValueError(
                 "Conflict between (renamed) native regions and aggregation mapping"
-                f" to common regions: {overlap} in {values['mapping_file']}"
+                f" to common regions: {overlap} in {values['file']}"
             )
         return values
 
@@ -86,7 +86,7 @@ class RegionAggregationMapping(BaseModel):
             raise ValidationError(f"{e.message} in {file}")
 
         # Add the file name to mapping_input
-        mapping_input["mapping_file"] = file
+        mapping_input["file"] = file
 
         # Reformat the "native_regions"
         if "native_regions" in mapping_input:
