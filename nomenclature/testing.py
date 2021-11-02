@@ -9,7 +9,7 @@ import nomenclature
 logger = logging.getLogger(__name__)
 
 
-@click.group(chain=True, invoke_without_command=True)
+@click.group(invoke_without_command=True)
 @click.argument("path", type=click.Path(exists=True))
 def cli(path):
     assert_valid_yaml(path)
