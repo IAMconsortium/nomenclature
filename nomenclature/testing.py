@@ -10,18 +10,20 @@ logger = logging.getLogger(__name__)
 
 
 @click.group(invoke_without_command=True)
-@click.argument("path", type=click.Path(exists=True))
-def cli(path):
+@click.argument(
+    "path", type=click.Path(exists=True, path_type=Path, file_okay=False, dir_okay=True)
+)
+def cli(path: Path):
     assert_valid_yaml(path)
     assert_valid_structure(path)
 
 
-def assert_valid_yaml(path):
+def assert_valid_yaml(path: Path):
     """Assert that all yaml files in `path` can be parsed without errors"""
 
     # iterate over the yaml files in all sub-folders and try loading each
     error = False
-    for file in Path(path).glob("**/*.yaml"):
+    for file in path.glob("**/*.yaml"):
         try:
             with open(file, "r", encoding="utf-8") as stream:
                 yaml.safe_load(stream)
@@ -36,11 +38,11 @@ def assert_valid_yaml(path):
         )
 
 
-def assert_valid_structure(path):
+def assert_valid_structure(path: Path):
     """Assert that "definition" folder in `path` can be initialized without errors"""
 
     # check if the directory has a sub-folder "definitions"
-    for name in Path(path).glob("**"):
+    for name in path.glob("**"):
         if name.stem == "definitions":
             nomenclature.DataStructureDefinition(name)
             break
