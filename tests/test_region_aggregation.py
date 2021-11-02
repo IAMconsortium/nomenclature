@@ -15,6 +15,7 @@ def test_mapping():
     )
     exp = {
         "model": "model_a",
+        "mapping_file": test_folder / mapping_file,
         "native_regions": [
             {"name": "region_a", "rename": "alternative_name_a"},
             {"name": "region_b", "rename": "alternative_name_b"},
@@ -83,6 +84,7 @@ def test_model_only_mapping():
     # test that a region mapping runs also with only a model
     exp = {
         "model": "model_a",
+        "mapping_file": test_folder / "working_mapping_model_only.yaml",
         "native_regions": None,
         "common_regions": None,
     }
