@@ -38,7 +38,8 @@ class RegionAggregationMapping(BaseModel):
         ]
         if duplicates:
             raise ValueError(
-                f"Two or more native regions share the same name: {duplicates} in {values['mapping_file']}"
+                f"Two or more native regions share the same name: {duplicates} in "
+                f"{values['file']}"
             )
         return v
 
@@ -48,7 +49,8 @@ class RegionAggregationMapping(BaseModel):
         duplicates = [item for item, count in Counter(names).items() if count > 1]
         if duplicates:
             raise ValueError(
-                f"Duplicated aggregation mapping to common regions: {duplicates} in {values['mapping_file']}"
+                f"Duplicated aggregation mapping to common regions: {duplicates} in "
+                f"{values['file']}"
             )
         return v
 
