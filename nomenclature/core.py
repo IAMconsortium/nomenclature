@@ -1,12 +1,15 @@
-from pathlib import Path
 import pandas as pd
 import yaml
+import logging
+from pathlib import Path
 
 from pyam import IamDataFrame
 from pyam.utils import write_sheet
 
 from nomenclature.codes import CodeList
 from nomenclature.validation import validate
+
+logger = logging.getLogger(__name__)
 
 
 class DataStructureDefinition:
@@ -23,6 +26,9 @@ class DataStructureDefinition:
         self.region = CodeList.from_directory(
             "region", path / "regions", top_level_attr="hierarchy"
         )
+
+        if not self.region or not self.variable:
+            logger.warning("Attribute `variable` or `region` is empty.")
 
     def validate(self, df: IamDataFrame) -> None:
         """Validate that the coordinates of `df` are defined in the codelists
