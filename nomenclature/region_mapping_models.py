@@ -5,7 +5,37 @@ from pydantic.types import FilePath
 
 import yaml
 from jsonschema import validate, ValidationError
-from pydantic import BaseModel, validator, root_validator
+import pydantic
+from pydantic import BaseModel, validator, root_validator, PydanticValueError
+
+import copy
+
+# We take a deep copy of the original __str__ from
+# pydantic.error_wrappers.ValidationError. We do this to keep the changes minimally
+# invasive and get 'automatic' updates in case of any changes upstream
+original__str__ = copy.deepcopy(pydantic.error_wrappers.ValidationError.__str__)
+
+# Define a new __str__ method which adds file information in case it is present.
+# Otherwise the original __str__ method is used.
+def new__str__(self):
+    """Change __str__ from pydantic ValidationError to include the file name if
+    present"""
+    if "ctx" in self.errors()[0] and "file" in self.errors()[0]["ctx"]:
+        return original__str__(self).replace(
+            "\n", f" in {self.errors()[0]['ctx']['file']}\n", 1
+        )
+    return original__str__(self)
+
+
+# Overwrite the original __str__ with new__str__
+pydantic.error_wrappers.ValidationError.__str__ = new__str__
+
+# Custom error class since we need to get the file information to ValidationError
+# See for details: https://pydantic-docs.helpmanual.io/usage/models/#custom-errors
+class DoubleNativeRegionError(PydanticValueError):
+    code = "double_native_region"
+    msg_template = 'Two or more native regions share the same name: "{duplicates}"'
+
 
 here = Path(__file__).parent.absolute()
 
@@ -37,9 +67,10 @@ class RegionAggregationMapping(BaseModel):
             item for item, count in Counter(target_names).items() if count > 1
         ]
         if duplicates:
-            raise ValueError(
-                f"Two or more native regions share the same name: {duplicates} in "
-                f"{values['file'].relative_to(Path.cwd())}"
+            # Raise the custom DoubleNativeRegionError and give the parameters
+            # duplicates and file.
+            raise DoubleNativeRegionError(
+                duplicates=duplicates, file=values["file"].relative_to(Path.cwd())
             )
         return v
 
@@ -116,3 +147,11 @@ class RegionAggregationMapping(BaseModel):
                 )
             mapping_input["common_regions"] = common_region_list
         return cls(**mapping_input)
+
+
+# Just as a demonstration for the error message, to be removed later
+if __name__ == "__main__":
+    RegionAggregationMapping.create_from_region_mapping(
+        Path(__file__).parents[1]
+        / "tests/data/region_aggregation/illegal_mapping_duplicate_native.yaml"
+    )
