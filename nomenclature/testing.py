@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 )
 def cli(path: Path):
     assert_valid_yaml(path)
-    assert_valid_structure(path)
+    check_valid_structure(path)
 
 
 def assert_valid_yaml(path: Path):
@@ -38,13 +38,6 @@ def assert_valid_yaml(path: Path):
         )
 
 
-def assert_valid_structure(path: Path):
-    """Assert that "definition" folder in `path` can be initialized without errors"""
-
-    # check if the directory has a sub-folder "definitions"
-    for name in path.glob("**"):
-        if name.stem == "definitions":
-            nomenclature.DataStructureDefinition(name)
-            break
-    else:
-        logger.warning("No folder `definitions` found in the directory")
+def check_valid_structure(path: Path):
+    """Check that "definition" folder in `path` exists and can be initialized without errors"""
+    nomenclature.DataStructureDefinition(path / "definitions")
