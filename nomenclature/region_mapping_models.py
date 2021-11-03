@@ -39,7 +39,7 @@ class RegionAggregationMapping(BaseModel):
         if duplicates:
             raise ValueError(
                 f"Two or more native regions share the same name: {duplicates} in "
-                f"{values['file']}"
+                f"{values['file'].relative_to(Path.cwd())}"
             )
         return v
 
@@ -50,7 +50,7 @@ class RegionAggregationMapping(BaseModel):
         if duplicates:
             raise ValueError(
                 f"Duplicated aggregation mapping to common regions: {duplicates} in "
-                f"{values['file']}"
+                f"{values['file'].relative_to(Path.cwd())}"
             )
         return v
 
@@ -68,7 +68,8 @@ class RegionAggregationMapping(BaseModel):
         if overlap:
             raise ValueError(
                 "Conflict between (renamed) native regions and aggregation mapping"
-                f" to common regions: {overlap} in {values['file']}"
+                f" to common regions: {overlap} in "
+                f"{values['file'].relative_to(Path.cwd())}"
             )
         return values
 
