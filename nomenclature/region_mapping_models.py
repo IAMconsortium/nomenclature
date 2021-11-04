@@ -1,12 +1,53 @@
-from pathlib import Path
-from typing import Dict, List, Optional, Union
+import copy
 from collections import Counter
+from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple, Union
 
+import pydantic
 import yaml
-from jsonschema import validate
-from pydantic import BaseModel, validator, root_validator
+from jsonschema import ValidationError, validate
+from pydantic import BaseModel, root_validator, validator
+from pydantic.types import FilePath
 
 here = Path(__file__).parent.absolute()
+
+# We take a deep copy of the original __str__ from
+# pydantic.error_wrappers.ValidationError. We do this to keep the changes minimally
+# invasive and get 'automatic' updates in case of any changes upstream
+original__str__ = copy.deepcopy(pydantic.error_wrappers.ValidationError.__str__)
+
+# Define a new __str__ method which adds file information in case it is present.
+# Otherwise the original __str__ method is used.
+
+
+def new__str__(self):
+    """Change __str__ from pydantic ValidationError to include the file name if
+    present"""
+    if "ctx" in self.errors()[0] and "file" in self.errors()[0]["ctx"]:
+        return original__str__(self).replace(
+            "\n", f" in {self.errors()[0]['ctx']['file']}\n", 1
+        )
+    return original__str__(self)
+
+
+# Overwrite the original __str__ with new__str__
+pydantic.error_wrappers.ValidationError.__str__ = new__str__
+
+Sequence = Union[List[str], Tuple[str], Set[str]]
+
+
+class RegionNameCollisionError(ValueError):
+    template = "Name collision in {location} for {duplicates}"
+
+    def __init__(self, location: str, duplicates: Sequence, file: Path) -> None:
+        self.file = file.relative_to(Path.cwd())
+        super().__init__(
+            self.template.format(
+                location=location,
+                duplicates=duplicates,
+                rel_file=self.file,
+            )
+        )
 
 
 class NativeRegion(BaseModel):
@@ -25,29 +66,28 @@ class CommonRegion(BaseModel):
 
 class RegionAggregationMapping(BaseModel):
     model: str
+    file: FilePath
     native_regions: Optional[List[NativeRegion]]
     common_regions: Optional[List[CommonRegion]]
 
     @validator("native_regions")
-    def validate_native_regions(cls, v):
+    def validate_native_regions(cls, v, values):
         target_names = [nr.target_native_region for nr in v]
         duplicates = [
             item for item, count in Counter(target_names).items() if count > 1
         ]
         if duplicates:
-            raise ValueError(
-                f"Two or more native regions share the same name: {duplicates}"
-            )
+            # Raise the custom RegionNameCollisionError and give the parameters
+            # duplicates and file.
+            raise RegionNameCollisionError("native regions", duplicates, values["file"])
         return v
 
     @validator("common_regions")
-    def validate_common_regions(cls, v):
+    def validate_common_regions(cls, v, values):
         names = [cr.name for cr in v]
         duplicates = [item for item, count in Counter(names).items() if count > 1]
         if duplicates:
-            raise ValueError(
-                f"Duplicated aggregation mapping to common regions: {duplicates}"
-            )
+            raise RegionNameCollisionError("common regions", duplicates, values["file"])
         return v
 
     @root_validator()
@@ -62,9 +102,8 @@ class RegionAggregationMapping(BaseModel):
         common_region_names = {cr.name for cr in values["common_regions"]}
         overlap = list(native_region_names & common_region_names)
         if overlap:
-            raise ValueError(
-                "Conflict between (renamed) native regions and aggregation mapping"
-                f" to common regions: {overlap}"
+            raise RegionNameCollisionError(
+                "native and common regions", overlap, values["file"]
             )
         return values
 
@@ -77,7 +116,14 @@ class RegionAggregationMapping(BaseModel):
             schema = yaml.safe_load(f)
 
         # Validate the input data using jsonschema
-        validate(mapping_input, schema)
+        try:
+            validate(mapping_input, schema)
+        except ValidationError as e:
+            # Add file information in case of error
+            raise ValidationError(f"{e.message} in {file}")
+
+        # Add the file name to mapping_input
+        mapping_input["file"] = file
 
         # Reformat the "native_regions"
         if "native_regions" in mapping_input:
