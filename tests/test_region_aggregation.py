@@ -54,22 +54,22 @@ def test_mapping():
         (
             "illegal_mapping_conflict_regions.yaml",
             ValueError,
-            r".*Conflict between \(renamed\).*common_region_1.*",
+            ".*Name collision.*common and native regions.*common_region_1.*",
         ),
         (
             "illegal_mapping_duplicate_native.yaml",
             ValueError,
-            ".*Two or more.*alternative_name_a.*",
+            ".*Name collision.*native regions.*alternative_name_a.*",
         ),
         (
             "illegal_mapping_duplicate_native_rename.yaml",
             ValueError,
-            ".*Two or more.*alternative_name_a.*",
+            ".*Name collision.*native regions.*alternative_name_a.*",
         ),
         (
             "illegal_mapping_duplicate_common.yaml",
             ValueError,
-            ".*common regions.*common_region_1.*",
+            "Name collision.*common regions.*common_region_1.*",
         ),
     ],
 )
