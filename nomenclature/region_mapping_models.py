@@ -150,10 +150,3 @@ class RegionAggregationMapping(BaseModel):
                 )
             mapping_input["common_regions"] = common_region_list
         return cls(**mapping_input)
-
-
-# if __name__ == "__main__":
-#     RegionAggregationMapping.create_from_region_mapping(
-#         Path(__file__).parents[1]
-#         / "tests/data/region_aggregation/illegal_mapping_duplicate_native.yaml"
-#     )
