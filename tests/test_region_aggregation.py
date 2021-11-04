@@ -1,7 +1,6 @@
 import jsonschema
 import pydantic
 import pytest
-from pathlib import Path
 from nomenclature.region_mapping_models import RegionAggregationMapping
 
 from conftest import TEST_DATA_DIR
