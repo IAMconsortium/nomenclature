@@ -1,13 +1,30 @@
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Set, Tuple
 from collections import Counter
 from pydantic.types import FilePath
+from collections.abc import Sequence
 
 import yaml
 from jsonschema import validate, ValidationError
 from pydantic import BaseModel, validator, root_validator
 
 here = Path(__file__).parent.absolute()
+
+
+Sequence = Union[List[str], Tuple[str], Set[str]]
+
+
+class NameCollisionError(ValueError):
+    template = 'Name collision in {location} for "{duplicates}" in {rel_file}'
+
+    def __init__(self, location: str, duplicates: Sequence, file: Path) -> None:
+        super().__init__(
+            self.template.format(
+                location=location,
+                duplicates=duplicates,
+                rel_file=file.relative_to(Path.cwd()),
+            )
+        )
 
 
 class NativeRegion(BaseModel):
@@ -37,10 +54,7 @@ class RegionAggregationMapping(BaseModel):
             item for item, count in Counter(target_names).items() if count > 1
         ]
         if duplicates:
-            raise ValueError(
-                f"Two or more native regions share the same name: {duplicates} in "
-                f"{values['file'].relative_to(Path.cwd())}"
-            )
+            raise NameCollisionError("native regions", duplicates, values["file"])
         return v
 
     @validator("common_regions")
@@ -48,10 +62,7 @@ class RegionAggregationMapping(BaseModel):
         names = [cr.name for cr in v]
         duplicates = [item for item, count in Counter(names).items() if count > 1]
         if duplicates:
-            raise ValueError(
-                f"Duplicated aggregation mapping to common regions: {duplicates} in "
-                f"{values['file'].relative_to(Path.cwd())}"
-            )
+            raise NameCollisionError("common regions", duplicates, values["file"])
         return v
 
     @root_validator()
@@ -66,10 +77,8 @@ class RegionAggregationMapping(BaseModel):
         common_region_names = {cr.name for cr in values["common_regions"]}
         overlap = list(native_region_names & common_region_names)
         if overlap:
-            raise ValueError(
-                "Conflict between (renamed) native regions and aggregation mapping"
-                f" to common regions: {overlap} in "
-                f"{values['file'].relative_to(Path.cwd())}"
+            raise NameCollisionError(
+                "common and native regions", overlap, values["file"]
             )
         return values
 
@@ -116,3 +125,10 @@ class RegionAggregationMapping(BaseModel):
                 )
             mapping_input["common_regions"] = common_region_list
         return cls(**mapping_input)
+
+
+# if __name__ == "__main__":
+#     RegionAggregationMapping.create_from_region_mapping(
+#         Path(__file__).parents[1]
+#         / "tests/data/region_aggregation/illegal_mapping_duplicate_native.yaml"
+#     )
