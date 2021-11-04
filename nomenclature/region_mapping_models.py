@@ -18,8 +18,9 @@ original__str__ = copy.deepcopy(pydantic.error_wrappers.ValidationError.__str__)
 
 # Define a new __str__ method which adds file information in case it is present.
 # Otherwise the original __str__ method is used.
-def new__str__(self):
 
+
+def new__str__(self):
     """Change __str__ from pydantic ValidationError to include the file name if
     present"""
     if "ctx" in self.errors()[0] and "file" in self.errors()[0]["ctx"]:
