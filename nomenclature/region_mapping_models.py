@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Any
 from collections import Counter
 from pydantic.types import FilePath
 
@@ -32,9 +32,12 @@ pydantic.error_wrappers.ValidationError.__str__ = new__str__
 
 # Custom error class since we need to get the file information to ValidationError
 # See for details: https://pydantic-docs.helpmanual.io/usage/models/#custom-errors
-class DoubleNativeRegionError(PydanticValueError):
-    code = "double_native_region"
-    msg_template = 'Two or more native regions share the same name: "{duplicates}"'
+class RegionNameCollisionError(PydanticValueError):
+    code = "region_name_collision"
+    msg_template = "Name collision in {location} for {duplicates}"
+
+    def __init__(self, file: Path, **ctx: Any) -> None:
+        super().__init__(file=file.relative_to(Path.cwd()), **ctx)
 
 
 here = Path(__file__).parent.absolute()
@@ -67,10 +70,10 @@ class RegionAggregationMapping(BaseModel):
             item for item, count in Counter(target_names).items() if count > 1
         ]
         if duplicates:
-            # Raise the custom DoubleNativeRegionError and give the parameters
+            # Raise the custom RegionNameCollisionError and give the parameters
             # duplicates and file.
-            raise DoubleNativeRegionError(
-                duplicates=duplicates, file=values["file"].relative_to(Path.cwd())
+            raise RegionNameCollisionError(
+                values["file"], duplicates=duplicates, location="native regions"
             )
         return v
 
