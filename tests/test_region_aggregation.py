@@ -56,7 +56,7 @@ def test_mapping():
         (
             "illegal_mapping_conflict_regions.yaml",
             pydantic.ValidationError,
-            r".*Conflict between \(renamed\).*common_region_1.*",
+            ".*Name collision in native and common regions.*common_region_1.*",
         ),
         (
             "illegal_mapping_duplicate_native.yaml",
@@ -71,7 +71,7 @@ def test_mapping():
         (
             "illegal_mapping_duplicate_common.yaml",
             pydantic.ValidationError,
-            ".*common regions.*common_region_1.*",
+            ".*Name collision in common regions.*common_region_1.*",
         ),
     ],
 )
