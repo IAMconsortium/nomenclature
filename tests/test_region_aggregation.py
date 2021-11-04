@@ -1,6 +1,8 @@
+import jsonschema
+import pydantic
 import pytest
+from pathlib import Path
 from nomenclature.region_mapping_models import RegionAggregationMapping
-from jsonschema.exceptions import ValidationError
 
 from conftest import TEST_DATA_DIR
 
@@ -43,33 +45,33 @@ def test_mapping():
     [
         (
             "illegal_mapping_invalid_format_dict.yaml",
-            ValidationError,
+            jsonschema.ValidationError,
             ".*common_region_1.*not.*'array'.*",
         ),
         (
             "illegal_mapping_illegal_attribute.yaml",
-            ValidationError,
+            jsonschema.ValidationError,
             "Additional properties are not allowed.*",
         ),
         (
             "illegal_mapping_conflict_regions.yaml",
-            ValueError,
-            ".*Name collision.*common and native regions.*common_region_1.*",
+            pydantic.ValidationError,
+            r".*Conflict between \(renamed\).*common_region_1.*",
         ),
         (
             "illegal_mapping_duplicate_native.yaml",
-            ValueError,
-            ".*Name collision.*native regions.*alternative_name_a.*",
+            pydantic.ValidationError,
+            ".*Name collision in native regions.*alternative_name_a.*",
         ),
         (
             "illegal_mapping_duplicate_native_rename.yaml",
-            ValueError,
-            ".*Name collision.*native regions.*alternative_name_a.*",
+            pydantic.ValidationError,
+            ".*Name collision in native regions.*alternative_name_a.*",
         ),
         (
             "illegal_mapping_duplicate_common.yaml",
-            ValueError,
-            "Name collision.*common regions.*common_region_1.*",
+            pydantic.ValidationError,
+            ".*common regions.*common_region_1.*",
         ),
     ],
 )
