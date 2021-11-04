@@ -1,15 +1,16 @@
-from pathlib import Path
-from typing import Dict, List, Optional, Union, Any
-from collections import Counter
-from pydantic.types import FilePath
-from collections.abc import Sequence
-
-import yaml
-from jsonschema import validate, ValidationError
-import pydantic
-from pydantic import BaseModel, validator, root_validator, PydanticValueError
-
 import copy
+from collections import Counter
+from collections.abc import Sequence
+from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple, Union
+
+import pydantic
+import yaml
+from jsonschema import ValidationError, validate
+from pydantic import BaseModel, root_validator, validator
+from pydantic.types import FilePath
+
+here = Path(__file__).parent.absolute()
 
 # We take a deep copy of the original __str__ from
 # pydantic.error_wrappers.ValidationError. We do this to keep the changes minimally
@@ -31,31 +32,19 @@ def new__str__(self):
 # Overwrite the original __str__ with new__str__
 pydantic.error_wrappers.ValidationError.__str__ = new__str__
 
-# Custom error class since we need to get the file information to ValidationError
-# See for details: https://pydantic-docs.helpmanual.io/usage/models/#custom-errors
-class RegionNameCollisionError(PydanticValueError):
-    code = "region_name_collision"
-    msg_template = "Name collision in {location} for {duplicates}"
-
-    def __init__(self, file: Path, **ctx: Any) -> None:
-        super().__init__(file=file.relative_to(Path.cwd()), **ctx)
-
-
-here = Path(__file__).parent.absolute()
-
-
 Sequence = Union[List[str], Tuple[str], Set[str]]
 
 
-class NameCollisionError(ValueError):
-    template = 'Name collision in {location} for "{duplicates}" in {rel_file}'
+class RegionNameCollisionError(ValueError):
+    template = "Name collision in {location} for {duplicates}"
 
     def __init__(self, location: str, duplicates: Sequence, file: Path) -> None:
+        self.file = file.relative_to(Path.cwd())
         super().__init__(
             self.template.format(
                 location=location,
                 duplicates=duplicates,
-                rel_file=file.relative_to(Path.cwd()),
+                rel_file=self.file,
             )
         )
 
@@ -89,9 +78,7 @@ class RegionAggregationMapping(BaseModel):
         if duplicates:
             # Raise the custom RegionNameCollisionError and give the parameters
             # duplicates and file.
-            raise RegionNameCollisionError(
-                values["file"], duplicates=duplicates, location="native regions"
-            )
+            raise RegionNameCollisionError("native regions", duplicates, values["file"])
         return v
 
     @validator("common_regions")
@@ -99,7 +86,7 @@ class RegionAggregationMapping(BaseModel):
         names = [cr.name for cr in v]
         duplicates = [item for item, count in Counter(names).items() if count > 1]
         if duplicates:
-            raise NameCollisionError("common regions", duplicates, values["file"])
+            raise RegionNameCollisionError("common regions", duplicates, values["file"])
         return v
 
     @root_validator()
@@ -114,8 +101,8 @@ class RegionAggregationMapping(BaseModel):
         common_region_names = {cr.name for cr in values["common_regions"]}
         overlap = list(native_region_names & common_region_names)
         if overlap:
-            raise NameCollisionError(
-                "common and native regions", overlap, values["file"]
+            raise RegionNameCollisionError(
+                "native and common regions", overlap, values["file"]
             )
         return values
 
@@ -162,7 +149,6 @@ class RegionAggregationMapping(BaseModel):
                 )
             mapping_input["common_regions"] = common_region_list
         return cls(**mapping_input)
-
 
 
 # if __name__ == "__main__":
