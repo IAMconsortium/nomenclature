@@ -8,12 +8,22 @@ import nomenclature
 
 logger = logging.getLogger(__name__)
 
+cli = click.Group()
 
-@click.group(invoke_without_command=True)
+
+@cli.command('validate-yaml')
 @click.argument(
     "path", type=click.Path(exists=True, path_type=Path, file_okay=False, dir_okay=True)
 )
-def cli(path: Path):
+def cli_valid_yaml(path: Path):
+    assert_valid_yaml(path)
+
+
+@cli.command('validate-project')
+@click.argument(
+    "path", type=click.Path(exists=True, path_type=Path, file_okay=False, dir_okay=True)
+)
+def cli_valid_structure(path: Path):
     assert_valid_yaml(path)
     check_valid_structure(path)
 
@@ -41,3 +51,6 @@ def assert_valid_yaml(path: Path):
 def check_valid_structure(path: Path):
     """Check that "definition" folder in `path` exists and can be initialized without errors"""
     nomenclature.DataStructureDefinition(path / "definitions")
+
+
+# Todo: add function which runs `DataStrutureDefinition(path).validate(scenario)`
