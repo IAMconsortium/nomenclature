@@ -1,15 +1,13 @@
 import copy
 from collections import Counter
-from collections.abc import Mapping
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 import pydantic
 import yaml
 from jsonschema import ValidationError, validate
-from pydantic import BaseModel, root_validator, validator
-from pydantic.types import FilePath
-from nomenclature.core import DataStructureDefinition
+from pydantic import BaseModel, root_validator, validator, validate_arguments
+from pydantic.types import FilePath, DirectoryPath
 
 here = Path(__file__).parent.absolute()
 
@@ -154,43 +152,32 @@ class RegionAggregationMapping(BaseModel):
         return cls(**mapping_input)
 
 
-class RegionProcessor(Mapping):
-    """Thin wrapper around a dict to hold a collection of region mappings"""
+class ModelMappingCollisionError(ValueError):
+    template = "Model {model} is defined twice in {files}"
 
     def __init__(
-        self, mapping_path: Path, dsd: Optional[DataStructureDefinition] = None
+        self, mapping1: RegionAggregationMapping, mapping2: RegionAggregationMapping
     ) -> None:
-        if not isinstance(mapping_path, Path):
-            raise TypeError(f"mapping_path must be Path, is {type(mapping_path)}")
-        if not mapping_path.is_dir():
-            raise ValueError("mapping_path must point to a directory")
-        self._ra_mappings: Dict[str, RegionAggregationMapping] = {}
-        self.parse_mappings(mapping_path)
-        if dsd is not None:
-            self.validate_regions(dsd)
+        files = (
+            mapping1.file.relative_to(Path.cwd()),
+            mapping2.file.relative_to(Path.cwd()),
+        )
+        super().__init__(self.template.format(model=mapping1.model, files=files))
 
-    def parse_mappings(self, mapping_path: Path) -> None:
-        for file in mapping_path.glob("**/*.yaml"):
-            ram = RegionAggregationMapping.create_from_region_mapping(file)
-            self[ram.model] = ram
 
-    def validate_regions(self, dsd: DataStructureDefinition) -> None:
-        # not implemented for now
-        pass
+class RegionProcessor(BaseModel):
+    """Reads region mappings from a directory and uses them for region aggregation"""
 
-    def __setitem__(self, key, value):
-        if key in self._ra_mappings:
-            raise KeyError(f"Duplicate mapping for model {key}")
-        self._ra_mappings[key] = value
+    mappings: Dict[str, RegionAggregationMapping]
 
-    def __getitem__(self, k):
-        return self._ra_mappings[k]
-
-    def __iter__(self):
-        return iter(self._ra_mappings)
-
-    def __len__(self):
-        return len(self._ra_mappings)
-
-    def __repr__(self):
-        return self._ra_mappings.__repr__()
+    @classmethod
+    @validate_arguments
+    def from_directory(cls, mappingdir: DirectoryPath):
+        mapping_dict: Dict[str, RegionAggregationMapping] = {}
+        for file in mappingdir.glob("**/*.yaml"):
+            mapping = RegionAggregationMapping.create_from_region_mapping(file)
+            if mapping.model not in mapping_dict:
+                mapping_dict[mapping.model] = mapping
+            else:
+                raise ModelMappingCollisionError(mapping, mapping_dict[mapping.model])
+        return cls(mappings=mapping_dict)
