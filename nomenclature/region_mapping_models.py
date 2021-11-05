@@ -129,17 +129,9 @@ class RegionAggregationMapping(BaseModel):
         return cls(**mapping_input)
 
     @property
-    def region_names_all(self) -> List[str]:
-        nr_list = (
-            [x.target_native_region for x in self.native_regions]
-            if self.native_regions is not None
-            else []
-        )
-        cr_list = (
-            [x.name for x in self.common_regions]
-            if self.common_regions is not None
-            else []
-        )
+    def all_regions(self) -> List[str]:
+        nr_list = [x.target_native_region for x in self.native_regions or []]
+        cr_list = [x.name for x in self.common_regions or []]
         return nr_list + cr_list
 
 
@@ -159,7 +151,9 @@ class ModelMappingCollisionError(PydanticValueError):
 
 class RegionNotDefinedError(PydanticValueError):
     code = "region_not_defined"
-    msg_template = "Region(s) {region} in {file} not defined"
+    msg_template = (
+        "Region(s) {region} in {file} not defined in the DataStructureDefinition"
+    )
 
     def __init__(self, region, file) -> None:
         self.file = file.relative_to(Path.cwd())
@@ -169,7 +163,7 @@ class RegionNotDefinedError(PydanticValueError):
 class RegionProcessor(BaseModel):
     """Region aggregation mappings for scenario processing"""
 
-    dsd: DataStructureDefinition
+    definition: DataStructureDefinition
     mappings: Dict[str, RegionAggregationMapping]
 
     class Config:
@@ -178,7 +172,7 @@ class RegionProcessor(BaseModel):
 
     @classmethod
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
-    def from_directory(cls, path: DirectoryPath, dsd: DataStructureDefinition):
+    def from_directory(cls, path: DirectoryPath, definition: DataStructureDefinition):
         mapping_dict: Dict[str, RegionAggregationMapping] = {}
         for file in path.glob("**/*.yaml"):
             mapping = RegionAggregationMapping.create_from_region_mapping(file)
@@ -186,11 +180,11 @@ class RegionProcessor(BaseModel):
                 mapping_dict[mapping.model] = mapping
             else:
                 raise ModelMappingCollisionError(mapping, mapping_dict[mapping.model])
-        return cls(dsd=dsd, mappings=mapping_dict)
+        return cls(definition=definition, mappings=mapping_dict)
 
     @validator("mappings", each_item=True)
     def validate_mapping(cls, v, values):
-        invalid = [c for c in v.region_names_all if c not in values["dsd"].region]
+        invalid = [c for c in v.all_regions if c not in values["definition"].region]
         if invalid:
             raise RegionNotDefinedError(invalid, v.file)
         return v
