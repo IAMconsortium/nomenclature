@@ -1,22 +1,26 @@
 import jsonschema
 import pydantic
 import pytest
-from nomenclature.region_mapping_models import RegionAggregationMapping, RegionProcessor
+from nomenclature.region_mapping_models import (
+    RegionAggregationMapping,
+    RegionProcessor,
+    ModelMappingCollisionError,
+)
 
 from conftest import TEST_DATA_DIR
 
-test_folder_region_mapping = TEST_DATA_DIR / "region_aggregation"
+TEST_FOLDER_REGION_MAPPING = TEST_DATA_DIR / "region_aggregation"
 
 
 def test_mapping():
     mapping_file = "working_mapping.yaml"
     # Test that the file is read and represented correctly
     obs = RegionAggregationMapping.create_from_region_mapping(
-        test_folder_region_mapping / mapping_file
+        TEST_FOLDER_REGION_MAPPING / mapping_file
     )
     exp = {
         "model": "model_a",
-        "file": test_folder / mapping_file,
+        "file": TEST_FOLDER_REGION_MAPPING / mapping_file,
         "native_regions": [
             {"name": "region_a", "rename": "alternative_name_a"},
             {"name": "region_b", "rename": "alternative_name_b"},
@@ -78,28 +82,50 @@ def test_illegal_mappings(file, error_type, error_msg_pattern):
     # This is to test a few different failure conditions
 
     with pytest.raises(error_type, match=f"{error_msg_pattern}{file}.*"):
-        RegionAggregationMapping.create_from_region_mapping(test_folder / file)
+        RegionAggregationMapping.create_from_region_mapping(
+            TEST_FOLDER_REGION_MAPPING / file
+        )
 
 
 def test_model_only_mapping():
     # test that a region mapping runs also with only a model
     exp = {
         "model": "model_a",
-        "file": test_folder / "working_mapping_model_only.yaml",
+        "file": TEST_FOLDER_REGION_MAPPING / "working_mapping_model_only.yaml",
         "native_regions": None,
         "common_regions": None,
     }
     obs = RegionAggregationMapping.create_from_region_mapping(
-        test_folder_region_mapping / "working_mapping_model_only.yaml"
+        TEST_FOLDER_REGION_MAPPING / "working_mapping_model_only.yaml"
     )
     assert exp == obs.dict()
 
 
 def test_working_region_processor():
-    rp = RegionProcessor(TEST_DATA_DIR / "regionprocessor_working")
-    assert {"model_a", "model_b"} == set(rp.keys())
+    rp = RegionProcessor.from_directory(TEST_DATA_DIR / "regionprocessor_working")
+    assert {"model_a", "model_b"} == set(rp.mappings.keys())
 
 
 def test_duplicate_region_processor():
-    with pytest.raises(KeyError, match="model_a"):
-        RegionProcessor(TEST_DATA_DIR / "regionprocessor_duplicate")
+    error = ".*model_a.*mapping_1.yaml.*mapping_2.yaml"
+    with pytest.raises(ModelMappingCollisionError, match=error):
+        RegionProcessor.from_directory(TEST_DATA_DIR / "regionprocessor_duplicate")
+
+
+def test_region_processor_wrong_args():
+    # Test if pydantic correctly type checks the input of RegionProcessor.from_directory
+
+    # Test with an integer
+    with pytest.raises(
+        pydantic.ValidationError, match=".*mappingdir\n.*not a valid path.*"
+    ):
+        RegionProcessor.from_directory(123)
+
+    # Test with a file, a path pointing to a directory is required
+    with pytest.raises(
+        pydantic.ValidationError,
+        match=".*mappingdir\n.*does not point to a directory.*",
+    ):
+        RegionProcessor.from_directory(
+            TEST_DATA_DIR / "regionprocessor_working/mapping_1.yaml"
+        )
