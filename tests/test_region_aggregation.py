@@ -7,7 +7,7 @@ from nomenclature.region_mapping_models import (
     ModelMappingCollisionError,
 )
 
-from conftest import TEST_DATA_DIR
+from conftest import TEST_DATA_DIR, simple_nomenclature
 
 TEST_FOLDER_REGION_MAPPING = TEST_DATA_DIR / "region_aggregation"
 
@@ -101,8 +101,10 @@ def test_model_only_mapping():
     assert exp == obs.dict()
 
 
-def test_working_region_processor():
-    rp = RegionProcessor.from_directory(TEST_DATA_DIR / "regionprocessor_working")
+def test_working_region_processor(simple_nomenclature):
+    rp = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "regionprocessor_working", simple_nomenclature
+    )
     assert {"model_a", "model_b"} == set(rp.mappings.keys())
 
 
