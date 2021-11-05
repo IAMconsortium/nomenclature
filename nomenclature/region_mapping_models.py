@@ -1,9 +1,8 @@
-import copy
 from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Union
 
-import pydantic
+from pydantic.errors import PydanticValueError
 import yaml
 from jsonschema import ValidationError, validate
 from pydantic import BaseModel, root_validator, validator, validate_arguments
@@ -13,42 +12,18 @@ from nomenclature.core import DataStructureDefinition
 
 here = Path(__file__).parent.absolute()
 
-# We take a deep copy of the original __str__ from
-# pydantic.error_wrappers.ValidationError. We do this to keep the changes minimally
-# invasive and get 'automatic' updates in case of any changes upstream
-original__str__ = copy.deepcopy(pydantic.error_wrappers.ValidationError.__str__)
-
-# Define a new __str__ method which adds file information in case it is present.
-# Otherwise the original __str__ method is used.
-
-
-def new__str__(self):
-    """Change __str__ from pydantic ValidationError to include the file name if
-    present"""
-    if "ctx" in self.errors()[0] and "file" in self.errors()[0]["ctx"]:
-        return original__str__(self).replace(
-            "\n", f" in {self.errors()[0]['ctx']['file']}\n", 1
-        )
-    return original__str__(self)
-
-
-# Overwrite the original __str__ with new__str__
-pydantic.error_wrappers.ValidationError.__str__ = new__str__
-
 Sequence = Union[List[str], Tuple[str], Set[str]]
 
 
-class RegionNameCollisionError(ValueError):
-    template = "Name collision in {location} for {duplicates}"
+class RegionNameCollisionError(PydanticValueError):
+    code = "region_name_collision"
+    msg_template = "Name collision in {location} for {duplicates} in {file}"
 
     def __init__(self, location: str, duplicates: Sequence, file: Path) -> None:
-        self.file = file.relative_to(Path.cwd())
         super().__init__(
-            self.template.format(
-                location=location,
-                duplicates=duplicates,
-                rel_file=self.file,
-            )
+            location=location,
+            duplicates=duplicates,
+            file=file.relative_to(Path.cwd()),
         )
 
 
@@ -168,8 +143,9 @@ class RegionAggregationMapping(BaseModel):
         return nr_list + cr_list
 
 
-class ModelMappingCollisionError(ValueError):
-    template = "Multiple region aggregation mappings for model {model} in {files}"
+class ModelMappingCollisionError(PydanticValueError):
+    code = "model_mapping_collision"
+    msg_template = "Multiple region aggregation mappings for model {model} in {files}"
 
     def __init__(
         self, mapping1: RegionAggregationMapping, mapping2: RegionAggregationMapping
@@ -178,15 +154,16 @@ class ModelMappingCollisionError(ValueError):
             mapping1.file.relative_to(Path.cwd()),
             mapping2.file.relative_to(Path.cwd()),
         )
-        super().__init__(self.template.format(model=mapping1.model, files=files))
+        super().__init__(model=mapping1.model, files=files)
 
 
-class RegionNotDefinedError(ValueError):
-    template = "Region(s) {region} in {file} not defined"
+class RegionNotDefinedError(PydanticValueError):
+    code = "region_not_defined"
+    msg_template = "Region(s) {region} in {file} not defined"
 
     def __init__(self, region, file) -> None:
-        self.file = file
-        super().__init__(self.template.format(region=region, file=file))
+        self.file = file.relative_to(Path.cwd())
+        super().__init__(region=region, file=file)
 
 
 class RegionProcessor(BaseModel):
