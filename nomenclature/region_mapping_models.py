@@ -153,7 +153,7 @@ class RegionAggregationMapping(BaseModel):
 
 
 class ModelMappingCollisionError(ValueError):
-    template = "Model {model} is defined twice in {files}"
+    template = "Multiple region aggregation mappings for model {model} in {files}"
 
     def __init__(
         self, mapping1: RegionAggregationMapping, mapping2: RegionAggregationMapping
