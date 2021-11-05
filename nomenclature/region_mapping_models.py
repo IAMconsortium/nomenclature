@@ -166,7 +166,7 @@ class ModelMappingCollisionError(ValueError):
 
 
 class RegionProcessor(BaseModel):
-    """Reads region mappings from a directory and uses them for region aggregation"""
+    """Region aggregation mappings for scenario processing"""
 
     mappings: Dict[str, RegionAggregationMapping]
 
