@@ -116,15 +116,13 @@ def test_region_processor_wrong_args():
     # Test if pydantic correctly type checks the input of RegionProcessor.from_directory
 
     # Test with an integer
-    with pytest.raises(
-        pydantic.ValidationError, match=".*mappingdir\n.*not a valid path.*"
-    ):
+    with pytest.raises(pydantic.ValidationError, match=".*path\n.*not a valid path.*"):
         RegionProcessor.from_directory(123)
 
     # Test with a file, a path pointing to a directory is required
     with pytest.raises(
         pydantic.ValidationError,
-        match=".*mappingdir\n.*does not point to a directory.*",
+        match=".*path\n.*does not point to a directory.*",
     ):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "regionprocessor_working/mapping_1.yaml"

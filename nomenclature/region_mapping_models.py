@@ -172,9 +172,9 @@ class RegionProcessor(BaseModel):
 
     @classmethod
     @validate_arguments
-    def from_directory(cls, mappingdir: DirectoryPath):
+    def from_directory(cls, path: DirectoryPath):
         mapping_dict: Dict[str, RegionAggregationMapping] = {}
-        for file in mappingdir.glob("**/*.yaml"):
+        for file in path.glob("**/*.yaml"):
             mapping = RegionAggregationMapping.create_from_region_mapping(file)
             if mapping.model not in mapping_dict:
                 mapping_dict[mapping.model] = mapping
