@@ -6,8 +6,8 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 import pydantic
 import yaml
 from jsonschema import ValidationError, validate
-from pydantic import BaseModel, root_validator, validator
-from pydantic.types import FilePath
+from pydantic import BaseModel, root_validator, validator, validate_arguments
+from pydantic.types import FilePath, DirectoryPath
 
 here = Path(__file__).parent.absolute()
 
@@ -150,3 +150,34 @@ class RegionAggregationMapping(BaseModel):
                 )
             mapping_input["common_regions"] = common_region_list
         return cls(**mapping_input)
+
+
+class ModelMappingCollisionError(ValueError):
+    template = "Multiple region aggregation mappings for model {model} in {files}"
+
+    def __init__(
+        self, mapping1: RegionAggregationMapping, mapping2: RegionAggregationMapping
+    ) -> None:
+        files = (
+            mapping1.file.relative_to(Path.cwd()),
+            mapping2.file.relative_to(Path.cwd()),
+        )
+        super().__init__(self.template.format(model=mapping1.model, files=files))
+
+
+class RegionProcessor(BaseModel):
+    """Region aggregation mappings for scenario processing"""
+
+    mappings: Dict[str, RegionAggregationMapping]
+
+    @classmethod
+    @validate_arguments
+    def from_directory(cls, path: DirectoryPath):
+        mapping_dict: Dict[str, RegionAggregationMapping] = {}
+        for file in path.glob("**/*.yaml"):
+            mapping = RegionAggregationMapping.create_from_region_mapping(file)
+            if mapping.model not in mapping_dict:
+                mapping_dict[mapping.model] = mapping
+            else:
+                raise ModelMappingCollisionError(mapping, mapping_dict[mapping.model])
+        return cls(mappings=mapping_dict)
