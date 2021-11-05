@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 cli = click.Group()
 
 
-@cli.command('validate-yaml')
+@cli.command("validate-yaml")
 @click.argument(
     "path", type=click.Path(exists=True, path_type=Path, file_okay=False, dir_okay=True)
 )
@@ -19,7 +19,7 @@ def cli_valid_yaml(path: Path):
     assert_valid_yaml(path)
 
 
-@cli.command('validate-project')
+@cli.command("validate-project")
 @click.argument(
     "path", type=click.Path(exists=True, path_type=Path, file_okay=False, dir_okay=True)
 )
