@@ -49,7 +49,8 @@ def assert_valid_yaml(path: Path):
 
 
 def check_valid_structure(path: Path):
-    """Check that "definition" folder in `path` exists and can be initialized without errors"""
+    """Check that "definition" folder in `path` exists and
+    can be initialized without errors"""
     nomenclature.DataStructureDefinition(path / "definitions")
 
 
