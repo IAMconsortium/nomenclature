@@ -37,7 +37,6 @@ def test_cli_valid_structure():
 
 def test_cli_valid_structure_fails():
     """Check that CLI expected error when "definitions" directory doesn't exist"""
-    runner = CliRunner()
     path = TEST_DATA_DIR / "invalid_yaml" / "definitions"
     result_invalid = runner.invoke(
         cli, ["validate-project", str(TEST_DATA_DIR / "invalid_yaml")]
