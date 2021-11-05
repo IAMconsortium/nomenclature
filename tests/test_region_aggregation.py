@@ -108,10 +108,12 @@ def test_working_region_processor(simple_nomenclature):
     assert {"model_a", "model_b"} == set(rp.mappings.keys())
 
 
-def test_duplicate_region_processor():
+def test_duplicate_region_processor(simple_nomenclature):
     error = ".*model_a.*mapping_1.yaml.*mapping_2.yaml"
     with pytest.raises(ModelMappingCollisionError, match=error):
-        RegionProcessor.from_directory(TEST_DATA_DIR / "regionprocessor_duplicate")
+        RegionProcessor.from_directory(
+            TEST_DATA_DIR / "regionprocessor_duplicate", simple_nomenclature
+        )
 
 
 def test_region_processor_wrong_args():
