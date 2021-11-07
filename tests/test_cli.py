@@ -7,6 +7,14 @@ from conftest import TEST_DATA_DIR
 runner = CliRunner()
 
 
+def test_cli_valid_yaml_path():
+    """Check that CLI throws an error when the `path` is incorrect"""
+    result_valid = runner.invoke(
+        cli, ["validate-yaml", str(TEST_DATA_DIR / "incorrect_path")]
+    )
+    assert result_valid.exit_code == 2
+
+
 def test_cli_valid_yaml():
     """Check that CLI runs through, when all yaml files in `path`
     can be parsed without errors"""
@@ -25,6 +33,15 @@ def test_cli_valid_yaml_fails():
     match = "Parsing the yaml files failed. Please check the log for details."
     with pytest.raises(AssertionError, match=match):
         assert_valid_yaml(TEST_DATA_DIR / "invalid_yaml")
+
+
+def test_cli_valid_structure_path():
+    """Check that CLI throws an error when the `path` is incorrect"""
+    path = str(TEST_DATA_DIR / "incorrect_path")
+    result_valid = runner.invoke(
+        cli, ["validate-project", path]
+    )
+    assert result_valid.exit_code == 2
 
 
 def test_cli_valid_structure():
