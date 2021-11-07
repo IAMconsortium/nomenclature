@@ -38,9 +38,7 @@ def test_cli_valid_yaml_fails():
 def test_cli_valid_structure_path():
     """Check that CLI throws an error when the `path` is incorrect"""
     path = str(TEST_DATA_DIR / "incorrect_path")
-    result_valid = runner.invoke(
-        cli, ["validate-project", path]
-    )
+    result_valid = runner.invoke(cli, ["validate-project", path])
     assert result_valid.exit_code == 2
 
 
