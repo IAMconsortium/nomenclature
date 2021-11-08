@@ -1,0 +1,3 @@
+model: model_b
+native_regions:
+  - region_a
