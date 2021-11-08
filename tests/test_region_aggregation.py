@@ -7,7 +7,7 @@ from nomenclature.region_mapping_models import (
     ModelMappingCollisionError,
 )
 
-from conftest import TEST_DATA_DIR, simple_nomenclature
+from conftest import TEST_DATA_DIR
 
 TEST_FOLDER_REGION_MAPPING = TEST_DATA_DIR / "region_aggregation"
 
