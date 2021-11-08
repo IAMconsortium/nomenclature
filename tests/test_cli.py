@@ -1,5 +1,5 @@
 from click.testing import CliRunner
-from nomenclature.testing import cli, assert_valid_yaml, check_valid_structure
+from nomenclature.testing import cli, assert_valid_yaml, assert_valid_structure
 import pytest
 
 from conftest import TEST_DATA_DIR
@@ -58,8 +58,8 @@ def test_cli_valid_structure_fails():
     )
     assert result_invalid.exit_code == 1
 
-    def print_helper(path_input):
-        print(f"Definitions directory not found: {path_input}")
+    def print_helper(_path):
+        print(f"Definitions directory not found: {_path}")
 
     with pytest.raises(NotADirectoryError, match=print_helper(path)):
-        check_valid_structure(TEST_DATA_DIR / "invalid_yaml")
+        assert_valid_structure(TEST_DATA_DIR / "invalid_yaml")

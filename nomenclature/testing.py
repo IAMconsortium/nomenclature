@@ -13,7 +13,7 @@ cli = click.Group()
 
 @cli.command("validate-yaml")
 @click.argument(
-    "path", type=click.Path(exists=True, path_type=Path, file_okay=False, dir_okay=True)
+    "path", type=click.Path(exists=True, path_type=Path)
 )
 def cli_valid_yaml(path: Path):
     assert_valid_yaml(path)
@@ -21,11 +21,11 @@ def cli_valid_yaml(path: Path):
 
 @cli.command("validate-project")
 @click.argument(
-    "path", type=click.Path(exists=True, path_type=Path, file_okay=False, dir_okay=True)
+    "path", type=click.Path(exists=True, path_type=Path)
 )
 def cli_valid_structure(path: Path):
     assert_valid_yaml(path)
-    check_valid_structure(path)
+    assert_valid_structure(path)
 
 
 def assert_valid_yaml(path: Path):
@@ -48,10 +48,9 @@ def assert_valid_yaml(path: Path):
         )
 
 
-def check_valid_structure(path: Path):
+def assert_valid_structure(path: Path):
     """Check that "definitions" folder in `path` exists and
     can be initialized without errors"""
     nomenclature.DataStructureDefinition(path / "definitions")
-
 
 # Todo: add function which runs `DataStrutureDefinition(path).validate(scenario)`

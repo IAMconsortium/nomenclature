@@ -27,8 +27,10 @@ class DataStructureDefinition:
             "region", path / "regions", top_level_attr="hierarchy"
         )
 
-        if not self.region or not self.variable:
-            logger.warning("Attribute `variable` or `region` is empty.")
+        args = [(self.region, "region"), (self.variable, "variable")]
+        for attr, name in args:
+            if not attr:
+                logger.warning(f"Attribute {name} is empty.")
 
     def validate(self, df: IamDataFrame) -> None:
         """Validate that the coordinates of `df` are defined in the codelists
