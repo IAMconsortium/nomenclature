@@ -35,14 +35,14 @@ def test_cli_valid_yaml_fails():
         assert_valid_yaml(TEST_DATA_DIR / "invalid_yaml")
 
 
-def test_cli_valid_structure_path():
+def test_cli_valid_project_path():
     """Check that CLI throws an error when the `path` is incorrect"""
     path = str(TEST_DATA_DIR / "incorrect_path")
     result_valid = runner.invoke(cli, ["validate-project", path])
     assert result_valid.exit_code == 2
 
 
-def test_cli_valid_structure():
+def test_cli_valid_project():
     """Check that CLI runs through with existing "definitions" directory"""
     result_valid = runner.invoke(
         cli, ["validate-project", str(TEST_DATA_DIR / "structure_validation")]
@@ -50,7 +50,7 @@ def test_cli_valid_structure():
     assert result_valid.exit_code == 0
 
 
-def test_cli_valid_structure_fails():
+def test_cli_valid_project_fails():
     """Check that CLI expected error when "definitions" directory doesn't exist"""
     path = TEST_DATA_DIR / "invalid_yaml" / "definitions"
     result_invalid = runner.invoke(
