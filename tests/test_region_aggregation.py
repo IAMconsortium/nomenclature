@@ -101,18 +101,64 @@ def test_model_only_mapping():
     assert exp == obs.dict()
 
 
-def test_working_region_processor():
-    rp = RegionProcessor.from_directory(TEST_DATA_DIR / "regionprocessor_working")
-    assert {"model_a", "model_b"} == set(rp.mappings.keys())
+def test_region_processor_working(simple_nomenclature):
+
+    obs = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "regionprocessor_working", simple_nomenclature
+    )
+    exp_data = [
+        {
+            "model": "model_a",
+            "file": TEST_DATA_DIR / "regionprocessor_working/mapping_1.yaml",
+            "native_regions": [
+                {"name": "World", "rename": None},
+            ],
+            "common_regions": None,
+        },
+        {
+            "model": "model_b",
+            "file": TEST_DATA_DIR / "regionprocessor_working/mapping_2.yaml",
+            "native_regions": None,
+            "common_regions": [
+                {
+                    "name": "World",
+                    "constituent_regions": [
+                        {"name": "region_a", "rename": None},
+                        {"name": "region_b", "rename": None},
+                    ],
+                }
+            ],
+        },
+    ]
+    exp_models = {value["model"] for value in exp_data}
+    exp_dict = {value["model"]: value for value in exp_data}
+
+    assert exp_models == set(obs.mappings.keys())
+    assert all(exp_dict[m] == obs.mappings[m].dict() for m in exp_models)
 
 
-def test_duplicate_region_processor():
-    error = ".*model_a.*mapping_1.yaml.*mapping_2.yaml"
-    with pytest.raises(ModelMappingCollisionError, match=error):
-        RegionProcessor.from_directory(TEST_DATA_DIR / "regionprocessor_duplicate")
+def test_region_processor_not_defined(simple_nomenclature):
+    # Test a RegionProcessor with regions that are not defined in the data structure
+    # definition
+    error_msg = (
+        "model_b\n.*region_a.*mapping_2.yaml.*value_error.region_not_defined."
+        "*\n.*model_a\n.*region_a.*mapping_1.yaml.*value_error.region_not_defined"
+    )
+    with pytest.raises(pydantic.ValidationError, match=error_msg):
+        RegionProcessor.from_directory(
+            TEST_DATA_DIR / "regionprocessor_not_defined", simple_nomenclature
+        )
 
 
-def test_region_processor_wrong_args():
+def test_region_processor_duplicate_model_mapping(simple_nomenclature):
+    error_msg = ".*model_a.*mapping_1.yaml.*mapping_2.yaml"
+    with pytest.raises(ModelMappingCollisionError, match=error_msg):
+        RegionProcessor.from_directory(
+            TEST_DATA_DIR / "regionprocessor_duplicate", simple_nomenclature
+        )
+
+
+def test_region_processor_wrong_args(simple_nomenclature):
     # Test if pydantic correctly type checks the input of RegionProcessor.from_directory
 
     # Test with an integer
@@ -125,5 +171,6 @@ def test_region_processor_wrong_args():
         match=".*path\n.*does not point to a directory.*",
     ):
         RegionProcessor.from_directory(
-            TEST_DATA_DIR / "regionprocessor_working/mapping_1.yaml"
+            TEST_DATA_DIR / "regionprocessor_working/mapping_1.yaml",
+            simple_nomenclature,
         )

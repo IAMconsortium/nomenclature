@@ -1,6 +1,5 @@
 model: model_b
-native_regions:
-  - region_a
 common_regions:
-  - common_region_1:
+  - World:
     - region_a
+    - region_b
