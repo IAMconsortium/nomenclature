@@ -10,7 +10,7 @@ class Code(BaseModel):
     """A simple class for a mapping of a "code" to its attributes"""
 
     name: str
-    attributes: Dict[str, Union[str, int, float, None]]
+    attributes: Dict[str, Union[str, int, float, bool, List, None]]
 
     @classmethod
     def from_dict(cls, mapping):
@@ -30,7 +30,7 @@ class Tag(Code):
     """A simple class for a mapping of a "<tag>" to "target codes" and attributes"""
 
     attributes: List[
-        Dict[str, Union[str, Dict[str, Union[str, float, int, None]], None]]
+        Dict[str, Union[str, Dict[str, Union[str, int, float, bool, List, None]], None]]
     ]
 
     @validator("name")
