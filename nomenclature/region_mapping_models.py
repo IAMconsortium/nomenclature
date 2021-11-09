@@ -1,7 +1,6 @@
 from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Union
-from _pytest.compat import MODULE_NOT_FOUND_ERROR
 
 from pydantic.errors import PydanticValueError
 import yaml
