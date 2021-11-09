@@ -255,3 +255,45 @@ def test_region_processing_aggregate():
     )
     obs = rp.apply(test_df)
     assert_iamframe_equal(obs, exp)
+
+
+def test_region_processing_complete():
+    # Test all three aspects of region processing together:
+    # 1. Renaming
+    # 2. Passing models without a mapping
+    # 3. Aggregating correctly
+
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["m_a", "s_a", "region_a", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "region_C", "Primary Energy", "EJ/yr", 5, 6],
+                ["m_a", "s_a", "region_a", "Primary Energy|Coal", "EJ/yr", 0.5, 1],
+                ["m_a", "s_a", "region_B", "Primary Energy|Coal", "EJ/yr", 1.5, 2],
+                ["m_b", "s_b", "region_a", "Primary Energy", "EJ/yr", 1, 2],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    exp = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+                ["m_a", "s_a", "region_A", "Primary Energy|Coal", "EJ/yr", 0.5, 1],
+                ["m_a", "s_a", "region_B", "Primary Energy|Coal", "EJ/yr", 1.5, 2],
+                ["m_a", "s_a", "World", "Primary Energy|Coal", "EJ/yr", 2, 3],
+                ["m_b", "s_b", "region_a", "Primary Energy", "EJ/yr", 1, 2],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    dsd = DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd")
+    rp = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/complete_processing", dsd
+    )
+    obs = rp.apply(test_df)
+    assert_iamframe_equal(obs, exp)
