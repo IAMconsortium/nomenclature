@@ -297,3 +297,41 @@ def test_region_processing_complete():
     )
     obs = rp.apply(test_df)
     assert_iamframe_equal(obs, exp)
+
+
+def test_region_processing_weighted_aggregation():
+    # test a weighed sum
+
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_a", "scen_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "scen_a", "region_A", "Emissions|CO2", "Mt CO2", 4, 6],
+                ["model_a", "scen_a", "region_B", "Emissions|CO2", "Mt CO2", 1, 2],
+                ["model_a", "scen_a", "region_A", "Price|Carbon", "USD/t CO2", 3, 8],
+                ["model_a", "scen_a", "region_B", "Price|Carbon", "USD/t CO2", 2, 4],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    exp = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+                ["model_a", "scen_a", "World", "Emissions|CO2", "Mt CO2", 5, 8],
+                ["model_a", "scen_a", "World", "Price|Carbon", "USD/t CO2", 2.8, 7.0],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    dsd = DataStructureDefinition(
+        TEST_DATA_DIR / "region_processing/weighted_aggregation/dsd"
+    )
+    rp = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/weighted_aggregation/aggregate", dsd
+    )
+    obs = rp.apply(test_df)
+    assert_iamframe_equal(obs, exp)
