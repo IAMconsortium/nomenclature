@@ -138,7 +138,7 @@ class RegionAggregationMapping(BaseModel):
         return nr_list + cr_list
 
     @property
-    def renaming_dict(self) -> Dict[str, str]:
+    def rename_mapping(self) -> Dict[str, str]:
         # NOTE: right now this implementation would imply that all not defined model
         # native regions would be kicked out of the mapping
         return {r.name: r.target_native_region for r in self.native_regions or []}
@@ -199,32 +199,30 @@ class RegionProcessor(BaseModel):
         return v
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
-        all_dfs: List[IamDataFrame] = []
+        processed_dfs: List[IamDataFrame] = []
         for model in df.model:
             model_df = df.filter(model=model)
 
             # If no mapping is defined the data frame is returned unchanged
             if model not in self.mappings:
-                all_dfs.append(model_df)
+                processed_dfs.append(model_df)
             # Otherwise we first rename, then aggregate
             else:
-                cm = self.mappings[model]
-
                 # Rename
-                if cm.native_regions is not None:
-                    all_dfs.append(
-                        model_df.rename(region=cm.renaming_dict).filter(
-                            region=[x.target_native_region for x in cm.native_regions]
-                        )
+                if self.mappings[model].native_regions is not None:
+                    processed_dfs.append(
+                        model_df.filter(
+                            region=[x.name for x in self.mappings[model].native_regions]
+                        ).rename(region=self.mappings[model].rename_mapping)
                     )
 
                 # Aggregate
-                if cm.common_regions is not None:
-                    for cr in cm.common_regions:
+                if self.mappings[model].common_regions is not None:
+                    for cr in self.mappings[model].common_regions:
                         agg_df = model_df.aggregate_region(
                             model_df.variable,
                             cr.name,
                             [r.name for r in cr.constituent_regions],
                         )
-                        all_dfs.append(agg_df)
-        return pyam.concat(all_dfs)
+                        processed_dfs.append(agg_df)
+        return pyam.concat(processed_dfs)
