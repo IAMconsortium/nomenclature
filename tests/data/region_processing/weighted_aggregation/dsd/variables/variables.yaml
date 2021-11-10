@@ -1,0 +1,10 @@
+- Primary Energy:
+    definition: Total primary energy consumption
+    unit: EJ/yr
+- Emissions|CO2:
+    definition: Total CO2 emissions
+    unit: Mt CO2
+- Price|Carbon:
+    definition: Price of carbon
+    unit: USD/t CO2
+    weight: Emissions|CO2
