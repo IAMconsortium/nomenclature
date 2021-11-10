@@ -11,7 +11,7 @@ This repository is licensed under the Apache License, Version 2.0 (the "License"
 ## Overview
 
 This package facilitates working with data templates that follow the format developed by
-the [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
+the [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org). Additionally, it supports region processing which consists of renaming and aggregation of model native regions to common regions.
 
 A **DataStructureDefinition** class contains **CodeLists** for *variables*
 (including units) and *regions* to be used in a model comparison or scenario exercise
@@ -19,6 +19,10 @@ following the IAMC data format.
 
 A **CodeList** is a list of "allowed terms" (or codes), where each term can have
 several attributes (e.g., description, unit, parent region).
+
+A **RegionAggregationMapping** is a mapping that defines on a per-model basis how model native regions should be renamed and aggregated to comparison regions.
+
+A **RegionProcessor** is a class that holds a list of RegionAggregationMappings and a DataStructureDefinition. This class is used to facilitate region processing for model comparison studies.
 
 ## The structure of a datastructure definition
 
@@ -58,7 +62,42 @@ When importing the codelist, any occurrence of `<Tag>` in a variable name will b
 replaced by every element in the Tag dictionary. The `<Tag>` will also be replaced
 in any of the variable attributes.
 
-There must be only one top-level entry in any yaml file to be used as tag. 
+There must be only one top-level entry in any yaml file to be used as tag.
+
+## Model Mappings
+
+Model mappings, defined in a .yaml format serve three different purposes on a per-model basis:
+
+1. Define a list of model native regions that are to be selected (and usually uploaded) from an IAM result. This also serves as an implicit exclusion list for model native regions, since only explicitly mentioned regions are selected.
+
+2. Allow for renaming of model native regions.
+
+3. Define how model native regions should be aggregated to common regions.
+
+This example illustrates how such a model mapping looks like:
+
+```yaml
+model: model_a
+native_regions:
+  - region_a: alternative_name_a
+  - region_b
+common_regions:
+  - common_region_1:
+    - region_a
+    - region_b
+  - common_region_2:
+    - ...
+```
+
+Some points to note:
+
+* The names of the three top level key words `model`, `native_regions` and `common_regions` are fixed.
+* Inside the `native_regions` a **list** of model native regions serves as a selection as to which regions to keep.
+* In the above example `region_a` is to be renamed to `alternative_name_a`. This is done by defining a key: value pair of `model_native_name: new_name`.
+* `region_b` is selected but the name is not changed.
+* Assuming `model_a` also defines a third region `region_c`, since it is not mentioned it will be **dropped** from the data.
+* In `common_regions`, the common regions which will be computed as aggregates are defined. They are defined as list entries which themselves have a list of constituent regions.
+* **Important to note** the names of the constituent regions **must** refer to the **original** model native region names. In the above example `region_a` and `region_b` and **not** `alternative_name_a`.
 
 #### Guidelines and naming convention
 
