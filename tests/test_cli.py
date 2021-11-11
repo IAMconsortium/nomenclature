@@ -1,6 +1,7 @@
 from click.testing import CliRunner
 from nomenclature.testing import cli, assert_valid_yaml, assert_valid_structure
 import pytest
+import pydantic
 
 from conftest import TEST_DATA_DIR
 
@@ -43,11 +44,22 @@ def test_cli_valid_project_path():
 
 
 def test_cli_valid_project():
-    """Check that CLI runs through with existing "definitions" directory"""
+    """Check that CLI runs through with existing "definitions" and "mappings"
+    directory"""
     result_valid = runner.invoke(
         cli, ["validate-project", str(TEST_DATA_DIR / "structure_validation")]
     )
     assert result_valid.exit_code == 0
+
+
+def test_cli_invalid_region():
+    """Test that errors are correctly propagated"""
+    obs = runner.invoke(
+        cli, ["validate-project", str(TEST_DATA_DIR / "structure_validation_fails")]
+    )
+    assert obs.exit_code == 1
+    assert isinstance(obs.exception, pydantic.ValidationError)
+    assert "region_a" in obs.exception.errors()[0]["msg"]
 
 
 def test_cli_valid_project_fails():

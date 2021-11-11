@@ -1,0 +1,7 @@
+model: model_b
+native_regions:
+  - region_a
+common_regions:
+  - World:
+    - region_a
+    - region_b

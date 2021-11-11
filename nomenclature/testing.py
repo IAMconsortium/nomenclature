@@ -47,7 +47,9 @@ def assert_valid_yaml(path: Path):
 def assert_valid_structure(path: Path):
     """Check that "definitions" folder in `path` exists and
     can be initialized without errors"""
-    nomenclature.DataStructureDefinition(path / "definitions")
+    definition = nomenclature.DataStructureDefinition(path / "definitions")
+    if (path / "mappings").is_dir():
+        nomenclature.RegionProcessor.from_directory(path / "mappings", definition)
 
 
 # Todo: add function which runs `DataStrutureDefinition(path).validate(scenario)`
