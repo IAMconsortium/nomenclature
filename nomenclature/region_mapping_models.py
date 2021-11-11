@@ -145,14 +145,18 @@ class RegionAggregationMapping(BaseModel):
 
     @property
     def all_regions(self) -> List[str]:
+        # For the native regions we take the **renamed** (if given) names
         nr_list = [x.target_native_region for x in self.native_regions or []]
         cr_list = [x.name for x in self.common_regions or []]
         return nr_list + cr_list
 
     @property
+    def model_native_region_names(self) -> List[str]:
+        # List of the **original** model native region names
+        return [x.name for x in self.native_regions]
+
+    @property
     def rename_mapping(self) -> Dict[str, str]:
-        # NOTE: right now this implementation would imply that all not defined model
-        # native regions would be kicked out of the mapping
         return {r.name: r.target_native_region for r in self.native_regions or []}
 
 
@@ -224,7 +228,7 @@ class RegionProcessor(BaseModel):
                 if self.mappings[model].native_regions is not None:
                     processed_dfs.append(
                         model_df.filter(
-                            region=[x.name for x in self.mappings[model].native_regions]
+                            region=self.mappings[model].model_native_region_names
                         ).rename(region=self.mappings[model].rename_mapping)
                     )
 
