@@ -71,6 +71,18 @@ class RegionAggregationMapping(BaseModel):
         return v
 
     @root_validator()
+    def check_native_or_common_regions(cls, values):
+        # Check that we have at least one of the two: native and common regions
+        if (
+            values.get("native_regions") is None
+            and values.get("common_regions") is None
+        ):
+            raise ValueError(
+                f"At least one of the two: 'native_regions', 'common_regions' must be given in {values['file']}"
+            )
+        return values
+
+    @root_validator()
     def check_illegal_renaming(cls, values):
         """Check if any renaming overlaps with common regions"""
         # Skip if only either native-regions or common-regions are specified

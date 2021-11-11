@@ -76,6 +76,11 @@ def test_mapping():
             pydantic.ValidationError,
             ".*Name collision in common regions.*common_region_1.*",
         ),
+        (
+            "illegal_mapping_model_only.yaml",
+            pydantic.ValidationError,
+            ".*one of the two: 'native_regions', 'common_regions'.*",
+        ),
     ],
 )
 def test_illegal_mappings(file, error_type, error_msg_pattern):
@@ -85,20 +90,6 @@ def test_illegal_mappings(file, error_type, error_msg_pattern):
         RegionAggregationMapping.create_from_region_mapping(
             TEST_FOLDER_REGION_MAPPING / file
         )
-
-
-def test_model_only_mapping():
-    # test that a region mapping runs also with only a model
-    exp = {
-        "model": "model_a",
-        "file": TEST_FOLDER_REGION_MAPPING / "working_mapping_model_only.yaml",
-        "native_regions": None,
-        "common_regions": None,
-    }
-    obs = RegionAggregationMapping.create_from_region_mapping(
-        TEST_FOLDER_REGION_MAPPING / "working_mapping_model_only.yaml"
-    )
-    assert exp == obs.dict()
 
 
 def test_region_processor_working(simple_nomenclature):
