@@ -44,7 +44,8 @@ def test_cli_valid_project_path():
 
 
 def test_cli_valid_project():
-    """Check that CLI runs through with existing "definitions" and "mappings" directory"""
+    """Check that CLI runs through with existing "definitions" and "mappings"
+    directory"""
     result_valid = runner.invoke(
         cli, ["validate-project", str(TEST_DATA_DIR / "structure_validation")]
     )
