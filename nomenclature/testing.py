@@ -22,6 +22,7 @@ def cli_valid_yaml(path: Path):
 def cli_valid_project(path: Path):
     assert_valid_yaml(path)
     assert_valid_structure(path)
+    assert_valid_mappings(path)
 
 
 def assert_valid_yaml(path: Path):
@@ -48,6 +49,13 @@ def assert_valid_structure(path: Path):
     """Check that "definitions" folder in `path` exists and
     can be initialized without errors"""
     nomenclature.DataStructureDefinition(path / "definitions")
+
+
+def assert_valid_mappings(path: Path):
+    """Check that if a "mappings" folder exists it only contains valid mappings"""
+    if (path / "mappings").is_dir():
+        definition = nomenclature.DataStructureDefinition(path / "definitions")
+        nomenclature.RegionProcessor.from_directory(path / "mappings", definition)
 
 
 # Todo: add function which runs `DataStrutureDefinition(path).validate(scenario)`
