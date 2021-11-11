@@ -41,7 +41,7 @@ class NativeRegion(BaseModel):
 
 class CommonRegion(BaseModel):
     name: str
-    constituent_regions: List[NativeRegion]
+    constituent_regions: List[str]
 
 
 class RegionAggregationMapping(BaseModel):
@@ -125,7 +125,7 @@ class RegionAggregationMapping(BaseModel):
                 common_region_list.append(
                     {
                         "name": cr_name,
-                        "constituent_regions": [{"name": x} for x in cr[cr_name]],
+                        "constituent_regions": cr[cr_name],
                     }
                 )
             mapping_input["common_regions"] = common_region_list
@@ -238,7 +238,7 @@ class RegionProcessor(BaseModel):
                             agg_df = model_df.aggregate_region(
                                 var,
                                 cr.name,
-                                [r.name for r in cr.constituent_regions],
+                                cr.constituent_regions,
                                 **kwargs,
                             )
                             processed_dfs.append(agg_df)

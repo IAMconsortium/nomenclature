@@ -32,14 +32,11 @@ def test_mapping():
         "common_regions": [
             {
                 "name": "common_region_1",
-                "constituent_regions": [
-                    {"name": "region_a", "rename": None},
-                    {"name": "region_b", "rename": None},
-                ],
+                "constituent_regions": ["region_a", "region_b"],
             },
             {
                 "name": "common_region_2",
-                "constituent_regions": [{"name": "region_c", "rename": None}],
+                "constituent_regions": ["region_c"],
             },
         ],
     }
@@ -125,10 +122,7 @@ def test_region_processor_working(simple_nomenclature):
             "common_regions": [
                 {
                     "name": "World",
-                    "constituent_regions": [
-                        {"name": "region_a", "rename": None},
-                        {"name": "region_b", "rename": None},
-                    ],
+                    "constituent_regions": ["region_a", "region_b"],
                 }
             ],
         },
