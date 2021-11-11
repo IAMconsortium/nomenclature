@@ -1,0 +1,9 @@
+- Primary Energy:
+    definition: Total primary energy consumption
+    unit: EJ/yr
+- Primary Energy|Coal:
+    definition: Primary energy consumption of Coal
+    unit: EJ/yr
+- Share|Coal:
+    definition: Share of Coal in the total primary energy mix
+    unit:

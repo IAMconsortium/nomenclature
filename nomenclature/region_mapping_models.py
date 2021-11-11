@@ -8,6 +8,9 @@ from jsonschema import ValidationError, validate
 from pydantic import BaseModel, root_validator, validator, validate_arguments
 from pydantic.types import FilePath, DirectoryPath
 
+import pyam
+from pyam import IamDataFrame
+
 from nomenclature.core import DataStructureDefinition
 
 here = Path(__file__).parent.absolute()
@@ -38,7 +41,7 @@ class NativeRegion(BaseModel):
 
 class CommonRegion(BaseModel):
     name: str
-    constituent_regions: List[NativeRegion]
+    constituent_regions: List[str]
 
 
 class RegionAggregationMapping(BaseModel):
@@ -66,6 +69,19 @@ class RegionAggregationMapping(BaseModel):
         if duplicates:
             raise RegionNameCollisionError("common regions", duplicates, values["file"])
         return v
+
+    @root_validator()
+    def check_native_or_common_regions(cls, values):
+        # Check that we have at least one of the two: native and common regions
+        if (
+            values.get("native_regions") is None
+            and values.get("common_regions") is None
+        ):
+            raise ValueError(
+                "At least one of the two: 'native_regions', 'common_regions' must be"
+                f"given in {values['file']}"
+            )
+        return values
 
     @root_validator()
     def check_illegal_renaming(cls, values):
@@ -122,7 +138,7 @@ class RegionAggregationMapping(BaseModel):
                 common_region_list.append(
                     {
                         "name": cr_name,
-                        "constituent_regions": [{"name": x} for x in cr[cr_name]],
+                        "constituent_regions": cr[cr_name],
                     }
                 )
             mapping_input["common_regions"] = common_region_list
@@ -130,9 +146,19 @@ class RegionAggregationMapping(BaseModel):
 
     @property
     def all_regions(self) -> List[str]:
+        # For the native regions we take the **renamed** (if given) names
         nr_list = [x.target_native_region for x in self.native_regions or []]
         cr_list = [x.name for x in self.common_regions or []]
         return nr_list + cr_list
+
+    @property
+    def model_native_region_names(self) -> List[str]:
+        # List of the **original** model native region names
+        return [x.name for x in self.native_regions]
+
+    @property
+    def rename_mapping(self) -> Dict[str, str]:
+        return {r.name: r.target_native_region for r in self.native_regions or []}
 
 
 class ModelMappingCollisionError(PydanticValueError):
@@ -188,3 +214,49 @@ class RegionProcessor(BaseModel):
         if invalid:
             raise RegionNotDefinedError(invalid, v.file)
         return v
+
+    def apply(self, df: IamDataFrame) -> IamDataFrame:
+        processed_dfs: List[IamDataFrame] = []
+        for model in df.model:
+            model_df = df.filter(model=model)
+
+            # If no mapping is defined the data frame is returned unchanged
+            if model not in self.mappings:
+                processed_dfs.append(model_df)
+            # Otherwise we first rename, then aggregate
+            else:
+                # Rename
+                if self.mappings[model].native_regions is not None:
+                    processed_dfs.append(
+                        model_df.filter(
+                            region=self.mappings[model].model_native_region_names
+                        ).rename(region=self.mappings[model].rename_mapping)
+                    )
+
+                # Aggregate
+                if self.mappings[model].common_regions is not None:
+                    for cr in self.mappings[model].common_regions:
+                        PYAM_AGG_KWARGS = {
+                            "components",
+                            "method",
+                            "weight",
+                            "drop_negative_weights",
+                        }
+                        vars = {
+                            var: {
+                                key: value
+                                for key, value in kwargs.items()
+                                if key in PYAM_AGG_KWARGS
+                            }
+                            for var, kwargs in self.definition.variable.items()
+                            if var in model_df.variable
+                        }
+                        for var, kwargs in vars.items():
+                            agg_df = model_df.aggregate_region(
+                                var,
+                                cr.name,
+                                cr.constituent_regions,
+                                **kwargs,
+                            )
+                            processed_dfs.append(agg_df)
+        return pyam.concat(processed_dfs)
