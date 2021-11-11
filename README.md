@@ -11,7 +11,9 @@ This repository is licensed under the Apache License, Version 2.0 (the "License"
 ## Overview
 
 This package facilitates working with data templates that follow the format developed by
-the [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org). Additionally, it supports region processing which consists of renaming and aggregation of model native regions to common regions.
+the [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org). 
+It supports validation of scenario data and region processing, which consists of
+renaming and aggregation of model "native regions" to "common regions" used in a project.
 
 A **DataStructureDefinition** class contains **CodeLists** for *variables*
 (including units) and *regions* to be used in a model comparison or scenario exercise
@@ -89,11 +91,12 @@ common_regions:
     - ...
 ```
 
-Some points to note:
+### Notes
 
-* The names of the three top level key words `model`, `native_regions` and `common_regions` are fixed.
+* The names of the three top level keywords `model`, `native_regions` and `common_regions` are fixed.
 * Inside the `native_regions` a **list** of model native regions serves as a selection as to which regions to keep.
-* In the above example `region_a` is to be renamed to `alternative_name_a`. This is done by defining a key: value pair of `model_native_name: new_name`.
+* In the above example `region_a` is to be renamed to `alternative_name_a`.
+   This is done by defining a key-value pair of `model_native_name: new_name`.
 * `region_b` is selected but the name is not changed.
 * Assuming `model_a` also defines a third region `region_c`, since it is not mentioned it will be **dropped** from the data.
 * In `common_regions`, the common regions which will be computed as aggregates are defined. They are defined as list entries which themselves have a list of constituent regions.
