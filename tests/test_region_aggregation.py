@@ -92,10 +92,10 @@ def test_illegal_mappings(file, error_type, error_msg_pattern):
         )
 
 
-def test_region_processor_working(simple_nomenclature):
+def test_region_processor_working(simple_definition):
 
     obs = RegionProcessor.from_directory(
-        TEST_DATA_DIR / "regionprocessor_working", simple_nomenclature
+        TEST_DATA_DIR / "regionprocessor_working", simple_definition
     )
     exp_data = [
         {
@@ -125,7 +125,7 @@ def test_region_processor_working(simple_nomenclature):
     assert all(exp_dict[m] == obs.mappings[m].dict() for m in exp_models)
 
 
-def test_region_processor_not_defined(simple_nomenclature):
+def test_region_processor_not_defined(simple_definition):
     # Test a RegionProcessor with regions that are not defined in the data structure
     # definition
     error_msg = (
@@ -134,19 +134,19 @@ def test_region_processor_not_defined(simple_nomenclature):
     )
     with pytest.raises(pydantic.ValidationError, match=error_msg):
         RegionProcessor.from_directory(
-            TEST_DATA_DIR / "regionprocessor_not_defined", simple_nomenclature
+            TEST_DATA_DIR / "regionprocessor_not_defined", simple_definition
         )
 
 
-def test_region_processor_duplicate_model_mapping(simple_nomenclature):
+def test_region_processor_duplicate_model_mapping(simple_definition):
     error_msg = ".*model_a.*mapping_1.yaml.*mapping_2.yaml"
     with pytest.raises(ModelMappingCollisionError, match=error_msg):
         RegionProcessor.from_directory(
-            TEST_DATA_DIR / "regionprocessor_duplicate", simple_nomenclature
+            TEST_DATA_DIR / "regionprocessor_duplicate", simple_definition
         )
 
 
-def test_region_processor_wrong_args(simple_nomenclature):
+def test_region_processor_wrong_args(simple_definition):
     # Test if pydantic correctly type checks the input of RegionProcessor.from_directory
 
     # Test with an integer
@@ -160,7 +160,7 @@ def test_region_processor_wrong_args(simple_nomenclature):
     ):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "regionprocessor_working/mapping_1.yaml",
-            simple_nomenclature,
+            simple_definition,
         )
 
 

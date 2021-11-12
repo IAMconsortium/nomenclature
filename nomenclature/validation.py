@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 def log_error(name, lst):
     """Compile an error message and write to log"""
-    msg = f"The following {name} are not defined in the nomenclature:"
+    msg = f"The following {name} are not defined in the DataStructureDefinition:"
     logger.error("\n - ".join(map(str, [msg] + lst)))
 
 
@@ -16,8 +16,8 @@ def is_subset(x, y):
     return set(to_list(x)).issubset([u or "" for u in to_list(y)])
 
 
-def validate(nc, df):
-    """Validation of an IamDataFrame against codelists of a Nomenclature"""
+def validate(dsd, df):
+    """Validation of an IamDataFrame against codelists of a DataStructureDefinition"""
 
     if not isinstance(df, IamDataFrame):
         df = IamDataFrame(df)
@@ -27,17 +27,17 @@ def validate(nc, df):
     # combined validation of variables and units
     invalid_vars, invalid_units = [], []
     for variable, unit in df.unit_mapping.items():
-        if variable not in nc.variable:
+        if variable not in dsd.variable:
             invalid_vars.append(variable)
         else:
-            nc_unit = nc.variable[variable]["unit"]
-            # fast-pass for unique units in df and the nomenclature
-            if nc_unit == unit:
+            dsd_unit = dsd.variable[variable]["unit"]
+            # fast-pass for unique units in df and the DataStructureDefinition
+            if dsd_unit == unit:
                 continue
             # full-fledged subset validation
-            if is_subset(unit, nc_unit):
+            if is_subset(unit, dsd_unit):
                 continue
-            invalid_units.append((variable, unit, nc_unit))
+            invalid_units.append((variable, unit, dsd_unit))
 
     if invalid_vars:
         log_error("variables", invalid_vars)
@@ -50,7 +50,7 @@ def validate(nc, df):
 
     # loop over other dimensions for validation
     cols = [
-        (df.region, nc.region, "regions"),
+        (df.region, dsd.region, "regions"),
     ]
 
     for values, codelist, name in cols:
