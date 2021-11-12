@@ -20,7 +20,7 @@ TEST_DF = pd.DataFrame(
 
 
 @pytest.fixture(scope="session")
-def simple_nomenclature():
+def simple_definition():
     yield DataStructureDefinition(TEST_DATA_DIR / "validation_nc")
 
 

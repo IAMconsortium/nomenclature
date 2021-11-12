@@ -38,7 +38,8 @@ class DataStructureDefinition:
         Parameters
         ----------
         df : IamDataFrame
-            An IamDataFrame to be validated against the codelists of this nomenclature.
+            An IamDataFrame to be validated against the codelists of this
+            DataStructureDefinition.
 
         Returns
         -------
