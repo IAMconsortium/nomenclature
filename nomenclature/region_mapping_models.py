@@ -1,17 +1,19 @@
+import logging
 from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Union
 
-from pydantic.errors import PydanticValueError
+import pyam
 import yaml
 from jsonschema import ValidationError, validate
-from pydantic import BaseModel, root_validator, validator, validate_arguments
-from pydantic.types import FilePath, DirectoryPath
-
-import pyam
 from pyam import IamDataFrame
+from pydantic import BaseModel, root_validator, validate_arguments, validator
+from pydantic.errors import PydanticValueError
+from pydantic.types import DirectoryPath, FilePath
 
 from nomenclature.core import DataStructureDefinition
+
+logger = logging.getLogger(__name__)
 
 here = Path(__file__).parent.absolute()
 
@@ -222,9 +224,14 @@ class RegionProcessor(BaseModel):
 
             # If no mapping is defined the data frame is returned unchanged
             if model not in self.mappings:
+                logging.info(f"No region aggregation mapping found for model {model}")
                 processed_dfs.append(model_df)
             # Otherwise we first rename, then aggregate
             else:
+                logging.info(
+                    f"Applying region aggregation mapping for model {model} from file "
+                    f"{self.mappings[model].file}"
+                )
                 # Rename
                 if self.mappings[model].native_regions is not None:
                     processed_dfs.append(
