@@ -16,21 +16,28 @@ class DataStructureDefinition:
     """Definition of datastructure codelists for dimensions used in the IAMC format"""
 
     def __init__(self, path):
+        """
+
+        Parameters
+        ----------
+        path : str or path-like
+            The folder with the project definitions.
+        """
         if not isinstance(path, Path):
             path = Path(path)
 
         if not path.is_dir():
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
-        self.variable = CodeList.from_directory("variable", path / "variables")
+        self.variable = CodeList.from_directory("variable", path / "variable")
         self.region = CodeList.from_directory(
-            "region", path / "regions", top_level_attr="hierarchy"
+            "region", path / "region", top_level_attr="hierarchy"
         )
 
-        args = [(self.region, "region"), (self.variable, "variable")]
-        for attr, name in args:
-            if not attr:
-                logger.warning(f"Attribute {name} is empty.")
+        self.dimensions = ["region", "variable"]
+        for dim in self.dimensions:
+            if not self.__getattribute__(dim):
+                logger.warning(f"Attribute '{dim}' is empty.")
 
     def validate(self, df: IamDataFrame) -> None:
         """Validate that the coordinates of `df` are defined in the codelists
