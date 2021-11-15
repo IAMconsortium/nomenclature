@@ -59,7 +59,6 @@ class CodeList(BaseModel):
         path: Path,
         file: str = None,
         ext: str = ".yaml",
-        top_level_attr: str = None,
     ):
         """Initialize a CodeList from a directory with codelist files
 
@@ -105,15 +104,16 @@ class CodeList(BaseModel):
             # validate against the schema of this codelist domain
             validate(_code_list, SCHEMA_MAPPING[name])
 
-            # if specified, set top-level key as attribute instead
-            if top_level_attr is not None:
-                original_code_list, _code_list = _code_list.copy(), []
-                for top_level_cat in original_code_list:
+            # a "region" codelist assumes a top-level key to be used as attribute
+            if name == "region":
+                _region_code_list = []  # save refactored list as new (temporary) object
+                for top_level_cat in _code_list:
                     for top_key, _codes in top_level_cat.items():
                         for item in _codes:
                             item = Code.from_dict(item)
-                            item.set_attribute(top_level_attr, top_key)
-                            _code_list.append(item)
+                            item.set_attribute("hierarchy", top_key)
+                            _region_code_list.append(item)
+                _code_list = _region_code_list
             else:
                 _code_list = [Code.from_dict(_dict) for _dict in _code_list]
 

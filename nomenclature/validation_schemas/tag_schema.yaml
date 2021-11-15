@@ -32,7 +32,7 @@ definitions:
         # Attributes-dictionary (replace `<Tag>` by `value` in the `key` attribute)
         type: object
         additionalProperties:
-          type: [string, number, "null"]
+          type: [string, number, boolean, "null"]
     additionalProperties: false
     minProperties: 1
     maxProperties: 1

@@ -17,11 +17,15 @@ definitions:
         # The lower-level dictionary are the attributes
         properties:
           unit:
-            type: [ string, "null" ]
+            oneOf:
+              - type: [ string, "null" ]
+              - type: array
+                items:
+                  type: string
         required:
           - unit
         additionalProperties:
-          type: [ string, number, "null" ]
+          type: [ string, number, boolean, "null" ]
     additionalProperties: false
     minProperties: 1
     maxProperties: 1

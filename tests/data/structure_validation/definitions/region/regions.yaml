@@ -1,0 +1,8 @@
+- common:
+    - World
+- country:
+    - Austria:
+        iso2: AT
+        eu_member: true
+        eu_accession: 1995
+        large_cities: [Vienna, Graz, Linz]
