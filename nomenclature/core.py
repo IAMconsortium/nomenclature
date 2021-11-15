@@ -40,7 +40,7 @@ class DataStructureDefinition:
             _empty = ", ".join(empty)
             raise ValueError(f"Empty codelist: {_empty}")
 
-    def validate(self, df: IamDataFrame, dimensions: list=None) -> None:
+    def validate(self, df: IamDataFrame, dimensions: list = None) -> None:
         """Validate that the coordinates of `df` are defined in the codelists
 
         Parameters

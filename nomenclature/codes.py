@@ -54,11 +54,7 @@ class CodeList(BaseModel):
 
     @classmethod
     def from_directory(
-        cls,
-        name: str,
-        path: Path,
-        file: str = None,
-        ext: str = ".yaml",
+        cls, name: str, path: Path, file: str = None, ext: str = ".yaml",
     ):
         """Initialize a CodeList from a directory with codelist files
 
