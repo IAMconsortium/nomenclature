@@ -30,9 +30,7 @@ class DataStructureDefinition:
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
         self.variable = CodeList.from_directory("variable", path / "variable")
-        self.region = CodeList.from_directory(
-            "region", path / "region", top_level_attr="hierarchy"
-        )
+        self.region = CodeList.from_directory("region", path / "region")
 
         self.dimensions = ["region", "variable"]
         for dim in self.dimensions:

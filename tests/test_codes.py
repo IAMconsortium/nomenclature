@@ -36,9 +36,7 @@ def test_tagged_codelist():
 
 def test_region_codelist():
     """Check replacing top-level hierarchy of yaml file as attribute for regions"""
-    code = CodeList.from_directory(
-        "region", TEST_DATA_DIR / "region_codelist", top_level_attr="hierarchy"
-    )
+    code = CodeList.from_directory("region", TEST_DATA_DIR / "region_codelist")
 
     assert "World" in code
     assert code["World"]["hierarchy"] == "common"
