@@ -1,5 +1,7 @@
 - <Sector>:
   - Energy:
       definition: energy
+      value_bool: true
+      value_number: 2.3
   - Industry:
       definition: industrial
