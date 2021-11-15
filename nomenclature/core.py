@@ -23,7 +23,8 @@ class DataStructureDefinition:
         path : str or path-like
             The folder with the project definitions.
         dimensions : list of str, optional
-            List of :meth:`CodeList` names, initialized from a sub-folder of `path`.
+            List of :meth:`CodeList` names. Each CodeList is initialized
+            from a sub-folder of `path` of that name.
         """
         if not isinstance(path, Path):
             path = Path(path)
@@ -32,13 +33,12 @@ class DataStructureDefinition:
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
         self.dimensions = dimensions
-        for dim in dimensions:
+        for dim in self.dimensions:
             self.__setattr__(dim, CodeList.from_directory(dim, path / dim))
 
         empty = [d for d in self.dimensions if not self.__getattribute__(d)]
         if empty:
-            _empty = ", ".join(empty)
-            raise ValueError(f"Empty codelist: {_empty}")
+            raise ValueError(f"Empty codelist: {', '.join(empty)}")
 
     def validate(self, df: IamDataFrame, dimensions: list = None) -> None:
         """Validate that the coordinates of `df` are defined in the codelists
