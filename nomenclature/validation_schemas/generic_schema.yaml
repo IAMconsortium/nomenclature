@@ -1,0 +1,24 @@
+$schema: 'https://json-schema.org/draft/2020-12/schema'
+title: GenericCodeList
+description: >
+  This schema is used for the validation of generic code-list yaml files.
+type: array
+items:
+  $ref: '#/definitions/Code'
+
+definitions:
+
+  Code:
+    oneOf:
+      - type: object
+        patternProperties:
+          # The key of this dictionary is the code name
+          ^.+$:
+            type: object
+            # The lower-level dictionary are the attributes
+            additionalProperties:
+              type: [ string, number, boolean, "null" ]
+        additionalProperties: false
+        minProperties: 1
+        maxProperties: 1
+      - type: string

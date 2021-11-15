@@ -16,7 +16,7 @@ def read_validation_schema(i):
     return schema
 
 
-SCHEMA_TYPES = ("variable", "tag", "region")
+SCHEMA_TYPES = ("variable", "tag", "region", "generic")
 SCHEMA_MAPPING = dict([(i, read_validation_schema(i)) for i in SCHEMA_TYPES])
 
 
@@ -101,8 +101,8 @@ class CodeList(BaseModel):
                     tag_dict[tag.name] = [Code.from_dict(a) for a in tag.attributes]
                 continue
 
-            # validate against the schema of this codelist domain
-            validate(_code_list, SCHEMA_MAPPING[name])
+            # validate against the schema of this codelist domain (default `generic`)
+            validate(_code_list, SCHEMA_MAPPING.get(name, SCHEMA_MAPPING["generic"]))
 
             # a "region" codelist assumes a top-level key to be used as attribute
             if name == "region":
@@ -119,7 +119,7 @@ class CodeList(BaseModel):
 
             # add `file` attribute to each element and add to main list
             for item in _code_list:
-                item.set_attribute("file", str(f))
+                item.set_attribute("file", str(f.relative_to(path.parent)))
             code_list.extend(_code_list)
 
         # replace tags by the items of the tag-dictionary

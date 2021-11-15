@@ -15,13 +15,15 @@ logger = logging.getLogger(__name__)
 class DataStructureDefinition:
     """Definition of datastructure codelists for dimensions used in the IAMC format"""
 
-    def __init__(self, path):
+    def __init__(self, path, dimensions=["region", "variable"]):
         """
 
         Parameters
         ----------
         path : str or path-like
             The folder with the project definitions.
+        dimensions : list of str
+            List of :meth:`CodeList` names, initialized from a sub-folder of `path`.
         """
         if not isinstance(path, Path):
             path = Path(path)
@@ -29,16 +31,16 @@ class DataStructureDefinition:
         if not path.is_dir():
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
-        self.variable = CodeList.from_directory("variable", path / "variable")
-        self.region = CodeList.from_directory("region", path / "region")
+        self.dimensions = dimensions
+        for dim in dimensions:
+            self.__setattr__(dim, CodeList.from_directory(dim, path / dim))
 
-        self.dimensions = ["region", "variable"]
         empty = [d for d in self.dimensions if not self.__getattribute__(d)]
         if empty:
             _empty = ", ".join(empty)
             raise ValueError(f"Empty codelist: {_empty}")
 
-    def validate(self, df: IamDataFrame) -> None:
+    def validate(self, df: IamDataFrame, dimensions: list=None) -> None:
         """Validate that the coordinates of `df` are defined in the codelists
 
         Parameters
@@ -46,6 +48,8 @@ class DataStructureDefinition:
         df : IamDataFrame
             An IamDataFrame to be validated against the codelists of this
             DataStructureDefinition.
+        dimensions : list of str, optional
+            Dimensions to perform validation (defaults to all dimensions of self)
 
         Returns
         -------
@@ -56,7 +60,7 @@ class DataStructureDefinition:
         ValueError
             If `df` fails validation against any codelist.
         """
-        validate(self, df)
+        validate(self, df, dimensions=dimensions)
 
     def to_excel(self, excel_writer, sheet_name="variable_definitions"):
         """Write the variable codelist to an Excel sheet
