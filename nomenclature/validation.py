@@ -16,15 +16,11 @@ def is_subset(x, y):
     return set(to_list(x)).issubset([u or "" for u in to_list(y)])
 
 
-def validate(dsd, df, dimensions=None):
+def validate(dsd, df, dimensions):
     """Validation of an IamDataFrame against codelists of a DataStructureDefinition"""
 
     if not isinstance(df, IamDataFrame):
         df = IamDataFrame(df)
-
-    # by default, validate against all dimensions of the DataStructureDefinition
-    if dimensions is None:
-        dimensions = dsd.dimensions
 
     error = False
 

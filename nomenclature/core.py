@@ -22,7 +22,7 @@ class DataStructureDefinition:
         ----------
         path : str or path-like
             The folder with the project definitions.
-        dimensions : list of str
+        dimensions : list of str, optional
             List of :meth:`CodeList` names, initialized from a sub-folder of `path`.
         """
         if not isinstance(path, Path):
@@ -60,7 +60,7 @@ class DataStructureDefinition:
         ValueError
             If `df` fails validation against any codelist.
         """
-        validate(self, df, dimensions=dimensions)
+        validate(self, df, dimensions=dimensions or self.dimensions)
 
     def to_excel(self, excel_writer, sheet_name="variable_definitions"):
         """Write the variable codelist to an Excel sheet
