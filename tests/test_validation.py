@@ -1,4 +1,8 @@
 import pytest
+from nomenclature import DataStructureDefinition
+
+from conftest import TEST_DATA_DIR
+
 
 MATCH_FAIL_VALIDATION = "The validation failed. Please check the log for details."
 
@@ -46,3 +50,25 @@ def test_validation_fails_region_as_int(simple_definition, simple_df):
 
     with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         simple_definition.validate(simple_df)
+
+
+def test_validation_with_custom_dimension(simple_df):
+    """Check validation with a custom DataStructureDefinition dimension"""
+
+    definition = DataStructureDefinition(
+        TEST_DATA_DIR / "custom_dimension_nc",
+        dimensions=["region", "variable", "scenario"],
+    )
+
+    # validating against all dimensions fails ("scen_c" not in ["scen_a", "scenario_b"])
+    with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
+        definition.validate(simple_df.rename(scenario={"scen_a": "scen_c"}))
+
+    # validating against specific dimensions works (in spite of conflict in "scenario")
+    definition.validate(
+        simple_df.rename(scenario={"scen_a": "scen_c"}),
+        dimensions=["region", "variable"],
+    )
+
+    # validating against all dimensions works
+    definition.validate(simple_df)

@@ -5,9 +5,26 @@ from nomenclature import DataStructureDefinition, create_yaml_from_xlsx
 from conftest import TEST_DATA_DIR
 
 
+def test_definition_with_custom_dimension(simple_definition):
+    """Check initializing a DataStructureDefinition with a custom dimension"""
+
+    obs = DataStructureDefinition(
+        TEST_DATA_DIR / "custom_dimension_nc",
+        dimensions=["region", "variable", "scenario"],
+    )
+
+    # check that "standard" dimensions are identical to simple test definitions
+    assert obs.region == simple_definition.region
+    assert obs.variable == simple_definition.variable
+
+    # check that "custom" dimensions are as expected
+    file = "scenario/scenarios.yaml"
+    assert obs.scenario["scen_a"] == {"attribute": "value", "file": file}
+    assert obs.scenario["scen_b"] == {"file": file}
+
+
 def test_nonexisting_path_raises():
-    """Check that initializing a DataStructureDefinition with a non-existing path
-    raises"""
+    """Check that initializing a DataStructureDefinition with non-existing path fails"""
     match = "Definitions directory not found: foo"
     with pytest.raises(NotADirectoryError, match=match):
         DataStructureDefinition("foo")
