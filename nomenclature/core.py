@@ -33,9 +33,10 @@ class DataStructureDefinition:
         self.region = CodeList.from_directory("region", path / "region")
 
         self.dimensions = ["region", "variable"]
-        for dim in self.dimensions:
-            if not self.__getattribute__(dim):
-                logger.warning(f"Attribute '{dim}' is empty.")
+        empty = [d for d in self.dimensions if not self.__getattribute__(d)]
+        if empty:
+            _empty = ", ".join(empty)
+            raise ValueError(f"Empty codelist: {_empty}")
 
     def validate(self, df: IamDataFrame) -> None:
         """Validate that the coordinates of `df` are defined in the codelists

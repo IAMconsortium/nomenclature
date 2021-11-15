@@ -13,6 +13,13 @@ def test_nonexisting_path_raises():
         DataStructureDefinition("foo")
 
 
+def test_empty_codelist_raises():
+    """Check that initializing a DataStructureDefinition with empty CodeList raises"""
+    match = "Empty codelist: region, variable"
+    with pytest.raises(ValueError, match=match):
+        DataStructureDefinition(TEST_DATA_DIR / "simple_codelist")
+
+
 def test_to_excel(simple_definition, tmpdir):
     """Check writing a DataStructureDefinition to file"""
     file = tmpdir / "testing_export.xlsx"
