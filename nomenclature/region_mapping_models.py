@@ -241,23 +241,23 @@ class RegionProcessor(BaseModel):
 
                 # Aggregate
                 if self.mappings[model].common_regions is not None:
+                    PYAM_AGG_KWARGS = {
+                        "components",
+                        "method",
+                        "weight",
+                        "drop_negative_weights",
+                    }
+                    vars = {
+                        var: {
+                            key: value
+                            for key, value in kwargs.items()
+                            if key in PYAM_AGG_KWARGS
+                        }
+                        for var, kwargs in self.definition.variable.items()
+                        if var in model_df.variable
+                        and not kwargs.get("skip-region-aggregation", False)
+                    }
                     for cr in self.mappings[model].common_regions:
-                        PYAM_AGG_KWARGS = {
-                            "components",
-                            "method",
-                            "weight",
-                            "drop_negative_weights",
-                        }
-                        vars = {
-                            var: {
-                                key: value
-                                for key, value in kwargs.items()
-                                if key in PYAM_AGG_KWARGS
-                            }
-                            for var, kwargs in self.definition.variable.items()
-                            if var in model_df.variable
-                            and not kwargs.get("skip-region-aggregation", False)
-                        }
                         for var, kwargs in vars.items():
                             agg_df = model_df.aggregate_region(
                                 var,
