@@ -1,0 +1,5 @@
+- common:
+  - World
+- model_native:
+  - region_A
+  - region_B

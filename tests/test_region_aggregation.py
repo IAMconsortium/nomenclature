@@ -320,3 +320,24 @@ def test_region_processing_weighted_aggregation():
     )
     obs = rp.apply(test_df)
     assert_iamframe_equal(obs, exp)
+
+
+def test_region_processing_skip_aggregation():
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    exp = test_df
+    dsd = DataStructureDefinition(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
+    )
+    rp = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
+    )
+    obs = rp.apply(test_df)
+    assert_iamframe_equal(obs, exp)

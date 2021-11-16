@@ -257,6 +257,7 @@ class RegionProcessor(BaseModel):
                             }
                             for var, kwargs in self.definition.variable.items()
                             if var in model_df.variable
+                            and not kwargs.get("skip-region-aggregation", False)
                         }
                         for var, kwargs in vars.items():
                             agg_df = model_df.aggregate_region(
