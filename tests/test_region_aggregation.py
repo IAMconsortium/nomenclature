@@ -1,15 +1,18 @@
 import copy
+from pathlib import Path
+
 import jsonschema
+import pandas as pd
 import pydantic
 import pytest
-import pandas as pd
 from nomenclature.core import DataStructureDefinition
 from nomenclature.region_mapping_models import (
+    ModelMappingCollisionError,
     RegionAggregationMapping,
     RegionProcessor,
-    ModelMappingCollisionError,
 )
-from pyam import IAMC_IDX, assert_iamframe_equal, IamDataFrame
+from pyam import IAMC_IDX, IamDataFrame, assert_iamframe_equal
+
 from conftest import TEST_DATA_DIR
 
 TEST_FOLDER_REGION_MAPPING = TEST_DATA_DIR / "region_aggregation"
@@ -23,7 +26,7 @@ def test_mapping():
     )
     exp = {
         "model": "model_a",
-        "file": TEST_FOLDER_REGION_MAPPING / mapping_file,
+        "file": (TEST_FOLDER_REGION_MAPPING / mapping_file).relative_to(Path.cwd()),
         "native_regions": [
             {"name": "region_a", "rename": "alternative_name_a"},
             {"name": "region_b", "rename": "alternative_name_b"},
@@ -100,7 +103,9 @@ def test_region_processor_working(simple_definition):
     exp_data = [
         {
             "model": "model_a",
-            "file": TEST_DATA_DIR / "regionprocessor_working/mapping_1.yaml",
+            "file": (
+                TEST_DATA_DIR / "regionprocessor_working/mapping_1.yaml"
+            ).relative_to(Path.cwd()),
             "native_regions": [
                 {"name": "World", "rename": None},
             ],
@@ -108,7 +113,9 @@ def test_region_processor_working(simple_definition):
         },
         {
             "model": "model_b",
-            "file": TEST_DATA_DIR / "regionprocessor_working/mapping_2.yaml",
+            "file": (
+                TEST_DATA_DIR / "regionprocessor_working/mapping_2.yaml"
+            ).relative_to(Path.cwd()),
             "native_regions": None,
             "common_regions": [
                 {
