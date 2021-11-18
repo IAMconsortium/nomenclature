@@ -161,7 +161,7 @@ the list of countries included in a macro-region (i.e., a continent or large reg
 
 ## The pyam package
 
-<img src="./_static/pyam-logo.png" width="133" height="100" align="right" alt="pyam
+<img src="./doc/source/_static/pyam-logo.png" width="133" height="100" align="right" alt="pyam
 logo" />
 
 This package is intended to complement the Python package **pyam**, an open-source
@@ -193,7 +193,7 @@ project.variable
 
 ## Acknowledgement
 
-<img src="./_static/open_entrance-logo.png" width="202" height="129" align="right"
+<img src="./doc/source/_static/open_entrance-logo.png" width="202" height="129" align="right"
 alt="openENTRANCE logo" />
 
 This package is based on the work initially done in the [Horizon 2020
@@ -204,6 +204,6 @@ low-carbon transition pathways in Europe.
 Refer to the [openENTRANCE/nomenclature](https://github.com/openENTRANCE/nomenclature)
 repository for more information.
 
-<img src="./_static/EU-logo-300x201.jpg" width="80" height="54" align="left" alt="EU
+<img src="./doc/source/_static/EU-logo-300x201.jpg" width="80" height="54" align="left" alt="EU
 logo" /> This project has received funding from the European Union’s Horizon 2020
 research and innovation programme under grant agreement No. 835896.
