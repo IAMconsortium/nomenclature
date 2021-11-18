@@ -20,6 +20,12 @@ here = Path(__file__).parent.absolute()
 Sequence = Union[List[str], Tuple[str], Set[str]]
 
 
+def get_relative_path(path: Path):
+    # Get the relative version of `path` relative to `path_relative_to`
+    # In case path does not contain path_relative_to it is returned unchanged
+    return path.relative_to(Path.cwd()) if path.is_absolute() else path
+
+
 class RegionNameCollisionError(PydanticValueError):
     code = "region_name_collision"
     msg_template = "Name collision in {location} for {duplicates} in {file}"
@@ -104,6 +110,7 @@ class RegionAggregationMapping(BaseModel):
     @classmethod
     def create_from_region_mapping(cls, file: Union[Path, str]):
         SCHEMA_FILE = here / "validation_schemas" / "region_mapping_schema.yaml"
+        file = Path(file) if isinstance(file, str) else file
         with open(file, "r") as f:
             mapping_input = yaml.safe_load(f)
         with open(SCHEMA_FILE, "r") as f:
@@ -114,10 +121,10 @@ class RegionAggregationMapping(BaseModel):
             validate(mapping_input, schema)
         except ValidationError as e:
             # Add file information in case of error
-            raise ValidationError(f"{e.message} in {file.relative_to(Path.cwd())}")
+            raise ValidationError(f"{e.message} in {get_relative_path(file)}")
 
         # Add the file name to mapping_input
-        mapping_input["file"] = file.relative_to(Path.cwd())
+        mapping_input["file"] = get_relative_path(file)
 
         # Reformat the "native_regions"
         if "native_regions" in mapping_input:
