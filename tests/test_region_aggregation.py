@@ -95,11 +95,16 @@ def test_illegal_mappings(file, error_type, error_msg_pattern):
         )
 
 
-def test_region_processor_working(simple_definition):
+@pytest.mark.parametrize(
+    "region_processor_path",
+    [
+        TEST_DATA_DIR / "regionprocessor_working",
+        (TEST_DATA_DIR / "regionprocessor_working").relative_to(Path.cwd()),
+    ],
+)
+def test_region_processor_working(region_processor_path, simple_definition):
 
-    obs = RegionProcessor.from_directory(
-        TEST_DATA_DIR / "regionprocessor_working", simple_definition
-    )
+    obs = RegionProcessor.from_directory(region_processor_path, simple_definition)
     exp_data = [
         {
             "model": "model_a",
