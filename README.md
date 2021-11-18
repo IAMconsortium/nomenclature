@@ -161,7 +161,8 @@ the list of countries included in a macro-region (i.e., a continent or large reg
 
 ## The pyam package
 
-<img src="./doc/source/_static/pyam-logo.png" width="133" height="100" align="right" alt="pyam
+<img src="https://github.com/IAMconsortium/pyam/blob/main/doc/logos/pyam-logo.png
+" width="133" height="100" align="right" alt="pyam
 logo" />
 
 This package is intended to complement the Python package **pyam**, an open-source

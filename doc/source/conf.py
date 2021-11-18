@@ -14,16 +14,19 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import nomenclature
+from datetime import datetime
 
 # -- Project information -----------------------------------------------------
 
 project = "nomenclature"
-copyright = "2021, IAMconsortium"
-author = "IAMconsortium"
+copyright = f"2021-{datetime.now().year}, IIASA"
+author = "Scenario Services team, ECE program, IIASA"
 
-# The full version, including alpha/beta/rc tags
-release = "0.1"
-
+# The short X.Y version.
+version = nomenclature.__version__
+# The full version, including alpha/beta/rc tags.
+release = nomenclature.__version__
 
 # -- General configuration ---------------------------------------------------
 

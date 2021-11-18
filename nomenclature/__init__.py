@@ -7,7 +7,11 @@ from nomenclature.region_mapping_models import (  # noqa
     RegionProcessor,
     RegionAggregationMapping,
 )
+from ._version import get_versions
 
 
 # set up logging
 logger = logging.getLogger(__name__)
+
+__version__ = get_versions()["version"]
+del get_versions
