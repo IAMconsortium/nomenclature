@@ -19,4 +19,3 @@ try:
     __version__ = get_version(Path(__file__).parent.parent)
 except LookupError:
     __version__ = version("nomenclature")
-
