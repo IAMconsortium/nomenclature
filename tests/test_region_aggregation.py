@@ -353,3 +353,14 @@ def test_region_processing_skip_aggregation():
     )
     obs = rp.apply(test_df)
     assert_iamframe_equal(obs, exp)
+
+
+def test_aggregation_speed():
+    data_path = "/home/hackstock/Documents/code/engage-data-prep/1632146966482-snapshot_engage_internal/output/snapshot_Compare (R5)_message_only.csv"
+
+    df = IamDataFrame(data_path)
+    dsd = DataStructureDefinition(TEST_DATA_DIR / "region_processing/speed_test/dsd")
+    rp = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/speed_test/mappings", dsd
+    )
+    rp.apply(df)
