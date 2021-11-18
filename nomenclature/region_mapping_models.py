@@ -13,6 +13,13 @@ from pydantic.types import DirectoryPath, FilePath
 
 from nomenclature.core import DataStructureDefinition
 
+PYAM_AGG_KWARGS = {
+    "components",
+    "method",
+    "weight",
+    "drop_negative_weights",
+}
+
 logger = logging.getLogger(__name__)
 
 here = Path(__file__).parent.absolute()
@@ -241,12 +248,6 @@ class RegionProcessor(BaseModel):
 
                 # Aggregate
                 if self.mappings[model].common_regions is not None:
-                    PYAM_AGG_KWARGS = {
-                        "components",
-                        "method",
-                        "weight",
-                        "drop_negative_weights",
-                    }
                     vars = {
                         var: {
                             key: value
