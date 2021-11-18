@@ -258,13 +258,28 @@ class RegionProcessor(BaseModel):
                         if var in model_df.variable
                         and not kwargs.get("skip-region-aggregation", False)
                     }
+                    simple_vars = [var for var, kwargs in vars.items() if not kwargs]
+                    special_vars = {
+                        var: kwargs
+                        for var, kwargs in vars.items()
+                        if var not in simple_vars
+                    }
                     for cr in self.mappings[model].common_regions:
-                        for var, kwargs in vars.items():
-                            agg_df = model_df.aggregate_region(
-                                var,
-                                cr.name,
-                                cr.constituent_regions,
-                                **kwargs,
+                        # First perform 'simple' aggregation (i.e. no pyam aggregation
+                        # kwargs)
+                        processed_dfs.append(
+                            model_df.aggregate_region(
+                                simple_vars, cr.name, cr.constituent_regions
                             )
-                            processed_dfs.append(agg_df)
+                        )
+                        # Second, special weighted aggregation
+                        for var, kwargs in special_vars.items():
+                            processed_dfs.append(
+                                model_df.aggregate_region(
+                                    var,
+                                    cr.name,
+                                    cr.constituent_regions,
+                                    **kwargs,
+                                )
+                            )
         return pyam.concat(processed_dfs)
