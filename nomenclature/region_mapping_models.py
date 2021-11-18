@@ -20,16 +20,15 @@ here = Path(__file__).parent.absolute()
 Sequence = Union[List[str], Tuple[str], Set[str]]
 
 
+def get_relative_path(path: Path):
+    # Get the relative version of `path` relative to `path_relative_to`
+    # In case path does not contain path_relative_to it is returned unchanged
+    return path.relative_to(Path.cwd()) if path.is_absolute() else path
+
+
 class RegionNameCollisionError(PydanticValueError):
     code = "region_name_collision"
     msg_template = "Name collision in {location} for {duplicates} in {file}"
-
-    def __init__(self, location: str, duplicates: Sequence, file: Path) -> None:
-        super().__init__(
-            location=location,
-            duplicates=duplicates,
-            file=file.relative_to(Path.cwd()),
-        )
 
 
 class NativeRegion(BaseModel):
@@ -61,7 +60,9 @@ class RegionAggregationMapping(BaseModel):
         if duplicates:
             # Raise the custom RegionNameCollisionError and give the parameters
             # duplicates and file.
-            raise RegionNameCollisionError("native regions", duplicates, values["file"])
+            raise RegionNameCollisionError(
+                location="native regions", duplicates=duplicates, file=values["file"]
+            )
         return v
 
     @validator("common_regions")
@@ -69,7 +70,9 @@ class RegionAggregationMapping(BaseModel):
         names = [cr.name for cr in v]
         duplicates = [item for item, count in Counter(names).items() if count > 1]
         if duplicates:
-            raise RegionNameCollisionError("common regions", duplicates, values["file"])
+            raise RegionNameCollisionError(
+                location="common regions", duplicates=duplicates, file=values["file"]
+            )
         return v
 
     @root_validator()
@@ -98,13 +101,16 @@ class RegionAggregationMapping(BaseModel):
         overlap = list(native_region_names & common_region_names)
         if overlap:
             raise RegionNameCollisionError(
-                "native and common regions", overlap, values["file"]
+                location="native and common regions",
+                duplicates=overlap,
+                file=values["file"],
             )
         return values
 
     @classmethod
     def create_from_region_mapping(cls, file: Union[Path, str]):
         SCHEMA_FILE = here / "validation_schemas" / "region_mapping_schema.yaml"
+        file = Path(file) if isinstance(file, str) else file
         with open(file, "r") as f:
             mapping_input = yaml.safe_load(f)
         with open(SCHEMA_FILE, "r") as f:
@@ -115,10 +121,10 @@ class RegionAggregationMapping(BaseModel):
             validate(mapping_input, schema)
         except ValidationError as e:
             # Add file information in case of error
-            raise ValidationError(f"{e.message} in {file}")
+            raise ValidationError(f"{e.message} in {get_relative_path(file)}")
 
         # Add the file name to mapping_input
-        mapping_input["file"] = file
+        mapping_input["file"] = get_relative_path(file)
 
         # Reformat the "native_regions"
         if "native_regions" in mapping_input:
@@ -165,16 +171,9 @@ class RegionAggregationMapping(BaseModel):
 
 class ModelMappingCollisionError(PydanticValueError):
     code = "model_mapping_collision"
-    msg_template = "Multiple region aggregation mappings for model {model} in {files}"
-
-    def __init__(
-        self, mapping1: RegionAggregationMapping, mapping2: RegionAggregationMapping
-    ) -> None:
-        files = (
-            mapping1.file.relative_to(Path.cwd()),
-            mapping2.file.relative_to(Path.cwd()),
-        )
-        super().__init__(model=mapping1.model, files=files)
+    msg_template = (
+        "Multiple region aggregation mappings for model {model} in [{file1}, {file2}]"
+    )
 
 
 class RegionNotDefinedError(PydanticValueError):
@@ -182,10 +181,6 @@ class RegionNotDefinedError(PydanticValueError):
     msg_template = (
         "Region(s) {region} in {file} not defined in the DataStructureDefinition"
     )
-
-    def __init__(self, region, file) -> None:
-        self.file = file.relative_to(Path.cwd())
-        super().__init__(region=region, file=file)
 
 
 class RegionProcessor(BaseModel):
@@ -207,14 +202,18 @@ class RegionProcessor(BaseModel):
             if mapping.model not in mapping_dict:
                 mapping_dict[mapping.model] = mapping
             else:
-                raise ModelMappingCollisionError(mapping, mapping_dict[mapping.model])
+                raise ModelMappingCollisionError(
+                    model=mapping.model,
+                    file1=mapping.file,
+                    file2=mapping_dict[mapping.model].file,
+                )
         return cls(definition=definition, mappings=mapping_dict)
 
     @validator("mappings", each_item=True)
     def validate_mapping(cls, v, values):
         invalid = [c for c in v.all_regions if c not in values["definition"].region]
         if invalid:
-            raise RegionNotDefinedError(invalid, v.file)
+            raise RegionNotDefinedError(region=invalid, file=v.file)
         return v
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
