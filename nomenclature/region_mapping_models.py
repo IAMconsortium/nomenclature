@@ -13,6 +13,13 @@ from pydantic.types import DirectoryPath, FilePath
 
 from nomenclature.core import DataStructureDefinition
 
+PYAM_AGG_KWARGS = {
+    "components",
+    "method",
+    "weight",
+    "drop_negative_weights",
+}
+
 logger = logging.getLogger(__name__)
 
 here = Path(__file__).parent.absolute()
@@ -241,29 +248,40 @@ class RegionProcessor(BaseModel):
 
                 # Aggregate
                 if self.mappings[model].common_regions is not None:
+                    vars = self._filter_dict_args(model_df.variable)
+                    vars_default_args = [
+                        var for var, kwargs in vars.items() if not kwargs
+                    ]
+                    vars_kwargs = {
+                        var: kwargs
+                        for var, kwargs in vars.items()
+                        if var not in vars_default_args
+                    }
                     for cr in self.mappings[model].common_regions:
-                        PYAM_AGG_KWARGS = {
-                            "components",
-                            "method",
-                            "weight",
-                            "drop_negative_weights",
-                        }
-                        vars = {
-                            var: {
-                                key: value
-                                for key, value in kwargs.items()
-                                if key in PYAM_AGG_KWARGS
-                            }
-                            for var, kwargs in self.definition.variable.items()
-                            if var in model_df.variable
-                            and not kwargs.get("skip-region-aggregation", False)
-                        }
-                        for var, kwargs in vars.items():
-                            agg_df = model_df.aggregate_region(
-                                var,
-                                cr.name,
-                                cr.constituent_regions,
-                                **kwargs,
+                        # First perform 'simple' aggregation (i.e. no pyam aggregation
+                        # kwargs)
+                        processed_dfs.append(
+                            model_df.aggregate_region(
+                                vars_default_args, cr.name, cr.constituent_regions
                             )
-                            processed_dfs.append(agg_df)
+                        )
+                        # Second, special weighted aggregation
+                        for var, kwargs in vars_kwargs.items():
+                            processed_dfs.append(
+                                model_df.aggregate_region(
+                                    var,
+                                    cr.name,
+                                    cr.constituent_regions,
+                                    **kwargs,
+                                )
+                            )
         return pyam.concat(processed_dfs)
+
+    def _filter_dict_args(
+        self, variables, keys: Set[str] = PYAM_AGG_KWARGS
+    ) -> Dict[str, Dict]:
+        return {
+            var: {key: value for key, value in kwargs.items() if key in keys}
+            for var, kwargs in self.definition.variable.items()
+            if var in variables and not kwargs.get("skip-region-aggregation", False)
+        }
