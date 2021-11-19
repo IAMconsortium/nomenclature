@@ -18,4 +18,4 @@ logger = logging.getLogger(__name__)
 try:
     __version__ = get_version(Path(__file__).parents[1])
 except LookupError:
-    __version__ = version("nomenclature")
+    __version__ = version("nomenclature-iamc")
