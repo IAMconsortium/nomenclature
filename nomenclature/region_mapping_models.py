@@ -248,32 +248,25 @@ class RegionProcessor(BaseModel):
 
                 # Aggregate
                 if self.mappings[model].common_regions is not None:
-                    vars = {
-                        var: {
-                            key: value
-                            for key, value in kwargs.items()
-                            if key in PYAM_AGG_KWARGS
-                        }
-                        for var, kwargs in self.definition.variable.items()
-                        if var in model_df.variable
-                        and not kwargs.get("skip-region-aggregation", False)
-                    }
-                    simple_vars = [var for var, kwargs in vars.items() if not kwargs]
-                    special_vars = {
+                    vars = self._filter_dict_args(model_df.variable)
+                    vars_default_args = [
+                        var for var, kwargs in vars.items() if not kwargs
+                    ]
+                    vars_kwargs = {
                         var: kwargs
                         for var, kwargs in vars.items()
-                        if var not in simple_vars
+                        if var not in vars_default_args
                     }
                     for cr in self.mappings[model].common_regions:
                         # First perform 'simple' aggregation (i.e. no pyam aggregation
                         # kwargs)
                         processed_dfs.append(
                             model_df.aggregate_region(
-                                simple_vars, cr.name, cr.constituent_regions
+                                vars_default_args, cr.name, cr.constituent_regions
                             )
                         )
                         # Second, special weighted aggregation
-                        for var, kwargs in special_vars.items():
+                        for var, kwargs in vars_kwargs.items():
                             processed_dfs.append(
                                 model_df.aggregate_region(
                                     var,
@@ -283,3 +276,12 @@ class RegionProcessor(BaseModel):
                                 )
                             )
         return pyam.concat(processed_dfs)
+
+    def _filter_dict_args(
+        self, variables, keys: Set[str] = PYAM_AGG_KWARGS
+    ) -> Dict[str, Dict]:
+        return {
+            var: {key: value for key, value in kwargs.items() if key in keys}
+            for var, kwargs in self.definition.variable.items()
+            if var in variables and not kwargs.get("skip-region-aggregation", False)
+        }
