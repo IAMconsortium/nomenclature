@@ -6,7 +6,7 @@ This repository is licensed under the Apache License, Version 2.0 (the "License"
 the [LICENSE](LICENSE) for details.
 
 [![license](https://img.shields.io/badge/License-Apache%202.0-black)](https://github.com/IAMconsortium/nomenclature/blob/main/LICENSE)
-[![python](https://img.shields.io/badge/python-3.7_|_3.8_|_3.9-blue?logo=python&logoColor=white)](https://github.com/IAMconsortium/nomenclature)
+[![python](https://img.shields.io/badge/python-3.8_|_3.9-blue?logo=python&logoColor=white)](https://github.com/IAMconsortium/nomenclature)
 [![Code style:
 black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
@@ -16,7 +16,7 @@ This package facilitates working with data templates that follow the format deve
 the [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
 It supports validation of scenario data and region processing, which consists of
 renaming and aggregation of model "native regions" to "common regions" used in a
-project.
+project. It requires Python version >= 3.8.
 
 A **DataStructureDefinition** class contains **CodeLists** for *variables* (including
 units) and *regions* to be used in a model comparison or scenario exercise following the
@@ -161,7 +161,7 @@ the list of countries included in a macro-region (i.e., a continent or large reg
 
 ## The pyam package
 
-<img src="./_static/pyam-logo.png" width="133" height="100" align="right" alt="pyam
+<img src="https://github.com/IAMconsortium/pyam/blob/main/doc/logos/pyam-logo.png" width="133" height="100" align="right" alt="pyam
 logo" />
 
 This package is intended to complement the Python package **pyam**, an open-source
@@ -193,7 +193,7 @@ project.variable
 
 ## Acknowledgement
 
-<img src="./_static/open_entrance-logo.png" width="202" height="129" align="right"
+<img src="./doc/source/_static/open_entrance-logo.png" width="202" height="129" align="right"
 alt="openENTRANCE logo" />
 
 This package is based on the work initially done in the [Horizon 2020
@@ -204,6 +204,6 @@ low-carbon transition pathways in Europe.
 Refer to the [openENTRANCE/nomenclature](https://github.com/openENTRANCE/nomenclature)
 repository for more information.
 
-<img src="./_static/EU-logo-300x201.jpg" width="80" height="54" align="left" alt="EU
+<img src="./doc/source/_static/EU-logo-300x201.jpg" width="80" height="54" align="left" alt="EU
 logo" /> This project has received funding from the European Union’s Horizon 2020
 research and innovation programme under grant agreement No. 835896.
