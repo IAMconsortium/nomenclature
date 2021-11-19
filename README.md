@@ -16,7 +16,7 @@ This package facilitates working with data templates that follow the format deve
 the [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
 It supports validation of scenario data and region processing, which consists of
 renaming and aggregation of model "native regions" to "common regions" used in a
-project.
+project. It requires Python version >= 3.8.
 
 A **DataStructureDefinition** class contains **CodeLists** for *variables* (including
 units) and *regions* to be used in a model comparison or scenario exercise following the
