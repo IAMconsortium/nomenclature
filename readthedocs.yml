@@ -6,3 +6,4 @@ python:
       path: .
       extra_requirements:
         - tests
+        - docs
