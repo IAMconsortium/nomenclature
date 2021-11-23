@@ -3,8 +3,8 @@
 API documentation
 =================
 
-The **DataStructureDefinition** class
--------------------------------------
+DataStructureDefinition
+-----------------------
 
 .. autoclass:: DataStructureDefinition
    :members:
