@@ -20,15 +20,33 @@ Release v\ |version|.
 .. |rtd| image:: https://readthedocs.org/projects/nomenclature-iamc/badge/?version=latest
    :target: https://nomenclature-iamc.readthedocs.io
 
+Overview
+========
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+Coming soon...
 
+Acknowledgement
+===============
 
-Indices and tables
-==================
+.. figure:: _static/open_entrance-logo.png
+   :align: right
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+This package is based on the work initially done in the Horizon 2020 project
+`openENTRANCE <https://openentrance.eu>`_, which aims to  develop, use and
+disseminate an open, transparent and integrated  modelling platform for assessing
+low-carbon transition pathways in Europe.
+
+Refer to the `openENTRANCE/openentrance`_ repository on GitHub for more information.
+
+.. _`openENTRANCE/openentrance` : https://github.com/openENTRANCE/openentrance
+
+.. figure:: _static/EU-logo-300x201.jpg
+   :align: left
+   :width: 80px
+
+|br| This project has received funding from the European Union’s Horizon 2020
+research and innovation programme under grant agreement No. 835896.
