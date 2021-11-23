@@ -33,7 +33,10 @@ release = nomenclature.__version__
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = []
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -61,6 +64,27 @@ pygments_style = "sphinx"
 #
 html_theme = "alabaster"
 
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
+description = "A Python package for working with IAMC-style scenario data"
+
+html_theme_options = {
+    "logo": "iamc-logo.png",
+    "logo_name": True,
+    "description": description,
+    "page_width": "1100px",
+    "sidebar_width": "240px",
+    "github_button": True,
+    "github_user": "iamconsortium",
+    "github_repo": "nomenclature",
+    "code_bg": "#EEE",
+    "note_bg": "#EEE",
+    "seealso_bg": "#EEE",
+    "admonition_xref_bg": "#EEE",
+    "admonition_xref_border": "#444",
+}
+
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ["_templates"]
 
@@ -68,3 +92,12 @@ html_theme_path = ["_templates"]
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+
+# prolog for all rst files
+rst_prolog = """
+
+.. |br| raw:: html
+
+    <br>
+
+"""
