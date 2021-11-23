@@ -64,11 +64,7 @@ html_theme = "alabaster"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-description = "<br>".join(
-    [
-        "A Python package for working with IAMC-style scenario data",
-    ]
-)
+description = "A Python package for working with IAMC-style scenario data"
 
 html_theme_options = {
     "logo": "iamc-logo.png",

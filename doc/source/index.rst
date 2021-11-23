@@ -1,5 +1,5 @@
-Welcome to nomenclature's documentation!
-========================================
+**nomenclature**: Working with IAMC-style scenario data
+=======================================================
 
 Release v\ |version|.
 
@@ -22,6 +22,14 @@ Release v\ |version|.
 
 Overview
 ========
+
+This package facilitates working with data templates that follow the format developed by
+the `Integrated Assessment Modeling Consortium (IAMC) <https://www.iamconsortium.org>`_.
+It supports validation of scenario data and region processing, which consists of
+renaming and aggregation of model "native regions" to "common regions" used in a project.
+
+Table of Contents
+=================
 
 .. toctree::
    :maxdepth: 2
