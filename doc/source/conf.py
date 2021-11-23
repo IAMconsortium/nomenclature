@@ -61,6 +61,31 @@ pygments_style = "sphinx"
 #
 html_theme = "alabaster"
 
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
+description = "<br>".join(
+    [
+        "A Python package for working with IAMC-style scenario data",
+    ]
+)
+
+html_theme_options = {
+    "logo": "iamc-logo.png",
+    "logo_name": True,
+    "description": description,
+    "page_width": "1120px",
+    "sidebar_width": "230px",
+    "github_button": True,
+    "github_user": "iamconsortium",
+    "github_repo": "nomenclature",
+    "code_bg": "#EEE",
+    "note_bg": "#EEE",
+    "seealso_bg": "#EEE",
+    "admonition_xref_bg": "#EEE",
+    "admonition_xref_border": "#444",
+}
+
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ["_templates"]
 
