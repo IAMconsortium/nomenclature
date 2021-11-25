@@ -35,6 +35,7 @@ Table of Contents
    :maxdepth: 2
 
    api
+   cli
 
 Acknowledgement
 ===============
