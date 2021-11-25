@@ -19,4 +19,3 @@ def cli_valid_project(path: Path):
     """Assert that `path` is a valid project nomenclature"""
     assert_valid_yaml(path)
     assert_valid_structure(path)
-
