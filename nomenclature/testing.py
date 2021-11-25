@@ -2,26 +2,9 @@ import yaml
 import logging
 from pathlib import Path
 
-import click
-
 import nomenclature
 
 logger = logging.getLogger(__name__)
-
-cli = click.Group()
-
-
-@cli.command("validate-yaml")
-@click.argument("path", type=click.Path(exists=True, path_type=Path))
-def cli_valid_yaml(path: Path):
-    assert_valid_yaml(path)
-
-
-@cli.command("validate-project")
-@click.argument("path", type=click.Path(exists=True, path_type=Path))
-def cli_valid_project(path: Path):
-    assert_valid_yaml(path)
-    assert_valid_structure(path)
 
 
 def assert_valid_yaml(path: Path):
@@ -45,8 +28,12 @@ def assert_valid_yaml(path: Path):
 
 
 def assert_valid_structure(path: Path):
-    """Check that "definitions" folder in `path` exists and
-    can be initialized without errors"""
+    """Assert that `path` is a valid project nomenclature and can be initialized
+
+    Valid structure:
+    - A `definitions` folder is required and must be a valid `DataStructureDefinition`
+    - If a `mappings` folder exists, it must be a valid `RegionProcessor`
+    """
     definition = nomenclature.DataStructureDefinition(path / "definitions")
     if (path / "mappings").is_dir():
         nomenclature.RegionProcessor.from_directory(path / "mappings", definition)

@@ -1,5 +1,6 @@
 from click.testing import CliRunner
-from nomenclature.testing import cli, assert_valid_yaml, assert_valid_structure
+from nomenclature import cli
+from nomenclature.testing import assert_valid_yaml, assert_valid_structure
 import pytest
 import pydantic
 
