@@ -39,7 +39,8 @@ projects.
 
 ## Getting started
 
-To install this package, please install Python version 3.8 or higher. Nomenclature is on pypi so it can be installed like this:
+To install this package, please install Python version 3.8 or higher. Nomenclature is on
+pypi so it can be installed like this:
 
 ```bash
 pip install nomenclature-iamc
