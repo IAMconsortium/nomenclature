@@ -34,6 +34,8 @@ Table of Contents
 .. toctree::
    :maxdepth: 2
 
+   install
+   getting_started
    api
    cli
 
