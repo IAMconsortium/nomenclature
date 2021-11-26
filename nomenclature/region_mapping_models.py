@@ -1,17 +1,22 @@
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Union
 
 import pyam
 import yaml
 from jsonschema import ValidationError, validate
 from pyam import IamDataFrame
 from pydantic import BaseModel, root_validator, validate_arguments, validator
-from pydantic.errors import PydanticValueError
 from pydantic.types import DirectoryPath, FilePath
 
 from nomenclature.core import DataStructureDefinition
+from nomenclature.region_mapping_errors import (
+    ModelMappingCollisionError,
+    RegionNameCollisionError,
+    RegionNotDefinedError,
+)
+from nomenclature.utils import get_relative_path
 
 PYAM_AGG_KWARGS = {
     "components",
@@ -24,35 +29,69 @@ logger = logging.getLogger(__name__)
 
 here = Path(__file__).parent.absolute()
 
-Sequence = Union[List[str], Tuple[str], Set[str]]
-
-
-def get_relative_path(path: Path):
-    # Get the relative version of `path` relative to `path_relative_to`
-    # In case path does not contain path_relative_to it is returned unchanged
-    return path.relative_to(Path.cwd()) if path.is_absolute() else path
-
-
-class RegionNameCollisionError(PydanticValueError):
-    code = "region_name_collision"
-    msg_template = "Name collision in {location} for {duplicates} in {file}"
-
 
 class NativeRegion(BaseModel):
+    """Defines a model native region.
+
+    Can optionally have a renaming attribute which is applied in the region processing.
+
+    Attributes
+    ----------
+    name : str
+        Name of the model native region.
+    rename: Optional[str]
+        Optional second name that the region will be renamed to.
+    """
+
     name: str
     rename: Optional[str]
 
     @property
-    def target_native_region(self):
+    def target_native_region(self) -> str:
+        """Returns the resulting name, i.e. either rename or, if not given, name.
+
+        Returns
+        -------
+        str
+            Resulting name
+        """
         return self.rename if self.rename is not None else self.name
 
 
 class CommonRegion(BaseModel):
+    """Common region used for model intercomparison.
+
+    Parameters
+    ----------
+    name : str
+        Name of the common region.
+    constituent_regions:
+        List of strings which refer to the original (not renamed, see
+        :class:`NativeRegion`) names of model native regions.
+    """
+
     name: str
     constituent_regions: List[str]
 
 
 class RegionAggregationMapping(BaseModel):
+    """Holds information for region processing on a per-model basis.
+
+    Region processing is comprised of native region selection and potentiallay renaming
+    as well as common region aggregation.
+
+    Attributes
+    ----------
+    model: str
+        Name of the model for which this RegionAggregationMapping is defined.
+    file: FilePath
+        File path of the mapping file. Saved mostly for error reporting purposes.
+    native_regions: Optional[List[NativeRegion]]
+        Optionally, list of model native regions to select and potentially rename.
+    common_regions: Optional[List[CommonRegion]]
+        Optionally, list of common regions where aggregation will be performed.
+    """
+
     model: str
     file: FilePath
     native_regions: Optional[List[NativeRegion]]
@@ -115,7 +154,30 @@ class RegionAggregationMapping(BaseModel):
         return values
 
     @classmethod
-    def create_from_region_mapping(cls, file: Union[Path, str]):
+    def from_file(cls, file: Union[Path, str]):
+        """Effectively the constructor for RegionAggregationMapping.
+
+        Parameters
+        ----------
+        file : Union[Path, str]
+            Path to a yaml file which contains region aggregation information for one
+            model.
+
+        Returns
+        -------
+        RegionAggregationMapping
+            The resulting region aggregation mapping.
+
+        Raises
+        ------
+        ValidationError
+            Raised in case there are any errors in the provided yaml mapping file.
+
+        Notes
+        -----
+
+        The reason that this is effectively the constructor is that the schema for region aggregation mapping yaml files is
+        """
         SCHEMA_FILE = here / "validation_schemas" / "region_mapping_schema.yaml"
         file = Path(file) if isinstance(file, str) else file
         with open(file, "r") as f:
@@ -176,20 +238,6 @@ class RegionAggregationMapping(BaseModel):
         return {r.name: r.target_native_region for r in self.native_regions or []}
 
 
-class ModelMappingCollisionError(PydanticValueError):
-    code = "model_mapping_collision"
-    msg_template = (
-        "Multiple region aggregation mappings for model {model} in [{file1}, {file2}]"
-    )
-
-
-class RegionNotDefinedError(PydanticValueError):
-    code = "region_not_defined"
-    msg_template = (
-        "Region(s) {region} in {file} not defined in the DataStructureDefinition"
-    )
-
-
 class RegionProcessor(BaseModel):
     """Region aggregation mappings for scenario processing"""
 
@@ -203,9 +251,28 @@ class RegionProcessor(BaseModel):
     @classmethod
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
     def from_directory(cls, path: DirectoryPath, definition: DataStructureDefinition):
+        """Effectively the constructor of RegionProcessor
+
+        Parameters
+        ----------
+        path : DirectoryPath
+            Directory which holds all the mappings.
+        definition : DataStructureDefinition
+            [description]
+
+        Returns
+        -------
+        RegionProcessor
+            The resulting region processor object.
+
+        Raises
+        ------
+        ModelMappingCollisionError
+            Raised in case there are multiple mappings defined for the same model.
+        """
         mapping_dict: Dict[str, RegionAggregationMapping] = {}
         for file in path.glob("**/*.yaml"):
-            mapping = RegionAggregationMapping.create_from_region_mapping(file)
+            mapping = RegionAggregationMapping.from_file(file)
             if mapping.model not in mapping_dict:
                 mapping_dict[mapping.model] = mapping
             else:
