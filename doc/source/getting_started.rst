@@ -26,7 +26,7 @@ A **RegionProcessor** is a class that holds a list of
 RegionAggregationMappings and a DataStructureDefinition. This class is
 used to facilitate region processing for model comparison studies.
 
-The structure of a datastructure definition
+The structure of a DataStructureDefinition
 -------------------------------------------
 
 A **DataStructureDefinition** is initialized from a folder with the
@@ -132,7 +132,7 @@ Notes
       the above example ``region_a`` and ``region_b`` and **not**
       ``alternative_name_a``.
 
-Guidelines and naming convention
+Guidelines and variable naming conventions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The variable name (code) should adhere to the following conventions:

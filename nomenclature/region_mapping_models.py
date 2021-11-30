@@ -77,8 +77,8 @@ class CommonRegion(BaseModel):
 class RegionAggregationMapping(BaseModel):
     """Holds information for region processing on a per-model basis.
 
-    Region processing is comprised of native region selection and potentiallay renaming
-    as well as common region aggregation.
+    Region processing is comprised of native region selection and potentially renaming
+    as well as aggregation to "common regions" (regions used for reporting and comparison by multiple models).
 
     Attributes
     ----------
@@ -155,7 +155,7 @@ class RegionAggregationMapping(BaseModel):
 
     @classmethod
     def from_file(cls, file: Union[Path, str]):
-        """Effectively the constructor for RegionAggregationMapping.
+        """Initialize a RegionAggregationMapping from a file.
 
         Parameters
         ----------
@@ -251,7 +251,7 @@ class RegionProcessor(BaseModel):
     @classmethod
     @validate_arguments(config=dict(arbitrary_types_allowed=True))
     def from_directory(cls, path: DirectoryPath, definition: DataStructureDefinition):
-        """Effectively the constructor of RegionProcessor
+        """Initialize a RegionProcessor from a directory of model-aggregation mappings.
 
         Parameters
         ----------
