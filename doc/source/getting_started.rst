@@ -105,35 +105,35 @@ This example illustrates how such a model mapping looks like:
 Notes
 ~~~~~
 
--  The names of the three top level keywords ``model``,
-   ``native_regions`` and ``common_regions`` are fixed.
--  Required properties are ``model`` and **at least** either
-   ``native_regions`` or ``common_regions``. **Both** are **allowed** as
+-  The names of the three top level keywords **model**,
+   **native_regions** and **common_regions** are fixed.
+-  Required properties are **model** and **at least** either
+   **native_regions** or **common_regions**. **Both** are **allowed** as
    well.
--  **``model``** (str): specifies the model name for which the mapping
+-  **model** (str): specifies the model name for which the mapping
    applies.
--  **``native_regions``** (list): list of model native regions serves as
+-  **native_regions** (list): list of model native regions serves as
    a selection as to which regions to keep.
 
-   -  In the above example ``region_a`` is to be renamed to
-      ``alternative_name_a``. This is done by defining a key-value pair
-      of ``model_native_name: new_name``.
-   -  ``region_b`` is selected but the name is not changed.
-   -  Assuming ``model_a`` also defines a third region ``region_c``,
+   -  In the above example *region_a* is to be renamed to
+      *alternative_name_a*. This is done by defining a key-value pair
+      of *model_native_name: new_name*.
+   -  *region_b* is selected but the name is not changed.
+   -  Assuming *model_a* also defines a third region *region_c*,
       since it is not mentioned it will be **dropped** from the data.
 
--  **``common_regions``** (list): list of common regions which will be
+-  **common_regions** (list): list of common regions which will be
    computed as aggregates. They are defined as list entries which
    themselves have a list of constituent regions. These constituent
    regions must be model native regions.
 
    -  **Important to note** the names of the constituent regions
       **must** refer to the **original** model native region names. In
-      the above example ``region_a`` and ``region_b`` and **not**
-      ``alternative_name_a``.
+      the above example *region_a* and *region_b* and **not**
+      *alternative_name_a*.
 
 Guidelines and variable naming conventions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The variable name (code) should adhere to the following conventions:
 
@@ -174,17 +174,3 @@ such that it can be retrieved as
 Other attributes specified in the yaml file can include (for countries)
 ISO2/3-codes, or the list of countries included in a macro-region (i.e.,
 a continent or large region).
-
-The pyam package
-----------------
-
-This package is intended to complement the Python package **pyam**, an
-open-source community toolbox for analysis & visualization of scenario
-data. That package was developed to facilitate working with timeseries
-scenario data conforming to the format developed by the IAMC . It is
-used in ongoing assessments by the IPCC and in many model comparison
-projects at the global and national level, including several Horizon
-2020 projects.
-
-`Read the docs <https://pyam-iamc.readthedocs.io>`__ for more
-information!

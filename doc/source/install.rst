@@ -6,12 +6,12 @@ Installation
 
 Via Pip
 -------
+.. attention::  The nomenclature package is distributed as "nomenclature-iamc" on pypi.
 
 .. code-block:: bash
 
     pip install nomenclature-iamc
 
-.. attention::  The nomenclature package is distributed as "nomenclature-iamc" on pypi.
 
 Installing From Source
 ----------------------
