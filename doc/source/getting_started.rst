@@ -71,7 +71,7 @@ name will be replaced by every element in the Tag dictionary. The
 There must be only one top-level entry in any yaml file to be used as
 tag.
 
-Model Mappings
+Model mappings
 --------------
 
 Model mappings, defined in a .yaml format serve three different purposes
