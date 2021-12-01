@@ -51,8 +51,33 @@ Every variable must have a **unit**, which should be compatible with the
 Python package `iam-units <https://github.com/iamconsortium/units>`__.
 The unit attribute can be empty, i.e., the variable is *dimensionless*.
 
+Regions
+~~~~~~~
+
+The *region* codelist of the nomenclature will be read from all yaml
+files located in a folder of that name (including any sub-folders). To
+avoid repeating a “hierarchy” attribute many times (e.g., country,
+continent), the yaml files must have a nested dictionary structure:
+
+.. code:: yaml
+
+   - <Hierarchy Level>:
+     - Region Name:
+         Attribute: Attribute value
+
+When importing the codelist, the hierarchy will be added as attribute,
+such that it can be retrieved as
+
+.. code:: python
+
+   DataStructureDefinition.region["Region Name"]["Hierarchy"] = "<Hierarchy Level>"
+
+Other attributes specified in the yaml file can include (for countries)
+ISO2/3-codes, or the list of countries included in a macro-region (i.e.,
+a continent or large region).
+
 Tags
-^^^^
+~~~~
 
 To avoid repetition (and subsequent errors), any number of yaml files
 can be used as “tags” using a nested list of dictionaries. The files
@@ -70,6 +95,24 @@ name will be replaced by every element in the Tag dictionary. The
 
 There must be only one top-level entry in any yaml file to be used as
 tag.
+
+Guidelines and variable naming conventions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The variable name (code) should adhere to the following conventions:
+
+-  A *|* (pipe) character indicates levels of hierarchy
+-  Do not use spaces before and after the *|* character, but add a
+   space between words (e.g., *Primary Energy|Non-Biomass Renewables*)
+-  All words must be capitalised (except for *and*, *w/*, *w/o*, etc.)
+-  Do not use abbreviations (e.g, *PHEV*) unless strictly necessary
+-  Add hierarchy levels where it might be useful in the future, e.g.,
+   use *Electric Vehicle|Plugin-Hybrid* instead of *Plugin-Hybrid
+   Electric Vehicle*
+-  Do not use abbreviations of statistical operations (*min*, *max*,
+   *avg*) but always spell out the word
+-  Do not include words like *Level* or *Quantity* in the variable,
+   because this should be clear from the context or unit
 
 Model mappings
 --------------
@@ -131,46 +174,3 @@ Notes
       **must** refer to the **original** model native region names. In
       the above example *region_a* and *region_b* and **not**
       *alternative_name_a*.
-
-Guidelines and variable naming conventions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The variable name (code) should adhere to the following conventions:
-
--  A ``|`` (pipe) character indicates levels of hierarchy
--  Do not use spaces before and after the ``|`` character, but add a
-   space between words (e.g., ``Primary Energy|Non-Biomass Renewables``)
--  All words must be capitalised (except for ‘and’, ‘w/’, ‘w/o’, etc.)
--  Do not use abbreviations (e.g, ‘PHEV’) unless strictly necessary
--  Add hierarchy levels where it might be useful in the future, e.g.,
-   use ``Electric Vehicle|Plugin-Hybrid`` instead of ‘Plugin-Hybrid
-   Electric Vehicle’
--  Do not use abbreviations of statistical operations (‘min’, ‘max’,
-   ‘avg’) but always spell out the word
--  Do not include words like ‘Level’ or ‘Quantity’ in the variable,
-   because this should be clear from the context or unit
-
-Regions
-~~~~~~~
-
-The *region* codelist of the nomenclature will be read from all yaml
-files located in a folder of that name (including any sub-folders). To
-avoid repeating a “hierarchy” attribute many times (e.g., country,
-continent), the yaml files must have a nested dictionary structure:
-
-.. code:: yaml
-
-   - <Hierarchy Level>:
-     - Region Name:
-         Attribute: Attribute value
-
-When importing the codelist, the hierarchy will be added as attribute,
-such that it can be retrieved as
-
-.. code:: python
-
-   DataStructureDefinition.region["Region Name"]["Hierarchy"] = "<Hierarchy Level>"
-
-Other attributes specified in the yaml file can include (for countries)
-ISO2/3-codes, or the list of countries included in a macro-region (i.e.,
-a continent or large region).
