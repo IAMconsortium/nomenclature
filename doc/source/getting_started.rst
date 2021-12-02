@@ -1,176 +1,113 @@
+.. _getting-started:
+
 Getting started
 ===============
 
-Overview
---------
+The nomenclature package facilitates working with data templates that follow the format
+developed by the `Integrated Assessment Modeling Consortium (IAMC)
+<https://www.iamconsortium.org>`__. It supports validation of scenario data and region
+processing, which consists of renaming and aggregation of model “native regions” to
+“common regions” used in a project.
 
-This package facilitates working with data templates that follow the
-format developed by the `Integrated Assessment Modeling Consortium
-(IAMC) <https://www.iamconsortium.org>`__. It supports validation of
-scenario data and region processing, which consists of renaming and
-aggregation of model “native regions” to “common regions” used in a
-project.
+There are two main classes that the user interacts with when using the nomenclature
+package, **DataStructureDefinition** and **RegionProcessor**. Additionally, there are a
+number of auxiliary classes which are used by the two main ones to facilitate validation
+and region processing, the two most important ones being **CodeList** and
+**RegionAggregationMapping** (a full list of all classes can be found in :ref:`api`).
 
-A **DataStructureDefinition** class contains **CodeLists** for
-*variables* (including units) and *regions* to be used in a model
-comparison or scenario exercise following the IAMC data format.
+A **DataStructureDefinition** contains **CodeLists** for *variables* (including units)
+and *regions* to be used in a model comparison or scenario exercise following the IAMC
+data format.
 
-A **CodeList** is a list of “allowed terms” (or codes), where each term
-can have several attributes (e.g., description, unit, parent region).
+A **CodeList** is a list of "allowed terms" (or codes), where each term can have several
+attributes (e.g., description, unit, parent region).
 
-A **RegionAggregationMapping** is a mapping that defines on a per-model
-basis how model native regions should be renamed and aggregated to
-comparison regions.
+A **RegionProcessor** holds a list of RegionAggregationMappings and a
+DataStructureDefinition. This class is used to facilitate region processing for model
+comparison studies.
 
-A **RegionProcessor** is a class that holds a list of
-RegionAggregationMappings and a DataStructureDefinition. This class is
-used to facilitate region processing for model comparison studies.
+A **RegionAggregationMapping** is a mapping that defines on a per-model basis how model
+native regions should be renamed and aggregated to comparison regions.
 
-The structure of a DataStructureDefinition
--------------------------------------------
 
-A **DataStructureDefinition** is initialized from a folder with the
-following structure:
+Minimum working example
+-----------------------
 
-Variables
-~~~~~~~~~
+This section aims to provide a minimum working example of how to use the nomenclature
+package. It is assumed that the variable templates and model mappings already exist.
+Details on how those are structured and how to start using nomenclature "from scratch"
+can be found here :ref:`usage`. 
 
-The *variable* codelist of the **DataStructureDefinition** will be read
-from all yaml files located in a folder of that name (including any
-sub-folders). They must be formatted as a list of dictionaries mapping
-the variable (key) to its attributes.
+The following outlines how to use the nomenclature package:
 
-.. code:: yaml
+.. code-block:: python
 
-   - Some Variable:
-       description: A short description
-       unit: A unit
-       <other attribute>: Some text (optional)
+   # Import the necessary libraries
+   import pyam
+   from nomenclature import DataStructureDefinition, RegionProcessor
+   
+   # Initialize DataStructureDefinition and RegionProcessor giving them the
+   # directories where the codelists and mappings are defined as input.
+   dsd = DataStructureDefinition("definitions/")
+   rp = RegionProcessor.from_directory("mappings/", dsd)
 
-Every variable must have a **unit**, which should be compatible with the
-Python package `iam-units <https://github.com/iamconsortium/units>`__.
-The unit attribute can be empty, i.e., the variable is *dimensionless*.
+   # Read in the data using pyam
+   iam_results_file = "some file"
+   df = pyam.IamDataFrame(iam_results_file)
 
-Regions
-~~~~~~~
+   # Validate that the data frame only contains allowed regions and variables
+   dsd.validate(df)
+   # Apply region processing to the data
+   df = rp.apply(df)
 
-The *region* codelist of the nomenclature will be read from all yaml
-files located in a folder of that name (including any sub-folders). To
-avoid repeating a “hierarchy” attribute many times (e.g., country,
-continent), the yaml files must have a nested dictionary structure:
+**Notes**
 
-.. code:: yaml
+* The pyam library is required as *DataStructureDefinition.validate()* and
+  *RegionProcessor.apply()* take a *pyam.IamDataFrame* as input.
 
-   - <Hierarchy Level>:
-     - Region Name:
-         Attribute: Attribute value
+* *DataStructureDefinition* and *RegionProcessor* are initialized from directories
+  containing yaml files. See :ref:`dir-structure` for details. 
 
-When importing the codelist, the hierarchy will be added as attribute,
-such that it can be retrieved as
+* *DataStructureDefinition.apply()* returns none if the data frame only contains   
+  allowed values and raises an error otherwise.
 
-.. code:: python
 
-   DataStructureDefinition.region["Region Name"]["Hierarchy"] = "<Hierarchy Level>"
+.. _dir-structure:
 
-Other attributes specified in the yaml file can include (for countries)
-ISO2/3-codes, or the list of countries included in a macro-region (i.e.,
-a continent or large region).
+Directory structure for definitions and mappings
+------------------------------------------------
 
-Tags
-~~~~
+This is the directory structure that needs to be in place in order for the validation and region processing to work:
 
-To avoid repetition (and subsequent errors), any number of yaml files
-can be used as “tags” using a nested list of dictionaries. The files
-defining the tags must have a name starting with ``tag_``.
+.. code-block:: bash
 
-.. code:: yaml
+   .
+   ├── definitions
+   │   ├── region
+   │   │   ├── ...
+   │   │   └── regions.yaml
+   │   └── variable
+   │       ├── ...
+   │       └── variable.yaml
+   └── mappings
+       ├── model_a.yaml
+       └── ...
 
-   - <Tag>:
-     - Some Key:
-         description: a short description of the key
+**Notes**
 
-When importing the codelist, any occurrence of ``<Tag>`` in a variable
-name will be replaced by every element in the Tag dictionary. The
-``<Tag>`` will also be replaced in any of the variable attributes.
+* The names of the *definitions* and *mappings* directories are purely conventional and
+  don't carry any special meaning. As long as *DataStructureDefinition* and
+  *RegionProcessor.from_directory()* are pointed to the correct directories everything
+  will work.
 
-There must be only one top-level entry in any yaml file to be used as
-tag.
+* Inside the *definitions* directory each "dimension", in our case *variable* and
+  *region*, must live in its own sub-directory.
 
-Guidelines and variable naming conventions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* As opposed *definitions* and *mappings*, *variable* and *region* are special names
+  that must be kept.
 
-The variable name (code) should adhere to the following conventions:
+* The definitions can be spread across multiple yaml files. In the interest of keeping
+  this example minimal only one file for regions and variables is shown.
 
--  A *|* (pipe) character indicates levels of hierarchy
--  Do not use spaces before and after the *|* character, but add a
-   space between words (e.g., *Primary Energy|Non-Biomass Renewables*)
--  All words must be capitalised (except for *and*, *w/*, *w/o*, etc.)
--  Do not use abbreviations (e.g, *PHEV*) unless strictly necessary
--  Add hierarchy levels where it might be useful in the future, e.g.,
-   use *Electric Vehicle|Plugin-Hybrid* instead of *Plugin-Hybrid
-   Electric Vehicle*
--  Do not use abbreviations of statistical operations (*min*, *max*,
-   *avg*) but always spell out the word
--  Do not include words like *Level* or *Quantity* in the variable,
-   because this should be clear from the context or unit
-
-Model mappings
---------------
-
-Model mappings, defined in a .yaml format serve three different purposes
-on a per-model basis:
-
-1. Define a list of model native regions that are to be selected (and
-   usually uploaded) from an IAM result. This also serves as an implicit
-   exclusion list for model native regions, since only explicitly
-   mentioned regions are selected.
-
-2. Allow for renaming of model native regions.
-
-3. Define how model native regions should be aggregated to common
-   regions.
-
-This example illustrates how such a model mapping looks like:
-
-.. code:: yaml
-
-   model: model_a
-   native_regions:
-     - region_a: alternative_name_a
-     - region_b
-   common_regions:
-     - common_region_1:
-       - region_a
-       - region_b
-     - common_region_2:
-       - ...
-
-Notes
-~~~~~
-
--  The names of the three top level keywords **model**,
-   **native_regions** and **common_regions** are fixed.
--  Required properties are **model** and **at least** either
-   **native_regions** or **common_regions**. **Both** are **allowed** as
-   well.
--  **model** (str): specifies the model name for which the mapping
-   applies.
--  **native_regions** (list): list of model native regions serves as
-   a selection as to which regions to keep.
-
-   -  In the above example *region_a* is to be renamed to
-      *alternative_name_a*. This is done by defining a key-value pair
-      of *model_native_name: new_name*.
-   -  *region_b* is selected but the name is not changed.
-   -  Assuming *model_a* also defines a third region *region_c*,
-      since it is not mentioned it will be **dropped** from the data.
-
--  **common_regions** (list): list of common regions which will be
-   computed as aggregates. They are defined as list entries which
-   themselves have a list of constituent regions. These constituent
-   regions must be model native regions.
-
-   -  **Important to note** the names of the constituent regions
-      **must** refer to the **original** model native region names. In
-      the above example *region_a* and *region_b* and **not**
-      *alternative_name_a*.
+* The *mappings* directory directly contains the model mappings. There are no special
+  sub-folders required. 
