@@ -176,7 +176,8 @@ class RegionAggregationMapping(BaseModel):
         Notes
         -----
 
-        The reason that this is effectively the constructor is that the schema for region aggregation mapping yaml files is
+        This function is used to convert a model mapping yaml file into a dictionary
+        which is used to initialize a RegionAggregationMapping.
         """
         SCHEMA_FILE = here / "validation_schemas" / "region_mapping_schema.yaml"
         file = Path(file) if isinstance(file, str) else file
