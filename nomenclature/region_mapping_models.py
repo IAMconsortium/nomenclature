@@ -78,7 +78,8 @@ class RegionAggregationMapping(BaseModel):
     """Holds information for region processing on a per-model basis.
 
     Region processing is comprised of native region selection and potentially renaming
-    as well as aggregation to "common regions" (regions used for reporting and comparison by multiple models).
+    as well as aggregation to "common regions" (regions used for reporting and
+    comparison by multiple models).
 
     Attributes
     ----------
