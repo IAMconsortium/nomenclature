@@ -137,8 +137,9 @@ def test_region_processor_not_defined(simple_definition):
     # Test a RegionProcessor with regions that are not defined in the data structure
     # definition
     error_msg = (
-        "model_b\n.*region_a.*mapping_2.yaml.*value_error.region_not_defined."
-        "*\n.*model_a\n.*region_a.*mapping_1.yaml.*value_error.region_not_defined"
+        "model_(a|b)\n.*region_a.*mapping_(1|2).yaml.*value_error.region_not_defined."
+        "*\n.*model_(a|b)\n.*region_a.*mapping_(1|2).yaml.*value_error."
+        "region_not_defined"
     )
     with pytest.raises(pydantic.ValidationError, match=error_msg):
         RegionProcessor.from_directory(
@@ -147,7 +148,7 @@ def test_region_processor_not_defined(simple_definition):
 
 
 def test_region_processor_duplicate_model_mapping(simple_definition):
-    error_msg = ".*model_a.*mapping_1.yaml.*mapping_2.yaml"
+    error_msg = ".*model_a.*mapping_(1|2).yaml.*mapping_(1|2).yaml"
     with pytest.raises(ModelMappingCollisionError, match=error_msg):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "regionprocessor_duplicate", simple_definition
