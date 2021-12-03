@@ -19,16 +19,64 @@ A **DataStructureDefinition** contains **CodeLists** for *variables* (including 
 and *regions* to be used in a model comparison or scenario exercise following the IAMC
 data format.
 
-A **CodeList** is a list of "allowed terms" (or codes), where each term can have several
-attributes (e.g., description, unit, parent region).
-
 A **RegionProcessor** holds a list of RegionAggregationMappings and a
 DataStructureDefinition. This class is used to facilitate region processing for model
 comparison studies.
 
+A **CodeList** is a list of "allowed terms" (or codes), where each term can have several
+attributes (e.g., description, unit, parent region).
+
 A **RegionAggregationMapping** is a mapping that defines on a per-model basis how model
 native regions should be renamed and aggregated to comparison regions.
 
+
+Before the :ref:`minimum-working-example` can be covered, the required directory
+structure for definitions and mappings needs to be addressed. 
+
+.. _dir-structure:
+
+Directory structure for definitions and mappings
+------------------------------------------------
+
+This is the directory structure that needs to be in place in order for the validation and region processing to work:
+
+.. code-block:: bash
+
+   .
+   ├── definitions
+   │   ├── region
+   │   │   ├── ...
+   │   │   └── regions.yaml
+   │   └── variable
+   │       ├── ...
+   │       └── variable.yaml
+   └── mappings [optional]
+       ├── model_a.yaml
+       └── ...
+
+**Notes**
+
+* The **DataStructureDefinition** will be initialized from the *definitions* folder.
+
+* The **RegionProcessor** will be initialized from the *mappings* folder. If the project
+  has no model specific mappings, this folder can also be omitted. In this case,
+  however, *RegionProcessor* **must not** be used as it would try to read a non-existent
+  directory causing the program to crash.
+
+* Inside the *definitions* directory each "dimension", in our case *variable* and
+  *region*, must live in its own sub-directory.
+
+* The directories inside the *definitions* folder, *variable* and *region* are special
+  names that must be kept.
+
+* The definitions can be spread across multiple yaml files. In the interest of keeping
+  this example minimal only one file for regions and variables is shown.
+
+* The *mappings* directory directly contains the model mappings. There are no special
+  sub-folders required. 
+
+
+.. _minimum-working-example:
 
 Minimum working example
 -----------------------
@@ -49,6 +97,7 @@ The following outlines how to use the nomenclature package:
    # Initialize DataStructureDefinition and RegionProcessor giving them the
    # directories where the codelists and mappings are defined as input.
    dsd = DataStructureDefinition("definitions/")
+   # Only to be used if there are mappings!
    rp = RegionProcessor.from_directory("mappings/", dsd)
 
    # Read the data using pyam
@@ -58,6 +107,7 @@ The following outlines how to use the nomenclature package:
    # Validate that the data frame only contains allowed regions and variables
    dsd.validate(df)
    # Apply region processing to the data
+   # Only to be used if there are mappings!
    df = rp.apply(df)
 
 **Notes**
@@ -71,43 +121,4 @@ The following outlines how to use the nomenclature package:
 * *DataStructureDefinition.apply()* returns *None* if the data frame only contains   
   allowed values and raises an error otherwise.
 
-
-.. _dir-structure:
-
-Directory structure for definitions and mappings
-------------------------------------------------
-
-This is the directory structure that needs to be in place in order for the validation and region processing to work:
-
-.. code-block:: bash
-
-   .
-   ├── definitions
-   │   ├── region
-   │   │   ├── ...
-   │   │   └── regions.yaml
-   │   └── variable
-   │       ├── ...
-   │       └── variable.yaml
-   └── mappings
-       ├── model_a.yaml
-       └── ...
-
-**Notes**
-
-* The names of the *definitions* and *mappings* directories are purely conventional and
-  don't carry any special meaning. As long as *DataStructureDefinition* and
-  *RegionProcessor.from_directory()* are pointed to the correct directories everything
-  will work.
-
-* Inside the *definitions* directory each "dimension", in our case *variable* and
-  *region*, must live in its own sub-directory.
-
-* As opposed *definitions* and *mappings*, *variable* and *region* are special names
-  that must be kept.
-
-* The definitions can be spread across multiple yaml files. In the interest of keeping
-  this example minimal only one file for regions and variables is shown.
-
-* The *mappings* directory directly contains the model mappings. There are no special
-  sub-folders required. 
+* *RegionProcessor* is only to be used if there are model mappings.
