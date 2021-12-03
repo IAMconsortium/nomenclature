@@ -12,9 +12,7 @@ DataStructureDefinition
    :members:
 
 
-
-
-RegionProcessor 
+Region processing 
 -----------------
 
 .. automodule:: nomenclature.region_mapping_models
