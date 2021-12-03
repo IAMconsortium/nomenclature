@@ -99,28 +99,33 @@ class CodeList(BaseModel):
                 for item in _code_list:
                     tag = Tag.from_dict(mapping=item)
                     tag_dict[tag.name] = [Code.from_dict(a) for a in tag.attributes]
-                continue
 
-            # validate against the schema of this codelist domain (default `generic`)
-            validate(_code_list, SCHEMA_MAPPING.get(name, SCHEMA_MAPPING["generic"]))
-
-            # a "region" codelist assumes a top-level key to be used as attribute
-            if name == "region":
-                _region_code_list = []  # save refactored list as new (temporary) object
-                for top_level_cat in _code_list:
-                    for top_key, _codes in top_level_cat.items():
-                        for item in _codes:
-                            item = Code.from_dict(item)
-                            item.set_attribute("hierarchy", top_key)
-                            _region_code_list.append(item)
-                _code_list = _region_code_list
+            # if the file does not start with tag, process normally
             else:
-                _code_list = [Code.from_dict(_dict) for _dict in _code_list]
+                # validate the schema of this codelist domain (default `generic`)
+                validate(
+                    _code_list, SCHEMA_MAPPING.get(name, SCHEMA_MAPPING["generic"])
+                )
 
-            # add `file` attribute to each element and add to main list
-            for item in _code_list:
-                item.set_attribute("file", str(f.relative_to(path.parent)))
-            code_list.extend(_code_list)
+                # a "region" codelist assumes a top-level key to be used as attribute
+                if name == "region":
+                    _region_code_list = (
+                        []
+                    )  # save refactored list as new (temporary) object
+                    for top_level_cat in _code_list:
+                        for top_key, _codes in top_level_cat.items():
+                            for item in _codes:
+                                item = Code.from_dict(item)
+                                item.set_attribute("hierarchy", top_key)
+                                _region_code_list.append(item)
+                    _code_list = _region_code_list
+                else:
+                    _code_list = [Code.from_dict(_dict) for _dict in _code_list]
+
+                # add `file` attribute to each element and add to main list
+                for item in _code_list:
+                    item.set_attribute("file", str(f.relative_to(path.parent)))
+                code_list.extend(_code_list)
 
         # replace tags by the items of the tag-dictionary
         for tag, tag_attrs in tag_dict.items():
