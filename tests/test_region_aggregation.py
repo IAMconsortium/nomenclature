@@ -21,9 +21,7 @@ TEST_FOLDER_REGION_MAPPING = TEST_DATA_DIR / "region_aggregation"
 def test_mapping():
     mapping_file = "working_mapping.yaml"
     # Test that the file is read and represented correctly
-    obs = RegionAggregationMapping.create_from_region_mapping(
-        TEST_FOLDER_REGION_MAPPING / mapping_file
-    )
+    obs = RegionAggregationMapping.from_file(TEST_FOLDER_REGION_MAPPING / mapping_file)
     exp = {
         "model": "model_a",
         "file": (TEST_FOLDER_REGION_MAPPING / mapping_file).relative_to(Path.cwd()),
@@ -90,9 +88,7 @@ def test_illegal_mappings(file, error_type, error_msg_pattern):
     # This is to test a few different failure conditions
 
     with pytest.raises(error_type, match=f"{error_msg_pattern}{file}.*"):
-        RegionAggregationMapping.create_from_region_mapping(
-            TEST_FOLDER_REGION_MAPPING / file
-        )
+        RegionAggregationMapping.from_file(TEST_FOLDER_REGION_MAPPING / file)
 
 
 @pytest.mark.parametrize(
