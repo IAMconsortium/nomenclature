@@ -99,10 +99,10 @@ class CodeList(BaseModel):
                 for item in _code_list:
                     tag = Tag.from_dict(mapping=item)
                     tag_dict[tag.name] = [Code.from_dict(a) for a in tag.attributes]
+
             # if the file does not start with tag, process normally
             else:
-                # validate against the schema of this codelist domain (default
-                # `generic`)
+                # validate the schema of this codelist domain (default `generic`)
                 validate(
                     _code_list, SCHEMA_MAPPING.get(name, SCHEMA_MAPPING["generic"])
                 )
