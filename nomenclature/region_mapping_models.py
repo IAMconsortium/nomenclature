@@ -53,7 +53,7 @@ class NativeRegion(BaseModel):
         Returns
         -------
         str
-            Resulting name
+            Resulting name.
         """
         return self.rename if self.rename is not None else self.name
 
@@ -84,7 +84,7 @@ class RegionAggregationMapping(BaseModel):
     Attributes
     ----------
     model: str
-        Name of the model for which this RegionAggregationMapping is defined.
+        Name of the model for which RegionAggregationMapping is defined.
     file: FilePath
         File path of the mapping file. Saved mostly for error reporting purposes.
     native_regions: Optional[List[NativeRegion]]

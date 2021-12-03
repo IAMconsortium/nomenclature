@@ -51,7 +51,7 @@ The following outlines how to use the nomenclature package:
    dsd = DataStructureDefinition("definitions/")
    rp = RegionProcessor.from_directory("mappings/", dsd)
 
-   # Read in the data using pyam
+   # Read the data using pyam
    iam_results_file = "some file"
    df = pyam.IamDataFrame(iam_results_file)
 
@@ -68,7 +68,7 @@ The following outlines how to use the nomenclature package:
 * *DataStructureDefinition* and *RegionProcessor* are initialized from directories
   containing yaml files. See :ref:`dir-structure` for details. 
 
-* *DataStructureDefinition.apply()* returns none if the data frame only contains   
+* *DataStructureDefinition.apply()* returns *None* if the data frame only contains   
   allowed values and raises an error otherwise.
 
 
