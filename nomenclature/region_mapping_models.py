@@ -260,7 +260,7 @@ class RegionProcessor(BaseModel):
         path : DirectoryPath
             Directory which holds all the mappings.
         definition : DataStructureDefinition
-            [description]
+            Holds allowed region information for region processing.
 
         Returns
         -------
