@@ -6,7 +6,7 @@ from pathlib import Path
 from pyam import IamDataFrame
 from pyam.utils import write_sheet
 
-from nomenclature.codes import CodeList
+from nomenclature.codelist import CodeList
 from nomenclature.validation import validate
 
 logger = logging.getLogger(__name__)
