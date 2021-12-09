@@ -5,8 +5,8 @@ import jsonschema
 import pandas as pd
 import pydantic
 import pytest
-from nomenclature.core import DataStructureDefinition
-from nomenclature.region_mapping_models import (
+from nomenclature.definition import DataStructureDefinition
+from nomenclature.processor.region import (
     ModelMappingCollisionError,
     RegionAggregationMapping,
     RegionProcessor,

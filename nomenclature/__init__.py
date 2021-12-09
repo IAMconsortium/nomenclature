@@ -3,10 +3,13 @@ from pathlib import Path
 from setuptools_scm import get_version
 from importlib.metadata import version
 
-from nomenclature.codes import CodeList  # noqa
-from nomenclature.core import DataStructureDefinition, create_yaml_from_xlsx  # noqa
+from nomenclature.codelist import CodeList  # noqa
+from nomenclature.definition import (  # noqa
+    DataStructureDefinition,
+    create_yaml_from_xlsx,
+)
 from nomenclature.cli import cli  # noqa
-from nomenclature.region_mapping_models import (  # noqa
+from nomenclature.processor.region import (  # noqa
     RegionProcessor,
     RegionAggregationMapping,
 )

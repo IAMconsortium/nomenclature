@@ -10,13 +10,13 @@ from pyam import IamDataFrame
 from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.types import DirectoryPath, FilePath
 
-from nomenclature.core import DataStructureDefinition
-from nomenclature.region_mapping_errors import (
+from nomenclature.definition import DataStructureDefinition
+from nomenclature.error.region import (
     ModelMappingCollisionError,
     RegionNameCollisionError,
     RegionNotDefinedError,
 )
-from nomenclature.utils import get_relative_path
+from nomenclature.processor.utils import get_relative_path
 
 PYAM_AGG_KWARGS = {
     "components",
@@ -180,7 +180,7 @@ class RegionAggregationMapping(BaseModel):
         This function is used to convert a model mapping yaml file into a dictionary
         which is used to initialize a RegionAggregationMapping.
         """
-        SCHEMA_FILE = here / "validation_schemas" / "region_mapping_schema.yaml"
+        SCHEMA_FILE = here / "../validation_schemas" / "region_mapping_schema.yaml"
         file = Path(file) if isinstance(file, str) else file
         with open(file, "r") as f:
             mapping_input = yaml.safe_load(f)
