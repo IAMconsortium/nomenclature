@@ -4,10 +4,10 @@ from setuptools_scm import get_version
 from importlib.metadata import version
 
 from nomenclature.codelist import CodeList  # noqa
-from nomenclature.definition import (
+from nomenclature.definition import (  # noqa
     DataStructureDefinition,
     create_yaml_from_xlsx,
-)  # noqa
+)
 from nomenclature.cli import cli  # noqa
 from nomenclature.processor.region import (  # noqa
     RegionProcessor,
