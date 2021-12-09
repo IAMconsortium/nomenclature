@@ -4,7 +4,7 @@ from typing import Union, Dict, Optional
 from pydantic import BaseModel
 from jsonschema import validate
 
-from nomenclature.codes_models import Code, Tag, replace_tags
+from nomenclature.code import Code, Tag, replace_tags
 
 
 here = Path(__file__).parent.absolute()
