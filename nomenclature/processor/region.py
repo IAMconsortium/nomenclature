@@ -4,11 +4,13 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Union
 
 import pyam
+import pydantic
 import yaml
 from jsonschema import ValidationError, validate
 from pyam import IamDataFrame
 from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.types import DirectoryPath, FilePath
+from pydantic.error_wrappers import ErrorWrapper
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error.region import (
