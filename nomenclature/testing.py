@@ -36,7 +36,9 @@ def assert_valid_structure(path: Path):
     """
     definition = nomenclature.DataStructureDefinition(path / "definitions")
     if (path / "mappings").is_dir():
-        nomenclature.RegionProcessor.from_directory(path / "mappings", definition)
+        nomenclature.RegionProcessor.from_directory(
+            path / "mappings"
+        ).validate_mappings(definition)
 
 
 # Todo: add function which runs `DataStrutureDefinition(path).validate(scenario)`

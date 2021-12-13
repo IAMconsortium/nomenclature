@@ -4,11 +4,13 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Union
 
 import pyam
+import pydantic
 import yaml
 from jsonschema import ValidationError, validate
 from pyam import IamDataFrame
 from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.types import DirectoryPath, FilePath
+from pydantic.error_wrappers import ErrorWrapper
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error.region import (
@@ -239,28 +241,27 @@ class RegionAggregationMapping(BaseModel):
     def rename_mapping(self) -> Dict[str, str]:
         return {r.name: r.target_native_region for r in self.native_regions or []}
 
+    def validate_regions(self, dsd: DataStructureDefinition) -> None:
+        if hasattr(dsd, "region"):
+            invalid = [c for c in self.all_regions if c not in dsd.region]
+            if invalid:
+                raise RegionNotDefinedError(region=invalid, file=self.file)
+
 
 class RegionProcessor(BaseModel):
     """Region aggregation mappings for scenario processing"""
 
-    definition: DataStructureDefinition
     mappings: Dict[str, RegionAggregationMapping]
 
-    class Config:
-        # necessary since DataStructureDefinition is not a pydantic class
-        arbitrary_types_allowed = True
-
     @classmethod
-    @validate_arguments(config=dict(arbitrary_types_allowed=True))
-    def from_directory(cls, path: DirectoryPath, definition: DataStructureDefinition):
+    @validate_arguments
+    def from_directory(cls, path: DirectoryPath):
         """Initialize a RegionProcessor from a directory of model-aggregation mappings.
 
         Parameters
         ----------
         path : DirectoryPath
             Directory which holds all the mappings.
-        definition : DataStructureDefinition
-            Holds allowed region information for region processing.
 
         Returns
         -------
@@ -283,16 +284,20 @@ class RegionProcessor(BaseModel):
                     file1=mapping.file,
                     file2=mapping_dict[mapping.model].file,
                 )
-        return cls(definition=definition, mappings=mapping_dict)
+        return cls(mappings=mapping_dict)
 
-    @validator("mappings", each_item=True)
-    def validate_mapping(cls, v, values):
-        invalid = [c for c in v.all_regions if c not in values["definition"].region]
-        if invalid:
-            raise RegionNotDefinedError(region=invalid, file=v.file)
-        return v
+    def validate_mappings(self, dsd: DataStructureDefinition) -> None:
+        """Check if all mappings are valid and collect all errors."""
+        errors = []
+        for mapping in self.mappings.values():
+            try:
+                mapping.validate_regions(dsd)
+            except RegionNotDefinedError as rnde:
+                errors.append(ErrorWrapper(rnde, f"mappings -> {mapping.model}"))
+        if errors:
+            raise pydantic.ValidationError(errors, model=self.__class__)
 
-    def apply(self, df: IamDataFrame) -> IamDataFrame:
+    def apply(self, df: IamDataFrame, dsd: DataStructureDefinition) -> IamDataFrame:
         processed_dfs: List[IamDataFrame] = []
         for model in df.model:
             model_df = df.filter(model=model)
@@ -303,6 +308,8 @@ class RegionProcessor(BaseModel):
                 processed_dfs.append(model_df)
             # Otherwise we first rename, then aggregate
             else:
+                # before aggregating, check that all regions are valid
+                self.mappings[model].validate_regions(dsd)
                 logging.info(
                     f"Applying region aggregation mapping for model {model} from file "
                     f"{self.mappings[model].file}"
@@ -317,7 +324,7 @@ class RegionProcessor(BaseModel):
 
                 # Aggregate
                 if self.mappings[model].common_regions is not None:
-                    vars = self._filter_dict_args(model_df.variable)
+                    vars = self._filter_dict_args(model_df.variable, dsd)
                     vars_default_args = [
                         var for var, kwargs in vars.items() if not kwargs
                     ]
@@ -347,10 +354,10 @@ class RegionProcessor(BaseModel):
         return pyam.concat(processed_dfs)
 
     def _filter_dict_args(
-        self, variables, keys: Set[str] = PYAM_AGG_KWARGS
+        self, variables, dsd: DataStructureDefinition, keys: Set[str] = PYAM_AGG_KWARGS
     ) -> Dict[str, Dict]:
         return {
             var: {key: value for key, value in kwargs.items() if key in keys}
-            for var, kwargs in self.definition.variable.items()
+            for var, kwargs in dsd.variable.items()
             if var in variables and not kwargs.get("skip-region-aggregation", False)
         }
