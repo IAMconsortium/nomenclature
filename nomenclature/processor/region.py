@@ -241,7 +241,7 @@ class RegionAggregationMapping(BaseModel):
     def rename_mapping(self) -> Dict[str, str]:
         return {r.name: r.target_native_region for r in self.native_regions or []}
 
-    def validate_against_dsd(self, dsd: DataStructureDefinition) -> None:
+    def validate_regions(self, dsd: DataStructureDefinition) -> None:
         if hasattr(dsd, "region"):
             invalid = [c for c in self.all_regions if c not in dsd.region]
             if invalid:
@@ -291,7 +291,7 @@ class RegionProcessor(BaseModel):
         errors = []
         for mapping in self.mappings.values():
             try:
-                mapping.validate_against_dsd(dsd)
+                mapping.validate_regions(dsd)
             except RegionNotDefinedError as rnde:
                 errors.append(ErrorWrapper(rnde, f"mappings -> {mapping.model}"))
         if errors:
@@ -309,7 +309,7 @@ class RegionProcessor(BaseModel):
             # Otherwise we first rename, then aggregate
             else:
                 # before aggregating, check that all regions are valid
-                self.mappings[model].validate_against_dsd(dsd)
+                self.mappings[model].validate_regions(dsd)
                 logging.info(
                     f"Applying region aggregation mapping for model {model} from file "
                     f"{self.mappings[model].file}"
