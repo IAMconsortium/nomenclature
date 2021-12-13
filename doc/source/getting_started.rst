@@ -29,9 +29,11 @@ attributes (e.g., description, unit, parent region).
 A **RegionAggregationMapping** is a mapping that defines on a per-model basis how model
 native regions should be renamed and aggregated to comparison regions.
 
-
-Before the :ref:`minimum-working-example` can be covered, the required directory
-structure for definitions and mappings needs to be addressed. 
+In order to reduce the amount of code required, there is a convenience function called
+*process* which takes a **DataStructureDefinition** and a **RegionProcessor** as input.
+Details will be covered in :ref:`minimum-working-example`. Before this can be explained,
+however, the required directory structure for definitions and mappings needs to be
+discussed. 
 
 .. _dir-structure:
 
@@ -90,35 +92,34 @@ The following outlines how to use the nomenclature package:
 
 .. code-block:: python
 
-   # Import the necessary libraries
-   import pyam
-   from nomenclature import DataStructureDefinition, RegionProcessor
-   
-   # Initialize DataStructureDefinition and RegionProcessor giving them the
-   # directories where the codelists and mappings are defined as input.
-   dsd = DataStructureDefinition("definitions/")
-   # Only to be used if there are mappings!
-   rp = RegionProcessor.from_directory("mappings/", dsd)
-
-   # Read the data using pyam
-   iam_results_file = "some file"
-   df = pyam.IamDataFrame(iam_results_file)
-
-   # Validate that the data frame only contains allowed regions and variables
-   dsd.validate(df)
-   # Apply region processing to the data
-   # Only to be used if there are mappings!
-   df = rp.apply(df)
+  # Import the necessary libraries
+  import pyam
+  from nomenclature import DataStructureDefinition, RegionProcessor, process
+  
+  # Initialize DataStructureDefinition and RegionProcessor giving them the
+  # directories where the codelists and mappings are defined as input.
+  dsd = DataStructureDefinition("definitions/")
+  
+  # Only to be used if there are mappings!
+  rp = RegionProcessor.from_directory("mappings/", dsd)
+  
+  # Read the data using pyam
+  iam_results_file = "some file"
+  df = pyam.IamDataFrame(iam_results_file)
+  
+  # Using the process function we perform the validation of allowed regions and
+  # variables as well as the aggregation (if applicable) in one step.
+  df = process(df, dsd, processor=rp)
 
 **Notes**
 
-* The pyam library is required as *DataStructureDefinition.validate()* and
-  *RegionProcessor.apply()* take a *pyam.IamDataFrame* as input.
+* The pyam library is required as *process* takes a *pyam.IamDataFrame* as input.
 
 * *DataStructureDefinition* and *RegionProcessor* are initialized from directories
   containing yaml files. See :ref:`dir-structure` for details. 
 
-* *DataStructureDefinition.apply()* returns *None* if the data frame only contains   
-  allowed values and raises an error otherwise.
+* The processor argument of *process* is optional and may only to be used if there are  
+  model mappings. See :ref:`process-function` for details.
 
-* *RegionProcessor* is only to be used if there are model mappings.
+* If not all dimensions of the **DataStructureDefinition** should be validated, a
+  *dimensions* argument in form of a list of strings can be provided. Only the provided dimensions will then be validated. See :ref:`process-function` for details.
