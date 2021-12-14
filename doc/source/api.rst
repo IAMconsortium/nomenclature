@@ -5,9 +5,9 @@
 API documentation
 =================
 
-.. _process-function:
+.. _toplevel-functions:
 
-Process function
+Top-level functions
 ----------------
 
 .. autofunction:: process

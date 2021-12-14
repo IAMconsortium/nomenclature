@@ -17,9 +17,8 @@ def process(
 ) -> pyam.IamDataFrame:
     """Function for validation and region aggregation in one step
 
-    Since there are some subtleties in the order of applying region processing and
-    validation, this function is the recommended way of using the nomenclature package
-    as it takes care of subtleties.
+   This function is the recommended way of using the nomenclature package
+   for validation and region-processing.
 
     Parameters
     ----------
@@ -27,12 +26,10 @@ def process(
         Input data to be validated and aggregated.
     dsd : DataStructureDefinition
         Data templates that are used for validation.
-    dimensions : Optional[List[str]], optional
-        List of dimensions that will be used in the validation, if None all
-        dsd.dimensions will be used, by default None
+    dimensions : list, optional
+        Dimensions to be used in the validation, defaults to all dimensions defined in *dsd* 
     processor : Optional[RegionProcessor], optional
-        Region processor that will perform region renaming and aggregation if provided,
-        by default None
+        Region processor that will perform region renaming and aggregation if provided
 
     Returns
     -------

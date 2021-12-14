@@ -96,19 +96,16 @@ The following outlines how to use the nomenclature package:
   import pyam
   from nomenclature import DataStructureDefinition, RegionProcessor, process
   
-  # Initialize DataStructureDefinition and RegionProcessor giving them the
-  # directories where the codelists and mappings are defined as input.
-  dsd = DataStructureDefinition("definitions/")
+  # Initialize DataStructureDefinition from a suitable directory
+  dsd = DataStructureDefinition("definitions")
   
-  # Only to be used if there are mappings!
-  rp = RegionProcessor.from_directory("mappings/", dsd)
+  # Initialize a RegionProcessor from a suitable directory that has the mappings
+  rp = RegionProcessor.from_directory("mappings")
   
   # Read the data using pyam
-  iam_results_file = "some file"
-  df = pyam.IamDataFrame(iam_results_file)
+  df = pyam.IamDataFrame("/path/to/file")
   
-  # Using the process function we perform the validation of allowed regions and
-  # variables as well as the aggregation (if applicable) in one step.
+  # Perform the validation and apply the region aggregation
   df = process(df, dsd, processor=rp)
 
 **Notes**
@@ -122,4 +119,4 @@ The following outlines how to use the nomenclature package:
   model mappings. See :ref:`process-function` for details.
 
 * If not all dimensions of the **DataStructureDefinition** should be validated, a
-  *dimensions* argument in form of a list of strings can be provided. Only the provided dimensions will then be validated. See :ref:`process-function` for details.
+  *dimensions* argument in form of a list of strings can be provided. Only the provided dimensions will then be validated. See :func:`nomenclature.process` for details.
