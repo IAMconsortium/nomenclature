@@ -5,6 +5,14 @@
 API documentation
 =================
 
+.. _toplevel-functions:
+
+Top-level functions
+----------------
+
+.. autofunction:: process
+
+
 DataStructureDefinition
 -----------------------
 
@@ -15,5 +23,5 @@ DataStructureDefinition
 Region processing 
 -----------------
 
-.. automodule:: nomenclature.region_mapping_models
+.. automodule:: nomenclature.processor.region
    :members:

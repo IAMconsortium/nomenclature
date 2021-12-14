@@ -1,5 +1,7 @@
 import copy
-from pyam import IamDataFrame
+from typing import List, Optional
+
+import pyam
 from pydantic import validate_arguments
 
 from nomenclature.definition import DataStructureDefinition
@@ -8,11 +10,39 @@ from nomenclature.processor.region import RegionProcessor
 
 @validate_arguments(config=dict(arbitrary_types_allowed=True))
 def process(
-    df: IamDataFrame,
+    df: pyam.IamDataFrame,
     dsd: DataStructureDefinition,
-    dimensions: list = None,
-    processor: RegionProcessor = None,
-):
+    dimensions: Optional[List[str]] = None,
+    processor: Optional[RegionProcessor] = None,
+) -> pyam.IamDataFrame:
+    """Function for validation and region aggregation in one step
+
+    This function is the recommended way of using the nomenclature package. It performs
+    two operations:
+
+    * Validation against the codelists of a DataStructureDefinition
+    * Region-processing, which can consist of three parts:
+        1. Model native regions not mentioned in the model mapping will be dropped
+        2. Model native regions can be renamed
+        3. Aggregation from model native regions to "common regions"
+
+    Parameters
+    ----------
+    df : pyam.IamDataFrame
+        Input data to be validated and aggregated.
+    dsd : DataStructureDefinition
+        Codelists that are used for validation.
+    dimensions : list, optional
+        Dimensions to be used in the validation, defaults to all dimensions defined in
+        *dsd*
+    processor : RegionProcessor, optional
+        Region processor that will perform region renaming and aggregation if provided
+
+    Returns
+    -------
+    pyam.IamDataFrame
+        Processed data frame
+    """
     # The deep copy is needed so we don't alter dsd in dimensions.remove("region")
     dimensions = copy.deepcopy(dimensions or dsd.dimensions)
     if processor is None:
