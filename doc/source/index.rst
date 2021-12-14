@@ -23,10 +23,10 @@ Release v\ |version|.
 Overview
 ========
 
-This package facilitates working with data templates that follow the format developed by
-the `Integrated Assessment Modeling Consortium (IAMC) <https://www.iamconsortium.org>`_.
-It supports validation of scenario data and region processing, which consists of
-renaming and aggregation of model "native regions" to "common regions" used in a project.
+This package facilitates working with codelists that follow the format developed by the
+`Integrated Assessment Modeling Consortium (IAMC) <https://www.iamconsortium.org>`_. It
+supports validation of scenario data and region processing, which consists of renaming
+and aggregation of model "native regions" to "common regions" used in a project.
 
 Those two tasks are carried out by two classes:
 

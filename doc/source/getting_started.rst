@@ -3,44 +3,35 @@
 Getting started
 ===============
 
-The nomenclature package facilitates working with data templates that follow the format
+The nomenclature package facilitates working with codelists that follow the format
 developed by the `Integrated Assessment Modeling Consortium (IAMC)
 <https://www.iamconsortium.org>`__. It supports validation of scenario data and region
-processing, which consists of renaming and aggregation of model “native regions” to
+processing, which consists of renaming of model “native regions” and aggregation to
 “common regions” used in a project.
 
 There are two main classes that the user interacts with when using the nomenclature
-package, **DataStructureDefinition** and **RegionProcessor**. Additionally, there are a
-number of auxiliary classes which are used by the two main ones to facilitate validation
-and region processing, the two most important ones being **CodeList** and
-**RegionAggregationMapping** (a full list of all classes can be found in :ref:`api`).
+package, **DataStructureDefinition** and **RegionProcessor** (a full list of all classes can be found in :ref:`api`). 
 
-A **DataStructureDefinition** contains **CodeLists** for *variables* (including units)
-and *regions* to be used in a model comparison or scenario exercise following the IAMC
-data format.
+A **DataStructureDefinition** contains codelists which define allowed *variables*
+(including units) and *regions* to be used in a model comparison or scenario exercise
+following the IAMC data format.
 
-A **RegionProcessor** holds a list of RegionAggregationMappings and a
-DataStructureDefinition. This class is used to facilitate region processing for model
-comparison studies.
+A **RegionProcessor**  is used to facilitate region processing for model comparison
+studies. It holds a list of model specific mappings which define renaming of native
+regions and aggregation to common regions.
 
-A **CodeList** is a list of "allowed terms" (or codes), where each term can have several
-attributes (e.g., description, unit, parent region).
-
-A **RegionAggregationMapping** is a mapping that defines on a per-model basis how model
-native regions should be renamed and aggregated to comparison regions.
-
-In order to reduce the amount of code required, there is a convenience function called
-*process* which takes a **DataStructureDefinition** and a **RegionProcessor** as input.
-Details will be covered in :ref:`minimum-working-example`. Before this can be explained,
-however, the required directory structure for definitions and mappings needs to be
-discussed. 
+The top-level function *process()* provides a direct entrypoint to validating scenario
+data and applying region processing. Details will be covered in
+:ref:`minimum-working-example`. Before that, the required directory structure for
+definitions and mappings is discussed. 
 
 .. _dir-structure:
 
 Directory structure for definitions and mappings
 ------------------------------------------------
 
-This is the directory structure that needs to be in place in order for the validation and region processing to work:
+This is the directory structure that needs to be in place in order for the validation
+and region processing to work:
 
 .. code-block:: bash
 
@@ -61,11 +52,11 @@ This is the directory structure that needs to be in place in order for the valid
 * The **DataStructureDefinition** will be initialized from the *definitions* folder.
 
 * The **RegionProcessor** will be initialized from the *mappings* folder. If the project
-  has no model specific mappings, this folder can also be omitted. In this case,
-  however, *RegionProcessor* **must not** be used as it would try to read a non-existent
-  directory causing the program to crash.
+  has no model specific mappings, this folder can also be omitted. In this case
+  *RegionProcessor* **must not** be used as it would try to read a non-existent
+  directory causing an error.
 
-* Inside the *definitions* directory each "dimension", in our case *variable* and
+* Inside the *definitions* directory, each "dimension", in our case *variable* and
   *region*, must live in its own sub-directory.
 
 * The directories inside the *definitions* folder, *variable* and *region* are special
@@ -116,7 +107,8 @@ The following outlines how to use the nomenclature package:
   containing yaml files. See :ref:`dir-structure` for details. 
 
 * The processor argument of *process* is optional and may only to be used if there are  
-  model mappings. See :ref:`process-function` for details.
+  model mappings. See :ref:`toplevel-functions` for details.
 
 * If not all dimensions of the **DataStructureDefinition** should be validated, a
-  *dimensions* argument in form of a list of strings can be provided. Only the provided dimensions will then be validated. See :func:`nomenclature.process` for details.
+  *dimensions* argument in form of a list of strings can be provided. Only the provided
+  dimensions will then be validated. See :ref:`toplevel-functions` for details.
