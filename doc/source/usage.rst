@@ -3,18 +3,10 @@
 Usage
 =====
 
-Overview
---------
+The **DataStructureDefinition** and **RegionProcessor** classes
+are initialized from yaml files that must follow specific formats.
 
-This sections dives deeper into the inner workings of **DataStructureDefinition** and
-**RegionProcessor** as well as their associated auxiliary classes.
-
-
-Yaml file schemas
---------------------
-
-Both classes read information from yaml files which are required to follow specific
-structures.
+This page describes the required specifications of the files.
 
 For **DataStructureDefinition** there are three types of schemas: variable, region and tag.
 
@@ -98,8 +90,8 @@ name will be replaced by every element in the Tag dictionary. The
 ``<Tag>`` will also be replaced in any of the variable attributes.
 
 
-Mapping
-~~~~~~~
+RegionProcessor
+-----------------
 
 Model mappings, defined on a per-model basis serve three different purposes:
 
@@ -132,7 +124,7 @@ This example illustrates how such a model mapping looks like:
 
 -  The names of the three top level keywords **model**,
    **native_regions** and **common_regions** are fixed.
--  Required properties are **model** and **at least** either
+-  Required properties are **model** and *at least* either
    **native_regions** or **common_regions**. **Both** are **allowed** as
    well.
 -  **model** (str): specifies the model name for which the mapping
