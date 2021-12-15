@@ -45,9 +45,8 @@ class DataStructureDefinition:
 
         Parameters
         ----------
-        df : IamDataFrame
-            An IamDataFrame to be validated against the codelists of this
-            DataStructureDefinition.
+        df : :class:`pyam.IamDataFrame`
+            Scenario data to be validated against the codelists of this instance.
         dimensions : list of str, optional
             Dimensions to perform validation (defaults to all dimensions of self)
 
