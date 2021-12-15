@@ -111,6 +111,6 @@ The following outlines how to use the nomenclature package:
 * The processor argument of func:`process` is optional and may only to be used if there
   are model mappings. See :ref:`toplevel-functions` for details.
 
-* If not all dimensions of the **DataStructureDefinition** should be validated, a
+* If not all dimensions of the :class:`DataStructureDefinition` should be validated, a
   *dimensions* argument in form of a list of strings can be provided. Only the provided
   dimensions will then be validated. See :ref:`toplevel-functions` for details.

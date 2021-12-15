@@ -34,7 +34,7 @@ def process(
         Codelists that are used for validation.
     dimensions : list, optional
         Dimensions to be used in the validation, defaults to all dimensions defined in
-        *dsd*
+        `dsd`
     processor : :class:`RegionProcessor`, optional
         Region processor to perform region renaming and aggregation (if given)
 
