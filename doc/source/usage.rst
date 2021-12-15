@@ -3,18 +3,29 @@
 Usage
 =====
 
-The **DataStructureDefinition** and **RegionProcessor** classes
-are initialized from yaml files that must follow specific formats.
+.. contents::
+   :depth: 3
+
+The :class:`DataStructureDefinition` and :class:`RegionProcessor` classes are
+initialized from yaml files that must follow specific formats.
 
 This page describes the required specifications of the files.
 
-For **DataStructureDefinition** there are three types of schemas: variable, region and tag.
+DataStructureDefinition
+-----------------------
+
+A :class:`DataStructureDefinition` contains **CodeLists**
+(:class:`nomenclature.codelist.CodeList`). A **CodeList** is a list of “allowed terms”
+(or codes), where each term can have several attributes (e.g., description, unit, parent
+region). By default :class:`DataStructureDefinition` reads *regions* and *variables* for
+validation, however codelists can be used to validate any dimension in the IAMC format
+(see :ref:`generic`).
 
 Variable
 ~~~~~~~~
 
-The *variable* codelist of the **DataStructureDefinition** will be read from all yaml
-files located in a folder of that name (including any sub-folders). They must be
+The *variable* codelist of the :class:`DataStructureDefinition` will be read from all
+yaml files located in a folder of that name (including any sub-folders). They must be
 formatted as a list of dictionaries mapping the variable (key) to its attributes.
 
 .. code:: yaml
@@ -28,16 +39,15 @@ formatted as a list of dictionaries mapping the variable (key) to its attributes
 
 * Every variable **must have** a **unit**, which should be compatible with the
   Python package `iam-units <https://github.com/iamconsortium/units>`_.
-
 * The unit attribute can also be empty, i.e., the variable is *dimensionless*.
-
 * All other attributes such as "description" are optional. It is recommended to provide
   a description for better documentation.
-
 * For region aggregation, the pyam function `aggregate_region
   <https://pyam-iamc.readthedocs.io/en/stable/api/iamdataframe.html#pyam.IamDataFrame.aggregate_region>`_
   is used. Attributes provided in a mapping that match the parameters "components",
   "method", "weight" or "drop_negative_weights" will be used in the aggregation.
+* A variable can be designated to be skipped during region aggregation by adding 
+  "skip-region-aggregation: True". 
 
 Region
 ~~~~~~
@@ -55,18 +65,52 @@ continent), the yaml files must have a nested dictionary structure:
 
 **Notes**
 
-* Every region **must be** defined as part of a hierarchy. 
-
-* When importing the codelist, the hierarchy will be added as attribute,
-  such that it can be retrieved as:
+* Every region **must be** defined as part of a hierarchy.
+* When importing the codelist, the hierarchy will be added as attribute, such that it 
+  can be retrieved as:
 
 .. code:: python
-
+  
    DataStructureDefinition.region["Region Name"]["Hierarchy"] = "<Hierarchy Level>"
 
 * Other attributes specified in the yaml file can include (for countries)
-  ISO2/3-codes, or the list of countries included in a macro-region (i.e.,
-  a continent or large region).
+  ISO2/3-codes, or the list of countries included in a macro-region (i.e., a continent
+  or large region).
+
+.. _generic:
+
+Generic
+~~~~~~~
+
+In order to validate IAMC dimensions other than 'region' or 'variable' (e.g. 'scenario')
+generic codelists can be used. 
+
+.. code:: yaml
+
+   - scenario 1:
+      - description: Something about scenario 1
+   - scenario 2
+   - ...
+
+
+**Notes**
+
+* The requirements for generic codelists are more relaxed than for 'region' and
+  'variable':
+
+  * It must be a list (i.e. entries start with a dash '-') 
+  * Entries can either be a key value pair (like 'scenario 1') or a simple string (like
+    'scenario 2').
+
+* The files belonging to this dimension need to be placed in a folder of the same name 
+  as the IAMC dimension to be validated. In our example 'scenario'.
+* When instantiating a :class:`DataStructureDefinition` with dimensions other than     
+  'region' and 'varaible' a list of **all** dimensions must be provided:
+
+.. code:: python
+
+   dsd = DataStructureDefinition('definitions', ['region', 'variable', 'scenario'])
+
 
 Tag
 ~~~
@@ -91,7 +135,12 @@ name will be replaced by every element in the Tag dictionary. The
 
 
 RegionProcessor
------------------
+---------------
+
+The :class:`RegionProcessor` class holds a list of model mappings.
+
+Model mapping
+~~~~~~~~~~~~~
 
 Model mappings, defined on a per-model basis serve three different purposes:
 
@@ -99,9 +148,7 @@ Model mappings, defined on a per-model basis serve three different purposes:
    usually uploaded) from an IAM result. This also serves as an implicit
    exclusion list for model native regions, since only explicitly
    mentioned regions are selected.
-
 2. Allow for renaming of model native regions.
-
 3. Define how model native regions should be aggregated to common
    regions.
 
@@ -148,39 +195,3 @@ This example illustrates how such a model mapping looks like:
       **must** refer to the **original** model native region names. In
       the above example *region_a* and *region_b* and **not**
       *alternative_name_a*.
-
-Guidelines and variable naming conventions
-------------------------------------------
-
-The variable name (code) should adhere to the following conventions:
-
--  A *|* (pipe) character indicates levels of hierarchy
--  Do not use spaces before and after the *|* character, but add a
-   space between words (e.g., *Primary Energy|Non-Biomass Renewables*)
--  All words must be capitalised (except for *and*, *w/*, *w/o*, etc.)
--  Do not use abbreviations (e.g, *PHEV*) unless strictly necessary
--  Add hierarchy levels where it might be useful in the future, e.g.,
-   use *Electric Vehicle|Plugin-Hybrid* instead of *Plugin-Hybrid
-   Electric Vehicle*
--  Do not use abbreviations of statistical operations (*min*, *max*,
-   *avg*) but always spell out the word
--  Do not include words like *Level* or *Quantity* in the variable,
-   because this should be clear from the context or unit
-
-Class Overview
---------------
-
-A **DataStructureDefinition** class contains **CodeLists** for
-*variables* (including units) and *regions* to be used in a model
-comparison or scenario exercise following the IAMC data format.
-
-A **CodeList** is a list of “allowed terms” (or codes), where each term
-can have several attributes (e.g., description, unit, parent region).
-
-A **RegionAggregationMapping** is a mapping that defines on a per-model
-basis how model native regions should be renamed and aggregated to
-comparison regions.
-
-A **RegionProcessor** is a class that holds a list of
-RegionAggregationMappings and a DataStructureDefinition. This class is
-used to facilitate region processing for model comparison studies.
