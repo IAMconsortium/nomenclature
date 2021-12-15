@@ -51,6 +51,7 @@ Table of Contents
    install
    getting_started
    usage
+   guidelines
    api
    cli
 
