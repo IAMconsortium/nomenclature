@@ -1,5 +1,7 @@
 .. _getting-started:
 
+.. currentmodule:: nomenclature
+
 Getting started
 ===============
 
@@ -10,13 +12,13 @@ processing, which consists of renaming of model “native regions” and aggrega
 “common regions” used in a project.
 
 There are two main classes that the user interacts with when using the nomenclature
-package, **DataStructureDefinition** and **RegionProcessor** (a full list of all classes can be found in :ref:`api`). 
+package, :class:`DataStructureDefinition` and :class:`RegionProcessor`.
 
-A **DataStructureDefinition** contains codelists which define allowed *variables*
+A :class:`DataStructureDefinition` contains codelists which define allowed *variables*
 (including units) and *regions* to be used in a model comparison or scenario exercise
 following the IAMC data format.
 
-A **RegionProcessor**  is used to facilitate region processing for model comparison
+A :class:`RegionProcessor` is used to facilitate region processing for model comparison
 studies. It holds a list of model specific mappings which define renaming of native
 regions and aggregation to common regions.
 
@@ -101,14 +103,14 @@ The following outlines how to use the nomenclature package:
 
 **Notes**
 
-* The pyam library is required as *process* takes a *pyam.IamDataFrame* as input.
+* The function :func:`process` takes a :class:`pyam.IamDataFrame` as input.
 
-* *DataStructureDefinition* and *RegionProcessor* are initialized from directories
-  containing yaml files. See :ref:`dir-structure` for details. 
+* :class:`DataStructureDefinition` and :class:`RegionProcessor` are initialized from
+  directories containing yaml files. See :ref:`dir-structure` for details.
 
-* The processor argument of *process* is optional and may only to be used if there are  
-  model mappings. See :ref:`toplevel-functions` for details.
+* The processor argument of func:`process` is optional and may only to be used if there
+  are model mappings. See :ref:`toplevel-functions` for details.
 
-* If not all dimensions of the **DataStructureDefinition** should be validated, a
+* If not all dimensions of the :class:`DataStructureDefinition` should be validated, a
   *dimensions* argument in form of a list of strings can be provided. Only the provided
   dimensions will then be validated. See :ref:`toplevel-functions` for details.

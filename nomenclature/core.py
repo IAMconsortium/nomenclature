@@ -28,20 +28,20 @@ def process(
 
     Parameters
     ----------
-    df : pyam.IamDataFrame
-        Input data to be validated and aggregated.
-    dsd : DataStructureDefinition
+    df : :class:`pyam.IamDataFrame`
+        Scenario data to be validated and aggregated.
+    dsd : :class:`DataStructureDefinition`
         Codelists that are used for validation.
     dimensions : list, optional
         Dimensions to be used in the validation, defaults to all dimensions defined in
-        *dsd*
-    processor : RegionProcessor, optional
-        Region processor that will perform region renaming and aggregation if provided
+        `dsd`
+    processor : :class:`RegionProcessor`, optional
+        Region processor to perform region renaming and aggregation (if given)
 
     Returns
     -------
-    pyam.IamDataFrame
-        Processed data frame
+    :class:`pyam.IamDataFrame`
+        Processed scenario data
     """
     # The deep copy is needed so we don't alter dsd in dimensions.remove("region")
     dimensions = copy.deepcopy(dimensions or dsd.dimensions)

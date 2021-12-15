@@ -37,6 +37,7 @@ extensions = [
     "numpydoc",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
+    "sphinx.ext.intersphinx",
     "sphinx_click",
 ]
 
@@ -95,7 +96,12 @@ html_theme_path = ["_templates"]
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-# prolog for all rst files
+# Intersphinx configuration
+intersphinx_mapping = {
+    "pyam": ("https://pyam-iamc.readthedocs.io/en/stable/", None),
+}
+
+# Prolog for all rst files
 rst_prolog = """
 
 .. |br| raw:: html
