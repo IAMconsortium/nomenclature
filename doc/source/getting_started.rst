@@ -108,7 +108,7 @@ The following outlines how to use the nomenclature package:
 * :class:`DataStructureDefinition` and :class:`RegionProcessor` are initialized from
   directories containing yaml files. See :ref:`dir-structure` for details.
 
-* The processor argument of func:`process` is optional and may only to be used if there
+* The processor argument of :func:`process` is optional and may only to be used if there
   are model mappings. See :ref:`toplevel-functions` for details.
 
 * If not all dimensions of the :class:`DataStructureDefinition` should be validated, a
