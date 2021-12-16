@@ -1,3 +1,5 @@
+.. currentmodule:: nomenclature
+
 **nomenclature**: Working with IAMC-style scenario data
 =======================================================
 
@@ -30,11 +32,12 @@ and aggregation of model "native regions" to "common regions" used in a project.
 
 Those two tasks are carried out by two classes:
 
-#. The **DataStructureDefinition** class handles the validation of scenario data. It
-   contains data templates for *variables* (including units) and *regions* to be used in
-   a model comparison or scenario exercise following the IAMC data format.
+#. The :class:`DataStructureDefinition` class handles the validation of scenario data.
+   It contains data templates for *variables* (including units) and *regions* to be used
+   in a model comparison or scenario exercise following the IAMC data format.
 
-#. The **RegionProcessor** class carries out renaming and aggregation based on information given in model mapping files.
+#. The :class:`RegionProcessor` class carries out renaming and aggregation based on
+   information given in model mapping files.
 
 A starting point on how to use these two classes with existing data templates and model mappings can be found in :ref:`getting-started`.
 
