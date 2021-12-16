@@ -43,12 +43,21 @@ formatted as a list of dictionaries mapping the variable (key) to its attributes
 * The unit attribute can also be empty, i.e., the variable is *dimensionless*.
 * All other attributes such as "description" are optional. However, it is recommended to
   provide a description for better documentation.
-* For region aggregation, the pyam function `aggregate_region
-  <https://pyam-iamc.readthedocs.io/en/stable/api/iamdataframe.html#pyam.IamDataFrame.aggregate_region>`_
-  is used. Attributes provided in a mapping that match the parameters "components",
-  "method", "weight" or "drop_negative_weights" will be used in the aggregation.
-* A variable can be designated to be skipped during region aggregation by adding 
-  "skip-region-aggregation: True". 
+
+.. note:: 
+   For region aggregation, there are a number of special named attributes:
+   
+   * *skip-region-aggregation*:
+
+     * A variable can be designated to be skipped during region aggregation by adding 
+       the attribute *skip-region-aggregation* **and** setting it to *True*.
+
+   * *components*, *method*, *weight* and *drop_negative_weights*:
+
+     * Those four attributes are parameters for the pyam function
+       :meth:`pyam.IamDataFrame.aggregate_region` which is used to perform region
+       aggregate_region. If any of them are provided for a variable they will be handed
+       to :meth:`pyam.IamDataFrame.aggregate_region` and used.
 
 Region
 ~~~~~~
