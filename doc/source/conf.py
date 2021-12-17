@@ -102,6 +102,11 @@ intersphinx_mapping = {
     "pyam": ("https://pyam-iamc.readthedocs.io/en/stable/", None),
 }
 
+# Autodoc configuration
+
+autodoc_typehints = "none"
+
+
 # Prolog for all rst files
 rst_prolog = """
 
