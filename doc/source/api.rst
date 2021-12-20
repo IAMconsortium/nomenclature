@@ -19,9 +19,14 @@ DataStructureDefinition
 .. autoclass:: DataStructureDefinition
    :members:
 
+.. autoclass:: nomenclature.codelist.CodeList
+   :members:
 
 Region processing 
 -----------------
 
-.. automodule:: nomenclature.processor.region
+.. autoclass:: RegionProcessor
+   :members:
+
+.. autoclass:: nomenclature.processor.region.RegionAggregationMapping
    :members:

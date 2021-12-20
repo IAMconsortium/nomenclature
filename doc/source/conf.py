@@ -38,6 +38,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.viewcode",
     "sphinx_click",
 ]
 
@@ -100,6 +101,9 @@ html_static_path = ["_static"]
 intersphinx_mapping = {
     "pyam": ("https://pyam-iamc.readthedocs.io/en/stable/", None),
 }
+
+# Autodoc configuration
+autodoc_typehints = "none"
 
 # Prolog for all rst files
 rst_prolog = """
