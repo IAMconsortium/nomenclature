@@ -335,22 +335,16 @@ class RegionProcessor(BaseModel):
                         if var not in vars_default_args
                     }
                     for cr in self.mappings[model].common_regions:
+                        regions = [cr.name, cr.constituent_regions]
                         # First perform 'simple' aggregation (i.e. no aggregation args)
                         processed_dfs.append(
-                            model_df.aggregate_region(
-                                vars_default_args, cr.name, cr.constituent_regions
-                            )
+                            model_df.aggregate_region(vars_default_args, *regions)
                         )
                         # Second, special weighted aggregation
                         for var, kwargs in vars_kwargs.items():
                             if "region-aggregation" not in kwargs:
                                 processed_dfs.append(
-                                    model_df.aggregate_region(
-                                        var,
-                                        cr.name,
-                                        cr.constituent_regions,
-                                        **kwargs,
-                                    )
+                                    model_df.aggregate_region(var, *regions, **kwargs)
                                 )
                             else:
                                 for rename_var in kwargs["region-aggregation"]:
@@ -358,8 +352,7 @@ class RegionProcessor(BaseModel):
                                         processed_dfs.append(
                                             model_df.aggregate_region(
                                                 var,
-                                                cr.name,
-                                                cr.constituent_regions,
+                                                *regions,
                                                 **_kwargs,
                                             ).rename(variable={var: _rename})
                                         )
