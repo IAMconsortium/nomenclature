@@ -30,6 +30,8 @@ definitions:
                 type: object
                 additionalProperties:
                   type: [ string, number, boolean, "null" ]
+              minProperties: 1
+              maxProperties: 1
         required:
           - unit
         additionalProperties:
