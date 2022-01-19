@@ -179,6 +179,46 @@ def test_region_processing_weighted_aggregation():
     assert_iamframe_equal(obs, exp)
 
 
+def test_region_processing_weighted_aggregation_rename():
+    # test a weighed sum on several
+
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_a", "scen_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "scen_a", "region_A", "Emissions|CO2", "Mt CO2", 4, 6],
+                ["model_a", "scen_a", "region_B", "Emissions|CO2", "Mt CO2", 1, 2],
+                ["model_a", "scen_a", "region_A", "Price|Carbon", "USD/t CO2", 3, 8],
+                ["model_a", "scen_a", "region_B", "Price|Carbon", "USD/t CO2", 2, 4],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    exp = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+                ["model_a", "scen_a", "World", "Emissions|CO2", "Mt CO2", 5, 8],
+                ["model_a", "scen_a", "World", "Price (CO2)", "USD/t CO2", 2.8, 7.0],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    obs = process(
+        test_df,
+        DataStructureDefinition(
+            TEST_DATA_DIR / "region_processing/weighted_aggregation_rename/dsd"
+        ),
+        processor=RegionProcessor.from_directory(
+            TEST_DATA_DIR / "region_processing/weighted_aggregation_rename/aggregate"
+        ),
+    )
+    assert_iamframe_equal(obs, exp)
+
+
 def test_region_processing_skip_aggregation():
     test_df = IamDataFrame(
         pd.DataFrame(
