@@ -201,7 +201,8 @@ def test_region_processing_weighted_aggregation_rename():
             [
                 ["model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 4, 6],
                 ["model_a", "scen_a", "World", "Emissions|CO2", "Mt CO2", 5, 8],
-                ["model_a", "scen_a", "World", "Price (CO2)", "USD/t CO2", 2.8, 7.0],
+                ["model_a", "scen_a", "World", "Price|Carbon", "USD/t CO2", 2.8, 7.0],
+                ["model_a", "scen_a", "World", "Price|Carbon (Max)", "USD/t CO2", 3, 8],
             ],
             columns=IAMC_IDX + [2005, 2010],
         )

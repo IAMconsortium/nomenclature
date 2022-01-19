@@ -8,5 +8,7 @@
     definition: Price of carbon
     unit: USD/t CO2
     region-aggregation:
-      - Price (CO2):
+      - Price|Carbon:
           weight: Emissions|CO2
+      - Price|Carbon (Max):
+          method: "max"
