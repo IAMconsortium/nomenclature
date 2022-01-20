@@ -11,4 +11,4 @@
       - Price|Carbon:
           weight: Emissions|CO2
       - Price|Carbon (Max):
-          method: "max"
+          method: max
