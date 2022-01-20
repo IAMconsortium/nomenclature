@@ -32,32 +32,64 @@ formatted as a list of dictionaries mapping the variable (key) to its attributes
 .. code:: yaml
 
    - Some Variable:
-      unit: A unit
-      description: A short description
-      <other attribute>: Some text (optional)
+       unit: A unit
+       description: A short description
+       <other attribute>: Some text, value, boolean or list (optional)
 
-**Notes**
+A *unit* attribute
+^^^^^^^^^^^^^^^^^^
 
-* Every variable **must have** a **unit**, which should be compatible with the
-  Python package `iam-units <https://github.com/iamconsortium/units>`_.
-* The unit attribute can also be empty, i.e., the variable is *dimensionless*.
-* All other attributes such as "description" are optional. However, it is recommended to
-  provide a description for better documentation.
+Every variable **must have** a **unit**, which should be compatible with
+the `iam-units <https://github.com/iamconsortium/units>`_ package.
 
-.. note:: 
-   For region aggregation, there are a number of special named attributes:
-   
-   * *skip-region-aggregation*:
+The unit attribute can be empty, i.e., the variable is *dimensionless*,
 
-     * A variable can be designated to be skipped during region aggregation by adding 
-       the attribute *skip-region-aggregation* **and** setting it to *True*.
+    .. code:: yaml
 
-   * *components*, *method*, *weight* and *drop_negative_weights*:
+       - Some Variable:
+           unit:
 
-     * Those four attributes are parameters for the pyam function
-       :meth:`pyam.IamDataFrame.aggregate_region` which is used to perform region
-       aggregate_region. If any of them are provided for a variable they will be handed
-       to :meth:`pyam.IamDataFrame.aggregate_region` and used.
+Attributes for region processing (optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* By default, when applying a :class:`RegionProcessor` instance, all variables
+  are processed using the method :meth:`pyam.IamDataFrame.aggregate_region`,
+  which performs a simple summation of all subregions.
+
+* Region aggregation for a particular variable can be skipped by using the attribute
+  *skip-region-aggregation*.
+
+    .. code:: yaml
+
+       - Some Variable:
+           skip-region-aggregation: true
+
+* Any attributes which are arguments of :meth:`aggregate_region` will
+  be passed to that method, e.g., *method*, *weight*.
+
+* It is possible to rename the variable returned by the region processing
+  using a *region-aggregation* attribute, which must have a mapping of
+  the target variable name to arguments for the :meth:`aggregate_region` method.
+
+  This option can be used to compute several variables as part of the region-processing.
+  In the example below, the variable *Price|Carbon* is computed as a weighted average
+  using the CO2 emissions as weights, and in addition, the maximum carbon price within
+  each aggregate-region is added as a new variable *Price|Carbon (Max)*.
+
+    .. code:: yaml
+
+        - Price|Carbon:
+            unit: USD/t CO2
+            region-aggregation:
+              - Price|Carbon:
+                  weight: Emissions|CO2
+              - Price|Carbon (Max):
+                  method: max
+
+Other attributes
+^^^^^^^^^^^^^^^^
+
+Other attributes such as "description" are optional.
 
 Region
 ~~~~~~
