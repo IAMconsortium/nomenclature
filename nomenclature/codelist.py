@@ -82,7 +82,6 @@ class CodeList(BaseModel):
 
         return cl
 
-
     @classmethod
     def from_directory(
         cls,
