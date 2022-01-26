@@ -12,3 +12,7 @@
           weight: Emissions|CO2
       - Price|Carbon (Max):
           method: max
+- Price|Carbon (Max):
+    definition: Price of carbon (maximum over subregions)
+    unit: USD/t CO2
+

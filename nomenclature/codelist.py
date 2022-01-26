@@ -53,6 +53,37 @@ class CodeList(BaseModel):
         return self.mapping.values()
 
     @classmethod
+    def from_list(
+        cls,
+        name: str,
+        code_list: dict,
+    ):
+        """
+
+        Parameters
+        ----------
+        name : str
+            Name of the CodeList
+        code_list : dict
+            List of Code items
+
+        Returns
+        -------
+        CodeList
+
+        """
+
+        # iterate over the list to guard against silent replacement of duplicates
+        cl = CodeList(name=name)
+        for item in code_list:
+            if not isinstance(item, Code):
+                item = Code.from_dict(item)
+            cl[item.name] = item.attributes
+
+        return cl
+
+
+    @classmethod
     def from_directory(
         cls,
         name: str,

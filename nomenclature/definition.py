@@ -7,9 +7,22 @@ from pyam import IamDataFrame
 from pyam.utils import write_sheet
 
 from nomenclature.codelist import CodeList
+from nomenclature.error.variable import (
+    VariableRenameTargetError,
+    VariableRenameArgError,
+)
 from nomenclature.validation import validate
 
 logger = logging.getLogger(__name__)
+
+
+# arguments of the method `pyam.IamDa
+PYAM_AGG_KWARGS = [
+    "components",
+    "method",
+    "weight",
+    "drop_negative_weights",
+]
 
 
 class DataStructureDefinition:
@@ -39,6 +52,33 @@ class DataStructureDefinition:
         empty = [d for d in self.dimensions if not self.__getattribute__(d)]
         if empty:
             raise ValueError(f"Empty codelist: {', '.join(empty)}")
+
+        # check that any variable region-processing-rename mappings are valid
+        if "variable" in self.dimensions:
+            items = [
+                (name, attrs)
+                for (name, attrs) in self.variable.items()
+                if "region-aggregation" in attrs
+            ]
+            for (name, attrs) in items:
+                # ensure that there no pyam-aggregation-kwargs and
+                conflict_args = [i for i in attrs if i in PYAM_AGG_KWARGS]
+                if conflict_args:
+                    raise VariableRenameArgError(
+                        variable=name,
+                        file=attrs["file"],
+                        args=conflict_args,
+                    )
+
+                # ensure that mapped variables are defined in the nomenclature
+                rename_attrs = CodeList.from_list(
+                    name="region-aggregation", code_list=attrs["region-aggregation"]
+                )
+                invalid = [v for v in rename_attrs.keys() if v not in self.variable]
+                if invalid:
+                    raise VariableRenameTargetError(
+                        variable=name, file=attrs["file"], target=invalid
+                    )
 
     def validate(self, df: IamDataFrame, dimensions: list = None) -> None:
         """Validate that the coordinates of `df` are defined in the codelists

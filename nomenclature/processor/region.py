@@ -12,7 +12,7 @@ from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.types import DirectoryPath, FilePath
 from pydantic.error_wrappers import ErrorWrapper
 
-from nomenclature.definition import DataStructureDefinition
+from nomenclature.definition import DataStructureDefinition, PYAM_AGG_KWARGS
 from nomenclature.error.region import (
     ModelMappingCollisionError,
     RegionNameCollisionError,
@@ -20,13 +20,7 @@ from nomenclature.error.region import (
 )
 from nomenclature.processor.utils import get_relative_path
 
-PYAM_AGG_KWARGS = {
-    "components",
-    "method",
-    "weight",
-    "drop_negative_weights",
-    "region-aggregation",  # this keyword is used for aggregation-and-renaming mappings
-}
+AGG_KWARGS = PYAM_AGG_KWARGS + ["region-aggregation"]
 
 logger = logging.getLogger(__name__)
 
@@ -360,7 +354,7 @@ class RegionProcessor(BaseModel):
         return pyam.concat(processed_dfs)
 
     def _filter_dict_args(
-        self, variables, dsd: DataStructureDefinition, keys: Set[str] = PYAM_AGG_KWARGS
+        self, variables, dsd: DataStructureDefinition, keys: Set[str] = AGG_KWARGS
     ) -> Dict[str, Dict]:
         return {
             var: {key: value for key, value in kwargs.items() if key in keys}
