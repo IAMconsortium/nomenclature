@@ -1,8 +1,9 @@
 name: Publish to PyPI and TestPyPI
 
-on: push
-  branches:
-    - feature/automate-release
+on: 
+  push:
+    branches:
+      - feature/automate-release
 
 jobs:
   build-n-publish:
