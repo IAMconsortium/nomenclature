@@ -1,0 +1,18 @@
+- Primary Energy:
+    definition: Total primary energy consumption
+    unit: EJ/yr
+- Emissions|CO2:
+    definition: Total CO2 emissions
+    unit: Mt CO2
+- Price|Carbon:
+    definition: Price of carbon
+    unit: USD/t CO2
+    region-aggregation:
+      - Price|Carbon:
+          weight: Emissions|CO2
+      - Price|Carbon (Max):
+          method: max
+- Price|Carbon (Max):
+    definition: Price of carbon (maximum over subregions)
+    unit: USD/t CO2
+

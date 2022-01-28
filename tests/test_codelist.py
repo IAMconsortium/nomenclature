@@ -1,5 +1,7 @@
 import pytest
+from pydantic import ValidationError
 from nomenclature import CodeList
+from nomenclature.error.codelist import DuplicateCodeError
 
 from conftest import TEST_DATA_DIR
 
@@ -14,13 +16,15 @@ def test_simple_codelist():
 
 def test_duplicate_code_raises():
     """Check that code conflicts across different files raises"""
-    with pytest.raises(ValueError, match="Duplicate variable key: Some Variable"):
+    match = "Duplicate item in variable codelist: Some Variable"
+    with pytest.raises(ValidationError, match=match):
         CodeList.from_directory("variable", TEST_DATA_DIR / "duplicate_code_raises")
 
 
 def test_duplicate_tag_raises():
     """Check that code conflicts across different files raises"""
-    with pytest.raises(ValueError, match=r"Duplicate tag key: *"):
+    match = "Duplicate item in tag codelist: <Tag>"
+    with pytest.raises(DuplicateCodeError, match=match):
         CodeList.from_directory("variable", TEST_DATA_DIR / "duplicate_tag_raises")
 
 

@@ -22,6 +22,16 @@ definitions:
               - type: array
                 items:
                   type: string
+          region-aggregation:
+            type: array
+            items:
+              type: object
+              additionalProperties:
+                type: object
+                additionalProperties:
+                  type: [ string, number, boolean, "null" ]
+              minProperties: 1
+              maxProperties: 1
         required:
           - unit
         additionalProperties:

@@ -1,4 +1,5 @@
 import copy
+import pytest
 
 import pandas as pd
 from nomenclature.core import process
@@ -139,7 +140,29 @@ def test_region_processing_complete():
     assert_iamframe_equal(obs, exp)
 
 
-def test_region_processing_weighted_aggregation():
+@pytest.mark.parametrize(
+    "folder, exp_df",
+    [
+        (
+            "weighted_aggregation",
+            [
+                ["model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+                ["model_a", "scen_a", "World", "Emissions|CO2", "Mt CO2", 5, 8],
+                ["model_a", "scen_a", "World", "Price|Carbon", "USD/t CO2", 2.8, 7.0],
+            ],
+        ),
+        (
+            "weighted_aggregation_rename",
+            [
+                ["model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+                ["model_a", "scen_a", "World", "Emissions|CO2", "Mt CO2", 5, 8],
+                ["model_a", "scen_a", "World", "Price|Carbon", "USD/t CO2", 2.8, 7.0],
+                ["model_a", "scen_a", "World", "Price|Carbon (Max)", "USD/t CO2", 3, 8],
+            ],
+        ),
+    ],
+)
+def test_region_processing_weighted_aggregation(folder, exp_df):
     # test a weighed sum
 
     test_df = IamDataFrame(
@@ -156,24 +179,13 @@ def test_region_processing_weighted_aggregation():
         )
     )
 
-    exp = IamDataFrame(
-        pd.DataFrame(
-            [
-                ["model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 4, 6],
-                ["model_a", "scen_a", "World", "Emissions|CO2", "Mt CO2", 5, 8],
-                ["model_a", "scen_a", "World", "Price|Carbon", "USD/t CO2", 2.8, 7.0],
-            ],
-            columns=IAMC_IDX + [2005, 2010],
-        )
-    )
+    exp = IamDataFrame(pd.DataFrame(exp_df, columns=IAMC_IDX + [2005, 2010]))
 
     obs = process(
         test_df,
-        DataStructureDefinition(
-            TEST_DATA_DIR / "region_processing/weighted_aggregation/dsd"
-        ),
+        DataStructureDefinition(TEST_DATA_DIR / "region_processing" / folder / "dsd"),
         processor=RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing/weighted_aggregation/aggregate"
+            TEST_DATA_DIR / "region_processing" / folder / "aggregate"
         ),
     )
     assert_iamframe_equal(obs, exp)
