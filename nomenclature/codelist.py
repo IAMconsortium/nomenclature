@@ -1,7 +1,7 @@
 from pathlib import Path
 import yaml
-from typing import Union, Dict, Optional
-from pydantic import BaseModel
+from typing import Union, Dict, List, Optional
+from pydantic import BaseModel, validator
 from jsonschema import validate
 
 from nomenclature.code import Code, Tag, replace_tags
@@ -21,10 +21,33 @@ SCHEMA_MAPPING = dict([(i, read_validation_schema(i)) for i in SCHEMA_TYPES])
 
 
 class CodeList(BaseModel):
-    """A class for nomenclature codelists & attributes"""
+    """A class for nomenclature codelists & attributes
+
+    Parameters
+    ----------
+    name : str
+        Name of the CodeList
+    mapping : dict, list
+        Dictionary or list of Code items
+
+    """
 
     name: str
-    mapping: Optional[Dict[str, Dict[str, Union[str, float, int, None]]]] = {}
+    mapping: Optional[
+        Union[List, Dict[str, Dict[str, Union[str, float, int, None]]]]
+    ] = {}
+
+    @validator("mapping")
+    def cast_mapping_to_dict(cls, v):
+        """Cast a mapping provide as list to a dictionary"""
+        mapping = {}
+
+        for item in v:
+            if not isinstance(item, Code):
+                item = Code.from_dict(item)
+            mapping[item.name] = item.attributes
+
+        return mapping
 
     def __setitem__(self, key, value):
         if key in self.mapping:
@@ -51,36 +74,6 @@ class CodeList(BaseModel):
 
     def values(self):
         return self.mapping.values()
-
-    @classmethod
-    def from_list(
-        cls,
-        name: str,
-        code_list: dict,
-    ):
-        """
-
-        Parameters
-        ----------
-        name : str
-            Name of the CodeList
-        code_list : dict
-            List of Code items
-
-        Returns
-        -------
-        CodeList
-
-        """
-
-        # iterate over the list to guard against silent replacement of duplicates
-        cl = CodeList(name=name)
-        for item in code_list:
-            if not isinstance(item, Code):
-                item = Code.from_dict(item)
-            cl[item.name] = item.attributes
-
-        return cl
 
     @classmethod
     def from_directory(

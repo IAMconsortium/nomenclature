@@ -71,8 +71,8 @@ class DataStructureDefinition:
                     )
 
                 # ensure that mapped variables are defined in the nomenclature
-                rename_attrs = CodeList.from_list(
-                    name="region-aggregation", code_list=attrs["region-aggregation"]
+                rename_attrs = CodeList(
+                    name="region-aggregation", mapping=attrs["region-aggregation"]
                 )
                 invalid = [v for v in rename_attrs.keys() if v not in self.variable]
                 if invalid:
