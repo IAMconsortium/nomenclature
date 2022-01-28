@@ -55,7 +55,7 @@ def _replace_tags(code, tag, target_list):
         attrs = code.attributes.copy()
         for _key, _value in target.attributes.items():
             if _key in attrs:
-                attrs[_key] = attrs[_key].replace("{" + tag + "}", _value)
+                attrs[_key] = attrs[_key].replace(f"{{{tag}}}", _value)
 
         _code = Code(name=key, attributes=attrs)
         _code_list.append(_code)
