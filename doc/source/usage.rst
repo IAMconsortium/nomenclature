@@ -64,12 +64,13 @@ Attributes for region processing (optional)
        - Some Variable:
            skip-region-aggregation: true
 
-* Any attributes which are arguments of :meth:`aggregate_region` will
+* Any attributes which are arguments of
+  :meth:`aggregate_region() <pyam.IamDataFrame.aggregate_region>` will
   be passed to that method, e.g., *method*, *weight*.
 
-* It is possible to rename the variable returned by the region processing
-  using a *region-aggregation* attribute, which must have a mapping of
-  the target variable name to arguments for the :meth:`aggregate_region` method.
+* It is possible to rename the variable returned by the region processing using
+  a *region-aggregation* attribute, which must have a mapping of the target variable to
+  arguments of :meth:`aggregate_region() <pyam.IamDataFrame.aggregate_region>`.
 
   This option can be used to compute several variables as part of the region-processing.
   In the example below, the variable *Price|Carbon* is computed as a weighted average
