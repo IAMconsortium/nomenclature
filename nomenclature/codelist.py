@@ -1,7 +1,7 @@
 from pathlib import Path
 import yaml
-from typing import Union, Dict, List, Optional
-from pydantic import BaseModel, validator, root_validator
+from typing import Union, Dict, List
+from pydantic import BaseModel, root_validator
 from jsonschema import validate
 
 
