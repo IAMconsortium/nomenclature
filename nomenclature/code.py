@@ -51,7 +51,7 @@ def _replace_tags(code, tag, target_list):
     _code_list = []
 
     for target in target_list:
-        key = code.name.replace("{" + tag + "}", target.name)
+        key = code.name.replace(f"{{{tag}}}", target.name)
         attrs = code.attributes.copy()
         for _key, _value in target.attributes.items():
             if _key in attrs:
