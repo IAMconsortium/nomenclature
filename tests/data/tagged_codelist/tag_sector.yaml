@@ -1,4 +1,4 @@
-- <Sector>:
+- Sector:
   - Energy:
       definition: energy
       value_bool: true

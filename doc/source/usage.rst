@@ -165,13 +165,13 @@ with ``tag_``.
 
 .. code:: yaml
 
-   - <Tag>:
+   - Tag:
      - Some Key:
          description: a short description of the key
 
-When importing a *tag* codelist, any occurrence of ``<Tag>`` in a variable
+When importing a *tag* codelist, any occurrence of ``{Tag}`` in a variable
 name will be replaced by every element in the Tag dictionary. The
-``<Tag>`` will also be replaced in any of the variable attributes.
+``{Tag}`` will also be replaced in any of the variable attributes.
 
 
 RegionProcessor

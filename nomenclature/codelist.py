@@ -162,7 +162,7 @@ class CodeList(BaseModel):
             with open(f, "r", encoding="utf-8") as stream:
                 _code_list = yaml.safe_load(stream)
 
-            # check if this file contains a dictionary with <tag>-style keys
+            # check if this file contains a dictionary with {tag}-style keys
             if f.name.startswith("tag_"):
                 # validate against the tag schema
                 validate(_code_list, SCHEMA_MAPPING["tag"])
