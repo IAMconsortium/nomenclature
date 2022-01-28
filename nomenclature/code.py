@@ -37,7 +37,7 @@ def replace_tags(code_list, tag, tag_dict):
     _code_list = []
 
     for code in code_list:
-        if tag in code.name:
+        if f"{{{tag}}}" in code.name:
             _code_list.extend(_replace_tags(code, tag, tag_dict))
         else:
             _code_list.append(code)
