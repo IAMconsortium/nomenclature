@@ -23,7 +23,7 @@ def test_duplicate_code_raises():
 
 def test_duplicate_tag_raises():
     """Check that code conflicts across different files raises"""
-    match = "Duplicate item in tag codelist: <Tag>"
+    match = "Duplicate item in tag codelist: Tag"
     with pytest.raises(DuplicateCodeError, match=match):
         CodeList.from_directory("variable", TEST_DATA_DIR / "duplicate_tag_raises")
 
