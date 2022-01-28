@@ -1,11 +1,26 @@
 from pathlib import Path
 import yaml
 from typing import Union, Dict, List, Optional
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, root_validator
 from jsonschema import validate
 
-from nomenclature.code import Code, Tag, replace_tags
 
+from nomenclature.code import Code, Tag, replace_tags
+from nomenclature.error.codelist import DuplicateCodeError
+from nomenclature.error.variable import (
+    VariableRenameTargetError,
+    VariableRenameArgError,
+)
+
+
+# arguments of the method `pyam.IamDataFrame.aggregate_region`
+# required for checking validity of variable-CodeList-attributes
+PYAM_AGG_KWARGS = [
+    "components",
+    "method",
+    "weight",
+    "drop_negative_weights",
+]
 
 here = Path(__file__).parent.absolute()
 
@@ -33,25 +48,59 @@ class CodeList(BaseModel):
     """
 
     name: str
-    mapping: Optional[
-        Union[List, Dict[str, Dict[str, Union[str, float, int, None]]]]
-    ] = {}
+    mapping: Union[List, Dict[str, Dict[str, Union[str, float, int, list, None]]]] = {}
 
-    @validator("mapping")
-    def cast_mapping_to_dict(cls, v):
-        """Cast a mapping provide as list to a dictionary"""
-        mapping = {}
+    @root_validator()
+    def cast_mapping_to_dict(cls, values):
+        """Cast a mapping provided as list to a dictionary"""
+        if isinstance(values["mapping"], list):
+            mapping = {}
 
-        for item in v:
-            if not isinstance(item, Code):
-                item = Code.from_dict(item)
-            mapping[item.name] = item.attributes
+            for item in values["mapping"]:
+                if not isinstance(item, Code):
+                    item = Code.from_dict(item)
+                if item.name in mapping:
+                    raise DuplicateCodeError(name=values["name"], code=item.name)
+                mapping[item.name] = item.attributes
 
-        return mapping
+            values["mapping"] = mapping
+
+        return values
+
+    @root_validator(pre=False, skip_on_failure=True)
+    def check_variable_region_aggregation_args(cls, values):
+        """Check that any variable "region-aggregation" mappings are valid"""
+        if values["name"] == "variable":
+            items = [
+                (name, attrs)
+                for (name, attrs) in values["mapping"].items()
+                if "region-aggregation" in attrs
+            ]
+
+            for (name, attrs) in items:
+                # ensure that there no pyam-aggregation-kwargs and
+                conflict_args = [i for i in attrs if i in PYAM_AGG_KWARGS]
+                if conflict_args:
+                    raise VariableRenameArgError(
+                        variable=name,
+                        file=attrs["file"],
+                        args=conflict_args,
+                    )
+
+                # ensure that mapped variables are defined in the nomenclature
+                rename_attrs = CodeList(
+                    name="region-aggregation", mapping=attrs["region-aggregation"]
+                )
+                invalid = [v for v in rename_attrs.keys() if v not in values["mapping"]]
+                if invalid:
+                    raise VariableRenameTargetError(
+                        variable=name, file=attrs["file"], target=invalid
+                    )
+        return values
 
     def __setitem__(self, key, value):
         if key in self.mapping:
-            raise ValueError(f"Duplicate {self.name} key: {key}")
+            raise DuplicateCodeError(name=self.name, code=key)
         self.mapping[key] = value
 
     def __getitem__(self, k):
@@ -155,8 +204,4 @@ class CodeList(BaseModel):
             code_list = replace_tags(code_list, tag, tag_attrs)
 
         # iterate over the list to guard against silent replacement of duplicates
-        cl = CodeList(name=name)
-        for item in code_list:
-            cl[item.name] = item.attributes
-
-        return cl
+        return CodeList(name=name, mapping=code_list)

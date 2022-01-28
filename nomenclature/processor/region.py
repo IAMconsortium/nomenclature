@@ -12,13 +12,15 @@ from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.types import DirectoryPath, FilePath
 from pydantic.error_wrappers import ErrorWrapper
 
-from nomenclature.definition import DataStructureDefinition, PYAM_AGG_KWARGS
+from nomenclature.definition import DataStructureDefinition
+from nomenclature.codelist import PYAM_AGG_KWARGS
 from nomenclature.error.region import (
     ModelMappingCollisionError,
     RegionNameCollisionError,
     RegionNotDefinedError,
 )
 from nomenclature.processor.utils import get_relative_path
+
 
 AGG_KWARGS = PYAM_AGG_KWARGS + ["region-aggregation"]
 
