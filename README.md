@@ -6,6 +6,7 @@ This repository is licensed under the Apache License, Version 2.0 (the "License"
 the [LICENSE](LICENSE) for details.
 
 [![license](https://img.shields.io/badge/License-Apache%202.0-black)](https://github.com/IAMconsortium/nomenclature/blob/main/LICENSE)
+[![DOI](https://zenodo.org/badge/375724610.svg)](https://zenodo.org/badge/latestdoi/375724610)
 [![python](https://img.shields.io/badge/python-3.8_|_3.9-blue?logo=python&logoColor=white)](https://github.com/IAMconsortium/nomenclature)
 [![Code style:
 black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
