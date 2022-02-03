@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Set, Union
 import pyam
 import pydantic
 import yaml
-from jsonschema import ValidationError, validate
+import jsonschema
 from pyam import IamDataFrame
 from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.types import DirectoryPath, FilePath
@@ -121,7 +121,7 @@ class RegionAggregationMapping(BaseModel):
             )
         return v
 
-    @root_validator()
+    @root_validator(skip_on_failure=True)
     def check_native_or_common_regions(cls, values):
         # Check that we have at least one of the two: native and common regions
         if (
@@ -134,7 +134,7 @@ class RegionAggregationMapping(BaseModel):
             )
         return values
 
-    @root_validator()
+    @root_validator(skip_on_failure=True)
     def check_illegal_renaming(cls, values):
         """Check if any renaming overlaps with common regions"""
         # Skip if only either native-regions or common-regions are specified
@@ -170,7 +170,7 @@ class RegionAggregationMapping(BaseModel):
 
         Raises
         ------
-        ValidationError
+        jsonschema.ValidationError
             Raised in case there are any errors in the provided yaml mapping file.
 
         Notes
@@ -188,10 +188,12 @@ class RegionAggregationMapping(BaseModel):
 
         # Validate the input data using jsonschema
         try:
-            validate(mapping_input, schema)
-        except ValidationError as e:
+            jsonschema.validate(mapping_input, schema)
+        except jsonschema.ValidationError as e:
             # Add file information in case of error
-            raise ValidationError(f"{e.message} in {get_relative_path(file)}")
+            raise jsonschema.ValidationError(
+                f"{e.message} in {get_relative_path(file)}"
+            )
 
         # Add the file name to mapping_input
         mapping_input["file"] = get_relative_path(file)
@@ -271,16 +273,28 @@ class RegionProcessor(BaseModel):
             Raised in case there are multiple mappings defined for the same model.
         """
         mapping_dict: Dict[str, RegionAggregationMapping] = {}
+        errors: List[ErrorWrapper] = []
         for file in path.glob("**/*.yaml"):
-            mapping = RegionAggregationMapping.from_file(file)
-            if mapping.model not in mapping_dict:
-                mapping_dict[mapping.model] = mapping
-            else:
-                raise ModelMappingCollisionError(
-                    model=mapping.model,
-                    file1=mapping.file,
-                    file2=mapping_dict[mapping.model].file,
-                )
+            try:
+                mapping = RegionAggregationMapping.from_file(file)
+                if mapping.model not in mapping_dict:
+                    mapping_dict[mapping.model] = mapping
+                else:
+                    errors.append(
+                        ErrorWrapper(
+                            ModelMappingCollisionError(
+                                model=mapping.model,
+                                file1=mapping.file,
+                                file2=mapping_dict[mapping.model].file,
+                            ),
+                            "__root__",
+                        )
+                    )
+            except (pydantic.ValidationError, jsonschema.ValidationError) as e:
+                errors.append(ErrorWrapper(e, "__root__"))
+
+        if errors:
+            raise pydantic.ValidationError(errors, model=RegionProcessor)
         return cls(mappings=mapping_dict)
 
     def validate_mappings(self, dsd: DataStructureDefinition) -> None:
