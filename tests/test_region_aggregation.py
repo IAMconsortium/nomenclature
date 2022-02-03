@@ -168,9 +168,9 @@ def test_region_processor_wrong_args():
 
 def test_region_processor_multiple_wrong_mappings():
     # Read in the entire region_aggregation directory and return **all** errors
-    errors = ".*\n.*\n.*".join(
+    errors = ".*\\n.*\\n.*".join(
         [
-            ".*7 validation errors for RegionProcessor",
+            "7 validation errors for RegionProcessor",
             "Name collision.*common_region_1.*illegal_mapping_duplicate_common.yaml",
             "Additional properties.*something_extra.*_illegal_attribute.yaml",
             "native and common.*common_region_1.*conflict_regions.yaml",
