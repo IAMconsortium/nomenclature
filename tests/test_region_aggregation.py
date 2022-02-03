@@ -145,7 +145,7 @@ def test_region_processor_not_defined(simple_definition):
 
 def test_region_processor_duplicate_model_mapping():
     error_msg = ".*model_a.*mapping_(1|2).yaml.*mapping_(1|2).yaml"
-    with pytest.raises(ModelMappingCollisionError, match=error_msg):
+    with pytest.raises(pydantic.ValidationError, match=error_msg):
         RegionProcessor.from_directory(TEST_DATA_DIR / "regionprocessor_duplicate")
 
 
@@ -164,3 +164,22 @@ def test_region_processor_wrong_args():
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "regionprocessor_working/mapping_1.yaml"
         )
+
+
+def test_region_processor_multiple_wrong_mappings():
+    # Read in the entire region_aggregation directory and return **all** errors
+    errors = ".*\n.*\n.*".join(
+        [
+            ".*7 validation errors for RegionProcessor",
+            "Name collision.*common_region_1.*illegal_mapping_duplicate_common.yaml",
+            "Additional properties.*something_extra.*_illegal_attribute.yaml",
+            "native and common.*common_region_1.*conflict_regions.yaml",
+            "At least one of the two.*model_only.yaml",
+            "common_region_1.*region_a.*not.*array.*invalid_format_dict.yaml",
+            "Name collision.*alternative_name_a.*duplicate_native_rename.yaml",
+            "Name collision.*alternative_name_a.*duplicate_native.yaml",
+        ]
+    )
+
+    with pytest.raises(pydantic.ValidationError, match=errors):
+        RegionProcessor.from_directory(TEST_DATA_DIR / "region_aggregation")
