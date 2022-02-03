@@ -349,7 +349,7 @@ class RegionProcessor(BaseModel):
                         }
                         for cr in self.mappings[model].common_regions:
                             regions = [cr.name, cr.constituent_regions]
-                            # First perform 'simple' aggregation (i.e. no aggregation args)
+                            # First, perform 'simple' aggregation (no arguments)
                             processed_dfs.append(
                                 model_df.aggregate_region(vars_default_args, *regions)
                             )
@@ -357,16 +357,16 @@ class RegionProcessor(BaseModel):
                             for var, kwargs in vars_kwargs.items():
                                 if "region-aggregation" not in kwargs:
                                     processed_dfs.append(
-                                        model_df.aggregate_region(var, *regions, **kwargs)
+                                        model_df.aggregate_region(
+                                            var, *regions, **kwargs
+                                        )
                                     )
                                 else:
                                     for rename_var in kwargs["region-aggregation"]:
                                         for _rename, _kwargs in rename_var.items():
                                             processed_dfs.append(
                                                 model_df.aggregate_region(
-                                                    var,
-                                                    *regions,
-                                                    **_kwargs,
+                                                    var, *regions, **_kwargs
                                                 ).rename(variable={var: _rename})
                                             )
 
