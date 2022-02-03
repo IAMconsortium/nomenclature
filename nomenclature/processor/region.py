@@ -315,13 +315,13 @@ class RegionProcessor(BaseModel):
 
             # If no mapping is defined the data frame is returned unchanged
             if model not in self.mappings:
-                logging.info(f"No region aggregation mapping found for model {model}")
+                logger.info(f"No region aggregation mapping found for model {model}")
                 processed_dfs.append(model_df)
             # Otherwise we first rename, then aggregate
             else:
                 # before aggregating, check that all regions are valid
                 self.mappings[model].validate_regions(dsd)
-                logging.info(
+                logger.info(
                     f"Applying region aggregation mapping for model {model} from file "
                     f"{self.mappings[model].file}"
                 )
