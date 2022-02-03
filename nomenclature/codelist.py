@@ -175,7 +175,8 @@ class CodeList(BaseModel):
                         _code_list, SCHEMA_MAPPING.get(name, SCHEMA_MAPPING["generic"])
                     )
 
-                    # a "region" codelist assumes a top-level key to be used as attribute
+                    # a "region" codelist assumes a top-level key to be used as
+                    # attribute
                     if name == "region":
                         _region_code_list = (
                             []
