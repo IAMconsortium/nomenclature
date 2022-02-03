@@ -12,13 +12,14 @@ def assert_valid_yaml(path: Path):
 
     # iterate over the yaml files in all sub-folders and try loading each
     error = False
-    for file in path.glob("**/*.yaml"):
-        try:
-            with open(file, "r", encoding="utf-8") as stream:
-                yaml.safe_load(stream)
-        except (yaml.scanner.ScannerError, yaml.parser.ParserError) as e:
-            error = True
-            logger.error(f"Error parsing file {e}")
+    for file in path.glob("**/*"):
+        if file.suffix in {".yaml", ".yml"}:
+            try:
+                with open(file, "r", encoding="utf-8") as stream:
+                    yaml.safe_load(stream)
+            except (yaml.scanner.ScannerError, yaml.parser.ParserError) as e:
+                error = True
+                logger.error(f"Error parsing file {e}")
 
     # test fails if any file cannot be parsed, raise error with list of these files
     if error:

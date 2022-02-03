@@ -271,16 +271,17 @@ class RegionProcessor(BaseModel):
             Raised in case there are multiple mappings defined for the same model.
         """
         mapping_dict: Dict[str, RegionAggregationMapping] = {}
-        for file in path.glob("**/*.yaml"):
-            mapping = RegionAggregationMapping.from_file(file)
-            if mapping.model not in mapping_dict:
-                mapping_dict[mapping.model] = mapping
-            else:
-                raise ModelMappingCollisionError(
-                    model=mapping.model,
-                    file1=mapping.file,
-                    file2=mapping_dict[mapping.model].file,
-                )
+        for file in path.glob("**/*"):
+            if file.suffix in {".yaml", ".yml"}:
+                mapping = RegionAggregationMapping.from_file(file)
+                if mapping.model not in mapping_dict:
+                    mapping_dict[mapping.model] = mapping
+                else:
+                    raise ModelMappingCollisionError(
+                        model=mapping.model,
+                        file1=mapping.file,
+                        file2=mapping_dict[mapping.model].file,
+                    )
         return cls(mappings=mapping_dict)
 
     def validate_mappings(self, dsd: DataStructureDefinition) -> None:
