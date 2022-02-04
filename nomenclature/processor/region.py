@@ -327,7 +327,7 @@ class RegionProcessor(BaseModel):
                     f"{self.mappings[model].file}"
                 )
 
-                with adjust_log_level():  # silence empty filter
+                with adjust_log_level(level="ERROR"):  # silence empty filter
                     # Rename
                     if self.mappings[model].native_regions is not None:
                         processed_dfs.append(
