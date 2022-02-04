@@ -8,6 +8,7 @@ import pydantic
 import yaml
 import jsonschema
 from pyam import IamDataFrame
+from pyam.logging import adjust_log_level
 from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.types import DirectoryPath, FilePath
 from pydantic.error_wrappers import ErrorWrapper
@@ -315,57 +316,59 @@ class RegionProcessor(BaseModel):
 
             # If no mapping is defined the data frame is returned unchanged
             if model not in self.mappings:
-                logging.info(f"No region aggregation mapping found for model {model}")
+                logger.info(f"No region aggregation mapping found for model {model}")
                 processed_dfs.append(model_df)
             # Otherwise we first rename, then aggregate
             else:
                 # before aggregating, check that all regions are valid
                 self.mappings[model].validate_regions(dsd)
-                logging.info(
+                logger.info(
                     f"Applying region aggregation mapping for model {model} from file "
                     f"{self.mappings[model].file}"
                 )
-                # Rename
-                if self.mappings[model].native_regions is not None:
-                    processed_dfs.append(
-                        model_df.filter(
-                            region=self.mappings[model].model_native_region_names
-                        ).rename(region=self.mappings[model].rename_mapping)
-                    )
 
-                # Aggregate
-                if self.mappings[model].common_regions is not None:
-                    vars = self._filter_dict_args(model_df.variable, dsd)
-                    vars_default_args = [
-                        var for var, kwargs in vars.items() if not kwargs
-                    ]
-                    vars_kwargs = {
-                        var: kwargs
-                        for var, kwargs in vars.items()
-                        if var not in vars_default_args
-                    }
-                    for cr in self.mappings[model].common_regions:
-                        regions = [cr.name, cr.constituent_regions]
-                        # First perform 'simple' aggregation (i.e. no aggregation args)
+                with adjust_log_level(level="ERROR"):  # silence empty filter
+                    # Rename
+                    if self.mappings[model].native_regions is not None:
                         processed_dfs.append(
-                            model_df.aggregate_region(vars_default_args, *regions)
+                            model_df.filter(
+                                region=self.mappings[model].model_native_region_names
+                            ).rename(region=self.mappings[model].rename_mapping)
                         )
-                        # Second, special weighted aggregation
-                        for var, kwargs in vars_kwargs.items():
-                            if "region-aggregation" not in kwargs:
-                                processed_dfs.append(
-                                    model_df.aggregate_region(var, *regions, **kwargs)
-                                )
-                            else:
-                                for rename_var in kwargs["region-aggregation"]:
-                                    for _rename, _kwargs in rename_var.items():
-                                        processed_dfs.append(
-                                            model_df.aggregate_region(
-                                                var,
-                                                *regions,
-                                                **_kwargs,
-                                            ).rename(variable={var: _rename})
+
+                    # Aggregate
+                    if self.mappings[model].common_regions is not None:
+                        vars = self._filter_dict_args(model_df.variable, dsd)
+                        vars_default_args = [
+                            var for var, kwargs in vars.items() if not kwargs
+                        ]
+                        vars_kwargs = {
+                            var: kwargs
+                            for var, kwargs in vars.items()
+                            if var not in vars_default_args
+                        }
+                        for cr in self.mappings[model].common_regions:
+                            regions = [cr.name, cr.constituent_regions]
+                            # First, perform 'simple' aggregation (no arguments)
+                            processed_dfs.append(
+                                model_df.aggregate_region(vars_default_args, *regions)
+                            )
+                            # Second, special weighted aggregation
+                            for var, kwargs in vars_kwargs.items():
+                                if "region-aggregation" not in kwargs:
+                                    processed_dfs.append(
+                                        model_df.aggregate_region(
+                                            var, *regions, **kwargs
                                         )
+                                    )
+                                else:
+                                    for rename_var in kwargs["region-aggregation"]:
+                                        for _rename, _kwargs in rename_var.items():
+                                            processed_dfs.append(
+                                                model_df.aggregate_region(
+                                                    var, *regions, **_kwargs
+                                                ).rename(variable={var: _rename})
+                                            )
 
         return pyam.concat(processed_dfs)
 
