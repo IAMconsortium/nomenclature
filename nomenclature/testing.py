@@ -12,7 +12,7 @@ def assert_valid_yaml(path: Path):
 
     # iterate over the yaml files in all sub-folders and try loading each
     error = False
-    for file in path.glob("**/*.yaml"):
+    for file in (f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}):
         try:
             with open(file, "r", encoding="utf-8") as stream:
                 yaml.safe_load(stream)

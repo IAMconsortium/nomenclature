@@ -275,7 +275,7 @@ class RegionProcessor(BaseModel):
         """
         mapping_dict: Dict[str, RegionAggregationMapping] = {}
         errors: List[ErrorWrapper] = []
-        for file in path.glob("**/*.yaml"):
+        for file in (f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}):
             try:
                 mapping = RegionAggregationMapping.from_file(file)
                 if mapping.model not in mapping_dict:

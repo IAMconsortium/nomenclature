@@ -101,7 +101,7 @@ def test_region_processor_working(region_processor_path):
         {
             "model": "model_a",
             "file": (
-                TEST_DATA_DIR / "regionprocessor_working/mapping_1.yaml"
+                TEST_DATA_DIR / "regionprocessor_working/mapping_1.yml"
             ).relative_to(Path.cwd()),
             "native_regions": [
                 {"name": "World", "rename": None},
@@ -162,7 +162,7 @@ def test_region_processor_wrong_args():
         match=".*path\n.*does not point to a directory.*",
     ):
         RegionProcessor.from_directory(
-            TEST_DATA_DIR / "regionprocessor_working/mapping_1.yaml"
+            TEST_DATA_DIR / "regionprocessor_working/mapping_1.yml"
         )
 
 
