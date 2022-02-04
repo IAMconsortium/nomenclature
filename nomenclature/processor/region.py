@@ -274,25 +274,24 @@ class RegionProcessor(BaseModel):
         """
         mapping_dict: Dict[str, RegionAggregationMapping] = {}
         errors: List[ErrorWrapper] = []
-        for file in path.glob("**/*"):
-            if file.suffix in {".yaml", ".yml"}:
-                try:
-                    mapping = RegionAggregationMapping.from_file(file)
-                    if mapping.model not in mapping_dict:
-                        mapping_dict[mapping.model] = mapping
-                    else:
-                        errors.append(
-                            ErrorWrapper(
-                                ModelMappingCollisionError(
-                                    model=mapping.model,
-                                    file1=mapping.file,
-                                    file2=mapping_dict[mapping.model].file,
-                                ),
-                                "__root__",
-                            )
+        for file in (f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}):
+            try:
+                mapping = RegionAggregationMapping.from_file(file)
+                if mapping.model not in mapping_dict:
+                    mapping_dict[mapping.model] = mapping
+                else:
+                    errors.append(
+                        ErrorWrapper(
+                            ModelMappingCollisionError(
+                                model=mapping.model,
+                                file1=mapping.file,
+                                file2=mapping_dict[mapping.model].file,
+                            ),
+                            "__root__",
                         )
-                except (pydantic.ValidationError, jsonschema.ValidationError) as e:
-                    errors.append(ErrorWrapper(e, "__root__"))
+                    )
+            except (pydantic.ValidationError, jsonschema.ValidationError) as e:
+                errors.append(ErrorWrapper(e, "__root__"))
 
         if errors:
             raise pydantic.ValidationError(errors, model=RegionProcessor)
