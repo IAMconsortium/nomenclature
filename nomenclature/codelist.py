@@ -236,7 +236,7 @@ class CodeList(BaseModel):
         codes = source[[col] + attrs].set_index(col)[attrs]
         codes.rename(columns={c: str(c).lower() for c in codes.columns}, inplace=True)
 
-        return CodeList(name=name, mapping=codes.to_dict(orient="index").items())
+        return CodeList(name=name, mapping=codes.to_dict(orient="index"))
 
     def to_yaml(self, path):
         """Write mapping to yaml file
