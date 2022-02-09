@@ -109,24 +109,6 @@ def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=[]):
     attrs : list, optional
         Columns from `sheet_name` to use as attributes.
     """
-    source = pd.read_excel(source, sheet_name=sheet_name)
-
-    # check for duplicates in the codelist
-    duplicate_rows = source[col].duplicated(keep=False).values
-    if any(duplicate_rows):
-        duplicates = source[duplicate_rows]
-        # set index to equal the row numbers to simplify identifying the issue
-        duplicates.index = pd.Index([i + 2 for i in duplicates.index])
-        msg = f"Duplicate values in the codelist:\n{duplicates.head(20)}"
-        raise ValueError(msg + ("\n..." if len(duplicates) > 20 else ""))
-
-    # set `col` as index and cast all attribute-names to lowercase
-    variable = source[[col] + attrs].set_index(col)[attrs]
-    variable.rename(columns={c: str(c).lower() for c in variable.columns}, inplace=True)
-
-    # translate to list of nested dicts, replace None by empty field, write to yaml file
-    stream = yaml.dump(
-        [{code: attrs} for code, attrs in variable.to_dict(orient="index").items()]
-    )
-    with open(target, "w") as file:
-        file.write(stream.replace(": .nan\n", ":\n"))
+    CodeList.from_file(
+        name="", source=source, sheet_name=sheet_name, col=col, attrs=attrs
+    ).to_yaml(target)
