@@ -238,19 +238,26 @@ class CodeList(BaseModel):
 
         return CodeList(name=name, mapping=codes.to_dict(orient="index"))
 
-    def to_yaml(self, path):
+    def to_yaml(self, path=None):
         """Write mapping to yaml file
 
         Parameters
         ----------
-        path : str
-            File path
+        path : str, optional
+            Write to file path if not None, otherwise print to log
         """
 
         # translate to list of nested dicts, replace None by empty field, write to file
-        stream = yaml.dump([{code: attrs} for code, attrs in self.mapping.items()])
-        with open(path, "w") as file:
-            file.write(stream.replace(": nan\n", ":\n"))
+        stream = (
+            yaml.dump([{code: attrs} for code, attrs in self.mapping.items()])
+            .replace(": null\n", ":\n")
+            .replace(": nan\n", ":\n")
+        )
+        if path is not None:
+            with open(path, "w") as file:
+                file.write(stream)
+        else:
+            return stream
 
     def to_excel(self, excel_writer, sheet_name="definitions"):
         """Write the codelist to an Excel spreadsheet
