@@ -16,6 +16,17 @@ def test_simple_codelist():
     assert code["Some Variable"]["unit"] is None  # this is a dimensionless variable
 
 
+def test_codelist_to_yaml():
+    """Cast a codelist to yaml format"""
+    code = CodeList.from_directory("variable", TEST_DATA_DIR / "simple_codelist")
+
+    exp = (
+        "- Some Variable:\n    definition: Some basic variable\n    "
+        "file: simple_codelist/foo.yaml\n    unit:\n"
+    )
+    assert code.to_yaml() == exp
+
+
 def test_duplicate_code_raises():
     """Check that code conflicts across different files raises"""
     match = "Duplicate item in variable codelist: Some Variable"
