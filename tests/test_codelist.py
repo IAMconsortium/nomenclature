@@ -1,5 +1,7 @@
 import pytest
 from pydantic import ValidationError
+import pandas as pd
+import pandas.testing as pdt
 from nomenclature import CodeList
 from nomenclature.error.codelist import DuplicateCodeError
 
@@ -48,3 +50,19 @@ def test_region_codelist():
     assert "Some Country" in code
     assert code["Some Country"]["hierarchy"] == "countries"
     assert code["Some Country"]["iso2"] == "XY"
+
+
+def test_to_excel(tmpdir):
+    """Check writing to xlsx"""
+    file = tmpdir / "foo.xlsx"
+
+    (
+        CodeList.from_directory(
+            "Variable", TEST_DATA_DIR / "validation_nc" / "variable"
+        ).to_excel(file)
+    )
+
+    obs = pd.read_excel(file)
+    exp = pd.read_excel(TEST_DATA_DIR / "validation_nc.xlsx")
+
+    pdt.assert_frame_equal(obs, exp)
