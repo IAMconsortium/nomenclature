@@ -3,7 +3,9 @@ import yaml
 from typing import Union, Dict, List
 from pydantic import BaseModel, root_validator
 from jsonschema import validate
+import pandas as pd
 
+from pyam.utils import write_sheet
 
 from nomenclature.code import Code, Tag, replace_tags
 from nomenclature.error.codelist import DuplicateCodeError
@@ -201,3 +203,36 @@ class CodeList(BaseModel):
 
         # iterate over the list to guard against silent replacement of duplicates
         return CodeList(name=name, mapping=code_list)
+
+    def to_excel(self, excel_writer, sheet_name="definitions"):
+        """Write the codelist to an Excel spreadsheet
+
+        Parameters
+        ----------
+        excel_writer : str, path or ExcelWriter object
+            Any valid string path, :class:`pathlib.Path` or :class:`pandas.ExcelWriter`
+        sheet_name : str
+            Name of sheet that will contain the codelist
+        """
+
+        # open a new ExcelWriter instance (if necessary)
+        close = False
+        if not isinstance(excel_writer, pd.ExcelWriter):
+            close = True
+            excel_writer = pd.ExcelWriter(excel_writer)
+
+        # format and write the codelist
+        codelist = (
+            pd.DataFrame.from_dict(self.mapping, orient="index")
+            .reset_index()
+            .rename(columns={"index": self.name})
+            .drop(columns="file")
+        )
+        codelist.rename(
+            columns={c: str(c).capitalize() for c in codelist.columns}, inplace=True
+        )
+        write_sheet(excel_writer, sheet_name, codelist)
+
+        # close the file if `excel_writer` arg was a file name
+        if close:
+            excel_writer.close()
