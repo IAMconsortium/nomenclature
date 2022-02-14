@@ -91,24 +91,3 @@ class DataStructureDefinition:
         # close the file if `excel_writer` arg was a file name
         if close:
             excel_writer.close()
-
-
-def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=[]):
-    """Parses an xlsx file with a codelist and writes a yaml file
-
-    Parameters
-    ----------
-    source : str, path, file-like object
-        Path to Excel file with definitions (codelists).
-    target : str, path, file-like object
-        Path to save the parsed definitions as yaml file.
-    sheet_name : str
-        Sheet name of `source`.
-    col : str
-        Column from `sheet_name` to use as codes.
-    attrs : list, optional
-        Columns from `sheet_name` to use as attributes.
-    """
-    CodeList.read_excel(
-        name="", source=source, sheet_name=sheet_name, col=col, attrs=attrs
-    ).to_yaml(target)
