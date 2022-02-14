@@ -5,7 +5,7 @@ from importlib.metadata import version
 
 from nomenclature.core import process  # noqa
 from nomenclature.codelist import CodeList  # noqa
-from nomenclature.definition import DataStructureDefinition
+from nomenclature.definition import DataStructureDefinition  # noqa
 from nomenclature.cli import cli  # noqa
 from nomenclature.processor.region import (  # noqa
     RegionProcessor,
