@@ -204,6 +204,61 @@ class CodeList(BaseModel):
         # iterate over the list to guard against silent replacement of duplicates
         return CodeList(name=name, mapping=code_list)
 
+    @classmethod
+    def read_excel(cls, name, source, sheet_name, col, attrs=[]):
+        """Parses an xlsx file with a codelist
+
+        Parameters
+        ----------
+        name : str
+            Name of the CodeList
+        source : str, path, file-like object
+            Path to Excel file with definitions (codelists).
+        sheet_name : str
+            Sheet name of `source`.
+        col : str
+            Column from `sheet_name` to use as codes.
+        attrs : list, optional
+            Columns from `sheet_name` to use as attributes.
+        """
+        source = pd.read_excel(source, sheet_name=sheet_name)
+
+        # check for duplicates in the codelist
+        duplicate_rows = source[col].duplicated(keep=False).values
+        if any(duplicate_rows):
+            duplicates = source[duplicate_rows]
+            # set index to equal the row numbers to simplify identifying the issue
+            duplicates.index = pd.Index([i + 2 for i in duplicates.index])
+            msg = f"Duplicate values in the codelist:\n{duplicates.head(20)}"
+            raise ValueError(msg + ("\n..." if len(duplicates) > 20 else ""))
+
+        # set `col` as index and cast all attribute-names to lowercase
+        codes = source[[col] + attrs].set_index(col)[attrs]
+        codes.rename(columns={c: str(c).lower() for c in codes.columns}, inplace=True)
+
+        return CodeList(name=name, mapping=codes.to_dict(orient="index"))
+
+    def to_yaml(self, path=None):
+        """Write mapping to yaml file or return as stream
+
+        Parameters
+        ----------
+        path : :class:`pathlib.Path` or str, optional
+            Write to file path if not None, otherwise return as stream
+        """
+
+        # translate to list of nested dicts, replace None by empty field, write to file
+        stream = (
+            yaml.dump([{code: attrs} for code, attrs in self.mapping.items()])
+            .replace(": null\n", ":\n")
+            .replace(": nan\n", ":\n")
+        )
+        if path is not None:
+            with open(path, "w") as file:
+                file.write(stream)
+        else:
+            return stream
+
     def to_excel(self, excel_writer, sheet_name="definitions"):
         """Write the codelist to an Excel spreadsheet
 
