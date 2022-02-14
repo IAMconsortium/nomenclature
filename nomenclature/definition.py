@@ -109,6 +109,6 @@ def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=[]):
     attrs : list, optional
         Columns from `sheet_name` to use as attributes.
     """
-    CodeList.from_file(
+    CodeList.read_excel(
         name="", source=source, sheet_name=sheet_name, col=col, attrs=attrs
     ).to_yaml(target)

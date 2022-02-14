@@ -205,7 +205,7 @@ class CodeList(BaseModel):
         return CodeList(name=name, mapping=code_list)
 
     @classmethod
-    def from_file(cls, name, source, sheet_name, col, attrs=[]):
+    def read_excel(cls, name, source, sheet_name, col, attrs=[]):
         """Parses an xlsx file with a codelist
 
         Parameters
@@ -239,12 +239,12 @@ class CodeList(BaseModel):
         return CodeList(name=name, mapping=codes.to_dict(orient="index"))
 
     def to_yaml(self, path=None):
-        """Write mapping to yaml file
+        """Write mapping to yaml file or return as stream
 
         Parameters
         ----------
-        path : str, optional
-            Write to file path if not None, otherwise print to log
+        path : :class:`pathlib.Path` or str, optional
+            Write to file path if not None, otherwise return as stream
         """
 
         # translate to list of nested dicts, replace None by empty field, write to file
