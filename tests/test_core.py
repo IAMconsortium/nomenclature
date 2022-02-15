@@ -213,3 +213,49 @@ def test_region_processing_skip_aggregation():
         ),
     )
     assert_iamframe_equal(obs, exp)
+
+
+def test_partial_aggregation():
+    # Dedicated test for partial aggregation
+    # Tests the following two aspects of partial aggregation:
+    # 1. A variable that is only found in the common region will be taken from there
+    # 2. A variable that is found in both the common region as well as the constituent
+    #    regions will be taken from the common region.
+    # The two common regions common_region_A and B differ in that common_region_A
+    # reports both Primary Energy as well as Temperature|Mean so both values are taken
+    # from there. common_region_B, however only reports Temperature|Mean so Primary
+    # Energy is obtained through region aggregation adding up regions B and C.
+
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "region_C", "Primary Energy", "EJ/yr", 5, 6],
+                ["m_a", "s_a", "common_region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "common_region_A", "Temperature|Mean", "C", 3, 4],
+                ["m_a", "s_a", "common_region_B", "Temperature|Mean", "C", 1, 2],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    exp = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["m_a", "s_a", "common_region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "common_region_A", "Temperature|Mean", "C", 3, 4],
+                ["m_a", "s_a", "common_region_B", "Primary Energy", "EJ/yr", 8, 10],
+                ["m_a", "s_a", "common_region_B", "Temperature|Mean", "C", 1, 2],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    obs = process(
+        test_df,
+        DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+        processor=RegionProcessor.from_directory(
+            TEST_DATA_DIR / "region_processing/partial_aggregation"
+        ),
+    )
+    assert_iamframe_equal(obs, exp)
