@@ -349,6 +349,21 @@ class RegionProcessor(BaseModel):
                         }
                         for cr in self.mappings[model].common_regions:
                             regions = [cr.name, cr.constituent_regions]
+                            # Check for already present variables
+                            model_native_res = model_df.filter(region=cr.name)
+                            if len(model_native_res):
+                                processed_dfs.append(model_native_res)
+                                model_native_vars = set(model_native_res.variable)
+                                # Remove all already present variables
+                                vars_default_args = list(
+                                    set(vars_default_args) - model_native_vars
+                                )
+                                vars_kwargs = {
+                                    key: value
+                                    for key, value in vars_kwargs.items()
+                                    if key not in model_native_vars
+                                }
+
                             # First, perform 'simple' aggregation (no arguments)
                             processed_dfs.append(
                                 model_df.aggregate_region(vars_default_args, *regions)
