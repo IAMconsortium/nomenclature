@@ -1,27 +1,26 @@
+import copy
 import logging
 from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Union
 
+import jsonschema
 import pyam
 import pydantic
 import yaml
-import jsonschema
-from pyam import IamDataFrame
-from pyam.logging import adjust_log_level
-from pydantic import BaseModel, root_validator, validate_arguments, validator
-from pydantic.types import DirectoryPath, FilePath
-from pydantic.error_wrappers import ErrorWrapper
-
-from nomenclature.definition import DataStructureDefinition
 from nomenclature.codelist import PYAM_AGG_KWARGS
+from nomenclature.definition import DataStructureDefinition
 from nomenclature.error.region import (
     ModelMappingCollisionError,
     RegionNameCollisionError,
     RegionNotDefinedError,
 )
 from nomenclature.processor.utils import get_relative_path
-
+from pyam import IamDataFrame
+from pyam.logging import adjust_log_level
+from pydantic import BaseModel, root_validator, validate_arguments, validator
+from pydantic.error_wrappers import ErrorWrapper
+from pydantic.types import DirectoryPath, FilePath
 
 AGG_KWARGS = PYAM_AGG_KWARGS + ["region-aggregation"]
 
@@ -348,6 +347,10 @@ class RegionProcessor(BaseModel):
                             if var not in vars_default_args
                         }
                         for cr in self.mappings[model].common_regions:
+                            # create deep copies for each common region
+                            vars_default_args_cr = copy.deepcopy(vars_default_args)
+                            vars_kwargs_cr = copy.deepcopy(vars_kwargs)
+
                             regions = [cr.name, cr.constituent_regions]
                             # Check for already present variables
                             model_native_res = model_df.filter(region=cr.name)
@@ -355,21 +358,23 @@ class RegionProcessor(BaseModel):
                                 processed_dfs.append(model_native_res)
                                 model_native_vars = set(model_native_res.variable)
                                 # Remove all already present variables
-                                vars_default_args = list(
-                                    set(vars_default_args) - model_native_vars
+                                vars_default_args_cr = list(
+                                    set(vars_default_args_cr) - model_native_vars
                                 )
-                                vars_kwargs = {
+                                vars_kwargs_cr = {
                                     key: value
-                                    for key, value in vars_kwargs.items()
+                                    for key, value in vars_kwargs_cr.items()
                                     if key not in model_native_vars
                                 }
 
                             # First, perform 'simple' aggregation (no arguments)
                             processed_dfs.append(
-                                model_df.aggregate_region(vars_default_args, *regions)
+                                model_df.aggregate_region(
+                                    vars_default_args_cr, *regions
+                                )
                             )
                             # Second, special weighted aggregation
-                            for var, kwargs in vars_kwargs.items():
+                            for var, kwargs in vars_kwargs_cr.items():
                                 if "region-aggregation" not in kwargs:
                                     processed_dfs.append(
                                         model_df.aggregate_region(
