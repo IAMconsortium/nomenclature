@@ -108,11 +108,6 @@ def test_region_processing_complete():
                 ["m_a", "s_a", "region_a", "Primary Energy", "EJ/yr", 1, 2],
                 ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
                 ["m_a", "s_a", "region_C", "Primary Energy", "EJ/yr", 5, 6],
-                # World Variable is only available in World
-                ["m_a", "s_a", "World", "World Variable", "EJ/yr", 1, 2],
-                # Primary Energy is available in the native regions but World should
-                # take priority
-                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6],
                 ["m_a", "s_a", "region_a", "Primary Energy|Coal", "EJ/yr", 0.5, 1],
                 ["m_a", "s_a", "region_B", "Primary Energy|Coal", "EJ/yr", 1.5, 2],
                 ["m_b", "s_b", "region_A", "Primary Energy", "EJ/yr", 1, 2],
@@ -126,7 +121,6 @@ def test_region_processing_complete():
                 ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
                 ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
                 ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6],
-                ["m_a", "s_a", "World", "World Variable", "EJ/yr", 1, 2],
                 ["m_a", "s_a", "region_A", "Primary Energy|Coal", "EJ/yr", 0.5, 1],
                 ["m_a", "s_a", "region_B", "Primary Energy|Coal", "EJ/yr", 1.5, 2],
                 ["m_a", "s_a", "World", "Primary Energy|Coal", "EJ/yr", 2, 3],
