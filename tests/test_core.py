@@ -96,7 +96,9 @@ def test_region_processing_aggregate():
     assert_iamframe_equal(obs, exp)
 
 
-@pytest.mark.parametrize("directory", ("complete_processing", "complete_processing_list"))
+@pytest.mark.parametrize(
+    "directory", ("complete_processing", "complete_processing_list")
+)
 def test_region_processing_complete(directory):
     # Test all three aspects of region processing together:
     # 1. Renaming
