@@ -218,12 +218,10 @@ This example illustrates how such a model mapping looks like:
 *  Required properties are:
   
   * *model* and 
-  * either *native_regions* or *common_regions*
-  * **Both** *native* and *common regions* are **allowed** as well.
+  * at least one of *native_regions* and *common_regions*
 
-*  *model* (str): specifies the model name for which the mapping
-   applies.
-*  *native_regions* (list): list of model native regions serves as
+*  *model* (str or list of str): the model name(s) for which the mapping applies.
+*  *native_regions* (list): a list of model native regions serves as
    a selection as to which regions to keep.
 
    *  In the above example *region_a* is to be renamed to
