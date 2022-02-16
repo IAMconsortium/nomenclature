@@ -6,7 +6,13 @@ type: object
 properties:
   model:
     title: Model
-    type: string
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+        uniqueItems: true
+        minItems: 1
   native_regions:
     title: Native Regions
     type: array

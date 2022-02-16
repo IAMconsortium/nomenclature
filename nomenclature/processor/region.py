@@ -93,7 +93,7 @@ class RegionAggregationMapping(BaseModel):
         Optionally, list of common regions where aggregation will be performed.
     """
 
-    model: str
+    model: Union[List[str], str]
     file: FilePath
     native_regions: Optional[List[NativeRegion]]
     common_regions: Optional[List[CommonRegion]]
@@ -278,19 +278,20 @@ class RegionProcessor(BaseModel):
         for file in (f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}):
             try:
                 mapping = RegionAggregationMapping.from_file(file)
-                if mapping.model not in mapping_dict:
-                    mapping_dict[mapping.model] = mapping
-                else:
-                    errors.append(
-                        ErrorWrapper(
-                            ModelMappingCollisionError(
-                                model=mapping.model,
-                                file1=mapping.file,
-                                file2=mapping_dict[mapping.model].file,
-                            ),
-                            "__root__",
+                for m in pyam.utils.to_list(mapping.model):
+                    if m not in mapping_dict:
+                        mapping_dict[m] = mapping
+                    else:
+                        errors.append(
+                            ErrorWrapper(
+                                ModelMappingCollisionError(
+                                    model=m,
+                                    file1=mapping.file,
+                                    file2=mapping_dict[m].file,
+                                ),
+                                "__root__",
+                            )
                         )
-                    )
             except (pydantic.ValidationError, jsonschema.ValidationError) as e:
                 errors.append(ErrorWrapper(e, "__root__"))
 
