@@ -1,0 +1,10 @@
+model:
+  - m_a
+  - m_b
+native_regions:
+  - region_a: region_A
+  - region_B
+common_regions:
+  - World:
+    - region_a
+    - region_B

@@ -96,7 +96,8 @@ def test_region_processing_aggregate():
     assert_iamframe_equal(obs, exp)
 
 
-def test_region_processing_complete():
+@pytest.mark.parametrize("directory", ("complete_processing", "complete_processing_list"))
+def test_region_processing_complete(directory):
     # Test all three aspects of region processing together:
     # 1. Renaming
     # 2. Passing models without a mapping
@@ -134,7 +135,7 @@ def test_region_processing_complete():
         test_df,
         DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
         processor=RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing/complete_processing"
+            TEST_DATA_DIR / "region_processing" / directory
         ),
     )
     assert_iamframe_equal(obs, exp)
