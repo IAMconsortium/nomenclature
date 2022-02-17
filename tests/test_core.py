@@ -47,6 +47,30 @@ def test_region_processing_rename():
     assert_iamframe_equal(obs, exp)
 
 
+def test_region_processing_rename_empty():
+    # Test that renaming when region does not exist returns empty
+    # see also https://github.com/IAMconsortium/pyam/issues/631
+
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "region_foo", "Primary Energy", "EJ/yr", 1, 2],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    obs = process(
+        test_df,
+        DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+        processor=RegionProcessor.from_directory(
+            TEST_DATA_DIR / "region_processing/rename_only"
+        ),
+    )
+
+    assert obs.empty
+
+
 def test_region_processing_no_mapping(simple_df):
     # Test that a model without a mapping is passed untouched
 
