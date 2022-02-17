@@ -1,6 +1,7 @@
 import copy
 import pytest
 
+import numpy as np
 import pandas as pd
 from nomenclature.core import process
 from nomenclature.definition import DataStructureDefinition
@@ -144,7 +145,7 @@ def test_region_processing_complete(directory):
 
 
 @pytest.mark.parametrize(
-    "folder, exp_df",
+    "folder, exp_df, args",
     [
         (
             "weighted_aggregation",
@@ -153,6 +154,7 @@ def test_region_processing_complete(directory):
                 ["model_a", "scen_a", "World", "Emissions|CO2", "Mt CO2", 5, 8],
                 ["model_a", "scen_a", "World", "Price|Carbon", "USD/t CO2", 2.8, 7.0],
             ],
+            None,
         ),
         (
             "weighted_aggregation_rename",
@@ -162,10 +164,20 @@ def test_region_processing_complete(directory):
                 ["model_a", "scen_a", "World", "Price|Carbon", "USD/t CO2", 2.8, 7.0],
                 ["model_a", "scen_a", "World", "Price|Carbon (Max)", "USD/t CO2", 3, 8],
             ],
+            None,
+        ),
+        # check that region-aggregation with missing weights passes (inconsistent index)
+        (
+            "weighted_aggregation",
+            [
+                ["model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+                ["model_a", "scen_a", "World", "Emissions|CO2", "Mt CO2", 5, np.nan],
+            ],
+            dict(variable="Emissions|CO2", year=2010, keep=False),
         ),
     ],
 )
-def test_region_processing_weighted_aggregation(folder, exp_df):
+def test_region_processing_weighted_aggregation(folder, exp_df, args):
     # test a weighed sum
 
     test_df = IamDataFrame(
@@ -181,6 +193,9 @@ def test_region_processing_weighted_aggregation(folder, exp_df):
             columns=IAMC_IDX + [2005, 2010],
         )
     )
+
+    if args is not None:
+        test_df = test_df.filter(**args)
 
     exp = IamDataFrame(pd.DataFrame(exp_df, columns=IAMC_IDX + [2005, 2010]))
 
