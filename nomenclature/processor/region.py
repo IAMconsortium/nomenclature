@@ -347,6 +347,7 @@ class RegionProcessor(BaseModel):
                         vars_default_args = [
                             var for var, kwargs in vars.items() if not kwargs
                         ]
+                        # TODO skip if required weight does not exist
                         vars_kwargs = {
                             var: kwargs
                             for var, kwargs in vars.items()

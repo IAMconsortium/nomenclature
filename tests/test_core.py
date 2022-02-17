@@ -167,6 +167,7 @@ def test_region_processing_complete(directory):
             None,
         ),
         # check that region-aggregation with missing weights passes (inconsistent index)
+        # TODO check the log output
         (
             "weighted_aggregation",
             [
