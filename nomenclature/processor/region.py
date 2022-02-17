@@ -3,6 +3,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Union
 
+import pandas as pd
 import pyam
 import pydantic
 import yaml
@@ -328,18 +329,20 @@ class RegionProcessor(BaseModel):
                 # before aggregating, check that all regions are valid
                 self.mappings[model].validate_regions(dsd)
                 logger.info(
-                    f"Applying region aggregation mapping for model {model} from file "
+                    f"Applying region aggregation for model {model} from file "
                     f"{self.mappings[model].file}"
                 )
 
                 with adjust_log_level(level="ERROR"):  # silence empty filter
                     # Rename
                     if self.mappings[model].native_regions is not None:
-                        processed_dfs.append(
-                            model_df.filter(
-                                region=self.mappings[model].model_native_region_names
-                            ).rename(region=self.mappings[model].rename_mapping)
+                        _df = model_df.filter(
+                            region=self.mappings[model].model_native_region_names
                         )
+                        if not _df.empty:
+                            processed_dfs.append(
+                                _df.rename(region=self.mappings[model].rename_mapping)
+                            )
 
                     # Aggregate
                     if self.mappings[model].common_regions is not None:
@@ -368,7 +371,7 @@ class RegionProcessor(BaseModel):
                                         *regions,
                                         **kwargs,
                                     )
-                                    if _df is not None:
+                                    if _df is not None and not _df.empty:
                                         processed_dfs.append(_df)
                                 else:
                                     for rename_var in kwargs["region-aggregation"]:
@@ -379,12 +382,15 @@ class RegionProcessor(BaseModel):
                                                 *regions,
                                                 **_kwargs,
                                             )
-                                            if _df is not None:
+                                            if _df is not None and not _df.empty:
                                                 processed_dfs.append(
                                                     _df.rename(variable={var: _rename})
                                                 )
 
-        return pyam.concat(processed_dfs)
+        if processed_dfs:
+            return pyam.concat(processed_dfs)
+        else:
+            return IamDataFrame(pd.DataFrame([], columns=df.dimensions + ["value"]))
 
     def _filter_dict_args(
         self, variables, dsd: DataStructureDefinition, keys: Set[str] = AGG_KWARGS
