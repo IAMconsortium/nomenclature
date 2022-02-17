@@ -93,10 +93,14 @@ class RegionAggregationMapping(BaseModel):
         Optionally, list of common regions where aggregation will be performed.
     """
 
-    model: Union[List[str], str]
+    model: List[str]
     file: FilePath
     native_regions: Optional[List[NativeRegion]]
     common_regions: Optional[List[CommonRegion]]
+
+    @validator("model", pre=True)
+    def convert_to_list(cls, v):
+        return pyam.utils.to_list(v)
 
     @validator("native_regions")
     def validate_native_regions(cls, v, values):
@@ -278,7 +282,7 @@ class RegionProcessor(BaseModel):
         for file in (f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}):
             try:
                 mapping = RegionAggregationMapping.from_file(file)
-                for m in pyam.utils.to_list(mapping.model):
+                for m in mapping.model:
                     if m not in mapping_dict:
                         mapping_dict[m] = mapping
                     else:
