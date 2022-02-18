@@ -47,8 +47,8 @@ def test_region_processing_rename():
     assert_iamframe_equal(obs, exp)
 
 
-def test_region_processing_rename_empty():
-    # Test that renaming when region does not exist returns empty
+def test_region_processing_empty_raises():
+    # Test that an empty result of the region-processing raises
     # see also https://github.com/IAMconsortium/pyam/issues/631
 
     test_df = IamDataFrame(
@@ -60,15 +60,14 @@ def test_region_processing_rename_empty():
         )
     )
 
-    obs = process(
-        test_df,
-        DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
-        processor=RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing/rename_only"
-        ),
-    )
-
-    assert obs.empty
+    with pytest.raises(ValueError, match="The region aggregation for model model_a"):
+        obs = process(
+            test_df,
+            DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+            processor=RegionProcessor.from_directory(
+                TEST_DATA_DIR / "region_processing/rename_only"
+            ),
+        )
 
 
 def test_region_processing_no_mapping(simple_df):
