@@ -3,7 +3,6 @@ from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Union
 
-import pandas as pd
 import pyam
 import pydantic
 import yaml

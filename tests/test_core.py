@@ -61,7 +61,7 @@ def test_region_processing_empty_raises():
     )
 
     with pytest.raises(ValueError, match="The region aggregation for model model_a"):
-        obs = process(
+        process(
             test_df,
             DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
             processor=RegionProcessor.from_directory(
