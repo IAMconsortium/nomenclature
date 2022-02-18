@@ -328,18 +328,20 @@ class RegionProcessor(BaseModel):
                 # before aggregating, check that all regions are valid
                 self.mappings[model].validate_regions(dsd)
                 logger.info(
-                    f"Applying region aggregation mapping for model {model} from file "
+                    f"Applying region aggregation for model {model} from file "
                     f"{self.mappings[model].file}"
                 )
 
                 with adjust_log_level(level="ERROR"):  # silence empty filter
                     # Rename
                     if self.mappings[model].native_regions is not None:
-                        processed_dfs.append(
-                            model_df.filter(
-                                region=self.mappings[model].model_native_region_names
-                            ).rename(region=self.mappings[model].rename_mapping)
+                        _df = model_df.filter(
+                            region=self.mappings[model].model_native_region_names
                         )
+                        if not _df.empty:
+                            processed_dfs.append(
+                                _df.rename(region=self.mappings[model].rename_mapping)
+                            )
 
                     # Aggregate
                     if self.mappings[model].common_regions is not None:
@@ -347,6 +349,7 @@ class RegionProcessor(BaseModel):
                         vars_default_args = [
                             var for var, kwargs in vars.items() if not kwargs
                         ]
+                        # TODO skip if required weight does not exist
                         vars_kwargs = {
                             var: kwargs
                             for var, kwargs in vars.items()
@@ -361,19 +364,32 @@ class RegionProcessor(BaseModel):
                             # Second, special weighted aggregation
                             for var, kwargs in vars_kwargs.items():
                                 if "region-aggregation" not in kwargs:
-                                    processed_dfs.append(
-                                        model_df.aggregate_region(
-                                            var, *regions, **kwargs
-                                        )
+                                    _df = _aggregate_region(
+                                        model_df,
+                                        var,
+                                        *regions,
+                                        **kwargs,
                                     )
+                                    if _df is not None and not _df.empty:
+                                        processed_dfs.append(_df)
                                 else:
                                     for rename_var in kwargs["region-aggregation"]:
                                         for _rename, _kwargs in rename_var.items():
-                                            processed_dfs.append(
-                                                model_df.aggregate_region(
-                                                    var, *regions, **_kwargs
-                                                ).rename(variable={var: _rename})
+                                            _df = _aggregate_region(
+                                                model_df,
+                                                var,
+                                                *regions,
+                                                **_kwargs,
                                             )
+                                            if _df is not None and not _df.empty:
+                                                processed_dfs.append(
+                                                    _df.rename(variable={var: _rename})
+                                                )
+
+        if not processed_dfs:
+            raise ValueError(
+                f"The region aggregation for model {model} resulted in an empty dataset"
+            )
 
         return pyam.concat(processed_dfs)
 
@@ -385,3 +401,16 @@ class RegionProcessor(BaseModel):
             for var, kwargs in dsd.variable.items()
             if var in variables and not kwargs.get("skip-region-aggregation", False)
         }
+
+
+def _aggregate_region(df, var, *regions, **kwargs):
+    """Perform region aggregation with kwargs catching inconsistent-index errors"""
+    try:
+        return df.aggregate_region(var, *regions, **kwargs)
+    except ValueError as e:
+        if str(e) == "Inconsistent index between variable and weight!":
+            logger.warning(
+                f"Could not aggregate '{var}' for region {regions[0]} ({kwargs})"
+            )
+        else:
+            raise e
