@@ -387,10 +387,12 @@ class RegionProcessor(BaseModel):
                                                     _df.rename(variable={var: _rename})
                                                 )
 
-        if processed_dfs:
-            return pyam.concat(processed_dfs)
-        else:
-            return IamDataFrame(pd.DataFrame([], columns=df.dimensions + ["value"]))
+        if not processed_dfs:
+            raise ValueError(
+                f"The region aggregation for model {model} resulted in an empty dataset"
+            )
+
+        return pyam.concat(processed_dfs)
 
     def _filter_dict_args(
         self, variables, dsd: DataStructureDefinition, keys: Set[str] = AGG_KWARGS
