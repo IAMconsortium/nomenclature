@@ -2,6 +2,7 @@ import copy
 import logging
 from collections import Counter
 from pathlib import Path
+from tkinter import Variable
 from typing import Dict, List, Optional, Set, Union
 
 import jsonschema
@@ -337,6 +338,7 @@ class RegionProcessor(BaseModel):
 
                     # Aggregate
                     if self.mappings[model].common_regions is not None:
+                        # processed_dfs_region: List[IamDataFrame] = []
                         vars = self._filter_dict_args(model_df.variable, dsd)
                         vars_default_args = [
                             var for var, kwargs in vars.items() if not kwargs
@@ -347,47 +349,40 @@ class RegionProcessor(BaseModel):
                             if var not in vars_default_args
                         }
                         for cr in self.mappings[model].common_regions:
-                            # create deep copies for each common region
-                            vars_default_args_cr = copy.deepcopy(vars_default_args)
-                            vars_kwargs_cr = copy.deepcopy(vars_kwargs)
-
-                            regions = [cr.name, cr.constituent_regions]
-                            # Check for already present variables
-                            model_native_res = model_df.filter(region=cr.name)
-                            if len(model_native_res):
-                                processed_dfs.append(model_native_res)
-                                model_native_vars = set(model_native_res.variable)
-                                # Remove all already present variables
-                                vars_default_args_cr = list(
-                                    set(vars_default_args_cr) - model_native_vars
-                                )
-                                vars_kwargs_cr = {
-                                    key: value
-                                    for key, value in vars_kwargs_cr.items()
-                                    if key not in model_native_vars
-                                }
-
                             # First, perform 'simple' aggregation (no arguments)
                             processed_dfs.append(
-                                model_df.aggregate_region(
-                                    vars_default_args_cr, *regions
+                                self._combine_aggregate_and_model_native(
+                                    model_df,
+                                    vars_default_args,
+                                    cr.name,
+                                    cr.constituent_regions,
                                 )
                             )
                             # Second, special weighted aggregation
-                            for var, kwargs in vars_kwargs_cr.items():
+                            for var, kwargs in vars_kwargs.items():
                                 if "region-aggregation" not in kwargs:
                                     processed_dfs.append(
-                                        model_df.aggregate_region(
-                                            var, *regions, **kwargs
+                                        self._combine_aggregate_and_model_native(
+                                            model_df,
+                                            var,
+                                            cr.name,
+                                            cr.constituent_regions,
+                                            **kwargs,
                                         )
                                     )
                                 else:
                                     for rename_var in kwargs["region-aggregation"]:
                                         for _rename, _kwargs in rename_var.items():
                                             processed_dfs.append(
-                                                model_df.aggregate_region(
-                                                    var, *regions, **_kwargs
-                                                ).rename(variable={var: _rename})
+                                                self._combine_aggregate_and_model_native(
+                                                    model_df,
+                                                    var,
+                                                    cr.name,
+                                                    cr.constituent_regions,
+                                                    **_kwargs,
+                                                ).rename(
+                                                    variable={var: _rename}
+                                                )
                                             )
 
         return pyam.concat(processed_dfs)
@@ -400,3 +395,35 @@ class RegionProcessor(BaseModel):
             for var, kwargs in dsd.variable.items()
             if var in variables and not kwargs.get("skip-region-aggregation", False)
         }
+
+    def _combine_aggregate_and_model_native(
+        self,
+        model_df: IamDataFrame,
+        vars: Union[str, List[str]],
+        common_region: str,
+        constituent_regions: List[str],
+        **aggregation_kwargs,
+    ) -> IamDataFrame:
+
+        # Get all results for common_region
+        model_native = model_df.filter(region=common_region, variable=vars)
+        # Aggregate for comparison
+        aggregated = model_df.aggregate_region(
+            vars, common_region, constituent_regions, **aggregation_kwargs
+        )
+        # Find variables to compare which are in both model native and aggregated
+        comp_vars = list(set(model_native.variable) & set(aggregated.variable))
+
+        diff = pyam.compare(
+            model_native.filter(variable=comp_vars),
+            aggregated.filter(variable=comp_vars),
+            left_label="model native",
+            right_label="aggregated",
+        )
+        if len(diff):
+            logging.warning(
+                f"Differences found between model native and aggregated results\n{diff}"
+            )
+        # Take all model native results and add the ones that are only available from
+        # aggregation
+        return model_native.append(aggregated.filter(variable=comp_vars, keep=False))
