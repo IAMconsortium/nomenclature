@@ -91,10 +91,14 @@ class RegionAggregationMapping(BaseModel):
         Optionally, list of common regions where aggregation will be performed.
     """
 
-    model: str
+    model: List[str]
     file: FilePath
     native_regions: Optional[List[NativeRegion]]
     common_regions: Optional[List[CommonRegion]]
+
+    @validator("model", pre=True)
+    def convert_to_list(cls, v):
+        return pyam.utils.to_list(v)
 
     @validator("native_regions")
     def validate_native_regions(cls, v, values):
@@ -276,19 +280,20 @@ class RegionProcessor(BaseModel):
         for file in (f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}):
             try:
                 mapping = RegionAggregationMapping.from_file(file)
-                if mapping.model not in mapping_dict:
-                    mapping_dict[mapping.model] = mapping
-                else:
-                    errors.append(
-                        ErrorWrapper(
-                            ModelMappingCollisionError(
-                                model=mapping.model,
-                                file1=mapping.file,
-                                file2=mapping_dict[mapping.model].file,
-                            ),
-                            "__root__",
+                for m in mapping.model:
+                    if m not in mapping_dict:
+                        mapping_dict[m] = mapping
+                    else:
+                        errors.append(
+                            ErrorWrapper(
+                                ModelMappingCollisionError(
+                                    model=m,
+                                    file1=mapping.file,
+                                    file2=mapping_dict[m].file,
+                                ),
+                                "__root__",
+                            )
                         )
-                    )
             except (pydantic.ValidationError, jsonschema.ValidationError) as e:
                 errors.append(ErrorWrapper(e, "__root__"))
 
@@ -321,18 +326,20 @@ class RegionProcessor(BaseModel):
                 # before aggregating, check that all regions are valid
                 self.mappings[model].validate_regions(dsd)
                 logger.info(
-                    f"Applying region aggregation mapping for model {model} from file "
+                    f"Applying region aggregation for model {model} from file "
                     f"{self.mappings[model].file}"
                 )
 
                 with adjust_log_level(level="ERROR"):  # silence empty filter
                     # Rename
                     if self.mappings[model].native_regions is not None:
-                        processed_dfs.append(
-                            model_df.filter(
-                                region=self.mappings[model].model_native_region_names
-                            ).rename(region=self.mappings[model].rename_mapping)
+                        _df = model_df.filter(
+                            region=self.mappings[model].model_native_region_names
                         )
+                        if not _df.empty:
+                            processed_dfs.append(
+                                _df.rename(region=self.mappings[model].rename_mapping)
+                            )
 
                     # Aggregate
                     if self.mappings[model].common_regions is not None:
@@ -341,6 +348,7 @@ class RegionProcessor(BaseModel):
                         vars_default_args = [
                             var for var, kwargs in vars.items() if not kwargs
                         ]
+                        # TODO skip if required weight does not exist
                         vars_kwargs = {
                             var: kwargs
                             for var, kwargs in vars.items()
@@ -358,28 +366,35 @@ class RegionProcessor(BaseModel):
                             )
                             # Second, special weighted aggregation
                             for var, kwargs in vars_kwargs.items():
-                                if "region-aggregation" not in kwargs:
-                                    processed_dfs.append(
-                                        self._aggregate_with_model_native(
+                                if "region-aggregation" not in kwargs:                                        
+                                    _df = self._aggregate_with_model_native(
                                             model_df,
                                             var,
                                             cr.name,
                                             cr.constituent_regions,
                                             **kwargs,
                                         )
-                                    )
+                                    if _df is not None and not _df.empty:
+                                        processed_dfs.append(_df)
                                 else:
                                     for rename_var in kwargs["region-aggregation"]:
                                         for _rename, _kwargs in rename_var.items():
-                                            processed_dfs.append(
-                                                self._aggregate_with_model_native(
+                                            _df = self._aggregate_with_model_native(
                                                     model_df,
                                                     var,
                                                     cr.name,
                                                     cr.constituent_regions,
                                                     **_kwargs,
-                                                ).rename(variable={var: _rename})
-                                            )
+                                                )
+                                            if _df is not None and not _df.empty:
+                                                processed_dfs.append(
+                                                    _df.rename(variable={var: _rename})
+                                                )
+
+        if not processed_dfs:
+            raise ValueError(
+                f"The region aggregation for model {model} resulted in an empty dataset"
+            )
 
         return pyam.concat(processed_dfs)
 
@@ -392,6 +407,7 @@ class RegionProcessor(BaseModel):
             if var in variables and not kwargs.get("skip-region-aggregation", False)
         }
 
+<<<<<<< HEAD
     def _aggregate_with_model_native(
         self,
         model_df: IamDataFrame,
@@ -423,3 +439,17 @@ class RegionProcessor(BaseModel):
         # Take all model native results and add the ones that are only available from
         # aggregation
         return model_native.append(aggregated.filter(variable=comp_vars, keep=False))
+=======
+
+def _aggregate_region(df, var, *regions, **kwargs):
+    """Perform region aggregation with kwargs catching inconsistent-index errors"""
+    try:
+        return df.aggregate_region(var, *regions, **kwargs)
+    except ValueError as e:
+        if str(e) == "Inconsistent index between variable and weight!":
+            logger.warning(
+                f"Could not aggregate '{var}' for region {regions[0]} ({kwargs})"
+            )
+        else:
+            raise e
+>>>>>>> main

@@ -19,7 +19,7 @@ def test_mapping():
     # Test that the file is read and represented correctly
     obs = RegionAggregationMapping.from_file(TEST_FOLDER_REGION_MAPPING / mapping_file)
     exp = {
-        "model": "model_a",
+        "model": ["model_a"],
         "file": (TEST_FOLDER_REGION_MAPPING / mapping_file).relative_to(Path.cwd()),
         "native_regions": [
             {"name": "region_a", "rename": "alternative_name_a"},
@@ -99,7 +99,7 @@ def test_region_processor_working(region_processor_path):
     obs = RegionProcessor.from_directory(region_processor_path)
     exp_data = [
         {
-            "model": "model_a",
+            "model": ["model_a"],
             "file": (
                 TEST_DATA_DIR / "regionprocessor_working/mapping_1.yml"
             ).relative_to(Path.cwd()),
@@ -109,7 +109,7 @@ def test_region_processor_working(region_processor_path):
             "common_regions": None,
         },
         {
-            "model": "model_b",
+            "model": ["model_b"],
             "file": (
                 TEST_DATA_DIR / "regionprocessor_working/mapping_2.yaml"
             ).relative_to(Path.cwd()),
@@ -122,8 +122,8 @@ def test_region_processor_working(region_processor_path):
             ],
         },
     ]
-    exp_models = {value["model"] for value in exp_data}
-    exp_dict = {value["model"]: value for value in exp_data}
+    exp_models = {value["model"][0] for value in exp_data}
+    exp_dict = {value["model"][0]: value for value in exp_data}
 
     assert exp_models == set(obs.mappings.keys())
     assert all(exp_dict[m] == obs.mappings[m].dict() for m in exp_models)
@@ -133,8 +133,8 @@ def test_region_processor_not_defined(simple_definition):
     # Test a RegionProcessor with regions that are not defined in the data structure
     # definition
     error_msg = (
-        "model_(a|b)\n.*region_a.*mapping_(1|2).yaml.*value_error.region_not_defined."
-        "*\n.*model_(a|b)\n.*region_a.*mapping_(1|2).yaml.*value_error."
+        "model_(a|b).*\n.*region_a.*mapping_(1|2).yaml.*value_error.region_not_defined"
+        ".*\n.*model_(a|b).*\n.*region_a.*mapping_(1|2).yaml.*value_error."
         "region_not_defined"
     )
     with pytest.raises(pydantic.ValidationError, match=error_msg):
