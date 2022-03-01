@@ -1,8 +1,6 @@
-import copy
 import logging
 from collections import Counter
 from pathlib import Path
-from tkinter import Variable
 from typing import Dict, List, Optional, Set, Union
 
 import jsonschema
@@ -351,7 +349,7 @@ class RegionProcessor(BaseModel):
                         for cr in self.mappings[model].common_regions:
                             # First, perform 'simple' aggregation (no arguments)
                             processed_dfs.append(
-                                self._combine_aggregate_and_model_native(
+                                self._aggregate_with_model_native(
                                     model_df,
                                     vars_default_args,
                                     cr.name,
@@ -362,7 +360,7 @@ class RegionProcessor(BaseModel):
                             for var, kwargs in vars_kwargs.items():
                                 if "region-aggregation" not in kwargs:
                                     processed_dfs.append(
-                                        self._combine_aggregate_and_model_native(
+                                        self._aggregate_with_model_native(
                                             model_df,
                                             var,
                                             cr.name,
@@ -374,15 +372,13 @@ class RegionProcessor(BaseModel):
                                     for rename_var in kwargs["region-aggregation"]:
                                         for _rename, _kwargs in rename_var.items():
                                             processed_dfs.append(
-                                                self._combine_aggregate_and_model_native(
+                                                self._aggregate_with_model_native(
                                                     model_df,
                                                     var,
                                                     cr.name,
                                                     cr.constituent_regions,
                                                     **_kwargs,
-                                                ).rename(
-                                                    variable={var: _rename}
-                                                )
+                                                ).rename(variable={var: _rename})
                                             )
 
         return pyam.concat(processed_dfs)
@@ -396,7 +392,7 @@ class RegionProcessor(BaseModel):
             if var in variables and not kwargs.get("skip-region-aggregation", False)
         }
 
-    def _combine_aggregate_and_model_native(
+    def _aggregate_with_model_native(
         self,
         model_df: IamDataFrame,
         vars: Union[str, List[str]],
