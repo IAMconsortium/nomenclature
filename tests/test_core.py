@@ -215,7 +215,7 @@ def test_region_processing_skip_aggregation():
     assert_iamframe_equal(obs, exp)
 
 
-def test_partial_aggregation():
+def test_partial_aggregation(caplog):
     # Dedicated test for partial aggregation
     # Tests the following two aspects of partial aggregation:
     # 1. A variable that is only found in the common region will be taken from there
@@ -258,4 +258,19 @@ def test_partial_aggregation():
             TEST_DATA_DIR / "region_processing/partial_aggregation"
         ),
     )
+    # Assert that we get the expected values
     assert_iamframe_equal(obs, exp)
+    # Assert that we the the appropriate warnings since there is a mismatch between
+    # in Primary Energy between model native and aggregated values for common_region_A
+    log_content = [
+        "Differences found between model native and aggregated results",
+        "m_a",
+        "s_a",
+        "common_region_A",
+        "Primary Energy",
+        "EJ/yr",
+        "2005             1           4",
+        "2010             2           6",
+    ]
+
+    assert all(c in caplog.text for c in log_content)
