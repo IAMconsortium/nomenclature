@@ -357,7 +357,7 @@ class RegionProcessor(BaseModel):
                         for cr in self.mappings[model].common_regions:
                             # First, perform 'simple' aggregation (no arguments)
                             processed_dfs.append(
-                                self._aggregate_with_model_native(
+                                _aggregate_with_model_native(
                                     model_df,
                                     vars_default_args,
                                     cr.name,
@@ -366,26 +366,26 @@ class RegionProcessor(BaseModel):
                             )
                             # Second, special weighted aggregation
                             for var, kwargs in vars_kwargs.items():
-                                if "region-aggregation" not in kwargs:                                        
-                                    _df = self._aggregate_with_model_native(
-                                            model_df,
-                                            var,
-                                            cr.name,
-                                            cr.constituent_regions,
-                                            **kwargs,
-                                        )
+                                if "region-aggregation" not in kwargs:
+                                    _df = _aggregate_with_model_native(
+                                        model_df,
+                                        var,
+                                        cr.name,
+                                        cr.constituent_regions,
+                                        **kwargs,
+                                    )
                                     if _df is not None and not _df.empty:
                                         processed_dfs.append(_df)
                                 else:
                                     for rename_var in kwargs["region-aggregation"]:
                                         for _rename, _kwargs in rename_var.items():
-                                            _df = self._aggregate_with_model_native(
-                                                    model_df,
-                                                    var,
-                                                    cr.name,
-                                                    cr.constituent_regions,
-                                                    **_kwargs,
-                                                )
+                                            _df = _aggregate_with_model_native(
+                                                model_df,
+                                                var,
+                                                cr.name,
+                                                cr.constituent_regions,
+                                                **_kwargs,
+                                            )
                                             if _df is not None and not _df.empty:
                                                 processed_dfs.append(
                                                     _df.rename(variable={var: _rename})
@@ -407,22 +407,25 @@ class RegionProcessor(BaseModel):
             if var in variables and not kwargs.get("skip-region-aggregation", False)
         }
 
-<<<<<<< HEAD
-    def _aggregate_with_model_native(
-        self,
-        model_df: IamDataFrame,
-        vars: Union[str, List[str]],
-        common_region: str,
-        constituent_regions: List[str],
-        **aggregation_kwargs,
-    ) -> IamDataFrame:
 
-        # Get all results for common_region
-        model_native = model_df.filter(region=common_region, variable=vars)
-        # Aggregate for comparison
-        aggregated = model_df.aggregate_region(
-            vars, common_region, constituent_regions, **aggregation_kwargs
+def _aggregate_with_model_native(
+    model_df: IamDataFrame,
+    vars: Union[str, List[str]],
+    common_region: str,
+    constituent_regions: List[str],
+    **aggregation_kwargs,
+) -> IamDataFrame:
+
+    # Get all results for common_region
+    model_native = model_df.filter(region=common_region, variable=vars)
+    # Aggregate for comparison
+    if aggregation_kwargs:
+        aggregated = _aggregate_region(
+            model_df, vars, *[common_region, constituent_regions], **aggregation_kwargs
         )
+    else:
+        aggregated = model_df.aggregate_region(vars, common_region, constituent_regions)
+    if aggregated:
         # Find variables to compare which are in both model native and aggregated
         comp_vars = list(set(model_native.variable) & set(aggregated.variable))
 
@@ -439,7 +442,8 @@ class RegionProcessor(BaseModel):
         # Take all model native results and add the ones that are only available from
         # aggregation
         return model_native.append(aggregated.filter(variable=comp_vars, keep=False))
-=======
+    return model_native
+
 
 def _aggregate_region(df, var, *regions, **kwargs):
     """Perform region aggregation with kwargs catching inconsistent-index errors"""
@@ -452,4 +456,3 @@ def _aggregate_region(df, var, *regions, **kwargs):
             )
         else:
             raise e
->>>>>>> main
