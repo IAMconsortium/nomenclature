@@ -201,7 +201,7 @@ def test_region_processing_complete(directory):
         ),
     ],
 )
-def test_region_processing_weighted_aggregation(folder, exp_df, args):
+def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
     # test a weighed sum
 
     test_df = IamDataFrame(
@@ -231,6 +231,13 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args):
         ),
     )
     assert_iamframe_equal(obs, exp)
+    # check the logs since the presence of args should cause a warning in the logs
+    if args:
+        logmsg = (
+            "Could not aggregate 'Price|Carbon' for region 'World' "
+            "({'weight': 'Emissions|CO2'})"
+        )
+        assert logmsg in caplog.text
 
 
 def test_region_processing_skip_aggregation():
