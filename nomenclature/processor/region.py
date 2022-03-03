@@ -343,12 +343,10 @@ class RegionProcessor(BaseModel):
 
                     # Aggregate
                     if self.mappings[model].common_regions is not None:
-                        # processed_dfs_region: List[IamDataFrame] = []
                         vars = self._filter_dict_args(model_df.variable, dsd)
                         vars_default_args = [
                             var for var, kwargs in vars.items() if not kwargs
                         ]
-                        # TODO skip if required weight does not exist
                         vars_kwargs = {
                             var: kwargs
                             for var, kwargs in vars.items()
