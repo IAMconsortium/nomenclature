@@ -1,7 +1,7 @@
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional, Set, Union, Tuple
 
 import jsonschema
 import pyam
@@ -354,22 +354,17 @@ class RegionProcessor(BaseModel):
                         }
                         for cr in self.mappings[model].common_regions:
                             # First, perform 'simple' aggregation (no arguments)
+                            regions = (cr.name, cr.constituent_regions)
                             processed_dfs.append(
-                                _aggregate_with_model_native(
-                                    model_df,
-                                    vars_default_args,
-                                    cr.name,
-                                    cr.constituent_regions,
-                                )
+                                _aggregate_region(model_df, vars_default_args, regions)
                             )
                             # Second, special weighted aggregation
                             for var, kwargs in vars_kwargs.items():
                                 if "region-aggregation" not in kwargs:
-                                    _df = _aggregate_with_model_native(
+                                    _df = _aggregate_region(
                                         model_df,
                                         var,
-                                        cr.name,
-                                        cr.constituent_regions,
+                                        regions,
                                         **kwargs,
                                     )
                                     if _df is not None and not _df.empty:
@@ -377,11 +372,10 @@ class RegionProcessor(BaseModel):
                                 else:
                                     for rename_var in kwargs["region-aggregation"]:
                                         for _rename, _kwargs in rename_var.items():
-                                            _df = _aggregate_with_model_native(
+                                            _df = _aggregate_region(
                                                 model_df,
                                                 var,
-                                                cr.name,
-                                                cr.constituent_regions,
+                                                regions,
                                                 **_kwargs,
                                             )
                                             if _df is not None and not _df.empty:
@@ -406,29 +400,36 @@ class RegionProcessor(BaseModel):
         }
 
 
-def _aggregate_with_model_native(
+def _aggregate_region(
     model_df: IamDataFrame,
     vars: Union[str, List[str]],
-    common_region: str,
-    constituent_regions: List[str],
+    regions: Tuple[str, List[str]],
     **aggregation_kwargs,
 ) -> IamDataFrame:
 
-    # Get all results for common_region
-    model_native = model_df.filter(region=common_region, variable=vars)
-    # Aggregate for comparison
+    # Start by taking all variables which are reported by the model directly
+    common_region_df = model_df.filter(region=regions[0], variable=vars)
+    # Aggregate all variables
     if aggregation_kwargs:
-        aggregated = _aggregate_region(
-            model_df, vars, *[common_region, constituent_regions], **aggregation_kwargs
-        )
+        try:
+            aggregated = model_df.aggregate_region(vars, *regions, **aggregation_kwargs)
+        except ValueError as e:
+            if str(e) == "Inconsistent index between variable and weight!":
+                logger.warning(
+                    f"Could not aggregate '{vars}' for region '{regions[0]}' ("
+                    f"{aggregation_kwargs})"
+                )
+                aggregated = None
+            else:
+                raise e
     else:
-        aggregated = model_df.aggregate_region(vars, common_region, constituent_regions)
+        aggregated = model_df.aggregate_region(vars, *regions)
     if aggregated:
-        # Find variables to compare which are in both model native and aggregated
-        comp_vars = list(set(model_native.variable) & set(aggregated.variable))
+        # Find variables which are in both model native and aggregated to compare
+        comp_vars = list(set(common_region_df.variable) & set(aggregated.variable))
 
         diff = pyam.compare(
-            model_native.filter(variable=comp_vars),
+            common_region_df.filter(variable=comp_vars),
             aggregated.filter(variable=comp_vars),
             left_label="model native",
             right_label="aggregated",
@@ -437,20 +438,10 @@ def _aggregate_with_model_native(
             logging.warning(
                 f"Differences found between model native and aggregated results\n{diff}"
             )
-        # Take all model native results and add the ones that are only available from
-        # aggregation
-        return model_native.append(aggregated.filter(variable=comp_vars, keep=False))
-    return model_native
-
-
-def _aggregate_region(df, var, *regions, **kwargs):
-    """Perform region aggregation with kwargs catching inconsistent-index errors"""
-    try:
-        return df.aggregate_region(var, *regions, **kwargs)
-    except ValueError as e:
-        if str(e) == "Inconsistent index between variable and weight!":
-            logger.warning(
-                f"Could not aggregate '{var}' for region {regions[0]} ({kwargs})"
-            )
-        else:
-            raise e
+        # Take all model native results and add additional ones from aggregation
+        return common_region_df.append(
+            aggregated.filter(variable=comp_vars, keep=False)
+        )
+    else:
+        # Return only model native results if no aggregated data are available
+        return common_region_df
