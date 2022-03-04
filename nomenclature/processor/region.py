@@ -1,10 +1,9 @@
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Union, Tuple
+from typing import Dict, List, Optional, Set, Union
 
 import jsonschema
-import pandas as pd
 import pyam
 import pydantic
 import yaml
@@ -408,7 +407,7 @@ class RegionProcessor(BaseModel):
                         left_label="common-region",
                         right_label="aggregation",
                     )
-
+                    # drop all data which is not in both data frames
                     diff = compare.dropna()
                     if diff is not None and len(diff):
                         logging.warning(
