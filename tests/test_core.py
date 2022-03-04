@@ -309,17 +309,17 @@ def test_partial_aggregation(caplog):
     )
     # Assert that we get the expected values
     assert_iamframe_equal(obs, exp)
-    # Assert that we the the appropriate warnings since there is a mismatch between
+    # Assert that we get the appropriate warnings since there is a mismatch between
     # in Primary Energy between model native and aggregated values for common_region_A
     log_content = [
-        "Differences found between model native and aggregated results",
+        "Difference between original and aggregated data:",
         "m_a",
         "s_a",
         "common_region_A",
         "Primary Energy",
         "EJ/yr",
-        "2005             1           4",
-        "2010             2           6",
+        "2005            1.0          4.0",
+        "2010            2.0          6.0",
     ]
 
     assert all(c in caplog.text for c in log_content)
