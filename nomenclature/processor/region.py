@@ -377,7 +377,7 @@ class RegionProcessor(BaseModel):
                                         **kwargs,
                                     )
                                     if _df is not None and not _df.empty:
-                                        processed_dfs.append(_df)
+                                        _processed_dfs.append(_df)
                                 else:
                                     for rename_var in kwargs["region-aggregation"]:
                                         for _rename, _kwargs in rename_var.items():
@@ -388,7 +388,7 @@ class RegionProcessor(BaseModel):
                                                 **_kwargs,
                                             )
                                             if _df is not None and not _df.empty:
-                                                processed_dfs.append(
+                                                _processed_dfs.append(
                                                     _df.rename(variable={var: _rename})
                                                 )
 
