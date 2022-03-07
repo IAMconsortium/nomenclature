@@ -23,8 +23,9 @@ def test_codelist_to_yaml():
     assert code.to_yaml() == (
         "- Some Variable:\n"
         "    definition: Some basic variable\n"
-        "    file: simple_codelist/foo.yaml\n"
         "    unit:\n"
+        "    bool: true\n"
+        "    file: simple_codelist/foo.yaml\n"
     )
 
 

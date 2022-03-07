@@ -249,7 +249,9 @@ class CodeList(BaseModel):
 
         # translate to list of nested dicts, replace None by empty field, write to file
         stream = (
-            yaml.dump([{code: attrs} for code, attrs in self.mapping.items()])
+            yaml.dump(
+                [{code: attrs} for code, attrs in self.mapping.items()], sort_keys=False
+            )
             .replace(": null\n", ":\n")
             .replace(": nan\n", ":\n")
         )
