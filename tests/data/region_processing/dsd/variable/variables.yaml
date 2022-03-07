@@ -22,5 +22,8 @@
             method: max
 - Variable A (max):
     unit: EJ/yr
-
-
+- Variable B:
+    unit: EJ/yr
+    region-aggregation:
+        - Variable B:
+            method: max

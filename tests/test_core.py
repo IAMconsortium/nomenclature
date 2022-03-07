@@ -333,12 +333,21 @@ def test_region_processing_skip_aggregation():
             [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 5, 6]],
             [
                 "Difference between original and aggregated data:",
-                "m_a",
-                "s_a",
-                "World",
-                "Primary Energy",
-                "EJ/yr",
+                "m_a   s_a      World  Primary Energy",
                 "2005              5            4",
+            ],
+        ),
+        (  # Conflict between overlapping renamed variable and provided data
+            [
+                ["m_a", "s_a", "region_A", "Variable B", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Variable B", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "World", "Variable B", "EJ/yr", 4, 6],
+            ],
+            [["m_a", "s_a", "World", "Variable B", "EJ/yr", 4, 6]],
+            [
+                "Difference between original and aggregated data:",
+                "m_a   s_a      World  Variable B EJ/yr",
+                "2005              4            3",
             ],
         ),
     ],
