@@ -337,7 +337,8 @@ class RegionProcessor(BaseModel):
 
                 _processed_dfs = []
 
-                with adjust_log_level(level="ERROR"):  # silence empty filter
+                # Silence pyam's empty filter warnings
+                with adjust_log_level(logger="pyam", level="ERROR"):
                     # Rename
                     if self.mappings[model].native_regions is not None:
                         _df = model_df.filter(
