@@ -335,7 +335,7 @@ class RegionProcessor(BaseModel):
                     f"{self.mappings[model].file}"
                 )
 
-                _processed_df = []
+                _processed_dfs = []
 
                 with adjust_log_level(level="ERROR"):  # silence empty filter
                     # Rename
@@ -344,7 +344,7 @@ class RegionProcessor(BaseModel):
                             region=self.mappings[model].model_native_region_names
                         )
                         if not _df.empty:
-                            _processed_df.append(
+                            _processed_dfs.append(
                                 _df.rename(region=self.mappings[model].rename_mapping)
                             )
 
@@ -363,7 +363,7 @@ class RegionProcessor(BaseModel):
                         for cr in self.mappings[model].common_regions:
                             regions = [cr.name, cr.constituent_regions]
                             # First, perform 'simple' aggregation (no arguments)
-                            _processed_df.append(
+                            _processed_dfs.append(
                                 model_df.aggregate_region(vars_default_args, *regions)
                             )
                             # Second, special weighted aggregation
@@ -391,40 +391,19 @@ class RegionProcessor(BaseModel):
                                                     _df.rename(variable={var: _rename})
                                                 )
 
-                common_region_df = model_df.filter(
-                    region=self.mappings[model].common_region_names,
-                    variable=dsd.variable,
-                )
-
-                # concatenate and merge with data provided at the common-region level
-                if _processed_df:
-                    aggregate_df = pyam.concat(_processed_df)
-
-                    # validate that aggregated data matches to original data
-                    compare = pyam.compare(
-                        common_region_df,
-                        aggregate_df,
-                        left_label="common-region",
-                        right_label="aggregation",
+                    common_region_df = model_df.filter(
+                        region=self.mappings[model].common_region_names,
+                        variable=dsd.variable,
                     )
-                    # drop all data which is not in both data frames
-                    diff = compare.dropna()
-                    if diff is not None and len(diff):
-                        logging.warning(
-                            f"Difference between original and aggregated data:\n{diff}"
+
+                    # concatenate and merge with data provided at common-region level
+                    if _processed_dfs:
+                        processed_dfs.append(
+                            _merge_with_provided_data(_processed_dfs, common_region_df)
                         )
-
-                    # merge aggregated data onto original common-region data
-                    index = aggregate_df._data.index.difference(
-                        common_region_df._data.index
-                    )
-                    processed_dfs.append(
-                        common_region_df.append(aggregate_df._data[index])
-                    )
-
-                # if data exists only at the common-region level
-                elif not common_region_df.empty:
-                    processed_dfs.append(common_region_df)
+                    # if data exists only at the common-region level
+                    elif not common_region_df.empty:
+                        processed_dfs.append(common_region_df)
 
         if not processed_dfs:
             raise ValueError(
@@ -454,3 +433,27 @@ def _aggregate_region(df, var, *regions, **kwargs):
             )
         else:
             raise e
+
+
+def _merge_with_provided_data(
+    _processed_df: IamDataFrame, common_region_df: IamDataFrame
+) -> IamDataFrame:
+    """Compare and merge provided and aggregated results"""
+
+    # validate that aggregated data matches to original data
+    aggregate_df = pyam.concat(_processed_df)
+    compare = pyam.compare(
+        common_region_df,
+        aggregate_df,
+        left_label="common-region",
+        right_label="aggregation",
+    )
+    # drop all data which is not in both data frames
+    diff = compare.dropna()
+
+    if diff is not None and len(diff):
+        logging.warning("Difference between original and aggregated data:\n" f"{diff}")
+
+    # merge aggregated data onto original common-region data
+    index = aggregate_df._data.index.difference(common_region_df._data.index)
+    return common_region_df.append(aggregate_df._data[index])
