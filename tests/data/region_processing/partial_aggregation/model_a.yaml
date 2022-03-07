@@ -1,8 +1,5 @@
 model: m_a
 common_regions:
-  - common_region_A:
+  - World:
     - region_A
     - region_B
-  - common_region_B:
-    - region_B
-    - region_C

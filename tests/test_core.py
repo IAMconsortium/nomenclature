@@ -264,62 +264,110 @@ def test_region_processing_skip_aggregation():
     assert_iamframe_equal(obs, exp)
 
 
-def test_partial_aggregation(caplog):
-    # Dedicated test for partial aggregation
-    # Tests the following two aspects of partial aggregation:
-    # 1. A variable that is only found in the common region will be taken from there
-    # 2. A variable that is found in both the common region as well as the constituent
-    #    regions will be taken from the common region.
-    # The two common regions common_region_A and B differ in that common_region_A
-    # reports both Primary Energy as well as Temperature|Mean so both values are taken
-    # from there. common_region_B, however only reports Temperature|Mean so Primary
-    # Energy is obtained through region aggregation adding up regions B and C.
-
-    test_df = IamDataFrame(
-        pd.DataFrame(
+@pytest.mark.parametrize(
+    "input_data, exp_data, warning",
+    [
+        (  # Variable is available in provided and aggregated data and the same
             [
                 ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
                 ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
-                ["m_a", "s_a", "region_C", "Primary Energy", "EJ/yr", 5, 6],
-                ["m_a", "s_a", "common_region_A", "Primary Energy", "EJ/yr", 1, 2],
-                ["m_a", "s_a", "common_region_A", "Temperature|Mean", "C", 3, 4],
-                ["m_a", "s_a", "common_region_B", "Temperature|Mean", "C", 1, 2],
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6],
             ],
-            columns=IAMC_IDX + [2005, 2010],
-        )
-    )
-    exp = IamDataFrame(
-        pd.DataFrame(
+            [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6]],
+            None,
+        ),
+        (  # Variable is only available in the provided data
             [
-                ["m_a", "s_a", "common_region_A", "Primary Energy", "EJ/yr", 1, 2],
-                ["m_a", "s_a", "common_region_A", "Temperature|Mean", "C", 3, 4],
-                ["m_a", "s_a", "common_region_B", "Primary Energy", "EJ/yr", 8, 10],
-                ["m_a", "s_a", "common_region_B", "Temperature|Mean", "C", 1, 2],
+                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
             ],
-            columns=IAMC_IDX + [2005, 2010],
-        )
-    )
+            [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6]],
+            None,
+        ),
+        (  # Variable is only available in the aggregated data
+            [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6]],
+            [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6]],
+            None,
+        ),
+        (  # Variable is not available in all scenarios in the provided data
+            [
+                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["m_a", "s_b", "region_A", "Primary Energy", "EJ/yr", 5, 6],
+                ["m_a", "s_b", "region_B", "Primary Energy", "EJ/yr", 7, 8],
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+            ],
+            [
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+                ["m_a", "s_b", "World", "Primary Energy", "EJ/yr", 12, 14],
+            ],
+            None,
+        ),
+        (  # Using skip-aggregation: true should only take provided results
+            [
+                ["m_a", "s_a", "region_A", "Skip-Aggregation", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Skip-Aggregation", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "World", "Skip-Aggregation", "EJ/yr", 10, 11],
+            ],
+            [["m_a", "s_a", "World", "Skip-Aggregation", "EJ/yr", 10, 11]],
+            None,
+        ),
+        (  # Using the region-aggregation attribute to create an additional variable
+            [
+                ["m_a", "s_a", "region_A", "Variable A", "EJ/yr", 1, 10],
+                ["m_a", "s_a", "region_B", "Variable A", "EJ/yr", 10, 1],
+                ["m_a", "s_a", "World", "Variable A", "EJ/yr", 11, 11],
+            ],
+            [
+                ["m_a", "s_a", "World", "Variable A", "EJ/yr", 11, 11],
+                ["m_a", "s_a", "World", "Variable A (max)", "EJ/yr", 10, 10],
+            ],
+            None,
+        ),
+        (  # Variable is available in provided and aggregated data but different
+            [
+                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 5, 6],
+            ],
+            [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 5, 6]],
+            [
+                "Difference between original and aggregated data:",
+                "m_a",
+                "s_a",
+                "World",
+                "Primary Energy",
+                "EJ/yr",
+                "2005              5            4",
+            ],
+        ),
+    ],
+)
+def test_partial_aggregation(input_data, exp_data, warning, caplog):
+    # Dedicated test for partial aggregation
+    # Test cases are:
+    # * Variable is available in provided and aggregated data and the same
+    # * Variable is only available in the provided data
+    # * Variable is only available in the aggregated data
+    # * Variable is not available in all scenarios in the provided data
+    # * Using skip-aggregation: true should only take provided results
+    # * Using the region-aggregation attribute to create an additional variable
+    # * Variable is available in provided and aggregated data but different
 
     obs = process(
-        test_df,
+        IamDataFrame(pd.DataFrame(input_data, columns=IAMC_IDX + [2005, 2010])),
         DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
         processor=RegionProcessor.from_directory(
             TEST_DATA_DIR / "region_processing/partial_aggregation"
         ),
     )
+    exp = IamDataFrame(pd.DataFrame(exp_data, columns=IAMC_IDX + [2005, 2010]))
+
     # Assert that we get the expected values
     assert_iamframe_equal(obs, exp)
-    # Assert that we get the appropriate warnings since there is a mismatch between
-    # in Primary Energy between model native and aggregated values for common_region_A
-    log_content = [
-        "Difference between original and aggregated data:",
-        "m_a",
-        "s_a",
-        "common_region_A",
-        "Primary Energy",
-        "EJ/yr",
-        "2005            1.0          4.0",
-        "2010            2.0          6.0",
-    ]
 
-    assert all(c in caplog.text for c in log_content)
+    # Assert that we get the correct warnings
+    if warning is None:
+        assert "WARNING" not in caplog.text
+    else:
+        assert all(c in caplog.text for c in warning)
