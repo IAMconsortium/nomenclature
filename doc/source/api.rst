@@ -8,7 +8,7 @@ API documentation
 .. _toplevel-functions:
 
 Top-level functions
-----------------
+-------------------
 
 .. autofunction:: process
 
