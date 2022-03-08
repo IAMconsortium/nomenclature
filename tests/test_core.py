@@ -55,12 +55,18 @@ def test_region_processing_empty_raises():
         pd.DataFrame(
             [
                 ["model_a", "scen_a", "region_foo", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_b", "scen_a", "region_foo", "Primary Energy", "EJ/yr", 1, 2],
             ],
             columns=IAMC_IDX + [2005, 2010],
         )
     )
-
-    with pytest.raises(ValueError, match="The region aggregation for model model_a"):
+    with pytest.raises(
+        ValueError,
+        match=(
+            "region aggregation for model\(s\) \['model_a', 'model_b'\] resulted in an "
+            "empty dataset"
+        ),
+    ):
         process(
             test_df,
             DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
