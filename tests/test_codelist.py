@@ -14,6 +14,7 @@ def test_simple_codelist():
 
     assert "Some Variable" in code
     assert code["Some Variable"]["unit"] is None  # this is a dimensionless variable
+    assert type(code["Some Variable"]["bool"]) == bool  # this is a boolean
 
 
 def test_codelist_to_yaml():
