@@ -1,0 +1,5 @@
+model: m_a
+common_regions:
+  - World:
+    - region_A
+    - region_B

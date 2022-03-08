@@ -7,3 +7,23 @@
 - Share|Coal:
     definition: Share of Coal in the total primary energy mix
     unit:
+- Temperature|Mean:
+    definition: Global mean temperature
+    unit: C
+- Skip-Aggregation:
+    definition: Test variable to be skipped during aggregation
+    unit: EJ/yr
+    skip-region-aggregation: true
+- Variable A:
+    definition: Test variable to be used for computing a max aggregate
+    unit: EJ/yr
+    region-aggregation:
+        - Variable A (max):
+            method: max
+- Variable A (max):
+    unit: EJ/yr
+- Variable B:
+    unit: EJ/yr
+    region-aggregation:
+        - Variable B:
+            method: max

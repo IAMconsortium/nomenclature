@@ -12,8 +12,13 @@ from nomenclature.processor.region import (  # noqa
     RegionAggregationMapping,
 )
 
-
 # set up logging
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO,
+)
+
 logger = logging.getLogger(__name__)
 
 # get version number either from git (preferred) or metadata

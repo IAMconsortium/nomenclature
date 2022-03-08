@@ -201,7 +201,7 @@ def test_region_processing_complete(directory):
         ),
     ],
 )
-def test_region_processing_weighted_aggregation(folder, exp_df, args):
+def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
     # test a weighed sum
 
     test_df = IamDataFrame(
@@ -231,6 +231,13 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args):
         ),
     )
     assert_iamframe_equal(obs, exp)
+    # check the logs since the presence of args should cause a warning in the logs
+    if args:
+        logmsg = (
+            "Could not aggregate 'Price|Carbon' for region 'World' "
+            "({'weight': 'Emissions|CO2'})"
+        )
+        assert logmsg in caplog.text
 
 
 def test_region_processing_skip_aggregation():
@@ -255,3 +262,121 @@ def test_region_processing_skip_aggregation():
         ),
     )
     assert_iamframe_equal(obs, exp)
+
+
+@pytest.mark.parametrize(
+    "input_data, exp_data, warning",
+    [
+        (  # Variable is available in provided and aggregated data and the same
+            [
+                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+            ],
+            [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6]],
+            None,
+        ),
+        (  # Variable is only available in the provided data
+            [
+                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+            ],
+            [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6]],
+            None,
+        ),
+        (  # Variable is only available in the aggregated data
+            [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6]],
+            [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6]],
+            None,
+        ),
+        (  # Variable is not available in all scenarios in the provided data
+            [
+                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["m_a", "s_b", "region_A", "Primary Energy", "EJ/yr", 5, 6],
+                ["m_a", "s_b", "region_B", "Primary Energy", "EJ/yr", 7, 8],
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+            ],
+            [
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+                ["m_a", "s_b", "World", "Primary Energy", "EJ/yr", 12, 14],
+            ],
+            None,
+        ),
+        (  # Using skip-aggregation: true should only take provided results
+            [
+                ["m_a", "s_a", "region_A", "Skip-Aggregation", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Skip-Aggregation", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "World", "Skip-Aggregation", "EJ/yr", 10, 11],
+            ],
+            [["m_a", "s_a", "World", "Skip-Aggregation", "EJ/yr", 10, 11]],
+            None,
+        ),
+        (  # Using the region-aggregation attribute to create an additional variable
+            [
+                ["m_a", "s_a", "region_A", "Variable A", "EJ/yr", 1, 10],
+                ["m_a", "s_a", "region_B", "Variable A", "EJ/yr", 10, 1],
+                ["m_a", "s_a", "World", "Variable A", "EJ/yr", 11, 11],
+            ],
+            [
+                ["m_a", "s_a", "World", "Variable A", "EJ/yr", 11, 11],
+                ["m_a", "s_a", "World", "Variable A (max)", "EJ/yr", 10, 10],
+            ],
+            None,
+        ),
+        (  # Variable is available in provided and aggregated data but different
+            [
+                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 5, 6],
+            ],
+            [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 5, 6]],
+            [
+                "Difference between original and aggregated data:",
+                "m_a   s_a      World  Primary Energy",
+                "2005              5            4",
+            ],
+        ),
+        (  # Conflict between overlapping renamed variable and provided data
+            [
+                ["m_a", "s_a", "region_A", "Variable B", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Variable B", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "World", "Variable B", "EJ/yr", 4, 6],
+            ],
+            [["m_a", "s_a", "World", "Variable B", "EJ/yr", 4, 6]],
+            [
+                "Difference between original and aggregated data:",
+                "m_a   s_a      World  Variable B EJ/yr",
+                "2005              4            3",
+            ],
+        ),
+    ],
+)
+def test_partial_aggregation(input_data, exp_data, warning, caplog):
+    # Dedicated test for partial aggregation
+    # Test cases are:
+    # * Variable is available in provided and aggregated data and the same
+    # * Variable is only available in the provided data
+    # * Variable is only available in the aggregated data
+    # * Variable is not available in all scenarios in the provided data
+    # * Using skip-aggregation: true should only take provided results
+    # * Using the region-aggregation attribute to create an additional variable
+    # * Variable is available in provided and aggregated data but different
+
+    obs = process(
+        IamDataFrame(pd.DataFrame(input_data, columns=IAMC_IDX + [2005, 2010])),
+        DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+        processor=RegionProcessor.from_directory(
+            TEST_DATA_DIR / "region_processing/partial_aggregation"
+        ),
+    )
+    exp = IamDataFrame(pd.DataFrame(exp_data, columns=IAMC_IDX + [2005, 2010]))
+
+    # Assert that we get the expected values
+    assert_iamframe_equal(obs, exp)
+
+    # Assert that we get the correct warnings
+    if warning is None:
+        assert "WARNING" not in caplog.text
+    else:
+        assert all(c in caplog.text for c in warning)
