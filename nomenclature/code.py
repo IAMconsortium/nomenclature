@@ -1,13 +1,14 @@
-from re import compile, match
 from typing import Union, List, Dict
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, StrictStr, StrictInt, StrictFloat, StrictBool
 
 
 class Code(BaseModel):
     """A simple class for a mapping of a "code" to its attributes"""
 
     name: str
-    attributes: Dict[str, Union[str, int, float, bool, List, None]]
+    attributes: Dict[
+        str, Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None]
+    ]
 
     @classmethod
     def from_dict(cls, mapping):
