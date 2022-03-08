@@ -408,7 +408,8 @@ class RegionProcessor(BaseModel):
 
         if not processed_dfs:
             raise ValueError(
-                f"The region aggregation for model {model} resulted in an empty dataset"
+                f"The region aggregation for model(s) {df.model} resulted in an empty "
+                "dataset."
             )
 
         return pyam.concat(processed_dfs)
