@@ -1,4 +1,0 @@
-- Some Variable:
-    bool: true
-    definition: Some basic variable
-    unit:
