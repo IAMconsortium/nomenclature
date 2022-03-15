@@ -4,6 +4,6 @@
 - Primary Energy|Coal:
     definition: Primary energy consumption of coal
     unit: EJ/yr
-- Variable with (brackets):
-    definition: This is a variable with brackets for testing purposes
+- Variable (w/ bunkers):
+    definition: This is a variable with special characters for testing purposes
     unit: EJ/yr
