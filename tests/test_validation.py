@@ -20,12 +20,12 @@ def test_validation_dimensionless_unit(simple_definition, simple_df):
     simple_definition.validate(simple_df)
 
 
-def test_validation_brackets(simple_definition, simple_df):
+def test_validation_brackets(extras_definition, simple_df):
     """Assert that validating against a dimensionless quantity"""
     mapping = dict(variable={"Primary Energy|Coal": "Variable with (brackets)"})
     simple_df.rename(mapping, inplace=True)
 
-    simple_definition.validate(simple_df)
+    extras_definition.validate(simple_df)
 
 
 def test_validation_fails_variable(simple_definition, simple_df):
