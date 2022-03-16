@@ -1,0 +1,9 @@
+- Primary Energy:
+    definition: Total primary energy consumption
+    unit: EJ/yr
+- Primary Energy|Coal:
+    definition: Primary energy consumption of coal
+    unit: EJ/yr
+- Variable (w/ bunkers):
+    definition: This is a variable with special characters for testing purposes
+    unit: EJ/yr

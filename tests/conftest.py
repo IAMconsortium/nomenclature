@@ -24,6 +24,11 @@ def simple_definition():
     yield DataStructureDefinition(TEST_DATA_DIR / "validation_nc")
 
 
+@pytest.fixture(scope="session")
+def extras_definition():
+    yield DataStructureDefinition(TEST_DATA_DIR / "extras_nc")
+
+
 @pytest.fixture(scope="function")
 def simple_df():
     yield IamDataFrame(TEST_DF)

@@ -13,11 +13,19 @@ def test_validation(simple_definition, simple_df):
 
 
 def test_validation_dimensionless_unit(simple_definition, simple_df):
-    """Assert that validating against a dimensionless quantity"""
+    """Assert validating against a dimensionless quantity"""
     mapping = dict(variable={"Primary Energy|Coal": "Share|Coal"}, unit={"EJ/yr": ""})
     simple_df.rename(mapping, inplace=True)
 
     simple_definition.validate(simple_df)
+
+
+def test_validation_brackets(extras_definition, simple_df):
+    """Assert validating against a variable with special characters"""
+    mapping = dict(variable={"Primary Energy|Coal": "Variable (w/ bunkers)"})
+    simple_df.rename(mapping, inplace=True)
+
+    extras_definition.validate(simple_df)
 
 
 def test_validation_fails_variable(simple_definition, simple_df):
