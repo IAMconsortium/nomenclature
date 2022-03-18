@@ -1,0 +1,5 @@
+model: model_a
+native_regions:
+  - region_a
+exclude_regions:
+  - region_a
