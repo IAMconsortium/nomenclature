@@ -2,3 +2,5 @@ model: model_b
 native_regions:
   - region_a: region_A
   - region_B
+exclude_regions:
+  - region_foo
