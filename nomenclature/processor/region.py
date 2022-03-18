@@ -327,6 +327,27 @@ class RegionProcessor(BaseModel):
             raise pydantic.ValidationError(errors, model=self.__class__)
 
     def apply(self, df: IamDataFrame, dsd: DataStructureDefinition) -> IamDataFrame:
+        """Apply region processing
+
+        Parameters
+        ----------
+        df : IamDataFrame
+            Input data that the region processing is applied to
+        dsd : DataStructureDefinition
+            Used for region validation and variable information for performing region
+            processing
+
+        Returns
+        -------
+        IamDataFrame
+            Processed data
+
+        Raises
+        ------
+        ValueError
+            In case there are regions present in the input data which are not mentioned
+            in the corresponding model mapping.
+        """
         processed_dfs: List[IamDataFrame] = []
         for model in df.model:
             model_df = df.filter(model=model)
