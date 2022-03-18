@@ -18,3 +18,11 @@ class RegionNotDefinedError(PydanticValueError):
     msg_template = (
         "Region(s) {region} in {file} not defined in the DataStructureDefinition"
     )
+
+
+class ExcludeRegionOverlapError(PydanticValueError):
+    code = "exclude_region_overlap"
+    msg_template = (
+        "Region(s) {region} can only be present in 'exclude_regions' or "
+        "'{region_type}' in {file}."
+    )

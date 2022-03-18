@@ -13,6 +13,7 @@ from nomenclature.error.region import (
     ModelMappingCollisionError,
     RegionNameCollisionError,
     RegionNotDefinedError,
+    ExcludeRegionOverlapError,
 )
 from nomenclature.processor.utils import get_relative_path
 from pyam import IamDataFrame
@@ -95,6 +96,7 @@ class RegionAggregationMapping(BaseModel):
     file: FilePath
     native_regions: Optional[List[NativeRegion]]
     common_regions: Optional[List[CommonRegion]]
+    exclude_regions: Optional[List[str]]
 
     @validator("model", pre=True)
     def convert_to_list(cls, v):
@@ -155,6 +157,14 @@ class RegionAggregationMapping(BaseModel):
                 file=values["file"],
             )
         return values
+
+    @root_validator(skip_on_failure=True)
+    def check_exclude_native_region_overlap(cls, values):
+        return _check_exclude_region_overlap(values, "native_regions")
+
+    @root_validator(skip_on_failure=True)
+    def check_exclude_common_region_overlap(cls, values):
+        return _check_exclude_region_overlap(values, "common_regions")
 
     @classmethod
     def from_file(cls, file: Union[Path, str]):
@@ -236,7 +246,7 @@ class RegionAggregationMapping(BaseModel):
     @property
     def model_native_region_names(self) -> List[str]:
         # List of the **original** model native region names
-        return [x.name for x in self.native_regions]
+        return [x.name for x in self.native_regions or []]
 
     @property
     def common_region_names(self) -> List[str]:
@@ -334,7 +344,8 @@ class RegionProcessor(BaseModel):
                     f"Applying region-processing for model {model} from file "
                     f"{self.mappings[model].file}"
                 )
-
+                # Check for regions not mentioned in the model mapping
+                _check_unexpected_regions(model_df, self.mappings[model])
                 _processed_dfs = []
 
                 # Silence pyam's empty filter warnings
@@ -459,3 +470,40 @@ def _merge_with_provided_data(
     # merge aggregated data onto original common-region data
     index = aggregate_df._data.index.difference(common_region_df._data.index)
     return common_region_df.append(aggregate_df._data[index])
+
+
+def _check_exclude_region_overlap(values: Dict, region_type: str) -> Dict:
+    if values.get("exclude_regions") is None or values.get(region_type) is None:
+        return values
+    if overlap := set(values["exclude_regions"]) & {
+        r.name for r in values[region_type]
+    }:
+        raise ExcludeRegionOverlapError(
+            region=overlap, region_type=region_type, file=values["file"]
+        )
+    return values
+
+
+def _check_unexpected_regions(
+    df: IamDataFrame, mapping: RegionAggregationMapping
+) -> None:
+    # Raise value error if a region in the input data is not mentioned in the model
+    # mapping
+
+    if regions_not_found := set(df.region) - set(
+        mapping.model_native_region_names
+        + mapping.common_region_names
+        + [
+            const_reg
+            for comm_reg in mapping.common_regions or []
+            for const_reg in comm_reg.constituent_regions
+        ]
+        + (mapping.exclude_regions or [])
+    ):
+        raise ValueError(
+            f"Did not find region(s) {regions_not_found} in 'native_regions', "
+            "'common_regions' or 'exclude_regions' in model mapping for "
+            f"{mapping.model} in {mapping.file}. If they are not meant for upload add "
+            "to the 'exclude_regions' section in the model mapping to silence this "
+            "error."
+        )
