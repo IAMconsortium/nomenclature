@@ -524,7 +524,7 @@ def _check_unexpected_regions(
         raise ValueError(
             f"Did not find region(s) {regions_not_found} in 'native_regions', "
             "'common_regions' or 'exclude_regions' in model mapping for "
-            f"{mapping.model} in {mapping.file}. If they are not meant for upload add "
-            "to the 'exclude_regions' section in the model mapping to silence this "
-            "error."
+            f"{mapping.model} in {mapping.file}. If they are not meant to be included "
+            "in the results add to the 'exclude_regions' section in the model mapping "
+            "to silence this error."
         )
