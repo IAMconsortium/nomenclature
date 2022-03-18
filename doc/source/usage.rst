@@ -196,29 +196,36 @@ This example illustrates how such a model mapping looks like:
 
 .. code:: yaml
 
-   model: model_a
-   native_regions:
-     - region_a: alternative_name_a
-     - region_b
+  model: model_a
+  native_regions:
+    - region_a: alternative_name_a
+    - region_b
    common_regions:
-     - common_region_1:
-       - region_a
-       - region_b
-     - common_region_2:
-       - ...
+    - common_region_1:
+      - region_a
+      - region_b
+    - common_region_2:
+      - ...
+  exclude_regions:
+    - region_c
+    - ... 
 
 **Notes**
 
-*  The names of the three top level keywords are fixed:
+*  The names of the four top level keywords are fixed:
 
   * *model*
   * *native_regions*
   * *common_regions*
+  * *exclude_regions*
 
 *  Required properties are:
   
   * *model* and 
   * at least one of *native_regions* and *common_regions*
+
+* Optional properties are:
+  * *exclude_regions*
 
 *  *model* (str or list of str): the model name(s) for which the mapping applies.
 *  *native_regions* (list): a list of model native regions serves as
@@ -235,6 +242,15 @@ This example illustrates how such a model mapping looks like:
    computed as aggregates. They are defined as list entries which
    themselves have a list of constituent regions. These constituent
    regions must be model native regions.
+
+* *exclude_regions* optional (list of str): If input data for region processing provided
+  to :func:`process()` or :meth:`RegionProcessor.apply` contains regions which are not
+  mentioned in *native_regions*, in *common_regions* (as the name of a common region or
+  a constituent region)  an error will be raised. This is a safeguard against silently
+  dropping regions which are not in named in *native_regions* or *common_regions*. 
+  
+  If regions are to be excluded, they can be explicitly named in the *exclude_regions*
+  section which causes their presence to no longer raise an error.
 
 .. note::
    The names of the constituent regions **must** refer to the **original** model
