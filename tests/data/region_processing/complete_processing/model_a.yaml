@@ -6,3 +6,5 @@ common_regions:
   - World:
     - region_a
     - region_B
+exclude_regions:
+  - region_C
