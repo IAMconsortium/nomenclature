@@ -25,6 +25,12 @@ properties:
     items:
       $ref: '#/definitions/CommonRegion'
     minItems: 1
+  exclude_regions:
+    title: Exclude Regions
+    type: array
+    items: 
+      type: string
+    minItems: 1
 required:
   - model
 additionalProperties: false

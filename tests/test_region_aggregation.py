@@ -1,13 +1,16 @@
 from pathlib import Path
 
 import jsonschema
+import pandas as pd
 import pydantic
 import pytest
-from nomenclature.processor.region import (
-    ModelMappingCollisionError,
+from nomenclature import (
+    DataStructureDefinition,
     RegionAggregationMapping,
     RegionProcessor,
+    process,
 )
+from pyam import IAMC_IDX, IamDataFrame
 
 from conftest import TEST_DATA_DIR
 
@@ -36,6 +39,7 @@ def test_mapping():
                 "constituent_regions": ["region_c"],
             },
         ],
+        "exclude_regions": None,
     }
     assert obs.dict() == exp
 
@@ -107,6 +111,7 @@ def test_region_processor_working(region_processor_path):
                 {"name": "World", "rename": None},
             ],
             "common_regions": None,
+            "exclude_regions": None,
         },
         {
             "model": ["model_b"],
@@ -120,6 +125,7 @@ def test_region_processor_working(region_processor_path):
                     "constituent_regions": ["region_a", "region_b"],
                 }
             ],
+            "exclude_regions": ["region_c"],
         },
     ]
     exp_models = {value["model"][0] for value in exp_data}
@@ -172,3 +178,36 @@ def test_region_processor_multiple_wrong_mappings():
 
     with pytest.raises(pydantic.ValidationError, match=msg):
         RegionProcessor.from_directory(TEST_DATA_DIR / "region_aggregation")
+
+
+def test_region_processor_exclude_model_native_overlap_raises():
+    # Test that exclude regions in either native or common regions raise errors
+
+    with pytest.raises(
+        pydantic.ValidationError,
+        match="'region_a'.* 'native_regions'.*\n.*\n.*'region_a'.*'common_regions'",
+    ):
+        RegionProcessor.from_directory(
+            TEST_DATA_DIR / "regionprocessor_exclude_region_overlap"
+        )
+
+
+def test_region_processor_unexpected_region_raises():
+
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "region_A", "Primary Energy", "EJ/yr", 1],
+                ["model_a", "scen_a", "region_B", "Primary Energy", "EJ/yr", 0.5],
+            ],
+            columns=IAMC_IDX + [2005],
+        )
+    )
+    with pytest.raises(ValueError, match="Did not find.*'region_B'.*in.*model_a.yaml"):
+        process(
+            test_df,
+            DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+            processor=RegionProcessor.from_directory(
+                TEST_DATA_DIR / "regionprocessor_unexpected_region"
+            ),
+        )

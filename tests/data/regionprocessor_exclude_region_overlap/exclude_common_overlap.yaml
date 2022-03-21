@@ -1,0 +1,6 @@
+model: model_a
+common_regions:
+  - region_a:
+    - region_a
+exclude_regions:
+  - region_a
