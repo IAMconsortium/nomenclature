@@ -47,7 +47,10 @@ def test_region_processing_rename():
     assert_iamframe_equal(obs, exp)
 
 
-def test_region_processing_empty_raises():
+@pytest.mark.parametrize(
+    "rp_dir", ["region_processing/rename_only", "region_processing/empty_aggregation"]
+)
+def test_region_processing_empty_raises(rp_dir):
     # Test that an empty result of the region-processing raises
     # see also https://github.com/IAMconsortium/pyam/issues/631
 
@@ -64,9 +67,7 @@ def test_region_processing_empty_raises():
         process(
             test_df,
             DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
-            processor=RegionProcessor.from_directory(
-                TEST_DATA_DIR / "region_processing/rename_only"
-            ),
+            processor=RegionProcessor.from_directory(TEST_DATA_DIR / rp_dir),
         )
 
 
