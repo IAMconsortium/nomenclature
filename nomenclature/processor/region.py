@@ -345,8 +345,8 @@ class RegionProcessor(BaseModel):
         Raises
         ------
         ValueError
-            In case there are regions present in the input data which are not mentioned
-            in the corresponding model mapping.
+            * If *df* contains regions that are not listed in the model mapping, or
+            * If the region-processing results in an empty **IamDataFrame**.
         """
         processed_dfs: List[IamDataFrame] = []
         for model in df.model:
@@ -438,7 +438,8 @@ class RegionProcessor(BaseModel):
                     elif not common_region_df.empty:
                         processed_dfs.append(common_region_df)
 
-        if not processed_dfs:
+        # raise an error if processed_dfs has no entries or all are empty
+        if not processed_dfs or all(df.empty for df in processed_dfs):
             raise ValueError(
                 f"The region-processing for model(s) {df.model} returned an empty "
                 "dataset"

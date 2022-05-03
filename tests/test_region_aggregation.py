@@ -185,7 +185,10 @@ def test_region_processor_exclude_model_native_overlap_raises():
 
     with pytest.raises(
         pydantic.ValidationError,
-        match="'region_a'.* 'native_regions'.*\n.*\n.*'region_a'.*'common_regions'",
+        match=(
+            "'region_a'.* ['native_regions'|'common_regions'].*\n.*\n.*'region_a'.*"
+            "['native_regions'|'common_regions']"
+        ),
     ):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "regionprocessor_exclude_region_overlap"
