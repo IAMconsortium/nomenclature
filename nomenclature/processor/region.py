@@ -345,9 +345,8 @@ class RegionProcessor(BaseModel):
         Raises
         ------
         ValueError
-            * In case there are regions present in the input data which are not
-              mentioned in the corresponding model mapping.
-            * In case the region-processing results in an empty data frame.
+            * If *df* contains regions that are not listed in the model mapping, or
+            * If the region-processing results in an empty **IamDataFrame**.
         """
         processed_dfs: List[IamDataFrame] = []
         for model in df.model:
