@@ -25,10 +25,15 @@ Release v\ |version|.
 Overview
 ========
 
-This package facilitates working with codelists that follow the format developed by the
-`Integrated Assessment Modeling Consortium (IAMC) <https://www.iamconsortium.org>`_. It
-supports validation of scenario data and region processing, which consists of renaming
-and aggregation of model "native regions" to "common regions" used in a project.
+The nomenclature package facilitates working with "codelists" that follow the format
+developed by the `Integrated Assessment Modeling Consortium (IAMC)
+<https://www.iamconsortium.org>`_. Codelists are yaml file based lists of allowed values
+for dimensions of IAMC-style data, for example *regions* and *variables*.
+
+Nomenclature performs data validation to check if a provided data set conforms to the
+values in the code lists. Additionally, it supports "region processing", which consists
+of renaming and aggregation of model "native regions" to "common regions" used in a
+project.
 
 Those two tasks are carried out by two classes:
 
@@ -37,26 +42,25 @@ Those two tasks are carried out by two classes:
    in a model comparison or scenario exercise following the IAMC data format.
 
 #. The :class:`RegionProcessor` class carries out renaming and aggregation based on
-   information given in model mapping files.
+   information given in yaml model mapping files.
 
-A starting point on how to use these two classes with existing data templates and model mappings can be found in :ref:`getting-started`.
+Instructions on how to install and get started using nomenclature can be found in
+:ref:`getting_started`.
 
-A more ground-up view including the structures for data templates and model mappings is
-given in :ref:`usage`.
+The complete user guide including the file specifications for codelists and model
+mappings, example code and details on how to use nomenclature is given in
+:ref:`user_guide`.
 
 
 Table of Contents
 =================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   install
    getting_started
-   usage
-   guidelines
+   user_guide
    api
-   cli
 
 Acknowledgement
 ===============

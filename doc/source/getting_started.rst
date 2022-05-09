@@ -1,116 +1,82 @@
-.. _getting-started:
+.. _getting_started:
 
 .. currentmodule:: nomenclature
+
 
 Getting started
 ===============
 
-The nomenclature package facilitates working with codelists that follow the format
+Package overview
+----------------
+
+The nomenclature package facilitates working with "codelists" that follow a format
 developed by the `Integrated Assessment Modeling Consortium (IAMC)
-<https://www.iamconsortium.org>`__. It supports validation of scenario data and region
-processing, which consists of renaming of model “native regions” and aggregation to
-“common regions” used in a project.
+<https://www.iamconsortium.org>`__, detailed here :ref:`codelist`.
 
-There are two main classes that the user interacts with when using the nomenclature
-package, :class:`DataStructureDefinition` and :class:`RegionProcessor`.
+Codelists are yaml files that specify allowed values for variables, regions or scenarios
+for a model comparison project. Nomenclature parses these files and checks if provided
+model results are compliant with the specifications.
 
-A :class:`DataStructureDefinition` contains codelists which define allowed *variables*
-(including units) and *regions* to be used in a model comparison or scenario exercise
-following the IAMC data format.
+Additionally, nomenclature can perform "region processing". Region processing consists
+of renaming of model “native regions” and aggregation of model native results to “common
+regions”. This enables comparison across different models on the same regional
+resolution. This processing is defined on a per-model basis in yaml files which are
+called "model mappings". Details on the format can be found here :ref:`model_mapping`.
 
-A :class:`RegionProcessor` is used to facilitate region processing for model comparison
-studies. It holds a list of model specific mappings which define renaming of native
-regions and aggregation to common regions.
+Installation
+------------
 
-The top-level function *process()* provides a direct entrypoint to validating scenario
-data and applying region processing. Details will be covered in
-:ref:`minimum-working-example`. Before that, the required directory structure for
-definitions and mappings is discussed. 
+.. attention:: The nomenclature requires python >= 3.8
 
-.. _dir-structure:
 
-Directory structure for definitions and mappings
-------------------------------------------------
-
-This is the directory structure that needs to be in place in order for the validation
-and region processing to work:
+Via Pip
+^^^^^^^
+.. attention::  The nomenclature package is distributed as "nomenclature-iamc" on pypi.
 
 .. code-block:: bash
 
-   .
-   ├── definitions
-   │   ├── region
-   │   │   ├── ...
-   │   │   └── regions.yaml
-   │   └── variable
-   │       ├── ...
-   │       └── variable.yaml
-   └── mappings [optional]
-       ├── model_a.yaml
-       └── ...
-
-**Notes**
-
-* The **DataStructureDefinition** will be initialized from the *definitions* folder.
-
-* The **RegionProcessor** will be initialized from the *mappings* folder. If the project
-  has no model specific mappings, this folder can also be omitted. In this case
-  *RegionProcessor* **must not** be used as it would try to read a non-existent
-  directory causing an error.
-
-* Inside the *definitions* directory, each "dimension", in our case *variable* and
-  *region*, must live in its own sub-directory.
-
-* The directories inside the *definitions* folder, *variable* and *region* are special
-  names that must be kept.
-
-* The definitions can be spread across multiple yaml files. In the interest of keeping
-  this example minimal only one file for regions and variables is shown.
-
-* The *mappings* directory directly contains the model mappings. There are no special
-  sub-folders required. 
+    pip install nomenclature-iamc
 
 
-.. _minimum-working-example:
+From Source
+^^^^^^^^^^^
 
-Minimum working example
------------------------
+nomenclature can also be installed from source. This will get you the latest version
+of the main branch.
 
-This section aims to provide a minimum working example of how to use the nomenclature
-package. It is assumed that the variable templates and model mappings already exist.
-Details on how those are structured and how to start using nomenclature "from scratch"
-can be found here :ref:`usage`. 
+.. code-block:: bash
 
-The following outlines how to use the nomenclature package:
+    pip install -e git+https://github.com/IAMconsortium/nomenclature@main#egg=nomenclature
 
-.. code-block:: python
 
-  # Import the necessary libraries
-  import pyam
-  from nomenclature import DataStructureDefinition, RegionProcessor, process
-  
-  # Initialize DataStructureDefinition from a suitable directory
-  dsd = DataStructureDefinition("definitions")
-  
-  # Initialize a RegionProcessor from a suitable directory that has the mappings
-  rp = RegionProcessor.from_directory("mappings")
-  
-  # Read the data using pyam
-  df = pyam.IamDataFrame("/path/to/file")
-  
-  # Perform the validation and apply the region aggregation
-  df = process(df, dsd, processor=rp)
+Standard use case
+-----------------
 
-**Notes**
+Typically, nomenclature is used as part of the data upload process for integrated
+assessment model comparison studies that use the IIASA Scenario Explorer infrastructure.
 
-* The function :func:`process` takes a :class:`pyam.IamDataFrame` as input.
+The three parts of the processing workflow: codelists, model mappings and the workflow
+code are usually hosted in a GitHub repository. As an example, in the openENTRANCE
+project (`github.com/openENTRANCE/openentrance
+<https://github.com/openENTRANCE/openentrance>`_) these three parts are the
+``definitions/`` and ``mappings/`` folders which contain codelists and model mappings
+respectively and ``workflow.py`` which contains the processing code using nomenclature.
 
-* :class:`DataStructureDefinition` and :class:`RegionProcessor` are initialized from
-  directories containing yaml files. See :ref:`dir-structure` for details.
+The validation and region-processing for a specific can be run locally by any user. In
+order to do so, the corresponding GitHub repository needs to be cloned, nomenclature
+installed and the ``main`` function in ``workflow.py`` be given a
+:class:`pyam.IamDataFrame` of the model data as input.
 
-* The processor argument of :func:`process` is optional and may only to be used if there
-  are model mappings. See :ref:`toplevel-functions` for details.
 
-* If not all dimensions of the :class:`DataStructureDefinition` should be validated, a
-  *dimensions* argument in form of a list of strings can be provided. Only the provided
-  dimensions will then be validated. See :ref:`toplevel-functions` for details.
+Command line interface
+----------------------
+
+Nomenclature offers CLI (=command line interface) functionality that validates codelists
+and model mappings *themselves* (as opposed to input data). This can be very useful to
+ensure that all codelists or model mappings for a project are understood by
+nomenclature:
+
+.. code-block:: bash
+
+  nomenclature validate-project /folder/where/definitions/and/mappings/are
+
