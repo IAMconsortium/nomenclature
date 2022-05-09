@@ -179,15 +179,16 @@ and 'variable' (e.g. 'scenario' or 'model'), the requirements for are more simpl
   'scenario 2').
 * The files belonging to this dimension need to be placed in a folder of the same name 
   as the IAMC dimension to be validated. In our example 'scenario'.
-
-
 * When instantiating a :class:`DataStructureDefinition` with dimensions other than     
-  'region' and 'varaible' a list of **all** dimensions must be provided:
+  'region' and 'varaible' a list of **all** dimensions must be provided. If for example, the dimensions *region*, *variable* and *scenario* should be read, the code would look like this:
 
 .. code:: python
 
    dsd = DataStructureDefinition('definitions', ['region', 'variable', 'scenario'])
 
+  
+More details on how to instantiate a DataStructureDefinition can be found in
+:ref:`minimum_working_example`.
 
 Tag
 ---
