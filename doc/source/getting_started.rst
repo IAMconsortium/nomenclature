@@ -67,16 +67,3 @@ order to do so, the corresponding GitHub repository needs to be cloned, nomencla
 installed and the ``main`` function in ``workflow.py`` be given a
 :class:`pyam.IamDataFrame` of the model data as input.
 
-
-Command line interface
-----------------------
-
-Nomenclature offers CLI (=command line interface) functionality that validates codelists
-and model mappings *themselves* (as opposed to input data). This can be very useful to
-ensure that all codelists or model mappings for a project are understood by
-nomenclature:
-
-.. code-block:: bash
-
-  nomenclature validate-project /folder/where/definitions/and/mappings/are
-
