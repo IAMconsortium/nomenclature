@@ -55,7 +55,7 @@ Table of Contents
 .. toctree::
    :maxdepth: 3
 
-   getting_started
+   installation
    user_guide
    api
 
