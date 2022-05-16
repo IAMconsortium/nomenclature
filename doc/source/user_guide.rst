@@ -24,9 +24,6 @@ RegionProcessor and validated using DataStructureDefinition. Details are covered
 Before that, however, the required directory structure for definitions and mappings as
 well as the file specifications for codelists and model mappings are discussed. 
 
-
-
-
 .. toctree::
   :maxdepth: 3
 

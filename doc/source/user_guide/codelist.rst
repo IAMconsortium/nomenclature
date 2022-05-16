@@ -1,6 +1,6 @@
 .. _codelist:
 
-Codelist
+Validation using Codelists
 ========
 
 A "codelist" (named in reference to code lists in `SDMX <https://sdmx.org/>`_) is a yaml
@@ -66,9 +66,8 @@ While not strictly necessary a *description* attribute with a short description 
 variable is encouraged. 
 
 In principle, *any* number of additional arbitrary named attributes are allowed.
-However, with the exception of special region-processing specific attributes (see
-:ref:`region_aggregation_attributes`), they will not have any effect on the
-functionality of nomenclature.
+There are several attributes that affect the region-processing by the nomenclature package (see
+:ref:`region_aggregation_attributes`).
 
 .. _region_aggregation_attributes:
 
@@ -162,7 +161,7 @@ included in a macro-region (i.e., a continent or large region).
 Generic
 -------
 
-As mentioned in the beginning of this section, for IAMC dimensions other than 'region'
+For IAMC dimensions other than 'region'
 and 'variable' (e.g. 'scenario' or 'model'), the requirements for are more simple: 
 
 .. code:: yaml
