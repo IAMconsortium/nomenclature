@@ -132,18 +132,25 @@ Once the appropriate model mappings have been created, using the
 
    # initialize a RegionProcessor instance from the directory containing model mappings
    rp = RegionProcessor.from_directory("mappings")
-   
+
+   # initialize a DataStructureDefinition
+   dsd = DataStructureDefinition("defintions", ["region", "variable"])
+
    # IAMC formatted input data, to be processed
    data = pyam.IamDataFrame("input_data.xlsx")
    
    # returns the processed data as IamDataFrame
-   processed_data = rp.apply(data)
+   processed_data = rp.apply(data, dsd)
 
+The DataStructureDefinition instance is required for region processing because it is
+used to validate the regions defined in the model mappings and provides information
+about variable aggregation (see :ref:`region_aggregation_attributes` for details). The
+DataStructureDefinition *must* contain the *region* and *variable* dimensions in order to be used as part of the region processing.
 
-Calling :meth:`RegionProcessor.apply` directly as in the example above is done mostly
-for illustrative purposes. 
+Calling the :meth:`RegionProcessor.apply` method directly as in the example above is
+done mostly for illustrative purposes. 
 
-In practice, normally, both region processing *and* validation are desired and so the
-use of the :func:`process` function (details can be found under
+In normal practice, both region processing *and* validation are desired and so the use
+of the :func:`process` function (details can be found under
 :ref:`minimum_working_example`) which combines both is recommended. Nonetheless, if only
 region processing is necessary the above code is appropriate.
