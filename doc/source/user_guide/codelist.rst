@@ -1,17 +1,19 @@
 .. _codelist:
 
 Validation using Codelists
-========
+==========================
 
-A "codelist" (named in reference to code lists in `SDMX <https://sdmx.org/>`_) is a yaml
-file that contains a list of allowed values for any **index** dimension of the IAMC
-format (model, scenario, region, variable). Which index dimension a code list will
-be applied to is determined by the **name of the folder** in which it is located. For
-example, if a codelist is located in a folder called ``model/`` it will be applied to
-the "model" index dimension. 
+A codelist is a list of codes (i.e. allowed values). In this package, the codelists are
+parsed from yaml files. They contain lists of allowed values for any **index**
+dimension of the IAMC format (model, scenario, region, variable). Which index dimension
+a codelist will be applied to is determined by the **name of the folder** in which it is
+located. For example, if a codelist is located in a folder called ``model/`` it will be
+applied to the "model" index dimension. 
 
-A codelist must only contain a single list of allowed values. In the most simple case
-the list items are strings, e.g.:
+Codelist format specification
+-----------------------------
+
+In the most simple case of a codelist it contains a list of strings, e.g.:
 
 .. code:: yaml
 
@@ -20,19 +22,18 @@ the list items are strings, e.g.:
   - allowed_value_c
   - ...
 
-In case of the "model" or "scenario" index dimension, such a simple list sufficient.
-More details on 
 
-For defining allowed variables and regions, however, the list elements are more complicated, detailed in the following.
+For defining allowed *variables* and *regions*, the list elements are more complicated
+than simple strings, detailed in the following.
 
 .. _variable:
 
 Variable
---------
+^^^^^^^^
 
-An entry in a variable code list, **must be** a mapping (translated to python as a
-dictionary) maps the **name** of an allowed variable to, at minimum, a key value pair
-defining the allowed **unit(s)** for the variable.
+An entry in a variable code list, *must be* a mapping (translated to python as a
+dictionary). It maps the **name** of an allowed variable to, at least, one key-value
+pair defining the allowed **unit(s)** for the variable.
 
 This is an example for a valid entry in a variable codelist:
 
@@ -43,8 +44,8 @@ This is an example for a valid entry in a variable codelist:
      description: A short description
      <other attribute>: Some text, value, boolean or list (optional)
 
-The **unit** attribute is **required** and should be compatible with the `iam-units
-<https://github.com/iamconsortium/units>`_ package.
+The **unit** attribute is **required** and its value should be compatible with the
+`iam-units <https://github.com/iamconsortium/units>`_ package.
 
 The unit attribute can be:
 * a string -> one allowed unit for the variable
@@ -65,14 +66,14 @@ examples for all three options:
 While not strictly necessary a *description* attribute with a short description of the
 variable is encouraged. 
 
-In principle, *any* number of additional arbitrary named attributes are allowed.
-There are several attributes that affect the region-processing by the nomenclature package (see
-:ref:`region_aggregation_attributes`).
+In principle, *any* number of additional arbitrary named attributes are allowed. There
+are several attributes that affect the region-processing by the nomenclature package
+(see :ref:`region_aggregation_attributes`).
 
 .. _region_aggregation_attributes:
 
 Optional attributes for region aggregation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * By default, all variables are processed using the method
   :meth:`pyam.IamDataFrame.aggregate_region`, which performs a simple summation of all
@@ -114,7 +115,7 @@ Optional attributes for region aggregation
 
 
 Guidelines and variable naming conventions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The variable name should adhere to the following conventions:
 
@@ -132,7 +133,7 @@ The variable name should adhere to the following conventions:
    because this should be clear from the context or unit.
 
 Region
-------
+^^^^^^
 
 As is the case for the "variable" codelist, a region codelist must also follow a
 specific structure. 
@@ -159,7 +160,7 @@ included in a macro-region (i.e., a continent or large region).
 .. _generic:
 
 Generic
--------
+^^^^^^^
 
 For IAMC dimensions other than 'region'
 and 'variable' (e.g. 'scenario' or 'model'), the requirements for are more simple: 
@@ -190,7 +191,7 @@ More details on how to instantiate a DataStructureDefinition can be found in
 :ref:`minimum_working_example`.
 
 Tag
----
+^^^
 
 To avoid repetition (and subsequent errors), any number of yaml files can be used as
 “tags” using a list of mappings. There must be only one top-level entry in
@@ -206,3 +207,38 @@ with ``tag_``.
 When importing a *tag* codelist, any occurrence of ``{Tag}`` in the name of a code will
 be replaced by every element in the Tag dictionary. The ``{Tag}`` will also be replaced
 in any of the variable attributes.
+
+Using the DataStructureDefinition class
+---------------------------------------
+
+Once the required codelists have been created, validating IAM data against a number of
+codelists using the nomenclature package is straightforward:  
+
+.. code:: python
+
+   import nomenclature
+   from pyam import IamDataFrame
+  
+   # input path to the folder holing the codelists
+   dsd = DataStructureDefinition("definition")
+   # data to validate in IAMC format
+   data = IamDataFrame("input_data.xlsx") 
+   
+   # returns True if the data is valid, raises error otherwise
+   dsd.validate(data)
+
+Per default, :class:`DataStructureDefinition` reads in *region* and *variable* codelists
+from their respective sub folders inside the ``definition/`` folder. Any different
+number of dimensions can be read in by instantiating the ``DataStructureDefinition``
+object with an additional list of strings, e.g. ``DataStructureDefinition("definition",
+['region', 'variable', 'scenario'])``. This would attempt to read three codelists.
+
+In addition, when running :meth:`DataStructureDefinition.validate`, it can be selected
+which dimensions to *validate*. Per default, *all* dimensions which were read at
+instantiating are validated, but any subset can be selected by providing a list of
+dimensions. In the above example using ``dsd.validate(df, ['scenario'])`` would validate
+*only* the *scenario* dimension.
+
+In practice, ``DataStructureDefinition.validate`` is usually not called directly but
+rather as part of the :func:`process` function which combines validation and region
+processing. Further details on that are found in :ref:`minimum_working_example`.
