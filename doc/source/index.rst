@@ -44,13 +44,10 @@ Those two tasks are carried out by two classes:
 #. The :class:`RegionProcessor` class carries out renaming and aggregation based on
    information given in yaml model mapping files.
 
-Instructions on how to install and get started using nomenclature can be found in
-:ref:`getting_started`.
+Instructions on how to install nomenclature can be found in the "Installation" section.
 
 The complete user guide including the file specifications for codelists and model
-mappings, example code and details on how to use nomenclature is given in
-:ref:`user_guide`.
-
+mappings, example code and details on how to use nomenclature is given in "User Guide".
 
 Table of Contents
 =================
