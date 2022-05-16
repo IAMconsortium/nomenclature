@@ -28,12 +28,12 @@ Overview
 The nomenclature package facilitates working with "codelists" that follow the format
 developed by the `Integrated Assessment Modeling Consortium (IAMC)
 <https://www.iamconsortium.org>`_. Codelists are yaml file based lists of allowed values
-for dimensions of IAMC-style data, for example *regions* and *variables*.
+(or codes) for dimensions of IAMC-style data, for example *regions* and *variables*.
+Using these codelists, nomenclature performs data validation to check if a provided data
+set conforms to the values in the code lists. 
 
-Nomenclature performs data validation to check if a provided data set conforms to the
-values in the code lists. Additionally, it supports "region processing", which consists
-of renaming and aggregation of model "native regions" to "common regions" used in a
-project.
+Additionally, it can execute "region processing", which consists of renaming of "native
+regions" and/or aggregation to "common regions" used in a project.
 
 Those two tasks are carried out by two classes:
 
