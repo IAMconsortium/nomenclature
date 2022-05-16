@@ -216,13 +216,13 @@ codelists using the nomenclature package is straightforward:
 
 .. code:: python
 
-   import nomenclature
-   from pyam import IamDataFrame
+   import pyam
+   import nomenclature  
   
    # input path to the folder holing the codelists
    dsd = DataStructureDefinition("definition")
    # data to validate in IAMC format
-   data = IamDataFrame("input_data.xlsx") 
+   data = pyam.IamDataFrame("input_data.xlsx") 
    
    # returns True if the data is valid, raises error otherwise
    dsd.validate(data)

@@ -127,14 +127,14 @@ Once the appropriate model mappings have been created, using the
 
 .. code:: python
 
+   import pyam
    import nomenclature
-   from pyam import IamDataFrame
 
    # initialize a RegionProcessor instance from the directory containing model mappings
    rp = RegionProcessor.from_directory("mappings")
    
    # IAMC formatted input data, to be processed
-   data = IamDataFrame("input_data.xlsx")
+   data = pyam.IamDataFrame("input_data.xlsx")
    
    # returns the processed data as IamDataFrame
    processed_data = rp.apply(data)
