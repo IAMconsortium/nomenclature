@@ -1,9 +1,10 @@
 .. _model_mapping:
 
-Model mapping
-=============
+Region processing using model mappings
+======================================
 
-Model mappings, defined on a per-model basis serve three different purposes:
+Model mappings, defined on a per-model basis for region processing serve three different
+purposes:
 
 1. Defining a list of model native regions under the key *native_regions* that are to be
    selected (and usually uploaded) from an IAM result. This also serves as an implicit
@@ -12,6 +13,10 @@ Model mappings, defined on a per-model basis serve three different purposes:
 2. Allowing for renaming of model native regions.
 3. Defining how model native regions should be aggregated to common
    regions.
+
+
+Model mapping format specification
+----------------------------------
 
 This example illustrates how such a model mapping looks like:
 
@@ -73,3 +78,72 @@ This example illustrates how such a model mapping looks like:
   
   If regions are to be excluded, they can be explicitly named in the *exclude_regions*
   section which causes their presence to no longer raise an error.
+
+
+Region aggregation
+------------------
+
+In order to illustrate how region aggregation is performed, consider the following model
+mapping:
+
+.. code:: yaml
+
+   model: model_a  
+   common_regions:
+     - common_region_1:
+       - region_a
+       - region_b
+
+If the data provided for region aggregation contains results for *common_region_1* they
+are compared and combined according to the following logic:
+
+1. If a variable is **not** reported for *common_region_1*, it is calculated through
+   region aggregation of regions *region_a* and *region_b*.
+2. If a variable is **only** reported for *common_region_1* level it is used directly.
+3. If a variable is is reported for *common_region_1* **as well as** *region_a* and
+   *region_b*. The **provided results** take **precedence** over the aggregated ones.
+   Additionally, the aggregation is computed and compared to the provided results. If
+   there are discrepancies, a warning is written to the logs.
+   
+   .. note::
+
+      Please note that in case of differences no error is raised. Therefore it is
+      necessary to check the logs to find out if there were any differences. This is
+      intentional since some differences might be expected.
+
+The process of combining aggregated and model native results is dubbed
+'partial-region-aggregation'.
+
+The `region-aggregation` attribute (see :ref:`region_aggregation_attributes`) works with
+partial region aggregation. If a variable is found in the provided data, it is used over
+aggregated results. Any discrepancies between the provided and aggregated data are
+written to the log.
+
+Using the RegionProcessor class
+-------------------------------
+
+Once the appropriate model mappings have been created, using the
+:class:`RegionProcessor` class to process IAM result data is straightforward:
+
+.. code:: python
+
+   import nomenclature
+   from pyam import IamDataFrame
+
+   # initialize a RegionProcessor instance from the directory containing model mappings
+   rp = RegionProcessor.from_directory("mappings")
+   
+   # IAMC formatted input data, to be processed
+   data = IamDataFrame("input_data.xlsx")
+   
+   # returns the processed data as IamDataFrame
+   processed_data = rp.apply(data)
+
+
+Calling :meth:`RegionProcessor.apply` directly as in the example above is done mostly
+for illustrative purposes. 
+
+In practice, normally, both region processing *and* validation are desired and so the
+use of the :func:`process` function (details can be found under
+:ref:`minimum_working_example`) which combines both is recommended. Nonetheless, if only
+region processing is necessary the above code is appropriate.
