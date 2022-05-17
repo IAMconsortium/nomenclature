@@ -140,10 +140,6 @@ Once the appropriate model mappings have been created, using the
    processed_data = rp.apply(data)
 
 
-Calling :meth:`RegionProcessor.apply` directly as in the example above is done mostly
-for illustrative purposes. 
-
 In practice, normally, both region processing *and* validation are desired and so the
-use of the :func:`process` function (details can be found under
-:ref:`minimum_working_example`) which combines both is recommended. Nonetheless, if only
-region processing is necessary the above code is appropriate.
+use of the :func:`process` function. Details can be found in the
+:ref:`minimum_working_example`.
