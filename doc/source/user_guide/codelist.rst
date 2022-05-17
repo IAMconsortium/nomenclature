@@ -13,7 +13,7 @@ applied to the "model" index dimension.
 Codelist format specification
 -----------------------------
 
-In the most simple case of a codelist it contains a list of strings, e.g.:
+In the most simple case, a codelist consists of a list of strings, e.g.:
 
 .. code:: yaml
 
@@ -66,15 +66,14 @@ examples for all three options:
 While not strictly necessary a *description* attribute with a short description of the
 variable is encouraged. 
 
-In principle, *any* number of additional arbitrary named attributes are allowed. There
-are several attributes that affect the region-processing by the nomenclature package
-(see :ref:`region_aggregation_attributes`).
+The yaml format allows *any* number of additional arbitrary named attributes. 
 
 .. _region_aggregation_attributes:
 
 Optional attributes for region aggregation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+There  are several attributes that affect the region-processing by the nomenclature package.
+See the Section :ref:`model_mapping` for more information.
 * By default, all variables are processed using the method
   :meth:`pyam.IamDataFrame.aggregate_region`, which performs a simple summation of all
   subregions.
@@ -135,9 +134,6 @@ The variable name should adhere to the following conventions:
 Region
 ^^^^^^
 
-As is the case for the "variable" codelist, a region codelist must also follow a
-specific structure. 
-
 Each region **must** be part of a hierarchy, which means that the following nested list
 structure is required:
 
@@ -150,12 +146,9 @@ structure is required:
    - Hierachy 2:
      - ...  
 
-Attributes of the **regions**, in the above example *some attribute* of *region 1* are
-entirely optional and have no influence on the region-processing.
-
-Nonetheless, they can be very useful, examples are: ISO2/3-codes
-(https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes) or the list of countries
-included in a macro-region (i.e., a continent or large region).
+Useful examples of region attriutes are: ISO2/3-codes
+(https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes)
+or the list of countries included in a macro-region (i.e., a continent).
 
 .. _generic:
 
@@ -241,4 +234,4 @@ dimensions. In the above example using ``dsd.validate(df, ['scenario'])`` would 
 
 In practice, ``DataStructureDefinition.validate`` is usually not called directly but
 rather as part of the :func:`process` function which combines validation and region
-processing. Further details on that are found in :ref:`minimum_working_example`.
+processing. Refer to the :ref:`minimum_working_example` for details.

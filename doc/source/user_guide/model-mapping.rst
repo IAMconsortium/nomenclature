@@ -147,10 +147,6 @@ used to validate the regions defined in the model mappings and provides informat
 about variable aggregation (see :ref:`region_aggregation_attributes` for details). The
 DataStructureDefinition *must* contain the *region* and *variable* dimensions in order to be used as part of the region processing.
 
-Calling the :meth:`RegionProcessor.apply` method directly as in the example above is
-done mostly for illustrative purposes. 
-
-In normal practice, both region processing *and* validation are desired and so the use
-of the :func:`process` function (details can be found under
-:ref:`minimum_working_example`) which combines both is recommended. Nonetheless, if only
-region processing is necessary the above code is appropriate.
+In practice, normally, both region processing *and* validation are desired and so the
+use of the :func:`process` function. Details can be found in the
+:ref:`minimum_working_example`.
