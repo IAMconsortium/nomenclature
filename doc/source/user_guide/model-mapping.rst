@@ -111,14 +111,6 @@ are compared and combined according to the following logic:
       necessary to check the logs to find out if there were any differences. This is
       intentional since some differences might be expected.
 
-The process of combining aggregated and model native results is dubbed
-'partial-region-aggregation'.
-
-The `region-aggregation` attribute (see :ref:`region_aggregation_attributes`) works with
-partial region aggregation. If a variable is found in the provided data, it is used over
-aggregated results. Any discrepancies between the provided and aggregated data are
-written to the log.
-
 Using the RegionProcessor class
 -------------------------------
 
