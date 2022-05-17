@@ -108,7 +108,7 @@ package. See the section :ref:`model_mapping` for more information.
          skip-region-aggregation: true
 
   Setting *skip-region-aggregation* to ``true`` only skips the variable in question for
-  aggregation, if the variable is part of the provided data, it **is** used.
+  aggregation. If the variable is part of the provided data, it **is** used.
 
 * Any attributes which are arguments of
   :meth:`aggregate_region() <pyam.IamDataFrame.aggregate_region>` will
