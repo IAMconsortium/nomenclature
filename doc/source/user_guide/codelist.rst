@@ -48,6 +48,7 @@ The **unit** attribute is **required** and its value should be compatible with t
 `iam-units <https://github.com/iamconsortium/units>`_ package.
 
 The unit attribute can be:
+
 * a string -> one allowed unit for the variable
 * a list of strings -> a number of allowed units for the variable 
 * empty -> a *dimensionless* variable
