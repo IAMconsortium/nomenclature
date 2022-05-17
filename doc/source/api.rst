@@ -5,7 +5,7 @@
 API documentation
 =================
 
-.. _toplevel-functions:
+.. _toplevel_functions:
 
 Top-level functions
 -------------------
