@@ -148,5 +148,6 @@ about variable aggregation (see :ref:`region_aggregation_attributes` for details
 DataStructureDefinition *must* contain the *region* and *variable* dimensions in order to be used as part of the region processing.
 
 In practice, normally, both region processing *and* validation are desired and so the
-use of the :func:`process` function. Details can be found in the
+use of the :func:`process` function is recommended over calling
+``RegionProcessor.apply()`` directly. Details can be found in the
 :ref:`minimum_working_example`.
