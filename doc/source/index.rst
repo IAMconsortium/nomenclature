@@ -13,7 +13,7 @@ Release v\ |version|.
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
 
-.. |python| image:: https://img.shields.io/badge/python-_3.8_|_3.9-blue?logo=python&logoColor=white
+.. |python| image:: https://img.shields.io/badge/python-_3.8_|_3.9_|_3.10-blue?logo=python&logoColor=white
    :target: https://github.com/IAMconsortium/nomenclature
 
 .. |pytest| image:: https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml/badge.svg

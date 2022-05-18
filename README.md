@@ -1,13 +1,13 @@
 # nomenclature - Working with IAMC-style data templates
 
-Copyright 2021 IIASA
+Copyright 2021-2022 IIASA
 
 This repository is licensed under the Apache License, Version 2.0 (the "License"); see
 the [LICENSE](LICENSE) for details.
 
 [![license](https://img.shields.io/badge/License-Apache%202.0-black)](https://github.com/IAMconsortium/nomenclature/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/375724610.svg)](https://zenodo.org/badge/latestdoi/375724610)
-[![python](https://img.shields.io/badge/python-3.8_|_3.9-blue?logo=python&logoColor=white)](https://github.com/IAMconsortium/nomenclature)
+[![python](https://img.shields.io/badge/python-3.8_|_3.9_|_3.10-blue?logo=python&logoColor=white)](https://github.com/IAMconsortium/nomenclature)
 [![Code style:
 black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![pytest](https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml/badge.svg)](https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml)
@@ -19,7 +19,7 @@ This package facilitates working with data templates that follow the format deve
 the [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
 It supports validation of scenario data and region processing, which consists of
 renaming and aggregation of model "native regions" to "common regions" used in a
-project. It requires Python version >= 3.8.
+project.
 
 The full documentation is hosted on [Read the
 Docs](https://nomenclature-iamc.readthedocs.io/)
