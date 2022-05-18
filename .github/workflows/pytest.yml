@@ -17,6 +17,7 @@ jobs:
       matrix:
         python-version:
         # keep consistent with py-version badge in README.md and doc/source/index.rst
+        # update setup.cfg and doc/source/installation.rst when deprecating python 3.8
         - '3.10'
         - '3.9'
         - '3.8'
