@@ -16,7 +16,7 @@ configuration for the **nomenclature** package.
 
 .. code-block:: bash
 
-  nomenclature validate-project /folder/to/project/
+  nomenclature validate-project /project/folder/
 
 Documentation
 -------------
