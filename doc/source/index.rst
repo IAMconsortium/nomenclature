@@ -58,6 +58,7 @@ Table of Contents
    installation
    user_guide
    api
+   cli
 
 Acknowledgement
 ===============
