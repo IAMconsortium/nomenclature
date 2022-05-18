@@ -48,4 +48,3 @@ the RegionProcessor and validated using DataStructureDefinition. Details are cov
   user_guide/codelist
   user_guide/model-mapping
   user_guide/code-example
-  user_guide/cli
