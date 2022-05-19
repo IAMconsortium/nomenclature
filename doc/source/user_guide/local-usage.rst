@@ -1,7 +1,7 @@
-.. _minimum_working_example:
+.. _local_usage:
 
-Minimum working example
-=======================
+Local usage of a project
+========================
 
 This section aims to provide a minimum working example of how to use the nomenclature
 package.

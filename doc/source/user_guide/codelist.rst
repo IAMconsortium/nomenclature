@@ -181,10 +181,6 @@ and 'variable' (e.g. 'scenario' or 'model'), the requirements for are more simpl
 
    dsd = DataStructureDefinition('definitions', ['region', 'variable', 'scenario'])
 
-  
-More details on how to instantiate a DataStructureDefinition can be found in
-:ref:`minimum_working_example`.
-
 Tag
 ^^^
 
