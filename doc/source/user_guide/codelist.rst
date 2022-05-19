@@ -232,4 +232,4 @@ dimensions. In the above example using ``dsd.validate(df, ['scenario'])`` would 
 
 In practice, ``DataStructureDefinition.validate`` is usually not called directly but
 rather as part of the :func:`process` function which combines validation and region
-processing. Refer to the :ref:`minimum_working_example` for details.
+processing.
