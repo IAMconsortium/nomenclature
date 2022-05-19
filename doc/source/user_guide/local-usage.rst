@@ -3,8 +3,8 @@
 Local usage of a project
 ========================
 
-This section aims to provide a minimum working example of how to use the nomenclature
-package.
+.. attention:: This page is intended for users who are familiar with Python and
+    `git <https://git-scm.com>`_ (or a service like `GitHub <https://github.com>`_).
 
 It is assumed that the variable templates and model mappings already exist. Details on
 how those are structured and how to start using nomenclature "from scratch" can be found
