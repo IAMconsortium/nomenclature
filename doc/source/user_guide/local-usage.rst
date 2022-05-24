@@ -49,7 +49,7 @@ the validation was successful. Otherwise, it will raise an error with details.
   # Read the data using pyam
   df = pyam.IamDataFrame("/path/to/file")
 
-  # Perform the validation and apply the region aggregation
+  # Perform the validation
   df = process(df, dsd)
 
 Validation and region processing
