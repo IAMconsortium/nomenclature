@@ -1,7 +1,7 @@
 .. currentmodule:: nomenclature
 
-**nomenclature**: Working with IAMC-style scenario data
-=======================================================
+**nomenclature**: Working with IAMC-style project templates
+===========================================================
 
 Release v\ |version|.
 
