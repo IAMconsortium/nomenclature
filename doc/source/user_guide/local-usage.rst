@@ -87,6 +87,9 @@ Several projects specify custom workflows that combine validation and region-pro
 with other validation steps or post-processing modules. These workflows are usually
 implemented as a ``main()`` function in ``workflow.py`` of a project repository.
 
+.. attention:: The working-directory of the Python console has to be set to the clone
+     of the project repository.
+
 .. code-block:: python
 
   # Import the pyam library and the project-specific workflow
