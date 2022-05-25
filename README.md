@@ -21,7 +21,7 @@ scenario analysis studies using the data format developed by the
 [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
 
 A data structure definition consists of one or several "codelists".
-A codelist is a list allowed values (or "codes") for dimensions of IAMC-format data,
+A codelist is a list of allowed values (or "codes") for dimensions of IAMC-format data,
 typically *regions* and *variables*. Each code can have additional attributes:
 for example, a "variable" has to have an expected unit and usually has a description.
 Read the [SDMX Guidelines](https://sdmx.org/?page_id=4345) for more information on
