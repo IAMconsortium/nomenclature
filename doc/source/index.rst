@@ -5,16 +5,19 @@
 
 Release v\ |version|.
 
-|license| |python| |black| |pytest| |rtd|
+|license| |doi| |python| |black| |pytest| |rtd|
 
 .. |license| image:: https://img.shields.io/badge/License-Apache%202.0-black
    :target: https://github.com/IAMconsortium/nomenclature/blob/main/LICENSE
 
-.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/psf/black
+.. |doi| image:: https://zenodo.org/badge/375724610.svg
+   :target: https://zenodo.org/badge/latestdoi/375724610
 
 .. |python| image:: https://img.shields.io/badge/python-_3.8_|_3.9_|_3.10-blue?logo=python&logoColor=white
    :target: https://github.com/IAMconsortium/nomenclature
+
+.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/psf/black
 
 .. |pytest| image:: https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml/badge.svg
    :target: https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml
