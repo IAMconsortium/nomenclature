@@ -15,14 +15,15 @@ black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://gith
 
 ## Overview
 
-The **nomenclature** package facilitates validation and processing of scenario data
-for model comparison projects and scenario analysis. It allows to manage
-project templates and "codelists" that follow the format developed by the
+The **nomenclature** package facilitates validation and processing of scenario data.
+It allows to manage definitions and "templates" for model comparison projects and
+scenario analysis studies using the data format developed by the
 [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
 
-A "codelist" is a list allowed values (or "codes") for dimensions of IAMC-format data,
+A project template consists of "codelists" and mappings.
+A codelist is a list allowed values (or "codes") for dimensions of IAMC-format data,
 typically *regions* and *variables*. Each code can have additional attributes:
-for example, a "variable" has to have a unit attribute and usually features a definition.
+for example, a "variable" has to have an expected unit and usually has a definition.
 Read the [SDMX Guidelines](https://sdmx.org/?page_id=4345) for more information on
 the concept of codelists.
 

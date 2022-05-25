@@ -28,14 +28,15 @@ Release v\ |version|.
 Overview
 --------
 
-The **nomenclature** package facilitates validation and processing of scenario data
-for model comparison projects and scenario analysis. It allows to manage
-project templates and "codelists" that follow the format developed by the
+The **nomenclature** package facilitates validation and processing of scenario data.
+It allows to manage definitions and "templates" for model comparison projects and
+scenario analysis studies using the data format developed by the
 `Integrated Assessment Modeling Consortium (IAMC) <https://www.iamconsortium.org>`_.
 
-A "codelist" is a list allowed values (or "codes") for dimensions of IAMC-format data,
+A project template consists of "codelists" and mappings.
+A codelist is a list allowed values (or "codes") for dimensions of IAMC-format data,
 typically *regions* and *variables*. Each code can have additional attributes:
-for example, a "variable" (string) usually has a definition and an expected unit.
+for example, a "variable" has to have an expected unit and usually has a definition.
 Read the `SDMX Guidelines <https://sdmx.org/?page_id=4345>`_ for more information on
 the concept of codelists.
 
