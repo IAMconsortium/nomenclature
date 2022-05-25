@@ -31,12 +31,13 @@ Usage options
 Validation against the codelists
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The easiest use case is to validate that a data file or an :class:`IamDataFrame <pyam.IamDataFrame>`
-is compatible with the codelists (lists of variables and regions) of a project's
-:class:`DataStructureDefinition`.
+The easiest use case is to validate that a data file or an
+:class:`IamDataFrame <pyam.IamDataFrame>` is compatible with the codelists
+(lists of variables and regions) of a project's :class:`DataStructureDefinition`.
 
-If there are any inconsistencies with the codelists an error will be raised, otherwise the :class:`IamDataFrame <pyam.IamDataFrame>` is returned unchanged.
-the validation was successful. Otherwise, it will raise an error with details.
+If there are inconsistencies with the codelists, the method
+:meth:`validate <DataStructureDefinition.validate>` will raise an error.
+If the scenario data is consistent, the method returns *True*.
 
 .. code-block:: python
 
@@ -50,7 +51,7 @@ the validation was successful. Otherwise, it will raise an error with details.
   df = pyam.IamDataFrame("/path/to/file")
 
   # Perform the validation
-  df = process(df, dsd)
+  dsd.validate(df)
 
 Validation and region processing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
