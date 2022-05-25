@@ -1,4 +1,4 @@
-# nomenclature - Working with IAMC-style data templates
+# nomenclature - Working with IAMC-format project templates
 
 Copyright 2021-2022 IIASA
 
