@@ -1,6 +1,6 @@
 .. currentmodule:: nomenclature
 
-**nomenclature**: Working with IAMC-style project templates
+**nomenclature**: Working with IAMC-format project templates
 ===========================================================
 
 Release v\ |version|.
