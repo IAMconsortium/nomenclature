@@ -41,12 +41,12 @@ the concept of codelists.
 
 The **nomenclature** package supports three main use cases:
 
-- Management of codelists, definitions and mappings for model comparison projects
+- Management of codelists and mappings for model comparison projects
 - Validation of scenario data against the codelists of a specific project
 - Region-processing (aggregation and renaming) from "native regions" of a model to
   "common regions" (i.e., regions that are used for scenario comparison in a project).
 
-The codelists, definitions and mappings are stored as yaml files.
+The codelists and mappings are stored as yaml files.
 Refer to the :ref:`user_guide` for more information.
 
 Table of Contents
