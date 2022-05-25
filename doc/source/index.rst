@@ -23,7 +23,7 @@ Release v\ |version|.
    :target: https://nomenclature-iamc.readthedocs.io
 
 Overview
-========
+--------
 
 The nomenclature package facilitates working with "codelists" that follow the format
 developed by the `Integrated Assessment Modeling Consortium (IAMC)
@@ -50,10 +50,10 @@ The complete user guide including the file specifications for codelists and mode
 mappings, example code and details on how to use nomenclature is given in "User Guide".
 
 Table of Contents
-=================
+-----------------
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    installation
    user_guide
@@ -61,7 +61,7 @@ Table of Contents
    cli
 
 Acknowledgement
-===============
+---------------
 
 .. figure:: _static/open_entrance-logo.png
    :align: right
