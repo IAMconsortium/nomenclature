@@ -15,12 +15,24 @@ black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://gith
 
 ## Overview
 
-This package facilitates working with data templates that follow the format developed by
-the [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
-It supports validation of scenario data and region processing, which consists of
-renaming and aggregation of model "native regions" to "common regions" used in a
-project.
+The **nomenclature** package facilitates validation and processing of scenario data
+for model comparison projects and scenario analysis. It allows to manage
+project templates and "codelists" that follow the format developed by the
+[Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org)..
 
+A "codelist" is a list allowed values (or "codes") for dimensions of IAMC-format data,
+typically *regions* and *variables*. Each code can have additional attributes:
+for example, a "variable" (string) usually has a definition and an expected unit.
+Read the [SDMX Guidelines](https://sdmx.org/?page_id=4345) for more information on
+the concept of codelists.
+
+The **nomenclature** package supports three main use cases:
+
+- Management of codelists, definitions and mappings for model comparison projects
+- Validation of scenario data against the codelists of a specific project
+- Region-processing (aggregation and renaming) from "native regions" of a model to
+  "common regions" (i.e., regions that are used for scenario comparison in a project).
+  
 The full documentation is hosted on [Read the
 Docs](https://nomenclature-iamc.readthedocs.io/)
 
