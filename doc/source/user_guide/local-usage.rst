@@ -6,7 +6,7 @@ Local usage of a project
 ========================
 
 .. attention:: This page is intended for users who are familiar with Python and
-    `git <https://git-scm.com>`_ (or a service like `GitHub <https://github.com>`_).
+    `git <https://git-scm.com>`_  and a service like `GitHub <https://github.com>`_.
 
 You can use the **nomenclature** package locally (on your machine) for validation
 and region-aggregration. This can be helpful as part of processing your model results,
@@ -35,7 +35,7 @@ The easiest use case is to validate that a data file or an :class:`IamDataFrame 
 is compatible with the codelists (lists of variables and regions) of a project's
 :class:`DataStructureDefinition`.
 
-If the :func:`process` function returns an :class:`IamDataFrame <pyam.IamDataFrame>`,
+If there are any inconsistencies with the codelists an error will be raised, otherwise the :class:`IamDataFrame <pyam.IamDataFrame>` is returned unchanged.
 the validation was successful. Otherwise, it will raise an error with details.
 
 .. code-block:: python
