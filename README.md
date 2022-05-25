@@ -44,15 +44,14 @@ width="133" height="100" align="right" alt="pyam logo" />
 This package is intended to complement the Python package **pyam**, an open-source
 community toolbox for analysis & visualization of scenario data. That package was
 developed to facilitate working with timeseries scenario data conforming to the format
-developed by the IAMC . It is used in ongoing assessments by the IPCC and in many model
+developed by the IAMC. It is used in ongoing assessments by the IPCC and in many model
 comparison projects at the global and national level, including several Horizon 2020
 projects.
 
-[Read the docs](https://pyam-iamc.readthedocs.io) for more information!
+[Read the Docs](https://pyam-iamc.readthedocs.io) for more information!
 
 ## Getting started
 
-To install this package, please install Python version 3.8 or higher. Nomenclature is on
 To install the latest release of the package, please use the following command:
 
 ```bash
@@ -65,14 +64,8 @@ Alternatively, it can also be installed directly from source:
 pip install -e git+https://github.com/IAMconsortium/nomenclature#egg=nomenclature
 ```
 
-Then, open a Python console and import a suitable nomenclature structure from a folder
-and run the following code to inspect the variables defined in the nomenclature.
-
-```python
-import nomenclature
-project = nomenclature.DataStructureDefinition("path/to/definition/folder")
-project.variable
-```
+See the [User Guide](https://nomenclature-iamc.readthedocs.io/en/latest/user_guide.html)
+for the main use cases of this package.
 
 ## Acknowledgement
 
