@@ -5,7 +5,7 @@
 Local usage of a project
 ========================
 
-.. attention:: This page is intended for users who are familiar with Python and
+.. attention:: This page is intended for users who are familiar with Python,
     `git <https://git-scm.com>`_  and a service like `GitHub <https://github.com>`_.
 
 You can use the **nomenclature** package locally (on your machine) for validation
