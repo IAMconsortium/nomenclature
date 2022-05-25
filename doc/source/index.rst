@@ -1,20 +1,23 @@
 .. currentmodule:: nomenclature
 
-**nomenclature**: Working with IAMC-style scenario data
-=======================================================
+**nomenclature**: Working with IAMC-format project definitions
+==============================================================
 
 Release v\ |version|.
 
-|license| |python| |black| |pytest| |rtd|
+|license| |doi| |python| |black| |pytest| |rtd|
 
 .. |license| image:: https://img.shields.io/badge/License-Apache%202.0-black
    :target: https://github.com/IAMconsortium/nomenclature/blob/main/LICENSE
 
-.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/psf/black
+.. |doi| image:: https://zenodo.org/badge/375724610.svg
+   :target: https://zenodo.org/badge/latestdoi/375724610
 
 .. |python| image:: https://img.shields.io/badge/python-_3.8_|_3.9_|_3.10-blue?logo=python&logoColor=white
    :target: https://github.com/IAMconsortium/nomenclature
+
+.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/psf/black
 
 .. |pytest| image:: https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml/badge.svg
    :target: https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml
@@ -23,37 +26,35 @@ Release v\ |version|.
    :target: https://nomenclature-iamc.readthedocs.io
 
 Overview
-========
+--------
 
-The nomenclature package facilitates working with "codelists" that follow the format
-developed by the `Integrated Assessment Modeling Consortium (IAMC)
-<https://www.iamconsortium.org>`_. Codelists are yaml file based lists of allowed values
-(or codes) for dimensions of IAMC-style data, for example *regions* and *variables*.
-Using these codelists, nomenclature performs data validation to check if a provided data
-set conforms to the values in the code lists. 
+The **nomenclature** package facilitates validation and processing of scenario data.
+It allows to manage definitions of data structures for model comparison projects and
+scenario analysis studies using the data format developed by the
+`Integrated Assessment Modeling Consortium (IAMC) <https://www.iamconsortium.org>`_.
 
-Additionally, it can execute "region processing", which consists of renaming of "native
-regions" and/or aggregation to "common regions" used in a project.
+A data structure definition consists of one or several "codelists".
+A codelist is a list of allowed values (or "codes") for dimensions of IAMC-format data,
+typically *regions* and *variables*. Each code can have additional attributes:
+for example, a "variable" has to have an expected unit and usually has a description.
+Read the `SDMX Guidelines <https://sdmx.org/?page_id=4345>`_ for more information on
+the concept of codelists.
 
-Those two tasks are carried out by two classes:
+The **nomenclature** package supports three main use cases:
 
-#. The :class:`DataStructureDefinition` class handles the validation of scenario data.
-   It contains data templates for *variables* (including units) and *regions* to be used
-   in a model comparison or scenario exercise following the IAMC data format.
+- Management of codelists and mappings for model comparison projects
+- Validation of scenario data against the codelists of a specific project
+- Region-processing (aggregation and renaming) from "native regions" of a model to
+  "common regions" (i.e., regions that are used for scenario comparison in a project).
 
-#. The :class:`RegionProcessor` class carries out renaming and aggregation based on
-   information given in yaml model mapping files.
-
-Instructions on how to install nomenclature can be found in the "Installation" section.
-
-The complete user guide including the file specifications for codelists and model
-mappings, example code and details on how to use nomenclature is given in "User Guide".
+The codelists and mappings are stored as yaml files.
+Refer to the :ref:`user_guide` for more information.
 
 Table of Contents
-=================
+-----------------
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    installation
    user_guide
@@ -61,7 +62,7 @@ Table of Contents
    cli
 
 Acknowledgement
-===============
+---------------
 
 .. figure:: _static/open_entrance-logo.png
    :align: right

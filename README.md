@@ -1,4 +1,4 @@
-# nomenclature - Working with IAMC-style data templates
+# nomenclature - Working with IAMC-format project definitions
 
 Copyright 2021-2022 IIASA
 
@@ -15,12 +15,25 @@ black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://gith
 
 ## Overview
 
-This package facilitates working with data templates that follow the format developed by
-the [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
-It supports validation of scenario data and region processing, which consists of
-renaming and aggregation of model "native regions" to "common regions" used in a
-project.
+The **nomenclature** package facilitates validation and processing of scenario data.
+It allows to manage definitions of data structures for model comparison projects and
+scenario analysis studies using the data format developed by the
+[Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
 
+A data structure definition consists of one or several "codelists".
+A codelist is a list of allowed values (or "codes") for dimensions of IAMC-format data,
+typically *regions* and *variables*. Each code can have additional attributes:
+for example, a "variable" has to have an expected unit and usually has a description.
+Read the [SDMX Guidelines](https://sdmx.org/?page_id=4345) for more information on
+the concept of codelists.
+
+The **nomenclature** package supports three main use cases:
+
+- Management of codelists and mappings for model comparison projects
+- Validation of scenario data against the codelists of a specific project
+- Region-processing (aggregation and renaming) from "native regions" of a model to
+  "common regions" (i.e., regions that are used for scenario comparison in a project).
+  
 The full documentation is hosted on [Read the
 Docs](https://nomenclature-iamc.readthedocs.io/)
 
@@ -32,15 +45,14 @@ width="133" height="100" align="right" alt="pyam logo" />
 This package is intended to complement the Python package **pyam**, an open-source
 community toolbox for analysis & visualization of scenario data. That package was
 developed to facilitate working with timeseries scenario data conforming to the format
-developed by the IAMC . It is used in ongoing assessments by the IPCC and in many model
+developed by the IAMC. It is used in ongoing assessments by the IPCC and in many model
 comparison projects at the global and national level, including several Horizon 2020
 projects.
 
-[Read the docs](https://pyam-iamc.readthedocs.io) for more information!
+[Read the Docs](https://pyam-iamc.readthedocs.io) for more information!
 
 ## Getting started
 
-To install this package, please install Python version 3.8 or higher. Nomenclature is on
 To install the latest release of the package, please use the following command:
 
 ```bash
@@ -53,14 +65,8 @@ Alternatively, it can also be installed directly from source:
 pip install -e git+https://github.com/IAMconsortium/nomenclature#egg=nomenclature
 ```
 
-Then, open a Python console and import a suitable nomenclature structure from a folder
-and run the following code to inspect the variables defined in the nomenclature.
-
-```python
-import nomenclature
-project = nomenclature.DataStructureDefinition("path/to/definition/folder")
-project.variable
-```
+See the [User Guide](https://nomenclature-iamc.readthedocs.io/en/latest/user_guide.html)
+for the main use cases of this package.
 
 ## Acknowledgement
 
