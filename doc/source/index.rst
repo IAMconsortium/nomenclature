@@ -1,7 +1,7 @@
 .. currentmodule:: nomenclature
 
-**nomenclature**: Working with IAMC-format project templates
-===========================================================
+**nomenclature**: Working with IAMC-format project definitions
+==============================================================
 
 Release v\ |version|.
 
@@ -29,14 +29,14 @@ Overview
 --------
 
 The **nomenclature** package facilitates validation and processing of scenario data.
-It allows to manage definitions and "templates" for model comparison projects and
+It allows to manage definitions of data structures for model comparison projects and
 scenario analysis studies using the data format developed by the
 `Integrated Assessment Modeling Consortium (IAMC) <https://www.iamconsortium.org>`_.
 
-A project template consists of "codelists" and mappings.
+A data structure definition consists of one or several "codelists".
 A codelist is a list allowed values (or "codes") for dimensions of IAMC-format data,
 typically *regions* and *variables*. Each code can have additional attributes:
-for example, a "variable" has to have an expected unit and usually has a definition.
+for example, a "variable" has to have an expected unit and usually has a description.
 Read the `SDMX Guidelines <https://sdmx.org/?page_id=4345>`_ for more information on
 the concept of codelists.
 
