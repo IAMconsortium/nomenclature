@@ -78,6 +78,8 @@ A more elaborate use case is to perform validation against the codelists and use
   # Perform the validation and apply the region aggregation
   df = process(df, dsd, processor=rp)
 
+Refer to the section :ref:`model_mapping` for more information about this feature.
+
 Using a project-specific workflow
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
