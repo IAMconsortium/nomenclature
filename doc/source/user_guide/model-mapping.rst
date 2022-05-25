@@ -141,5 +141,4 @@ DataStructureDefinition *must* contain the *region* and *variable* dimensions in
 
 In practice, normally, both region processing *and* validation are desired and so the
 use of the :func:`process` function is recommended over calling
-``RegionProcessor.apply()`` directly. Details can be found in the
-:ref:`minimum_working_example`.
+``RegionProcessor.apply()`` directly.

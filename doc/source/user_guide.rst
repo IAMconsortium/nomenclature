@@ -38,8 +38,7 @@ define the renaming of native regions and aggregation to common regions.
 
 The top-level function :func:`process` takes both of the above classes as input along
 with data in form of a :class:`pyam.IamDataFrame`. The input data is aggregated using
-the RegionProcessor and validated using DataStructureDefinition. Details are covered in
-:ref:`minimum_working_example`. 
+the RegionProcessor and validated using DataStructureDefinition.
 
 .. toctree::
   :maxdepth: 3
@@ -47,4 +46,4 @@ the RegionProcessor and validated using DataStructureDefinition. Details are cov
   user_guide/directory-structure
   user_guide/codelist
   user_guide/model-mapping
-  user_guide/code-example
+  user_guide/local-usage
