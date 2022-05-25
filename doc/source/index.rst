@@ -28,29 +28,26 @@ Release v\ |version|.
 Overview
 --------
 
-The nomenclature package facilitates working with "codelists" that follow the format
-developed by the `Integrated Assessment Modeling Consortium (IAMC)
-<https://www.iamconsortium.org>`_. Codelists are yaml file based lists of allowed values
-(or codes) for dimensions of IAMC-style data, for example *regions* and *variables*.
-Using these codelists, nomenclature performs data validation to check if a provided data
-set conforms to the values in the code lists. 
+The **nomenclature** package facilitates validation and processing of scenario data
+for model comparison projects and scenario analysis. It allows to manage
+project templates and "codelists" that follow the format developed by the
+`Integrated Assessment Modeling Consortium (IAMC) <https://www.iamconsortium.org>`_.
 
-Additionally, it can execute "region processing", which consists of renaming of "native
-regions" and/or aggregation to "common regions" used in a project.
+A "codelist" is a list allowed values (or "codes") for dimensions of IAMC-format data,
+typically *regions* and *variables*. Each code can have additional attributes:
+for example, a "variable" (string) usually has a definition and an expected unit.
+Read the `SDMX Guidelines <https://sdmx.org/?page_id=4345>`_ for more information on
+the concept of codelists.
 
-Those two tasks are carried out by two classes:
+The **nomenclature** package supports three main use cases:
 
-#. The :class:`DataStructureDefinition` class handles the validation of scenario data.
-   It contains data templates for *variables* (including units) and *regions* to be used
-   in a model comparison or scenario exercise following the IAMC data format.
+- Management of codelists, definitions and mappings for model comparison projects
+- Validation of scenario data against the codelists of a specific project
+- Region-processing (aggregation and renaming) from "native regions" of a model to
+  "common regions" (i.e., regions that are used for scenario comparison in a project).
 
-#. The :class:`RegionProcessor` class carries out renaming and aggregation based on
-   information given in yaml model mapping files.
-
-Instructions on how to install nomenclature can be found in the "Installation" section.
-
-The complete user guide including the file specifications for codelists and model
-mappings, example code and details on how to use nomenclature is given in "User Guide".
+The codelists, definitions and mappings are stored as yaml files.
+Refer to the :ref:`user_guide` for more information.
 
 Table of Contents
 -----------------
