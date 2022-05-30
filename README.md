@@ -50,7 +50,7 @@ including several Horizon 2020 & Horizon Europe projects.
 
 The validation and processing features of the **nomenclature** package
 work with scenario data in the form of a [**pyam.IamDataFrame**](https://pyam-iamc.readthedocs.io/en/stable/api/iamdataframe.html)
-class as input.
+object as input.
 
 [Read the **pyam** Docs](https://pyam-iamc.readthedocs.io) for more information!
 
