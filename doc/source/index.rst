@@ -61,6 +61,28 @@ Table of Contents
    api
    cli
 
+Integration with the **pyam** package
+-------------------------------------
+
+.. image:: https://raw.githubusercontent.com/IAMconsortium/pyam/main/doc/logos/pyam-header.png
+   :width: 320px
+   :align: right
+   :target: https://pyam-iamc.readthedocs.io
+
+The **nomenclature** package is designed to complement the Python package **pyam**,
+an open-source community toolbox for analysis & visualization of scenario data.
+The **pyam** package was developed to facilitate working with timeseries scenario data
+conforming to the format developed by the IAMC. It is used in ongoing assessments by
+the IPCC and in many model comparison projects at the global and national level,
+including several Horizon 2020 & Horizon Europe projects.
+
+The validation and processing features of the **nomenclature** package
+work with scenario data as a pyam.IamDataFrame_ object.
+
+`Read the Docs <https://pyam-iamc.readthedocs.io>`_ for more information!
+
+.. _pyam.IamDataFrame : https://pyam-iamc.readthedocs.io/en/stable/api/iamdataframe.html
+
 Acknowledgement
 ---------------
 
