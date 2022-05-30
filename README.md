@@ -36,19 +36,23 @@ The **nomenclature** package supports three main use cases:
   
 The documentation is hosted on [Read the Docs](https://nomenclature-iamc.readthedocs.io/).
 
-## The pyam package
+## Integration with the pyam package
 
 <img src="https://github.com/IAMconsortium/pyam/blob/main/doc/logos/pyam-logo.png"
 width="133" height="100" align="right" alt="pyam logo" />
 
-This package is intended to complement the Python package **pyam**, an open-source
-community toolbox for analysis & visualization of scenario data. That package was
-developed to facilitate working with timeseries scenario data conforming to the format
-developed by the IAMC. It is used in ongoing assessments by the IPCC and in many model
-comparison projects at the global and national level, including several Horizon 2020
-projects.
+The **nomenclature** package is designed to complement the Python package **pyam**,
+an open-source community toolbox for analysis & visualization of scenario data.
+The **pyam** package was developed to facilitate working with timeseries scenario data
+conforming to the format developed by the IAMC. It is used in ongoing assessments by
+the IPCC and in many model comparison projects at the global and national level,
+including several Horizon 2020 & Horizon Europe projects.
 
-[Read the Docs](https://pyam-iamc.readthedocs.io) for more information!
+The validation and processing features of the **nomenclature** package
+work with scenario data in the form of a [**pyam.IamDataFrame**](https://pyam-iamc.readthedocs.io/en/stable/api/iamdataframe.html)
+class as input.
+
+[Read the **pyam** Docs](https://pyam-iamc.readthedocs.io) for more information!
 
 ## Getting started
 
