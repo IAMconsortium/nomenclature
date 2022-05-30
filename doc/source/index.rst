@@ -77,7 +77,7 @@ the IPCC and in many model comparison projects at the global and national level,
 including several Horizon 2020 & Horizon Europe projects.
 
 The validation and processing features of the **nomenclature** package
-work with scenario data in the form of a pyam.IamDataFrame_ class.
+work with scenario data as a pyam.IamDataFrame_ object.
 
 `Read the Docs <https://pyam-iamc.readthedocs.io>`_ for more information!
 
