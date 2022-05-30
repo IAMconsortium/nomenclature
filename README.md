@@ -34,8 +34,7 @@ The **nomenclature** package supports three main use cases:
 - Region-processing (aggregation and renaming) from "native regions" of a model to
   "common regions" (i.e., regions that are used for scenario comparison in a project).
   
-The full documentation is hosted on [Read the
-Docs](https://nomenclature-iamc.readthedocs.io/)
+The documentation is hosted on [Read the Docs](https://nomenclature-iamc.readthedocs.io/).
 
 ## The pyam package
 
@@ -78,7 +77,7 @@ openENTRANCE](https://openentrance.eu) project, which aims to  develop, use and
 disseminate an open, transparent and integrated  modelling platform for assessing
 low-carbon transition pathways in Europe.
 
-Refer to the [openENTRANCE/nomenclature](https://github.com/openENTRANCE/nomenclature)
+Refer to the [openENTRANCE/openentrance](https://github.com/openENTRANCE/openentrance)
 repository for more information.
 
 <img src="./doc/source/_static/EU-logo-300x201.jpg" width="80" height="54" align="left"
