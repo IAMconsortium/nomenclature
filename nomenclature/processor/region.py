@@ -72,6 +72,19 @@ class CommonRegion(BaseModel):
     name: str
     constituent_regions: List[str]
 
+    @property
+    def is_single_constituent_region(self):
+        return len(self.constituent_regions) == 1
+
+    @property
+    def rename_dict(self):
+        if self.is_single_constituent_region:
+            return {self.constituent_regions[0]: self.name}
+        else:
+            raise AttributeError(
+                "rename_dict is only available for single constituent regions"
+            )
+
 
 class RegionAggregationMapping(BaseModel):
     """Holds information for region processing on a per-model basis.
@@ -394,6 +407,20 @@ class RegionProcessor(BaseModel):
                             if var not in vars_default_args
                         }
                         for cr in self.mappings[model].common_regions:
+                            # If the common region is only comprised of a single model
+                            # native region, just rename
+                            if (
+                                cr.is_single_constituent_region
+                                and not model_df.filter(
+                                    region=cr.constituent_regions[0]
+                                ).empty
+                            ):
+                                _processed_dfs.append(
+                                    model_df.filter(
+                                        region=cr.constituent_regions[0]
+                                    ).rename(region=cr.rename_dict)
+                                )
+                                continue
                             regions = [cr.name, cr.constituent_regions]
                             # First, perform 'simple' aggregation (no arguments)
                             _processed_dfs.append(
