@@ -11,7 +11,8 @@ from pyam import IAMC_IDX, IamDataFrame, assert_iamframe_equal
 from conftest import TEST_DATA_DIR
 
 
-def test_region_processing_rename():
+@pytest.mark.parametrize("model_name", ["model_a", "model_c"])
+def test_region_processing_rename(model_name):
     # Test **only** the renaming aspect, i.e. 3 things:
     # 1. All native regions **with** a renaming property should be renamed correctly
     # 2. All native regions **without** a renaming property should be passed through
@@ -24,9 +25,9 @@ def test_region_processing_rename():
     test_df = IamDataFrame(
         pd.DataFrame(
             [
-                ["model_a", "scen_a", "region_a", "Primary Energy", "EJ/yr", 1, 2],
-                ["model_a", "scen_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
-                ["model_a", "scen_a", "region_C", "Primary Energy", "EJ/yr", 5, 6],
+                [model_name, "scen_a", "region_a", "Primary Energy", "EJ/yr", 1, 2],
+                [model_name, "scen_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                [model_name, "scen_a", "region_C", "Primary Energy", "EJ/yr", 5, 6],
             ],
             columns=IAMC_IDX + [2005, 2010],
         )
@@ -241,20 +242,36 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
         assert logmsg in caplog.text
 
 
-def test_region_processing_skip_aggregation():
-    test_df = IamDataFrame(
+@pytest.mark.parametrize(
+    "model_name, region_names",
+    [("m_a", ("region_A", "region_B")), ("m_b", ("region_A", "region_b"))],
+)
+def test_region_processing_skip_aggregation(model_name, region_names):
+    # Testing two cases:
+    # * model "m_a" renames native regions and the world region is skipped
+    # * model "m_b" renames single constituent common regions
+
+    input_df = IamDataFrame(
         pd.DataFrame(
             [
-                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
-                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                [model_name, "s_a", region_names[0], "Primary Energy", "EJ/yr", 1, 2],
+                [model_name, "s_a", region_names[1], "Primary Energy", "EJ/yr", 3, 4],
             ],
             columns=IAMC_IDX + [2005, 2010],
         )
     )
-    exp = test_df
+    exp = IamDataFrame(
+        pd.DataFrame(
+            [
+                [model_name, "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                [model_name, "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
 
     obs = process(
-        test_df,
+        input_df,
         DataStructureDefinition(
             TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
         ),
