@@ -409,12 +409,7 @@ class RegionProcessor(BaseModel):
                         for cr in self.mappings[model].common_regions:
                             # If the common region is only comprised of a single model
                             # native region, just rename
-                            if (
-                                cr.is_single_constituent_region
-                                and not model_df.filter(
-                                    region=cr.constituent_regions[0]
-                                ).empty
-                            ):
+                            if cr.is_single_constituent_region:
                                 _processed_dfs.append(
                                     model_df.filter(
                                         region=cr.constituent_regions[0]
