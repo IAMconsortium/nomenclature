@@ -244,7 +244,7 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
 
 @pytest.mark.parametrize(
     "model_name, region_names",
-    [("m_a", ("region_A", "region_B")), ("m_b", ("region_A", "region_b"))],
+    [("model_a", ("region_A", "region_B")), ("model_b", ("region_A", "region_b"))],
 )
 def test_region_processing_skip_aggregation(model_name, region_names):
     # Testing two cases:
