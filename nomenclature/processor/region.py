@@ -416,6 +416,7 @@ class RegionProcessor(BaseModel):
                                     ).rename(region=cr.rename_dict)
                                 )
                                 continue
+                            # if there are multiple constituent regions, aggregate
                             regions = [cr.name, cr.constituent_regions]
                             # First, perform 'simple' aggregation (no arguments)
                             _processed_dfs.append(
