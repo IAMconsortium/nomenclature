@@ -40,8 +40,8 @@ This is an example for a valid entry in a variable codelist:
 .. code:: yaml
 
    - Allowed variable name:
+     description: A short explanation or definition
      unit: A unit
-     description: A short description
      <other attribute>: Some text, value, boolean or list (optional)
 
 The **unit** attribute is **required** and its value should be compatible with the
@@ -53,7 +53,7 @@ The unit attribute can be:
 * a list of strings -> a number of allowed units for the variable 
 * empty -> a *dimensionless* variable
 
-examples for all three options:
+Examples for all three options:
 
     .. code:: yaml
       
@@ -62,10 +62,9 @@ examples for all three options:
       - Multi unit variable:
         unit: [unit 1, unit 2]
       - Dimensionless variable:
-        unit:      
+        unit:
 
-While not strictly necessary a *description* attribute with a short description of the
-variable is encouraged. 
+A **description** attribute with an explanation or definition is recommended.
 
 The yaml format allows *any* number of additional arbitrary named attributes.
 
