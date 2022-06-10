@@ -31,17 +31,17 @@ than simple strings, detailed in the following.
 Variable
 ^^^^^^^^
 
-An entry in a variable code list, *must be* a mapping (translated to python as a
-dictionary). It maps the **name** of an allowed variable to, at least, one key-value
-pair defining the allowed **unit(s)** for the variable.
+An entry in a variable codelist *must be* a mapping (or a :class:`dict` in Python).
+It maps the **name** of an allowed variable to, at least, one key-value pair defining
+the allowed **unit(s)** for the variable.
 
 This is an example for a valid entry in a variable codelist:
 
 .. code:: yaml
 
    - Allowed variable name:
+     description: A short explanation or definition
      unit: A unit
-     description: A short description
      <other attribute>: Some text, value, boolean or list (optional)
 
 The **unit** attribute is **required** and its value should be compatible with the
@@ -53,7 +53,7 @@ The unit attribute can be:
 * a list of strings -> a number of allowed units for the variable 
 * empty -> a *dimensionless* variable
 
-examples for all three options:
+Examples for all three options:
 
     .. code:: yaml
       
@@ -62,30 +62,13 @@ examples for all three options:
       - Multi unit variable:
         unit: [unit 1, unit 2]
       - Dimensionless variable:
-        unit:      
+        unit:
 
-While not strictly necessary a *description* attribute with a short description of the
-variable is encouraged. 
+A **description** attribute with an explanation or definition is recommended.
 
-The yaml format allows *any* number of additional arbitrary named attributes. 
+The yaml format allows *any* number of additional arbitrary named attributes.
 
-Guidelines and variable naming conventions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The variable name should adhere to the following conventions:
-
-*  A *|* (pipe) character indicates levels of hierarchy.
-*  Do not use spaces before and after the *|* character, but add a
-   space between words (e.g., *Primary Energy|Non-Biomass Renewables*).
-*  Do not use abbreviations (e.g, *PHEV*) unless strictly necessary.
-*  Do not use abbreviations of statistical operations (*min*, *max*,
-   *avg*) but always spell out the word.
-*  All words must be capitalised (except for *and*, *w/*, *w/o*, etc.).
-*  Add hierarchy levels where it might be useful in the future, e.g.,
-   use *Electric Vehicle|Plugin-Hybrid* instead of *Plugin-Hybrid
-   Electric Vehicle*.
-*  Do not include words like *Level* or *Quantity* in the variable,
-   because this should be clear from the context or unit.
+Please also take a look at the :ref:`variable-guidelines` when proposing new items.
 
 .. _region_aggregation_attributes:
 
