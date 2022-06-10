@@ -31,9 +31,9 @@ than simple strings, detailed in the following.
 Variable
 ^^^^^^^^
 
-An entry in a variable code list, *must be* a mapping (translated to python as a
-dictionary). It maps the **name** of an allowed variable to, at least, one key-value
-pair defining the allowed **unit(s)** for the variable.
+An entry in a variable codelist *must be* a mapping (or a :class:`dict` in Python).
+It maps the **name** of an allowed variable to, at least, one key-value pair defining
+the allowed **unit(s)** for the variable.
 
 This is an example for a valid entry in a variable codelist:
 

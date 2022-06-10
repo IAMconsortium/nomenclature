@@ -99,6 +99,7 @@ html_static_path = ["_static"]
 
 # Intersphinx configuration
 intersphinx_mapping = {
+    "python": ("https://docs.python.org/", None),
     "pyam": ("https://pyam-iamc.readthedocs.io/en/stable/", None),
 }
 
