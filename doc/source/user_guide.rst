@@ -45,5 +45,6 @@ the RegionProcessor and validated using DataStructureDefinition.
 
   user_guide/directory-structure
   user_guide/codelist
+  user_guide/variable-guidelines
   user_guide/model-mapping
   user_guide/local-usage
