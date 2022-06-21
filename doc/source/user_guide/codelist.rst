@@ -40,9 +40,9 @@ This is an example for a valid entry in a variable codelist:
 .. code:: yaml
 
    - Allowed variable name:
-     description: A short explanation or definition
-     unit: A unit
-     <other attribute>: Some text, value, boolean or list (optional)
+       description: A short explanation or definition
+       unit: A unit
+       <other attribute>: Some text, value, boolean or list (optional)
 
 The **unit** attribute is **required** and its value should be compatible with the
 `iam-units <https://github.com/iamconsortium/units>`_ package.
@@ -58,11 +58,11 @@ Examples for all three options:
     .. code:: yaml
       
       - Single unit variable:
-        unit: A single unit
+          unit: A single unit
       - Multi unit variable:
-        unit: [unit 1, unit 2]
+          unit: [unit 1, unit 2]
       - Dimensionless variable:
-        unit:
+          unit:
 
 A **description** attribute with an explanation or definition is recommended.
 
@@ -88,7 +88,7 @@ package. See the section :ref:`model_mapping` for more information.
     .. code:: yaml
 
        - Some Variable:
-         skip-region-aggregation: true
+           skip-region-aggregation: true
 
   Setting *skip-region-aggregation* to ``true`` only skips the variable in question for
   aggregation. If the variable is part of the provided data, it **is** used.
@@ -126,7 +126,7 @@ structure is required:
 
    - Hierarchy 1:
      - region 1:
-        some attribute: some value
+         some attribute: some value
      - region 2
    - Hierachy 2:
      - ...  
@@ -147,7 +147,7 @@ and 'variable' (e.g. 'scenario' or 'model'), the requirements for are more simpl
 
    - scenario 1
    - scenario 2:
-     description: Something about scenario 1
+       description: Something about scenario 1
    - ...
 
 
