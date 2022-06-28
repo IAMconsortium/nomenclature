@@ -12,3 +12,4 @@ API documentation
    api/datastructuredefinition
    api/codelist
    api/regionprocessor
+   api/testing
