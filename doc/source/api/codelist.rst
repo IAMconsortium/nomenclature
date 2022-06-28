@@ -1,7 +1,7 @@
 .. currentmodule:: nomenclature.codelist
 
-:class:`CodeList`
-=================
+**CodeList**
+============
 
 .. autoclass:: CodeList
    :members:

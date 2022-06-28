@@ -1,7 +1,7 @@
 .. currentmodule:: nomenclature
 
-:class:`RegionProcessor`
-=========================
+**RegionProcessor**
+===================
 
 .. autoclass:: RegionProcessor
    :members:

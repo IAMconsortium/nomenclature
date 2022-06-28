@@ -1,7 +1,7 @@
 .. currentmodule:: nomenclature
 
-:class:`DataStructureDefinition`
-================================
+**DataStructureDefinition**
+===========================
 
 .. autoclass:: DataStructureDefinition
    :members:
