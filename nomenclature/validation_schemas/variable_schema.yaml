@@ -32,6 +32,14 @@ definitions:
                   type: [ string, number, boolean, "null" ]
               minProperties: 1
               maxProperties: 1
+          skip-region-aggregation:
+            type: boolean
+          check-aggregate:
+            type: boolean
+          components:
+            type: array
+            items:
+              type: string
         required:
           - unit
         additionalProperties:
