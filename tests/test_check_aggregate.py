@@ -24,8 +24,16 @@ TEST_DF = IamDataFrame(
 
 
 def test_check_aggregate_single_components():
-    """Assert that the aggregate-check passes"""
+    """Assert that the aggregate-check passes with a single list of components"""
     dsd = DataStructureDefinition(TEST_DATA_DIR / "check_aggregate" / "components")
+
+    # aggregation check returns None if no inconsistencies are found
+    assert dsd.check_aggregate(TEST_DF) is None
+
+
+def test_check_aggregate_multiple_components():
+    """Assert that the aggregate-check passes with multiple components lists"""
+    dsd = DataStructureDefinition(TEST_DATA_DIR / "check_aggregate" / "components_dict")
 
     # aggregation check returns None if no inconsistencies are found
     assert dsd.check_aggregate(TEST_DF) is None

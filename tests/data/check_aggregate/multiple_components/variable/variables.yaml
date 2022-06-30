@@ -1,0 +1,30 @@
+- Final Energy:
+    definition: Total final energy consumption
+    unit: EJ/yr
+    check-aggregate: true
+    components:
+      - By fuel:
+         - Final Energy|Gas
+         - Final Energy|Electricity
+      - By sector:
+         - Final Energy|Residential
+         - Final Energy|Industry
+- Final Energy|Gas:
+    definition: Final consumption of coal
+    unit: EJ/yr
+- Final Energy|Electricity:
+    definition: Final consumption of electricity
+    unit: EJ/yr
+- Final Energy|Residential:
+    definition: Final consumption of the residential sector
+    unit: EJ/yr
+- Final Energy|Industry:
+    definition: Final consumption of the industrial sector
+    unit: EJ/yr
+    check-aggregate: true
+- Final Energy|Industry|Gas:
+    definition: Final consumption of gas in the industrial sector
+    unit: EJ/yr
+- Final Energy|Industry|Electricity:
+    definition: Final consumption of gas in the industrial sector
+    unit: EJ/yr
