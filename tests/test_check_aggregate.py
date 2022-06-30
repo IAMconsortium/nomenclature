@@ -32,7 +32,7 @@ def test_check_aggregate_single_components():
 
 
 def test_check_aggregate_multiple_components():
-    """Assert that the aggregate-check passes with multiple components lists"""
+    """Assert that the aggregate-check passes with several components-lists (as dict)"""
     dsd = DataStructureDefinition(TEST_DATA_DIR / "check_aggregate" / "components_dict")
 
     # aggregation check returns None if no inconsistencies are found
