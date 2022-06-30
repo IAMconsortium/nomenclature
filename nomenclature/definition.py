@@ -60,6 +60,40 @@ class DataStructureDefinition:
         """
         validate(self, df, dimensions=dimensions or self.dimensions)
 
+    def check_aggregate(self, df: IamDataFrame, **kwargs) -> None:
+        """Check for consistency of scenario data along the variable hierarchy
+
+        Parameters
+        ----------
+        df : :class:`pyam.IamDataFrame`
+            Scenario data to be checked for consistency along the variable hierarchy.
+        kwargs : Tolerance arguments for comparison of values
+            Passed to :func:`numpy.isclose` via :any:`pyam.IamDataFrame.check_aggregate`
+
+        Returns
+        -------
+        :class:`pandas.DataFrame` or None
+            Data where variables and region-aggregate does not match
+
+        Raises
+        ------
+        ValueError
+            If the :any:`DataStructureDefinition` does not have a *variable* dimension.
+        """
+        if "variable" not in self.dimensions:
+            raise ValueError("Aggregation check requires 'variable' dimension.")
+
+        lst = []
+
+        for code, attr in self.variable.items():
+            if attr.get("check-aggregate", False):
+                error = df.check_aggregate(code, attr.get("components", None), **kwargs)
+                if error is not None:
+                    lst.append(error.dropna())
+
+        if lst:
+            return pd.concat(lst)
+
     def to_excel(self, excel_writer, sheet_name="variable_definitions"):
         """Write the variable codelist to an Excel sheet
 

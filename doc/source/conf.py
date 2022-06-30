@@ -101,6 +101,7 @@ html_static_path = ["_static"]
 intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
     "pyam": ("https://pyam-iamc.readthedocs.io/en/stable/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
 }
 
 # Autodoc configuration
