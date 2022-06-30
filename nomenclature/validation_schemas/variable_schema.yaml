@@ -37,9 +37,19 @@ definitions:
           check-aggregate:
             type: boolean
           components:
-            type: array
-            items:
-              type: string
+            oneOf:
+              - type: array
+                items:
+                  type: string
+              - type: array
+                items:
+                  type: object
+                  additionalProperties:
+                    type: array
+                    items:
+                      type: string
+                  minProperties: 1
+                  maxProperties: 1
         required:
           - unit
         additionalProperties:
