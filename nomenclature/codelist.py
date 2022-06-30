@@ -5,7 +5,7 @@ from pydantic import BaseModel, root_validator
 from jsonschema import validate
 import pandas as pd
 
-from pyam.utils import write_sheet
+from pyam.utils import write_sheet, isstr
 
 from nomenclature.code import Code, Tag, replace_tags
 from nomenclature.error.codelist import DuplicateCodeError
@@ -98,6 +98,25 @@ class CodeList(BaseModel):
                     raise VariableRenameTargetError(
                         variable=name, file=attrs["file"], target=invalid
                     )
+        return values
+
+    @root_validator(pre=False, skip_on_failure=True)
+    def cast_variable_components_args(cls, values):
+        """Cast "components" list of dicts to a codelist"""
+        if values["name"] == "variable":
+            items = [
+                (name, attrs)
+                for (name, attrs) in values["mapping"].items()
+                if "components" in attrs
+            ]
+
+            # translate a list of single-key dictionaries to a simple dictionary
+            for (name, attrs) in items:
+                if not all([isstr(i) for i in attrs["components"]]):
+                    values["mapping"][name]["components"] = CodeList(
+                        name="components", mapping=attrs["components"]
+                    )
+
         return values
 
     def __setitem__(self, key, value):
