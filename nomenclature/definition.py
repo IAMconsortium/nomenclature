@@ -70,12 +70,12 @@ class DataStructureDefinition:
         df : :class:`pyam.IamDataFrame`
             Scenario data to be checked for consistency along the variable hierarchy.
         kwargs : Tolerance arguments for comparison of values
-            Passed to :func:`numpy.isclose` via :any:`pyam.IamDataFrame.check_aggregate`
+            Passed to :any:`numpy.isclose` via :any:`pyam.IamDataFrame.check_aggregate`.
 
         Returns
         -------
         :class:`pandas.DataFrame` or None
-            Data where variables and region-aggregate does not match
+            Data where a variable and its computed aggregate does not match.
 
         Raises
         ------
