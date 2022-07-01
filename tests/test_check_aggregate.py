@@ -61,4 +61,10 @@ def test_check_aggregate_failing(components, exp):
     """Assert that the aggregate-check fails with different types of components"""
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "check_aggregate" / components)
+
+    # `check_aggregate` returns a dataframe of the inconsistent data
     pdt.assert_frame_equal(dsd.check_aggregate(FAILING_DF), exp)
+
+    # process raises an error (and writes to log, not tested explicitly)
+    with pytest.raises(ValueError, match="The validation failed. Please "):
+        process(FAILING_DF, dsd)
