@@ -22,18 +22,11 @@ TEST_DF = IamDataFrame(
     **dict(model="model_a", scenario="scen_a", region="World"),
 )
 
+@pytest.mark.parametrize("components", ["components", "components_dict"])
+def test_check_aggregate_passing(components):
+    """Assert that the aggregate-check passes with different types of components"""
 
-def test_check_aggregate_single_components():
-    """Assert that the aggregate-check passes with a single list of components"""
-    dsd = DataStructureDefinition(TEST_DATA_DIR / "check_aggregate" / "components")
-
-    # aggregation check returns None if no inconsistencies are found
-    assert dsd.check_aggregate(TEST_DF) is None
-
-
-def test_check_aggregate_multiple_components():
-    """Assert that the aggregate-check passes with several components-lists (as dict)"""
-    dsd = DataStructureDefinition(TEST_DATA_DIR / "check_aggregate" / "components_dict")
+    dsd = DataStructureDefinition(TEST_DATA_DIR / "check_aggregate" / components)
 
     # aggregation check returns None if no inconsistencies are found
     assert dsd.check_aggregate(TEST_DF) is None
