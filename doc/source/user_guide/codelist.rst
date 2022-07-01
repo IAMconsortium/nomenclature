@@ -1,5 +1,7 @@
 .. _codelist:
 
+.. currentmodule:: nomenclature
+
 Validation using Codelists
 ==========================
 
@@ -7,8 +9,8 @@ A codelist is a list of codes (i.e. allowed values). In this package, the codeli
 parsed from yaml files. They contain lists of allowed values for any **index**
 dimension of the IAMC format (model, scenario, region, variable). Which index dimension
 a codelist will be applied to is determined by the **name of the folder** in which it is
-located. For example, if a codelist is located in a folder called ``model/`` it will be
-applied to the "model" index dimension. 
+located. For example, if a codelist is located in a folder called ``variable`` it will be
+applied to the "variable" index dimension.
 
 Codelist format specification
 -----------------------------
@@ -155,7 +157,7 @@ sum up to the value of the category. The feature uses the **pyam** method
               - Final Energy|Industry|Gas
               - Final Energy|Industry|Electricity
 
-* The method :meth:`nomenclature.DataStructureDefinition.check_aggregate` returns a
+* The method :meth:`DataStructureDefinition.check_aggregate` returns a
   :class:`pandas.DataFrame` with a comparison of the original value and the computed
   aggregate for all variables that fail the validation.
 
