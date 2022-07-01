@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 
 from pyam import IamDataFrame
+from pyam.index import replace_index_labels
 from pyam.logging import adjust_log_level
 from pyam.utils import write_sheet
 
@@ -96,7 +97,11 @@ class DataStructureDefinition:
                         for name, _components in components.items():
                             error = df.check_aggregate(code, _components, **kwargs)
                             if error is not None:
-                                lst.append(error.dropna())
+                                error.dropna(inplace=True)
+                                # append components-name to variable column
+                                error.index = replace_index_labels(
+                                    error.index, "variable", [f"{code} [{name}]"])
+                                lst.append(error)
 
                     # else use components provided as single list or pyam-default (None)
                     else:
