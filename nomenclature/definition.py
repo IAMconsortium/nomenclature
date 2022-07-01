@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 
 from pyam import IamDataFrame
+from pyam.logging import adjust_log_level
 from pyam.utils import write_sheet
 
 from nomenclature.codelist import CodeList
@@ -85,22 +86,23 @@ class DataStructureDefinition:
 
         lst = []
 
-        for code, attr in self.variable.items():
-            if attr.get("check-aggregate", False):
-                components = attr.get("components", None)
+        with adjust_log_level(level="WARNING"):
+            for code, attr in self.variable.items():
+                if attr.get("check-aggregate", False):
+                    components = attr.get("components", None)
 
-                # check if multiple lists of components are given for a code
-                if isinstance(components, CodeList):
-                    for name, _components in components.items():
-                        error = df.check_aggregate(code, _components, **kwargs)
+                    # check if multiple lists of components are given for a code
+                    if isinstance(components, CodeList):
+                        for name, _components in components.items():
+                            error = df.check_aggregate(code, _components, **kwargs)
+                            if error is not None:
+                                lst.append(error.dropna())
+
+                    # else use components provided as single list or pyam-default (None)
+                    else:
+                        error = df.check_aggregate(code, components, **kwargs)
                         if error is not None:
                             lst.append(error.dropna())
-
-                # else use components provided as single list or pyam-default (None)
-                else:
-                    error = df.check_aggregate(code, components, **kwargs)
-                    if error is not None:
-                        lst.append(error.dropna())
 
         if lst:
             return pd.concat(lst)
