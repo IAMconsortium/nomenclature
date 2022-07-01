@@ -3,7 +3,7 @@ import pandas as pd
 import pandas.testing as pdt
 from nomenclature.core import process
 from nomenclature.definition import DataStructureDefinition
-from pyam import IAMC_IDX, IamDataFrame
+from pyam import IamDataFrame
 
 from conftest import TEST_DATA_DIR
 
