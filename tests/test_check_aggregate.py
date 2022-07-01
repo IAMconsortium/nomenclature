@@ -1,6 +1,7 @@
 import pytest
 import pandas as pd
 import pandas.testing as pdt
+import numpy as np
 from nomenclature.core import process
 from nomenclature.definition import DataStructureDefinition
 from pyam import IamDataFrame
@@ -10,22 +11,18 @@ from conftest import TEST_DATA_DIR
 TEST_DF = IamDataFrame(
     pd.DataFrame(
         [
-            ["Final Energy", "EJ/yr", 9, 13],
+            ["Final Energy", "EJ/yr", 9, np.nan],
             ["Final Energy|Gas", "EJ/yr", 4, 6],
             ["Final Energy|Electricity", "EJ/yr", 5, 7],
             ["Final Energy|Residential", "EJ/yr", 2, 4],
             ["Final Energy|Industry", "EJ/yr", 7, 9],
-            ["Final Energy|Industry|Gas", "EJ/yr", 3, 4],
-            ["Final Energy|Industry|Electricity", "EJ/yr", 4, 5],
+            ["Final Energy|Industry|Gas", "EJ/yr", 3, np.nan],
+            ["Final Energy|Industry|Electricity", "EJ/yr", 4, np.nan],
         ],
         columns=["variable", "unit", 2005, 2010],
     ),
     **dict(model="model_a", scenario="scen_a", region="World"),
 )
-
-# create a copy where aggregation tests will fail
-FAILING_DF = TEST_DF.copy()
-FAILING_DF._data.iloc[6] = 8
 
 
 def expected_fail_return(name):
@@ -37,7 +34,7 @@ def expected_fail_return(name):
         names=["model", "scenario", "region", "variable", "unit", "year"],
     )
     columns = ["variable", "components"]
-    return pd.DataFrame([[9, 10], [8, 7]], columns=columns, index=index)
+    return pd.DataFrame([[9., 10.], [8., 7.]], columns=columns, index=index)
 
 
 @pytest.mark.parametrize("components", ["components", "components_dict"])
@@ -62,9 +59,13 @@ def test_check_aggregate_failing(components, exp):
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "check_aggregate" / components)
 
+    # create a copy where aggregation tests will fail
+    df = TEST_DF.copy()
+    df._data.iloc[5] = 8
+
     # `check_aggregate` returns a dataframe of the inconsistent data
-    pdt.assert_frame_equal(dsd.check_aggregate(FAILING_DF), exp)
+    pdt.assert_frame_equal(dsd.check_aggregate(df), exp)
 
     # process raises an error (and writes to log, not tested explicitly)
     with pytest.raises(ValueError, match="The validation failed. Please "):
-        process(FAILING_DF, dsd)
+        process(df, dsd)

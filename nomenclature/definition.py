@@ -111,7 +111,7 @@ class DataStructureDefinition:
                             lst.append(error.dropna())
 
         if lst:
-            # there may be empty dataframes (due to `dropna()` above)
+            # there may be empty dataframes due to `dropna()` above
             error = pd.concat(lst)
             return error if not error.empty else None
 
