@@ -3,8 +3,8 @@
     unit: EJ/yr
     check-aggregate: true
     components:
-      - Final Energy|Gas
-      - Final Energy|Electricity
+      - Final Energy|Residential
+      - Final Energy|Industry
 - Final Energy|Gas:
     definition: Final consumption of coal
     unit: EJ/yr
