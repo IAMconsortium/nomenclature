@@ -100,7 +100,8 @@ class DataStructureDefinition:
                                 error.dropna(inplace=True)
                                 # append components-name to variable column
                                 error.index = replace_index_labels(
-                                    error.index, "variable", [f"{code} [{name}]"])
+                                    error.index, "variable", [f"{code} [{name}]"]
+                                )
                                 lst.append(error)
 
                     # else use components provided as single list or pyam-default (None)
@@ -110,7 +111,9 @@ class DataStructureDefinition:
                             lst.append(error.dropna())
 
         if lst:
-            return pd.concat(lst)
+            # there may be empty dataframes (due to `dropna()` above)
+            error = pd.concat(lst)
+            return error if not error.empty else None
 
     def to_excel(self, excel_writer, sheet_name="variable_definitions"):
         """Write the variable codelist to an Excel sheet
