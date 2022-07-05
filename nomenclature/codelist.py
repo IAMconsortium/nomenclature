@@ -1,7 +1,7 @@
 from pathlib import Path
 import yaml
 from typing import Union, Dict, List
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, root_validator, validator
 from jsonschema import validate
 import pandas as pd
 
@@ -10,6 +10,7 @@ from pyam.utils import write_sheet
 from nomenclature.code import Code, Tag, replace_tags
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
+    MissingWeightError,
     VariableRenameTargetError,
     VariableRenameArgError,
 )
@@ -50,32 +51,34 @@ class CodeList(BaseModel):
     """
 
     name: str
-    mapping: Union[List, Dict[str, Dict[str, Union[str, float, int, list, None]]]] = {}
+    mapping: Union[
+        List, Dict[str, Dict[str, Union[bool, str, float, int, list, None]]]
+    ] = {}
 
-    @root_validator()
-    def cast_mapping_to_dict(cls, values):
+    @validator("mapping", pre=True)
+    def cast_mapping_to_dict(cls, v, values):
         """Cast a mapping provided as list to a dictionary"""
-        if isinstance(values["mapping"], list):
+        if isinstance(v, list):
             mapping = {}
 
-            for item in values["mapping"]:
+            for item in v:
                 if not isinstance(item, Code):
                     item = Code.from_dict(item)
                 if item.name in mapping:
                     raise DuplicateCodeError(name=values["name"], code=item.name)
                 mapping[item.name] = item.attributes
 
-            values["mapping"] = mapping
+            v = mapping
 
-        return values
+        return v
 
-    @root_validator(pre=False, skip_on_failure=True)
-    def check_variable_region_aggregation_args(cls, values):
+    @validator("mapping")
+    def check_variable_region_aggregation_args(cls, v, values):
         """Check that any variable "region-aggregation" mappings are valid"""
         if values["name"] == "variable":
             items = [
                 (name, attrs)
-                for (name, attrs) in values["mapping"].items()
+                for (name, attrs) in v.items()
                 if "region-aggregation" in attrs
             ]
 
@@ -93,12 +96,30 @@ class CodeList(BaseModel):
                 rename_attrs = CodeList(
                     name="region-aggregation", mapping=attrs["region-aggregation"]
                 )
-                invalid = [v for v in rename_attrs.keys() if v not in values["mapping"]]
+                invalid = [var for var in rename_attrs.keys() if var not in v]
                 if invalid:
                     raise VariableRenameTargetError(
                         variable=name, file=attrs["file"], target=invalid
                     )
-        return values
+        return v
+
+    @validator("mapping")
+    def check_weight_in_vars(cls, v, values):
+        # Check that all variables specified in 'weight' are present in the codelist
+        if values["name"] == "variable":
+            missing_weights = [
+                (name, attrs["weight"], attrs["file"])
+                for name, attrs in v.items()
+                if "weight" in attrs and attrs["weight"] not in v
+            ]
+            if missing_weights:
+                raise MissingWeightError(
+                    missing_weights="".join(
+                        f"'{weight}' used for '{var}' in: {file}\n"
+                        for var, weight, file in missing_weights
+                    )
+                )
+        return v
 
     def __setitem__(self, key, value):
         if key in self.mapping:
