@@ -1,20 +1,19 @@
 from pathlib import Path
-import yaml
-from typing import Union, Dict, List
-from pydantic import BaseModel, root_validator, validator
-from jsonschema import validate
-import pandas as pd
+from typing import Dict, List, Union
 
+import pandas as pd
+import yaml
+from jsonschema import validate
 from pyam.utils import write_sheet
+from pydantic import BaseModel, validator
 
 from nomenclature.code import Code, Tag, replace_tags
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
     MissingWeightError,
-    VariableRenameTargetError,
     VariableRenameArgError,
+    VariableRenameTargetError,
 )
-
 
 # arguments of the method `pyam.IamDataFrame.aggregate_region`
 # required for checking validity of variable-CodeList-attributes
