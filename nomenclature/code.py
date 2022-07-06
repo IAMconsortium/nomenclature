@@ -6,8 +6,9 @@ class Code(BaseModel):
     """A simple class for a mapping of a "code" to its attributes"""
 
     name: str
-    attributes: Dict[
-        str, Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None]
+    attributes: Union[
+        Dict[str, Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None]],
+        List[StrictStr],
     ]
 
     @classmethod

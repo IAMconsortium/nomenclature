@@ -1,5 +1,7 @@
 .. _codelist:
 
+.. currentmodule:: nomenclature
+
 Validation using Codelists
 ==========================
 
@@ -7,8 +9,8 @@ A codelist is a list of codes (i.e. allowed values). In this package, the codeli
 parsed from yaml files. They contain lists of allowed values for any **index**
 dimension of the IAMC format (model, scenario, region, variable). Which index dimension
 a codelist will be applied to is determined by the **name of the folder** in which it is
-located. For example, if a codelist is located in a folder called ``model/`` it will be
-applied to the "model" index dimension. 
+located. For example, if a codelist is located in a folder called ``variable`` it will be
+applied to the "variable" index dimension.
 
 Codelist format specification
 -----------------------------
@@ -115,6 +117,49 @@ package. See the section :ref:`model_mapping` for more information.
                   weight: Emissions|CO2
               - Price|Carbon (Max):
                   method: max
+
+Optional attributes for ensuring consistency across the variable hierarchy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The nomenclature package supports the automated validation of data across the
+variable hierarchy, i.e., that all sub-categories or components of a variable
+sum up to the value of the category. The feature uses the **pyam** method
+:meth:`pyam.IamDataFrame.check_aggregate`.
+
+* To activate the aggregation-check, add the attribute *check-aggregate: true*.
+
+* By default, the method uses all sub-categories of the variable name
+  i.e., all variables `Final Energy|*` for computing the aggregate of `Final Energy`.
+
+* You can specify the *components* explicitly either as a list of variables
+  or as a list of dictionaries to validate along multiple dimensions.
+
+    .. code:: yaml
+
+        - Final Energy:
+            definition: Total final energy consumption
+            unit: EJ/yr
+            check-aggregate: true
+            components:
+              - By fuel:
+                 - Final Energy|Gas
+                 - Final Energy|Electricity
+                 - ...
+              - By sector:
+                 - Final Energy|Residential
+                 - Final Energy|Industry
+                 - ...
+        - Final Energy|Industry:
+            definition: Final consumption of the industrial sector
+            unit: EJ/yr
+            check-aggregate: true
+            components:
+              - Final Energy|Industry|Gas
+              - Final Energy|Industry|Electricity
+
+* The method :meth:`DataStructureDefinition.check_aggregate` returns a
+  :class:`pandas.DataFrame` with a comparison of the original value and the computed
+  aggregate for all variables that fail the validation.
 
 Region
 ^^^^^^
