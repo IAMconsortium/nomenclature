@@ -88,7 +88,8 @@ class DataStructureDefinition:
         lst = []
 
         with adjust_log_level(level="WARNING"):
-            for code, attr in self.variable.items():
+            for code in df.variable:
+                attr = self.variable[code]
                 if attr.get("check-aggregate", False):
                     components = attr.get("components", None)
 
