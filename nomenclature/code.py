@@ -8,7 +8,7 @@ class Code(BaseModel):
     name: str
     attributes: Union[
         Dict[str, Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None]],
-        List[StrictStr]
+        List[StrictStr],
     ]
 
     @classmethod

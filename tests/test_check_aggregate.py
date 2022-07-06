@@ -34,7 +34,7 @@ def expected_fail_return(name):
         names=["model", "scenario", "region", "variable", "unit", "year"],
     )
     columns = ["variable", "components"]
-    return pd.DataFrame([[9., 10.], [8., 7.]], columns=columns, index=index)
+    return pd.DataFrame([[9.0, 10.0], [8.0, 7.0]], columns=columns, index=index)
 
 
 @pytest.mark.parametrize("components", ["components", "components_dict"])
