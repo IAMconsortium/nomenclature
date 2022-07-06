@@ -19,9 +19,7 @@ definitions:
           unit:
             oneOf:
               - type: [ string, "null" ]
-              - type: array
-                items:
-                  type: string
+              - $ref: '#/definitions/ListOfStrings'
           region-aggregation:
             type: array
             items:
@@ -37,9 +35,15 @@ definitions:
           check-aggregate:
             type: boolean
           components:
-            type: array
-            items:
-              type: string
+            oneOf:
+              - $ref: '#/definitions/ListOfStrings'
+              - type: array
+                items:
+                  type: object
+                  additionalProperties:
+                    $ref: '#/definitions/ListOfStrings'
+                  minProperties: 1
+                  maxProperties: 1
         required:
           - unit
         additionalProperties:
@@ -47,3 +51,8 @@ definitions:
     additionalProperties: false
     minProperties: 1
     maxProperties: 1
+
+  ListOfStrings:
+    type: array
+    items:
+      type: string

@@ -3,6 +3,8 @@ import logging
 from pathlib import Path
 
 from pyam import IamDataFrame
+from pyam.index import replace_index_labels
+from pyam.logging import adjust_log_level
 from pyam.utils import write_sheet
 
 from nomenclature.codelist import CodeList
@@ -59,6 +61,60 @@ class DataStructureDefinition:
             If `df` fails validation against any codelist.
         """
         validate(self, df, dimensions=dimensions or self.dimensions)
+
+    def check_aggregate(self, df: IamDataFrame, **kwargs) -> None:
+        """Check for consistency of scenario data along the variable hierarchy
+
+        Parameters
+        ----------
+        df : :class:`pyam.IamDataFrame`
+            Scenario data to be checked for consistency along the variable hierarchy.
+        kwargs : Tolerance arguments for comparison of values
+            Passed to :any:`numpy.isclose` via :any:`pyam.IamDataFrame.check_aggregate`.
+
+        Returns
+        -------
+        :class:`pandas.DataFrame` or None
+            Data where a variable and its computed aggregate does not match.
+
+        Raises
+        ------
+        ValueError
+            If the :any:`DataStructureDefinition` does not have a *variable* dimension.
+        """
+        if "variable" not in self.dimensions:
+            raise ValueError("Aggregation check requires 'variable' dimension.")
+
+        lst = []
+
+        with adjust_log_level(level="WARNING"):
+            for code in df.variable:
+                attr = self.variable[code]
+                if attr.get("check-aggregate", False):
+                    components = attr.get("components", None)
+
+                    # check if multiple lists of components are given for a code
+                    if isinstance(components, CodeList):
+                        for name, _components in components.items():
+                            error = df.check_aggregate(code, _components, **kwargs)
+                            if error is not None:
+                                error.dropna(inplace=True)
+                                # append components-name to variable column
+                                error.index = replace_index_labels(
+                                    error.index, "variable", [f"{code} [{name}]"]
+                                )
+                                lst.append(error)
+
+                    # else use components provided as single list or pyam-default (None)
+                    else:
+                        error = df.check_aggregate(code, components, **kwargs)
+                        if error is not None:
+                            lst.append(error.dropna())
+
+        if lst:
+            # there may be empty dataframes due to `dropna()` above
+            error = pd.concat(lst)
+            return error if not error.empty else None
 
     def to_excel(self, excel_writer, sheet_name="variable_definitions"):
         """Write the variable codelist to an Excel sheet

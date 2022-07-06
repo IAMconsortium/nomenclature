@@ -120,6 +120,25 @@ class CodeList(BaseModel):
                 )
         return v
 
+    @root_validator(pre=False, skip_on_failure=True)
+    def cast_variable_components_args(cls, values):
+        """Cast "components" list of dicts to a codelist"""
+        if values["name"] == "variable":
+            items = [
+                (name, attrs)
+                for (name, attrs) in values["mapping"].items()
+                if "components" in attrs
+            ]
+
+            # translate a list of single-key dictionaries to a simple dictionary
+            for (name, attrs) in items:
+                if not all([isstr(i) for i in attrs["components"]]):
+                    values["mapping"][name]["components"] = CodeList(
+                        name="components", mapping=attrs["components"]
+                    )
+
+        return values
+
     def __setitem__(self, key, value):
         if key in self.mapping:
             raise DuplicateCodeError(name=self.name, code=key)
