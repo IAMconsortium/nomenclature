@@ -27,7 +27,7 @@ def test_empty_codelist_raises(dir, error_msg_pattern):
 
 
 def test_unkown_weight_raises():
-    # Check that a weight variable that does not exist on its own raises an error
+    # Check that a weight that is not defined in the variable codelist raises an error
 
     error_pattern = (
         "'weight'.*aggregation.*not the case.*\n"

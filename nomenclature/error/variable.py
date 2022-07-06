@@ -20,7 +20,6 @@ class VariableRenameTargetError(PydanticValueError):
 class MissingWeightError(PydanticValueError):
     code = "missing_weight_error"
     msg_template = (
-        "Using 'weight' for aggregation requires the weight variable itself to be "
-        "present in the variable codelist. This is not the case for the following "
-        "variables:\n{missing_weights}"
+        "The following variables are used as 'weight' for aggregation but "
+        "are not defined in the variable codelist:\n{missing_weights}"
     )
