@@ -37,11 +37,20 @@ def expected_fail_return(name):
     return pd.DataFrame([[9.0, 10.0], [8.0, 7.0]], columns=columns, index=index)
 
 
-@pytest.mark.parametrize("components", ["components", "components_dict"])
-def test_check_aggregate_passing(components):
+@pytest.mark.parametrize(
+    "components, components_type",
+    [
+        ("components", list),
+        ("components_dict", dict),
+    ],
+)
+def test_check_aggregate_passing(components, components_type):
     """Assert that the aggregate-check passes with different types of components"""
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "check_aggregate" / components)
+
+    # check that components is returned as a basic type (not a codelist)
+    assert isinstance(dsd.variable["Final Energy"]["components"], components_type)
 
     # aggregation check returns None if no inconsistencies are found
     assert dsd.check_aggregate(TEST_DF) is None
