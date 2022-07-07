@@ -94,7 +94,7 @@ class DataStructureDefinition:
                     components = attr.get("components", None)
 
                     # check if multiple lists of components are given for a code
-                    if isinstance(components, CodeList):
+                    if isinstance(components, dict):
                         for name, _components in components.items():
                             error = df.check_aggregate(code, _components, **kwargs)
                             if error is not None:
