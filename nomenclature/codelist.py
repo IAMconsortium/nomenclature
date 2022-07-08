@@ -108,12 +108,11 @@ class CodeList(BaseModel):
     def check_weight_in_vars(cls, v, values):
         # Check that all variables specified in 'weight' are present in the codelist
         if values["name"] == "variable":
-            missing_weights = [
+            if missing_weights := [
                 (name, attrs["weight"], attrs["file"])
                 for name, attrs in v.items()
                 if "weight" in attrs and attrs["weight"] not in v
-            ]
-            if missing_weights:
+            ]:
                 raise MissingWeightError(
                     missing_weights="".join(
                         f"'{weight}' used for '{var}' in: {file}\n"
