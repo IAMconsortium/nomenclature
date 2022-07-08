@@ -51,25 +51,27 @@ class CodeList(BaseModel):
 
     name: str
     mapping: Union[
-        List, Dict[str, Dict[str, Union[bool, str, float, int, list, None]]]
+        List,
+        Dict[
+            str,
+            Union[Dict[str, Union[bool, str, float, int, list, dict, None]], List[str]],
+        ],
     ] = {}
 
     @validator("mapping", pre=True)
     def cast_mapping_to_dict(cls, v, values):
         """Cast a mapping provided as list to a dictionary"""
-        if isinstance(v, list):
-            mapping = {}
+        if not isinstance(v, list):
+            return v
 
-            for item in v:
-                if not isinstance(item, Code):
-                    item = Code.from_dict(item)
-                if item.name in mapping:
-                    raise DuplicateCodeError(name=values["name"], code=item.name)
-                mapping[item.name] = item.attributes
-
-            v = mapping
-
-        return v
+        mapping = {}
+        for item in v:
+            if not isinstance(item, Code):
+                item = Code.from_dict(item)
+            if item.name in mapping:
+                raise DuplicateCodeError(name=values["name"], code=item.name)
+            mapping[item.name] = item.attributes
+        return mapping
 
     @validator("mapping")
     def check_variable_region_aggregation_args(cls, v, values):
