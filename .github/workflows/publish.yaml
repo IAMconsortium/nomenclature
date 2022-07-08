@@ -4,8 +4,6 @@ name: Publish to PyPI and TestPyPI
 on: 
   push:
     tags: ["v*"]
-  release:
-    types: [published]
 
 jobs:
   build-n-publish:
