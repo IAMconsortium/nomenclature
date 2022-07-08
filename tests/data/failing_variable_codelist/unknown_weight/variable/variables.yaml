@@ -1,0 +1,7 @@
+- Price|Carbon:
+    definition: Price of carbon
+    unit: USD/t CO2
+    weight: Emissions|CO2
+- Capacity Additions|Electricity:
+    unit: EJ
+    weight: Final Energy|Electricity

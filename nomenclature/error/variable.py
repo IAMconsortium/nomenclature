@@ -15,3 +15,11 @@ class VariableRenameTargetError(PydanticValueError):
         "Region-aggregation-target(s) {target} not defined in the "
         "DataStructureDefinition, occurred in variable '{variable}' (file: {file})"
     )
+
+
+class MissingWeightError(PydanticValueError):
+    code = "missing_weight_error"
+    msg_template = (
+        "The following variables are used as 'weight' for aggregation but "
+        "are not defined in the variable codelist:\n{missing_weights}"
+    )

@@ -99,6 +99,10 @@ package. See the section :ref:`model_mapping` for more information.
   :meth:`aggregate_region() <pyam.IamDataFrame.aggregate_region>` will
   be passed to that method. Examples include *method* and *weight*.
 
+* The *weight* attribute is optional. If provided, this variable will be used as a weight for
+  computing the region.aggregation as a weighted average. The variable given in the *weight*
+  attribute **must** be defined in the list of variables.
+
 * It is possible to rename the variable returned by the region processing using
   a *region-aggregation* attribute, which must have a mapping of the target variable to
   arguments of :meth:`aggregate_region() <pyam.IamDataFrame.aggregate_region>`.

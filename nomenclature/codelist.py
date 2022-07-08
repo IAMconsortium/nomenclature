@@ -1,19 +1,19 @@
 from pathlib import Path
-import yaml
-from typing import Union, Dict, List
-from pydantic import BaseModel, root_validator
-from jsonschema import validate
-import pandas as pd
+from typing import Dict, List, Union
 
-from pyam.utils import write_sheet, isstr
+import pandas as pd
+import yaml
+from jsonschema import validate
+from pyam.utils import write_sheet
+from pydantic import BaseModel, validator
 
 from nomenclature.code import Code, Tag, replace_tags
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
-    VariableRenameTargetError,
+    MissingWeightError,
     VariableRenameArgError,
+    VariableRenameTargetError,
 )
-
 
 # arguments of the method `pyam.IamDataFrame.aggregate_region`
 # required for checking validity of variable-CodeList-attributes
@@ -50,32 +50,36 @@ class CodeList(BaseModel):
     """
 
     name: str
-    mapping: Union[List, Dict[str, Dict[str, Union[str, float, int, list, None]]]] = {}
+    mapping: Union[
+        List,
+        Dict[
+            str,
+            Union[Dict[str, Union[bool, str, float, int, list, dict, None]], List[str]],
+        ],
+    ] = {}
 
-    @root_validator()
-    def cast_mapping_to_dict(cls, values):
+    @validator("mapping", pre=True)
+    def cast_mapping_to_dict(cls, v, values):
         """Cast a mapping provided as list to a dictionary"""
-        if isinstance(values["mapping"], list):
-            mapping = {}
+        if not isinstance(v, list):
+            return v
 
-            for item in values["mapping"]:
-                if not isinstance(item, Code):
-                    item = Code.from_dict(item)
-                if item.name in mapping:
-                    raise DuplicateCodeError(name=values["name"], code=item.name)
-                mapping[item.name] = item.attributes
+        mapping = {}
+        for item in v:
+            if not isinstance(item, Code):
+                item = Code.from_dict(item)
+            if item.name in mapping:
+                raise DuplicateCodeError(name=values["name"], code=item.name)
+            mapping[item.name] = item.attributes
+        return mapping
 
-            values["mapping"] = mapping
-
-        return values
-
-    @root_validator(pre=False, skip_on_failure=True)
-    def check_variable_region_aggregation_args(cls, values):
+    @validator("mapping")
+    def check_variable_region_aggregation_args(cls, v, values):
         """Check that any variable "region-aggregation" mappings are valid"""
         if values["name"] == "variable":
             items = [
                 (name, attrs)
-                for (name, attrs) in values["mapping"].items()
+                for (name, attrs) in v.items()
                 if "region-aggregation" in attrs
             ]
 
@@ -93,31 +97,42 @@ class CodeList(BaseModel):
                 rename_attrs = CodeList(
                     name="region-aggregation", mapping=attrs["region-aggregation"]
                 )
-                invalid = [v for v in rename_attrs.keys() if v not in values["mapping"]]
+                invalid = [var for var in rename_attrs.keys() if var not in v]
                 if invalid:
                     raise VariableRenameTargetError(
                         variable=name, file=attrs["file"], target=invalid
                     )
-        return values
+        return v
 
-    @root_validator(pre=False, skip_on_failure=True)
-    def cast_variable_components_args(cls, values):
+    @validator("mapping")
+    def check_weight_in_vars(cls, v, values):
+        # Check that all variables specified in 'weight' are present in the codelist
+        if values["name"] == "variable":
+            if missing_weights := [
+                (name, attrs["weight"], attrs["file"])
+                for name, attrs in v.items()
+                if "weight" in attrs and attrs["weight"] not in v
+            ]:
+                raise MissingWeightError(
+                    missing_weights="".join(
+                        f"'{weight}' used for '{var}' in: {file}\n"
+                        for var, weight, file in missing_weights
+                    )
+                )
+        return v
+
+    @validator("mapping")
+    def cast_variable_components_args(cls, v, values):
         """Cast "components" list of dicts to a codelist"""
         if values["name"] == "variable":
-            items = [
-                (name, attrs)
-                for (name, attrs) in values["mapping"].items()
-                if "components" in attrs
-            ]
-
             # translate a list of single-key dictionaries to a simple dictionary
-            for (name, attrs) in items:
-                if not all([isstr(i) for i in attrs["components"]]):
-                    values["mapping"][name]["components"] = CodeList(
+            for name, attrs in v.items():
+                if "components" in attrs and isinstance(attrs["components"][0], dict):
+                    v[name]["components"] = CodeList(
                         name="components", mapping=attrs["components"]
                     ).mapping
 
-        return values
+        return v
 
     def __setitem__(self, key, value):
         if key in self.mapping:
