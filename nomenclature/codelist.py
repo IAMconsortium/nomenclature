@@ -135,7 +135,7 @@ class CodeList(BaseModel):
                 if not all([isstr(i) for i in attrs["components"]]):
                     values["mapping"][name]["components"] = CodeList(
                         name="components", mapping=attrs["components"]
-                    )
+                    ).mapping
 
         return values
 
