@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Dict, List, Union
 
@@ -23,6 +24,8 @@ PYAM_AGG_KWARGS = [
     "weight",
     "drop_negative_weights",
 ]
+
+logger = logging.getLogger(__name__)
 
 here = Path(__file__).parent.absolute()
 
@@ -113,11 +116,13 @@ class CodeList(BaseModel):
                 for name, attrs in v.items()
                 if "weight" in attrs and attrs["weight"] not in v
             ]:
-                raise MissingWeightError(
-                    missing_weights="".join(
-                        f"'{weight}' used for '{var}' in: {file}\n"
-                        for var, weight, file in missing_weights
-                    )
+                missing_weights = "".join(
+                    f"'{weight}' used for '{var}' in: {file}\n"
+                    for var, weight, file in missing_weights
+                )
+                logger.warning(
+                    "The following variables are used as 'weight' for aggregation but "
+                    "are not defined in the variable codelist:\n{missing_weights}"
                 )
         return v
 
