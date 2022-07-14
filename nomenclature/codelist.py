@@ -122,7 +122,7 @@ class CodeList(BaseModel):
                 )
                 logger.warning(
                     "The following variables are used as 'weight' for aggregation but "
-                    "are not defined in the variable codelist:\n{missing_weights}"
+                    f"are not defined in the variable codelist:\n{missing_weights}"
                 )
         return v
 
