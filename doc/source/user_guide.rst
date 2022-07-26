@@ -2,7 +2,6 @@
 
 .. currentmodule:: nomenclature
 
-
 User Guide
 ==========
 
@@ -29,9 +28,9 @@ installed and the ``main`` function in ``workflow.py`` be given a
 When working with nomenclature, there are two main classes that the user interacts with,
 :class:`DataStructureDefinition` and :class:`RegionProcessor`.
 
-The :class:`DataStructureDefinition` class parses :ref:`codelist` files which define
-allowed values, most commonly for *variables* and *regions*, to be used in a model
-comparison or scenario exercise.
+The :class:`DataStructureDefinition` class parses :ref:`codelist <codelist>` files which
+define allowed values for validation. The most commonly used dimensions for validation
+in a in a model comparison or scenario exercise are *variable* and *region*.
 
 The :class:`RegionProcessor` parses :ref:`model mapping <model_mapping>` files which
 define the renaming of native regions and aggregation to common regions.
@@ -41,10 +40,11 @@ with data in form of a :class:`pyam.IamDataFrame`. The input data is aggregated 
 the RegionProcessor and validated using DataStructureDefinition.
 
 .. toctree::
-  :maxdepth: 3
+  :maxdepth: 1
 
   user_guide/directory-structure
   user_guide/codelist
-  user_guide/variable-guidelines
+  user_guide/variable
+  user_guide/region
   user_guide/model-mapping
   user_guide/local-usage
