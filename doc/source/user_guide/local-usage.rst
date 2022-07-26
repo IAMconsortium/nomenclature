@@ -12,8 +12,8 @@ You can use the **nomenclature** package locally (on your machine) for validatio
 and region-aggregration. This can be helpful as part of processing your model results,
 or to ensure that a submission to an IIASA Scenario Explorer instance will succeed.
 
-Requirements
-------------
+The following **requirements** must be satisfied to use a :class:´nomenclature`-based
+project locally:
 
 1. Install the **nomenclature** package (see the :ref:`installation` instructions)
 2. Have a project folder that has the required :ref:`dir_structure`:
@@ -25,11 +25,8 @@ Requirements
    .. attention:: When using a project repository from GitHub or a similar service,
           make sure that you keep your local clone in sync with the upstream repository.
 
-Usage options
--------------
-
-Validation against the codelists
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Validation against codelists
+----------------------------
 
 The easiest use case is to validate that a data file or an
 :class:`IamDataFrame <pyam.IamDataFrame>` is compatible with the codelists
@@ -53,8 +50,14 @@ If the scenario data is consistent, the method returns *True*.
   # Perform the validation
   dsd.validate(df)
 
-Validation and region processing
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Per default, a :class:`DataStructureDefinition` uses the *region* and *variable*
+dimensions, reading the codelists from their respective folders inside the *definition*
+folder.
+
+Alternative dimensions can be specified using the *dimensions* attribute.
+
+Validation and region-processing
+--------------------------------
 
 A more elaborate use case is to perform validation against the codelists and use the
 :class:`RegionProcessor` to aggregate timeseries from "native regions" of a model to
@@ -81,7 +84,7 @@ A more elaborate use case is to perform validation against the codelists and use
 Refer to the section :ref:`model_mapping` for more information about this feature.
 
 Using a project-specific workflow
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------
 
 Several projects specify custom workflows that combine validation and region-processing
 with other validation steps or post-processing modules. These workflows are usually

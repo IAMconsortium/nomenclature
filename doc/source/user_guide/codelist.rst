@@ -231,37 +231,4 @@ When importing a *tag* codelist, any occurrence of ``{Tag}`` in the name of a co
 be replaced by every element in the Tag dictionary. The ``{Tag}`` will also be replaced
 in any of the variable attributes.
 
-Using the DataStructureDefinition class
----------------------------------------
 
-Once the required codelists have been created, validating IAM data against a number of
-codelists using the nomenclature package is straightforward:  
-
-.. code:: python
-
-   import pyam
-   import nomenclature  
-  
-   # input path to the folder holing the codelists
-   dsd = DataStructureDefinition("definition")
-   # data to validate in IAMC format
-   data = pyam.IamDataFrame("input_data.xlsx") 
-   
-   # returns True if the data is valid, raises error otherwise
-   dsd.validate(data)
-
-Per default, :class:`DataStructureDefinition` reads in *region* and *variable* codelists
-from their respective sub folders inside the ``definition/`` folder. Any different
-number of dimensions can be read in by instantiating the ``DataStructureDefinition``
-object with an additional list of strings, e.g. ``DataStructureDefinition("definition",
-['region', 'variable', 'scenario'])``. This would attempt to read three codelists.
-
-In addition, when running :meth:`DataStructureDefinition.validate`, it can be selected
-which dimensions to *validate*. Per default, *all* dimensions which were read at
-instantiating are validated, but any subset can be selected by providing a list of
-dimensions. In the above example using ``dsd.validate(df, ['scenario'])`` would validate
-*only* the *scenario* dimension.
-
-In practice, ``DataStructureDefinition.validate`` is usually not called directly but
-rather as part of the :func:`process` function which combines validation and region
-processing.
