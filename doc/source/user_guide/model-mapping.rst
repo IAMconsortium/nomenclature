@@ -110,35 +110,3 @@ are compared and combined according to the following logic:
       Please note that in case of differences no error is raised. Therefore it is
       necessary to check the logs to find out if there were any differences. This is
       intentional since some differences might be expected.
-
-Using the RegionProcessor class
--------------------------------
-
-Once the appropriate model mappings have been created, using the
-:class:`RegionProcessor` class to process IAM result data is straightforward:
-
-.. code:: python
-
-   import pyam
-   import nomenclature
-
-   # initialize a RegionProcessor instance from the directory containing model mappings
-   rp = RegionProcessor.from_directory("mappings")
-
-   # initialize a DataStructureDefinition
-   dsd = DataStructureDefinition("defintions", ["region", "variable"])
-
-   # IAMC formatted input data, to be processed
-   data = pyam.IamDataFrame("input_data.xlsx")
-   
-   # returns the processed data as IamDataFrame
-   processed_data = rp.apply(data, dsd)
-
-The DataStructureDefinition instance is required for region processing because it is
-used to validate the regions defined in the model mappings and provides information
-about variable aggregation (see :ref:`region_aggregation_attributes` for details). The
-DataStructureDefinition *must* contain the *region* and *variable* dimensions in order to be used as part of the region processing.
-
-In practice, normally, both region processing *and* validation are desired and so the
-use of the :func:`process` function is recommended over calling
-``RegionProcessor.apply()`` directly.
