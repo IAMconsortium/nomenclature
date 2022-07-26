@@ -1,5 +1,7 @@
 .. _dir_structure:
 
+.. currentmodule:: nomenclature
+
 Directory structure for definitions and mappings
 ================================================
 
@@ -28,7 +30,7 @@ The :class:`DataStructureDefinition` reads the codelists from the *definitions* 
 * The codelists for a dimension can be distributed across multiple yaml files within a
   dimension folder, including any subfolders. When the :class:`DataStructureDefinition`
   object is initialized, all files in a dimension folder are combined into a single
-  :class:`CodeList` object.
+  :class:`CodeList` object for that dimension.
 
 The :class:`RegionProcessor` reads model-specific region-mappings from the *mappings*
 folder. If the project has no model specific mappings, this folder can also be omitted.
