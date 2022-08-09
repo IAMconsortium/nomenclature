@@ -17,7 +17,7 @@ Using the region-processing of a **nomenclature**-based project workflow require
 specifications: 
 
 * a model mapping to perform region aggregation from *native_regions* to
-*common_regions* and renaming of model native regions
+  *common_regions* and renaming of model native regions
 * a list of region names as they should appear in the processed scenario data
 
 Region aggregation mapping
