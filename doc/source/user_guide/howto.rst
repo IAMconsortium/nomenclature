@@ -52,10 +52,10 @@ many projects. For the ``common_regions``, there are ``World`` and ``Common regi
 Region definitions
 ^^^^^^^^^^^^^^^^^^
 
-Regions ``model_a|Region 1, model_a|Region 2, model_a|Region 3, World`` and ``Common
-region 1`` **must** be **part** of the region definitions. 
+Regions ``model_a|Region 1``, ``model_a|Region 2``, ``model_a|Region 3``, ``World`` and
+``Common region 1`` **must** be **part** of the region definitions. 
 
-``region_1, region_2`` and ``region_3`` are **not required** since they refer to the
+``region_1``, ``region_2`` and ``region_3`` are **not required** since they refer to the
 input names of ``model_a``'s regions and will be renamed in the processing.
 
 In most cases, the common regions (in the above example ``World`` and ``Common region
