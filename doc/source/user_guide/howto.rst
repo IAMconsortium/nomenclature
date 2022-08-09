@@ -2,15 +2,21 @@
 
 .. currentmodule:: nomenclature
 
-This guide is intended as a quick instruction for adding a model to comparison project.
+Model registration
+==================
+
+This guide presents a quick instruction for "registering a model" in a project workflow.
+
+is intended as a quick instruction for adding a model to comparison project.
 It is still recommended to read the detailed instructions under :ref:`model_mapping` and
 :ref:`region` in particular.
 
-How to add your model mapping to a project repository
-=====================================================
+Region processing
+-----------------
 
-There are two parts to adding a new model mapping. The mapping itself and the easily
-forgotten additionally required region definitions. 
+Using the region-processing of a **nomenclature**-based project workflow requires two specifications:
+- a list of region names as they should appear in the processed scenario data
+- a mapping to perform region aggregation from *native_regions* to *common_regions*
 
 As outlined in :ref:`model_mapping` a model mapping holds the information about model
 native an aggregation regions, for example:
