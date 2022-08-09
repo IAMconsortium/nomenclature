@@ -7,7 +7,6 @@ Model registration
 
 This guide presents a quick instruction for "registering a model" in a project workflow.
 
-is intended as a quick instruction for adding a model to comparison project.
 It is still recommended to read the detailed instructions under :ref:`model_mapping` and
 :ref:`region` in particular.
 
@@ -15,11 +14,18 @@ Region processing
 -----------------
 
 Using the region-processing of a **nomenclature**-based project workflow requires two specifications:
+- a model mapping to perform region aggregation from *native_regions* to
+*common_regions* and renaming of model native regions
 - a list of region names as they should appear in the processed scenario data
-- a mapping to perform region aggregation from *native_regions* to *common_regions*
 
-As outlined in :ref:`model_mapping` a model mapping holds the information about model
-native an aggregation regions, for example:
+Region aggregation mapping
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As described in :ref:`model_mapping`, the model mapping holds the information about
+aggregating from native regions to common regions. It also allows renaming of native
+regions for disambiguation in a scenario ensemble.
+
+Example:
 
 .. code-block:: yaml
 
@@ -41,32 +47,26 @@ native an aggregation regions, for example:
 These three are to be renamed to the ``{model}|{region}`` pattern as is common place in
 many projects. For the ``common_regions``, there are ``World`` and ``Common region 1``.
 
-If this model mapping would be submitted as a pull request to a project repository, the
-:func:`assert_valid_structure` (details can be found here: :ref:`cli`) test that is run
-automatically would most likely fail.
+Region definitions
+^^^^^^^^^^^^^^^^^^
 
-The reason for this is that it is required for all regions that will be part of the
-processing output according to a model mapping to be defined in the list of regions in
-the ``definitions/region/`` folder. 
+Regions ``model_a|Region 1, model_a|Region 2, model_a|Region 3, World`` and ``Common
+region 1`` **must** be **part** of the region definitions. 
 
-In case of the example mapping above, regions ``model_a|Region 1, model_a|Region 2,
-model_a|Region 3, World`` and ``Common region 1`` must be part of the region
-definitions. ``region_1, region_2`` and ``region_3`` are not required since they will
-not be part of the processing output as they will be renamed.
+``region_1, region_2`` and ``region_3`` are **not required** since they refer to the
+input names of ``model_a``'s regions and will be renamed in the processing.
 
-In most cases the common regions will already be fined. There will, most likely exist a
-file ``defintions/region/regions.yaml`` which contains the project's common regions.
+In most cases, the common regions (in the above example ``World`` and ``Common region
+1``) will already be defined in a file called ``definitions/region/regions.yaml``.
 
-For the model native regions, however, the regions will most likely not exist. Therefore
-a new yaml file needs to be added to the same pull request that contains the model
-mapping. Per convention the ``definitions/region`` folder usually contains a subfolder
-called ``model_native_regions`` which is where all files containing model native region
-definitions should be put. The name of the file is not functionally relevant but it is
-recommended to use the model name.
+The model native regions, however, will most likely need to be added. For this, a new
+yaml file should be created, usually in ``definitions/region/model_native_regions``. The
+name of the file is not functionally relevant but it is recommended to use the model
+name.
 
-In order to make to above example model mapping work and the test run, we would
-therefore add a file called ``model_a.yaml`` to
-``definitions/region/model_native_regions`` with the following content:
+In order to complete the model registration for the example above, we would therefore
+add a file called ``model_a.yaml`` to ``definitions/region/model_native_regions/`` with
+the following content:
 
 .. code-block:: yaml
 
@@ -75,5 +75,13 @@ therefore add a file called ``model_a.yaml`` to
       - model_a|Region 2
       - model_a|Region 3
 
-assuming ``World`` and ``Common region 1`` are already defined, this should make the
-tests pass.
+The combination of a model mapping and the definition of all regions that are part of
+the processing output constitutes a complete model registration.
+
+Continuous Integration
+----------------------
+
+In most cases, a model registration is submitted as a pull request to a project. As part
+of this, :func:`assert_valid_structure` (details can be found here: :ref:`cli`) is run
+automatically to assure that the model registration is valid. Any regions that are, for
+example mentioned in a mapping but not defined will raise an error.
