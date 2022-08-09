@@ -13,21 +13,17 @@ It is still recommended to read the detailed instructions under :ref:`model_mapp
 Region processing
 -----------------
 
-Using the region-processing of a **nomenclature**-based project workflow requires two
+"Registering a model" for a **nomenclature**-based project workflow requires two
 specifications: 
 
 * a model mapping to perform region aggregation from *native_regions* to
   *common_regions* and renaming of model native regions
 * a list of region names as they should appear in the processed scenario data
 
-Region aggregation mapping
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Model mapping
+^^^^^^^^^^^^^
 
-As described in :ref:`model_mapping`, the model mapping holds the information about
-aggregating from native regions to common regions. It also allows renaming of native
-regions for disambiguation in a scenario ensemble.
-
-Example:
+For this guide we will consider a model mapping as an example:
 
 .. code-block:: yaml
 
@@ -52,8 +48,9 @@ many projects. For the ``common_regions``, there are ``World`` and ``Common regi
 Region definitions
 ^^^^^^^^^^^^^^^^^^
 
-Regions ``model_a|Region 1``, ``model_a|Region 2``, ``model_a|Region 3``, ``World`` and
-``Common region 1`` **must** be **part** of the region definitions. 
+In order to constitute a valid "model registration", regions ``model_a|Region 1``,
+``model_a|Region 2``, ``model_a|Region 3``, ``World`` and ``Common region 1`` **must**
+be **part** of the region definitions. 
 
 ``region_1``, ``region_2`` and ``region_3`` are **not required** since they refer to the
 input names of ``model_a``'s regions and will be renamed in the processing.
@@ -61,8 +58,8 @@ input names of ``model_a``'s regions and will be renamed in the processing.
 In most cases, the common regions (in the above example ``World`` and ``Common region
 1``) will already be defined in a file called ``definitions/region/regions.yaml``.
 
-The model native regions, however, will most likely need to be added. For this, a new
-yaml file should be created, usually in ``definitions/region/model_native_regions``. The
+The model native regions, however, most likely need to be added. For this, a new yaml
+file should be created, usually in ``definitions/region/model_native_regions/``. The
 name of the file is not functionally relevant but it is recommended to use the model
 name.
 
@@ -77,7 +74,7 @@ the following content:
       - model_a|Region 2
       - model_a|Region 3
 
-The combination of a model mapping and the definition of all regions that are part of
+This combination of a model mapping and the definition of all regions that are part of
 the processing output constitutes a complete model registration.
 
 Continuous Integration
