@@ -15,7 +15,8 @@ def cli_valid_yaml(path: Path):
 
 @cli.command("validate-project")
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
-def cli_valid_project(path: Path):
+@click.argument("dimensions", nargs=-1)
+def cli_valid_project(path: Path, dimensions):
     """Assert that `path` is a valid project nomenclature"""
     assert_valid_yaml(path)
-    assert_valid_structure(path)
+    assert_valid_structure(path, dimensions)
