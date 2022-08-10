@@ -29,6 +29,7 @@ def assert_valid_yaml(path: Path):
 
 def assert_valid_structure(path: Path, dimensions=["region", "variable"]):
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
+       with the custom `dimensions` if given
 
     Folder structure of `path`:
 

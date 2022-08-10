@@ -76,3 +76,13 @@ def test_cli_valid_project_fails():
 
     with pytest.raises(NotADirectoryError, match=print_helper(path)):
         assert_valid_structure(TEST_DATA_DIR / "invalid_yaml")
+
+def test_cli_custom_dimensions_quotes():
+    """Check that CLI expected simple quotes (') inside double quotes (")"""
+    result_valid = runner.invoke(
+        cli, ["validate-project", 
+            str(TEST_DATA_DIR / "non-default_dimensions_passing"), 
+            "--dimensions \"['variable', 'region', 'foo']\""
+        ]
+    )
+    assert result_valid.exit_code == 0

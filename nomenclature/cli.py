@@ -25,9 +25,9 @@ def cli_valid_yaml(path: Path):
 
 @cli.command("validate-project")
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
-@click.option('--dimensions', help='Optional list of dimensions', 
-    cls=PythonLiteralOption, default="[]")
+@click.option('--dimensions', help='Optional list of dimensions',
+            cls=PythonLiteralOption, default="['region', 'variable']")
 def cli_valid_project(path: Path, dimensions):
-    """Assert that `path` is a valid project nomenclature"""
+    """Assert that `path` and `dimensions`(optional) are valid project nomenclatures"""
     assert_valid_yaml(path)
     assert_valid_structure(path, dimensions)
