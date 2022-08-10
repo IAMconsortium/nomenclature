@@ -1,4 +1,4 @@
-.. _how-to:
+.. _model-registration:
 
 .. currentmodule:: nomenclature
 
@@ -60,8 +60,7 @@ In most cases, the common regions (in the above example ``World`` and ``Common r
 
 The model native regions, however, most likely need to be added. For this, a new yaml
 file should be created, usually in ``definitions/region/model_native_regions/``. The
-name of the file is not functionally relevant but it is recommended to use the model
-name.
+file does not need to have any special name but it is recommended to use the model name.
 
 In order to complete the model registration for the example above, we would therefore
 add a file called ``model_a.yaml`` to ``definitions/region/model_native_regions/`` with
