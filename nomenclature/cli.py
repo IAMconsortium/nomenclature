@@ -1,18 +1,18 @@
 import click
+import ast
 from pathlib import Path
 
 from nomenclature.testing import assert_valid_yaml, assert_valid_structure
 
 cli = click.Group()
 
-import ast
 
 class PythonLiteralOption(click.Option):
 
     def type_cast_value(self, ctx, value):
         try:
             return ast.literal_eval(value)
-        except:
+        except Exception:
             raise click.BadParameter(value)
 
 
@@ -25,9 +25,9 @@ def cli_valid_yaml(path: Path):
 
 @cli.command("validate-project")
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
-@click.option('--dimensions', help='Optional list of dimensions', cls=PythonLiteralOption, default="[]")
+@click.option('--dimensions', help='Optional list of dimensions', 
+    cls=PythonLiteralOption, default="[]")
 def cli_valid_project(path: Path, dimensions):
     """Assert that `path` is a valid project nomenclature"""
     assert_valid_yaml(path)
     assert_valid_structure(path, dimensions)
-
