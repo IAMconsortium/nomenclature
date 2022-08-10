@@ -17,7 +17,7 @@ Region processing
 specifications: 
 
 * a model mapping to perform region aggregation from *native_regions* to
-  *common_regions* and renaming of model native regions
+  *common_regions* and renaming of model native regions (optional)
 * a list of region names as they should appear in the processed scenario data
 
 Model mapping
@@ -50,7 +50,7 @@ Region definitions
 
 In order to constitute a valid "model registration", regions ``model_a|Region 1``,
 ``model_a|Region 2``, ``model_a|Region 3``, ``World`` and ``Common region 1`` **must**
-be **part** of the region definitions. 
+be part of the region definitions. 
 
 ``region_1``, ``region_2`` and ``region_3`` are **not required** since they refer to the
 input names of ``model_a``'s regions and will be renamed in the processing.
@@ -80,7 +80,7 @@ the processing output constitutes a complete model registration.
 Continuous Integration
 ----------------------
 
-In most cases, a model registration is submitted as a pull request to a project. As part
+In most cases, a model registration is submitted as a pull request to a project repository hosted on GitHub. As part
 of this, :func:`assert_valid_structure` (details can be found here: :ref:`cli`) is run
-automatically to assure that the model registration is valid. Any regions that are, for
+automatically to ensure that the model registration is valid. Any regions that are, for
 example mentioned in a mapping but not defined will raise an error.
