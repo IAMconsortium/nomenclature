@@ -36,7 +36,7 @@ def assert_valid_structure(path: Path, dimensions=["region", "variable"]):
         :class:`DataStructureDefinition`
       - If a `mappings` folder exists, it must be a valid :class:`RegionProcessor`
     """
-    definition = nomenclature.DataStructureDefinition(path / "definitions")
+    definition = nomenclature.DataStructureDefinition(path / "definitions", dimensions)
     if (path / "mappings").is_dir():
         nomenclature.RegionProcessor.from_directory(
             path / "mappings"

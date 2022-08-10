@@ -19,7 +19,7 @@ class DataStructureDefinition:
     def __init__(self, path, dimensions=["region", "variable"]):
         """
 
-        Parameters
+        Parameters 
         ----------
         path : str or path-like
             The folder with the project definitions.
