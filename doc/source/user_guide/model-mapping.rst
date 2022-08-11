@@ -9,7 +9,7 @@ purposes:
 1. Defining a list of model native regions under the key *native_regions* that are to be
    selected (and usually uploaded) from an IAM result. This also serves as an implicit
    exclusion list for model native regions, since only explicitly mentioned regions are
-   selected. Any region that not mentioned in *native_regions* will cause an error unless explicitly named in the *exclude_regions* section. This to avoid accidentally forgetting a region.
+   selected. Any region not mentioned in *native_regions* will cause an error unless explicitly named in the *exclude_regions* section. This to avoid accidentally forgetting a region.
 2. Allowing for renaming of model native regions.
 3. Defining how model native regions should be aggregated to common
    regions.
@@ -100,7 +100,7 @@ are compared and combined according to the following logic:
 1. If a variable is **not** reported for *common_region_1*, it is calculated through
    region aggregation of regions *region_a* and *region_b*.
 2. If a variable is **only** reported for *common_region_1* level it is used directly.
-3. If a variable is is reported for *common_region_1* **as well as** *region_a* and
+3. If a variable is reported for *common_region_1* **as well as** *region_a* and
    *region_b*. The **provided results** take **precedence** over the aggregated ones.
    Additionally, the aggregation is computed and compared to the provided results. If
    there are discrepancies, a warning is written to the logs.
