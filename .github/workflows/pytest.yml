@@ -24,7 +24,7 @@ jobs:
     # for non-nightly run only ubuntu, for nightly run all three OS
     if: ${{ matrix.os == 'ubuntu'}} || ${{ github.event_name == 'schedule' }}
     runs-on: ${{ matrix.os }}-latest
-    name: 'OS: ${{matrix.os}} py${{ matrix.python-version }}''
+    name: 'OS: ${{matrix.os}} py${{ matrix.python-version }}'
     steps:
     - uses: actions/checkout@v3
 
