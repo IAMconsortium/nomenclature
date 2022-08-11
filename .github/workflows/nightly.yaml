@@ -7,7 +7,7 @@ name: nightly
 on:
   schedule:
     # runs once per week on Sunday at 3am UCT
-    - cron: '0 3 * * 7'
+    - cron: '0 3 * * 0'
 jobs:
   pytest:
 
