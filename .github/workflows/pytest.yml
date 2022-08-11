@@ -9,24 +9,22 @@ on:
     branches: [ 'main' ]
   pull_request:
     branches: [ '**' ]
-
+  schedule:
+    cron: '0 3 * * *'
 jobs:
   pytest:
 
     strategy:
       matrix:
-        python-version:
         # keep consistent with py-version badge in README.md and doc/source/index.rst
         # update setup.cfg and doc/source/installation.rst when deprecating python 3.8
-        - '3.10'
-        - '3.9'
-        - '3.8'
-
+        python-version: ['3.8', '3.9', '3.10']        
+        os: [ubuntu, macos, windows]
       fail-fast: false
-
-    runs-on: ubuntu-latest
-    name: py${{ matrix.python-version }}
-
+    # for non-nightly run only ubuntu, for nightly run all three OS
+    if: ${{ matrix.os == 'ubuntu'}} || ${{ github.event_name == 'schedule' }}
+    runs-on: ${{ matrix.os }}-latest
+    name: 'OS: ${{matrix.os}} py${{ matrix.python-version }}''
     steps:
     - uses: actions/checkout@v3
 
