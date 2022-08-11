@@ -2,13 +2,12 @@
 # This workflow installs the package and runs the tests
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: pytest
+name: nightly
 
 on:
-  push:
-    branches: [ 'main' ]
-  pull_request:
-    branches: [ '**' ]
+  schedule:
+    # runs once per week on Sunday at 3am UCT
+    - cron: '0 3 * * 0'
 jobs:
   pytest:
 
@@ -17,11 +16,9 @@ jobs:
         # keep consistent with py-version badge in README.md and doc/source/index.rst
         # update setup.cfg and doc/source/installation.rst when deprecating python 3.8
         python-version: ['3.8', '3.9', '3.10']        
-        os: [ubuntu, macos, windows]
       fail-fast: false
-    
-    runs-on: ${{ matrix.os }}-latest
-    name: 'OS: ${{matrix.os}} py${{ matrix.python-version }}'
+    runs-on: ubuntu-latest
+    name: py${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v3
 
