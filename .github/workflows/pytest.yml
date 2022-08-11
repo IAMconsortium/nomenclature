@@ -10,7 +10,7 @@ on:
   pull_request:
     branches: [ '**' ]
   schedule:
-    cron: '0 3 * * *'
+    - cron: '0 3 * * *'
 jobs:
   pytest:
 
