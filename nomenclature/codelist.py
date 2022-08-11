@@ -228,7 +228,9 @@ class CodeList(BaseModel):
 
                 # add `file` attribute to each element and add to main list
                 for item in _code_list:
-                    item.set_attribute("file", str(yaml_file.relative_to(path.parent)))
+                    item.set_attribute(
+                        "file", yaml_file.relative_to(path.parent).as_posix()
+                    )
                 code_list.extend(_code_list)
 
         # replace tags by the items of the tag-dictionary
