@@ -112,7 +112,7 @@ def test_cli_wrong_definitions_name():
         [
             "validate-project",
             str(TEST_DATA_DIR / "structure_validation"),
-            "--definitions=def",
+            "--definitions", "def",
         ],
     )
     assert result_valid.exit_code == 1
