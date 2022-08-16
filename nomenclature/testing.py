@@ -27,7 +27,7 @@ def assert_valid_yaml(path: Path):
         )
 
 
-def assert_valid_structure(path: Path, mappings, definitions):
+def assert_valid_structure(path: Path, mappings="mappings", definitions="definitions"):
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
 
     Folder structure of `path`:
@@ -42,9 +42,8 @@ def assert_valid_structure(path: Path, mappings, definitions):
         nomenclature.RegionProcessor.from_directory(
             path / str(mappings)
         ).validate_mappings(definition)
-    elif (mappings != 'mappings'):
+    elif mappings != "mappings":
         raise NotADirectoryError(f"Mappings directory not found: {path/ str(mappings)}")
-
 
 
 # Todo: add function which runs `DataStrutureDefinition(path).validate(scenario)`
