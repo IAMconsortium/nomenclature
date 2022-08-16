@@ -77,20 +77,44 @@ def test_cli_valid_project_fails():
     with pytest.raises(NotADirectoryError, match=print_helper(path)):
         assert_valid_structure(TEST_DATA_DIR / "invalid_yaml")
 
-def test_cli_custom_dimensions_quotes():
-    """Check that CLI expected simple quotes (') inside double quotes (")"""
+
+def test_cli_custom_dimensions():
+    """Check that CLI runs through with an non-default dimension"""
+
     result_valid = runner.invoke(
-        cli, ["validate-project", 
-            str(TEST_DATA_DIR / "non-default_dimensions_passing"), 
-            "--dimensions", "\"['variable', 'region', 'foo']\""
-        ]
+        cli,
+        [
+            "validate-project",
+            str(TEST_DATA_DIR / "non-default_dimensions_passing"),
+            "--dimensions=['variable', 'region', 'foo']",
+        ],
     )
-    # result_invalid = runner.invoke(
-    #     cli, ["validate-project", 
-    #         str(TEST_DATA_DIR / "non-default_dimensions_passing"), 
-    #         '--dimensions', '\'["variable", "region", "foo"]\''
-    #     ]
-    # )
     assert result_valid.exit_code == 0
-    #assert result_invalid.exit_code == 2
-    
+
+
+def test_cli_custom_dimensions_empty():
+    """Check that CLI expects an error with an empty non-default dimension"""
+
+    result_valid = runner.invoke(
+        cli,
+        [
+            "validate-project",
+            str(TEST_DATA_DIR / "non-default_dimensions_failing"),
+            "--dimensions=['variable', 'region', 'foo']",
+        ],
+    )
+    assert result_valid.exit_code == 1
+
+
+def test_cli_custom_dimensions_fails():
+    """Check that CLI expects an error when given a non-existing dimension"""
+
+    result_valid = runner.invoke(
+        cli,
+        [
+            "validate-project",
+            str(TEST_DATA_DIR / "non-default_dimensions_passing"),
+            "--dimensions=['variable', 'region', 'wrong']",
+        ],
+    )
+    assert result_valid.exit_code == 1
