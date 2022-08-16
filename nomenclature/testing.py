@@ -42,9 +42,8 @@ def assert_valid_structure(path: Path, mappings, definitions):
         nomenclature.RegionProcessor.from_directory(
             path / str(mappings)
         ).validate_mappings(definition)
-    else:
-        if (mappings != 'mappings'):
-            raise NotADirectoryError(f"Definitions directory not found: {path/ str(mappings)}")
+    elif (mappings != 'mappings'):
+        raise NotADirectoryError(f"Mappings directory not found: {path/ str(mappings)}")
 
 
 

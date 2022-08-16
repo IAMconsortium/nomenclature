@@ -15,8 +15,8 @@ def cli_valid_yaml(path: Path):
 
 @cli.command("validate-project")
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
-@click.option('--mappings', default = 'mappings')
-@click.option('--definitions', default = 'definitions')
+@click.option('--mappings', default='mappings')
+@click.option('--definitions', default='definitions')
 def cli_valid_project(path: Path, mappings, definitions):
     """Assert that `path` is a valid project nomenclature
 
