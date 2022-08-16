@@ -8,11 +8,11 @@ Local usage of a project
 .. attention:: This page is intended for users who are familiar with Python,
     `git <https://git-scm.com>`_  and a service like `GitHub <https://github.com>`_.
 
-You can use the **nomenclature** package locally (on your machine) for validation
-and region-aggregration. This can be helpful as part of processing your model results,
-or to ensure that a submission to an IIASA Scenario Explorer instance will succeed.
+You can use the **nomenclature** package locally (on your machine) for validation and
+region-aggregration. This can be helpful as part of processing your model results, or to
+ensure that a submission to an IIASA Scenario Explorer instance will succeed.
 
-The following **requirements** must be satisfied to use a :class:´nomenclature`-based
+The following **requirements** must be satisfied to use a :class:`nomenclature`-based
 project locally:
 
 1. Install the **nomenclature** package (see the :ref:`installation` instructions)
@@ -28,13 +28,13 @@ project locally:
 Validation against codelists
 ----------------------------
 
-The easiest use case is to validate that a data file or an
-:class:`IamDataFrame <pyam.IamDataFrame>` is compatible with the codelists
-(lists of variables and regions) of a project's :class:`DataStructureDefinition`.
+The easiest use case is to validate that a data file or an :class:`IamDataFrame
+<pyam.IamDataFrame>` is compatible with the codelists (lists of variables and regions)
+of a project's :class:`DataStructureDefinition`.
 
-If there are inconsistencies with the codelists, the method
-:meth:`validate <DataStructureDefinition.validate>` will raise an error.
-If the scenario data is consistent, the method returns *True*.
+If there are inconsistencies with the codelists, the method :meth:`validate
+<DataStructureDefinition.validate>` will raise an error. If the scenario data is
+consistent, the method returns *True*.
 
 .. code-block:: python
 
