@@ -88,8 +88,10 @@ def test_cli_non_default_folders():
         [
             "validate-project",
             str(TEST_DATA_DIR / "non-default_folders"),
-            "--definitions=def",
-            "--mappings=map",
+            "--definitions",
+            "def",
+            "--mappings",
+            "map",
         ],
     )
     assert result_valid.exit_code == 0
@@ -112,7 +114,8 @@ def test_cli_wrong_definitions_name():
         [
             "validate-project",
             str(TEST_DATA_DIR / "structure_validation"),
-            "--definitions", "def",
+            "--definitions",
+            "def",
         ],
     )
     assert result_valid.exit_code == 1

@@ -29,6 +29,11 @@ def cli_valid_project(path: Path, mappings: str, definitions: str):
     3. Test that all model mappings in `mappings/` can be correctly parsed as a
        :class:`RegionProcessor` object. This includes a check that all regions mentioned
        in a model mapping are defined in the region codelist.
+
+    Example
+    -------
+    $ nomenclature validate-project . --mappings map --definitions def
+
     """
     assert_valid_yaml(path)
     assert_valid_structure(path, mappings, definitions)
