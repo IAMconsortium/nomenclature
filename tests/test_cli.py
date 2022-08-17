@@ -107,7 +107,7 @@ def test_cli_non_default_folders_fails():
 
 
 def test_cli_wrong_definitions_name():
-    """Check that CLI expects an error when wrong non-default directory
+    """Check that CLI raises an error when wrong non-default directory
     is given"""
     result_valid = runner.invoke(
         cli,

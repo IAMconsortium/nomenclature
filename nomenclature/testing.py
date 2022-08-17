@@ -31,7 +31,6 @@ def assert_valid_structure(
     path: Path, mappings: str = "mappings", definitions: str = "definitions"
 ) -> None:
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
-    with optionnaly non-default folder names
 
     Parameters
     ----------
