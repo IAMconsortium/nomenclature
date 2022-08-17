@@ -32,7 +32,8 @@ def cli_valid_project(path: Path, mappings: str, definitions: str):
 
     Example
     -------
-    $ nomenclature validate-project .  --definitions <def-folder> --mappings <mapping-folder>
+    $ nomenclature validate-project .  --definitions <def-folder>
+                                       --mappings <mapping-folder>
 
     """
     assert_valid_yaml(path)
