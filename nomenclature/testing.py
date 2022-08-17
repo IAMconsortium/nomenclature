@@ -57,7 +57,7 @@ def assert_valid_structure(
         )
     else:
         if mappings != "mappings":
-            raise NotADirectoryError(
+            raise FileNotFoundError(
                 f"Mappings directory not found: {path/ str(mappings)}"
             )
 
