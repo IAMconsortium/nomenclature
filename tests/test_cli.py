@@ -122,42 +122,45 @@ def test_cli_wrong_definitions_name():
 
 
 def test_cli_custom_dimensions():
-    """Check that CLI runs through with an non-default dimension"""
+    """Check that CLI runs through with a non-default dimension"""
 
     result_valid = runner.invoke(
         cli,
         [
             "validate-project",
             str(TEST_DATA_DIR / "non-default_dimensions_passing"),
-            "--dimensions=['variable', 'region', 'foo']",
+            "--dimensions",
+            "['variable', 'region', 'foo']",
         ],
     )
     assert result_valid.exit_code == 0
 
 
 def test_cli_custom_dimensions_empty():
-    """Check that CLI expects an error with an empty non-default dimension"""
+    """Check that CLI raises an expected error with an empty non-default dimension"""
 
     result_valid = runner.invoke(
         cli,
         [
             "validate-project",
             str(TEST_DATA_DIR / "non-default_dimensions_failing"),
-            "--dimensions=['variable', 'region', 'foo']",
+            "--dimensions",
+            "['variable', 'region', 'foo']",
         ],
     )
     assert result_valid.exit_code == 1
 
 
 def test_cli_custom_dimensions_fails():
-    """Check that CLI expects an error when given a non-existing dimension"""
+    """Check that CLI raises expected error when given a non-existing dimension"""
 
     result_valid = runner.invoke(
         cli,
         [
             "validate-project",
             str(TEST_DATA_DIR / "non-default_dimensions_passing"),
-            "--dimensions=['variable', 'region', 'wrong']",
+            "--dimensions",
+            "['variable', 'region', 'wrong']",
         ],
     )
     assert result_valid.exit_code == 1

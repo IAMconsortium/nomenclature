@@ -31,11 +31,18 @@ def cli_valid_yaml(path: Path):
     cls=PythonLiteralOption,
     default="['region', 'variable']",
 )
-def cli_valid_project(path: Path, dimensions: List[str]):
-    """Assert that `path` and `dimensions`(optional) are valid project nomenclatures"""
-@click.option("--mappings", type=str, default="mappings")
-@click.option("--definitions", type=str, default="definitions")
-def cli_valid_project(path: Path, mappings: str, definitions: str):
+@click.option(
+    "--mappings", help="Optional name for mappings folder", type=str, default="mappings"
+)
+@click.option(
+    "--definitions",
+    help="Optional name for definitions folder",
+    type=str,
+    default="definitions",
+)
+def cli_valid_project(
+    path: Path, mappings: str, definitions: str, dimensions: List[str]
+):
     """Assert that `path` is a valid project nomenclature
 
     This test includes three steps:
@@ -51,8 +58,8 @@ def cli_valid_project(path: Path, mappings: str, definitions: str):
     Example
     -------
     $ nomenclature validate-project . --definitions <def-folder> --mappings <map-folder>
+                                 --dimensions "['<folder1>', '<folder2>', '<folder3>']"
 
     """
     assert_valid_yaml(path)
-    assert_valid_structure(path, dimensions)
-    assert_valid_structure(path, mappings, definitions)
+    assert_valid_structure(path, mappings, definitions, dimensions)

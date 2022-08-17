@@ -28,9 +28,11 @@ def assert_valid_yaml(path: Path):
         )
 
 
-def assert_valid_structure(path: Path, dimensions: List[str] = ["region", "variable"]):
 def assert_valid_structure(
-    path: Path, mappings: str = "mappings", definitions: str = "definitions"
+    path: Path,
+    mappings: str = "mappings",
+    definitions: str = "definitions",
+    dimensions: List[str] = ["region", "variable"],
 ) -> None:
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
        with the custom `dimensions` if given
@@ -52,9 +54,8 @@ def assert_valid_structure(
         - If a `mappings` folder exists, it must be a valid :class:`RegionProcessor`
 
     """
-    definition = nomenclature.DataStructureDefinition(path / "definitions", dimensions)
 
-    definition = nomenclature.DataStructureDefinition(path / str(definitions))
+    definition = nomenclature.DataStructureDefinition(path / definitions, dimensions)
     if (path / mappings).is_dir():
         nomenclature.RegionProcessor.from_directory(path / mappings).validate_mappings(
             definition
