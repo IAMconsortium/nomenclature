@@ -98,7 +98,7 @@ def test_cli_non_default_folders():
 
 
 def test_cli_non_default_folders_fails():
-    """Check that CLI expects an error when non-default "definitions" and
+    """Check that CLI raises expected error when non-default "definitions" and
     "mappings" directory names are not given"""
     result_valid = runner.invoke(
         cli, ["validate-project", str(TEST_DATA_DIR / "non-default_folders")]
@@ -107,7 +107,7 @@ def test_cli_non_default_folders_fails():
 
 
 def test_cli_wrong_definitions_name():
-    """Check that CLI raises an error when wrong non-default directory
+    """Check that CLI raises expected error when a non-existing non-default directory
     is given"""
     result_valid = runner.invoke(
         cli,
