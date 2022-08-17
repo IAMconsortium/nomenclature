@@ -15,7 +15,9 @@ def cli_valid_yaml(path: Path):
 
 @cli.command("validate-project")
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
-def cli_valid_project(path: Path):
+@click.option("--mappings", type=str, default="mappings")
+@click.option("--definitions", type=str, default="definitions")
+def cli_valid_project(path: Path, mappings: str, definitions: str):
     """Assert that `path` is a valid project nomenclature
 
     This test includes three steps:
@@ -27,6 +29,11 @@ def cli_valid_project(path: Path):
     3. Test that all model mappings in `mappings/` can be correctly parsed as a
        :class:`RegionProcessor` object. This includes a check that all regions mentioned
        in a model mapping are defined in the region codelist.
+
+    Example
+    -------
+    $ nomenclature validate-project . --definitions <def-folder> --mappings <map-folder>
+
     """
     assert_valid_yaml(path)
-    assert_valid_structure(path)
+    assert_valid_structure(path, mappings, definitions)

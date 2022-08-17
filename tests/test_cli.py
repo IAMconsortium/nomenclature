@@ -75,4 +75,47 @@ def test_cli_valid_project_fails():
         print(f"Definitions directory not found: {_path}")
 
     with pytest.raises(NotADirectoryError, match=print_helper(path)):
-        assert_valid_structure(TEST_DATA_DIR / "invalid_yaml")
+        assert_valid_structure(
+            TEST_DATA_DIR / "invalid_yaml", "mappings", "definitions"
+        )
+
+
+def test_cli_non_default_folders():
+    """Check that CLI runs through with non-default but existing "definitions" and
+    "mappings" directory when the correct names are given"""
+    result_valid = runner.invoke(
+        cli,
+        [
+            "validate-project",
+            str(TEST_DATA_DIR / "non-default_folders"),
+            "--definitions",
+            "def",
+            "--mappings",
+            "map",
+        ],
+    )
+    assert result_valid.exit_code == 0
+
+
+def test_cli_non_default_folders_fails():
+    """Check that CLI raises expected error when non-default "definitions" and
+    "mappings" directory names are not given"""
+    result_valid = runner.invoke(
+        cli, ["validate-project", str(TEST_DATA_DIR / "non-default_folders")]
+    )
+    assert result_valid.exit_code == 1
+
+
+def test_cli_wrong_definitions_name():
+    """Check that CLI raises expected error when a non-existing non-default directory
+    is given"""
+    result_valid = runner.invoke(
+        cli,
+        [
+            "validate-project",
+            str(TEST_DATA_DIR / "structure_validation"),
+            "--definitions",
+            "def",
+        ],
+    )
+    assert result_valid.exit_code == 1
