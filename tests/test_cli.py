@@ -165,3 +165,37 @@ def test_cli_custom_dimensions_fails():
         ],
     )
     assert result_valid.exit_code == 1
+
+
+def test_cli_missing_mappings_runs():
+    """Assert that when **no** mappings folder is given by the user it's allowed
+    to not exist"""
+
+    assert (
+        runner.invoke(
+            cli,
+            [
+                "validate-project",
+                str(TEST_DATA_DIR / "structure_validation_no_mappings"),
+            ],
+        ).exit_code
+        == 0
+    )
+
+
+def test_cli_missing_mappings_fails():
+    """Assert that when a mappings folder is specified it needs to exist"""
+
+    cli_result = runner.invoke(
+        cli,
+        [
+            "validate-project",
+            str(TEST_DATA_DIR / "structure_validation_no_mappings"),
+            "--mappings",
+            "mappings",
+        ],
+    )
+
+    assert cli_result.exit_code == 1
+    assert isinstance(cli_result.exception, FileNotFoundError)
+    assert "Mappings directory not found" in str(cli_result.exception)
