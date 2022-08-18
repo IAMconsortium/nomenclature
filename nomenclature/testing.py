@@ -30,17 +30,18 @@ def assert_valid_yaml(path: Path):
 
 def assert_valid_structure(
     path: Path,
+    dimensions: List[str] = ["region", "variable"],
     mappings: str = "mappings",
     definitions: str = "definitions",
-    dimensions: List[str] = ["region", "variable"],
 ) -> None:
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
-       with the custom `dimensions` if given
 
     Parameters
     ----------
     path : Path
         directory path to the file of interest
+    dimensions : List[str]
+        Optionnal list of dimensions to be checked
     mappings : str
         Optionnal non-default name for the mappings folder
     definitions : str
