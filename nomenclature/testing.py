@@ -40,12 +40,12 @@ def assert_valid_structure(
     ----------
     path : Path
         directory path to the file of interest
-    dimensions : List[str]
-        Optional list of dimensions to be checked
-    mappings : str
-        Optional non-default name for the mappings folder, default "mappings"
-    definitions : str
-        Optional non-default name for the definitions folder
+    dimensions : List[str], optional
+        List of dimensions to be checked
+    mappings : str, optional
+        Name for the mappings folder, defaults to "mappings"
+    definitions : str, optional
+        Name for the definitions folder, defaults to "definitions"
 
     Notes
     -----
