@@ -43,9 +43,9 @@ def assert_valid_structure(
     dimensions : List[str], optional
         List of dimensions to be checked
     mappings : str, optional
-        Name for the mappings folder
+        Name for the mappings folder, defaults to "mappings"
     definitions : str, optional
-        Name for the definitions folder
+        Name for the definitions folder, defaults to "definitions"
 
     Notes
     -----
