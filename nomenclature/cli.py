@@ -32,13 +32,13 @@ def cli_valid_yaml(path: Path):
     default="['region', 'variable']",
 )
 @click.option(
-    "--mappings", help="Optional name for mappings folder", type=str, default="mappings"
+    "--mappings", help="Optional name for mappings folder", type=str, default=None
 )
 @click.option(
     "--definitions",
     help="Optional name for definitions folder",
     type=str,
-    default=None,
+    default="definitions",
 )
 def cli_valid_project(
     path: Path, dimensions: List[str], mappings: str, definitions: str
