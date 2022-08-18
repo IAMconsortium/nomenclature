@@ -1,6 +1,7 @@
 import yaml
 import logging
 from pathlib import Path
+from typing import List
 
 import nomenclature
 
@@ -27,20 +28,44 @@ def assert_valid_yaml(path: Path):
         )
 
 
-def assert_valid_structure(path: Path):
+def assert_valid_structure(
+    path: Path,
+    dimensions: List[str] = ["region", "variable"],
+    mappings: str = "mappings",
+    definitions: str = "definitions",
+) -> None:
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
 
-    Folder structure of `path`:
+    Parameters
+    ----------
+    path : Path
+        directory path to the file of interest
+    dimensions : List[str]
+        Optionnal list of dimensions to be checked
+    mappings : str
+        Optionnal non-default name for the mappings folder
+    definitions : str
+        Optionnal non-default name for the definitions folder
 
-      - A `definitions` folder is required and must be a valid
+    Notes
+    -----
+    Folder structure of `path`:
+        - A `definitions` folder is required and must be a valid
         :class:`DataStructureDefinition`
-      - If a `mappings` folder exists, it must be a valid :class:`RegionProcessor`
+        - If a `mappings` folder exists, it must be a valid :class:`RegionProcessor`
+
     """
-    definition = nomenclature.DataStructureDefinition(path / "definitions")
-    if (path / "mappings").is_dir():
-        nomenclature.RegionProcessor.from_directory(
-            path / "mappings"
-        ).validate_mappings(definition)
+
+    definition = nomenclature.DataStructureDefinition(path / definitions, dimensions)
+    if (path / mappings).is_dir():
+        nomenclature.RegionProcessor.from_directory(path / mappings).validate_mappings(
+            definition
+        )
+    else:
+        if mappings != "mappings":
+            raise FileNotFoundError(
+                f"Mappings directory not found: {path/ str(mappings)}"
+            )
 
 
 # Todo: add function which runs `DataStrutureDefinition(path).validate(scenario)`
