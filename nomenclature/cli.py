@@ -26,19 +26,19 @@ def cli_valid_yaml(path: Path):
 @cli.command("validate-project")
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
 @click.option(
-    "--definitions",
-    help="Optional name for definitions folder",
-    type=str,
-    default="definitions",
+    "--dimensions",
+    help="Optional list of dimensions",
+    cls=PythonLiteralOption,
+    default="['region', 'variable']",
 )
 @click.option(
     "--mappings", help="Optional name for mappings folder", type=str, default="mappings"
 )
 @click.option(
-    "--dimensions",
-    help="Optional list of dimensions",
-    cls=PythonLiteralOption,
-    default="['region', 'variable']",
+    "--definitions",
+    help="Optional name for definitions folder",
+    type=str,
+    default="definitions",
 )
 def cli_valid_project(
     path: Path, dimensions: List[str], mappings: str, definitions: str
