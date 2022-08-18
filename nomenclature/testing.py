@@ -31,7 +31,7 @@ def assert_valid_yaml(path: Path):
 def assert_valid_structure(
     path: Path,
     dimensions: List[str] = ["region", "variable"],
-    mappings: str = "mappings",
+    mappings: str = None,
     definitions: str = "definitions",
 ) -> None:
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
@@ -41,11 +41,11 @@ def assert_valid_structure(
     path : Path
         directory path to the file of interest
     dimensions : List[str]
-        Optionnal list of dimensions to be checked
+        Optional list of dimensions to be checked
     mappings : str
-        Optionnal non-default name for the mappings folder
+        Optional non-default name for the mappings folder, default "mappings"
     definitions : str
-        Optionnal non-default name for the definitions folder
+        Optional non-default name for the definitions folder
 
     Notes
     -----
@@ -57,15 +57,17 @@ def assert_valid_structure(
     """
 
     definition = nomenclature.DataStructureDefinition(path / definitions, dimensions)
-    if (path / mappings).is_dir():
+    if mappings is None:
+        if (path / "mappings").is_dir():
+            nomenclature.RegionProcessor.from_directory(
+                path / "mappings"
+            ).validate_mappings(definition)
+    elif (path / mappings).is_dir():
         nomenclature.RegionProcessor.from_directory(path / mappings).validate_mappings(
             definition
         )
     else:
-        if mappings != "mappings":
-            raise FileNotFoundError(
-                f"Mappings directory not found: {path/ str(mappings)}"
-            )
+        raise FileNotFoundError(f"Mappings directory not found: {path / mappings}")
 
 
-# Todo: add function which runs `DataStrutureDefinition(path).validate(scenario)`
+# Todo: add function which runs `DataStructureDefinition(path).validate(scenario)`

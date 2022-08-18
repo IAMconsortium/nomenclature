@@ -38,7 +38,7 @@ def cli_valid_yaml(path: Path):
     "--definitions",
     help="Optional name for definitions folder",
     type=str,
-    default="definitions",
+    default=None,
 )
 def cli_valid_project(
     path: Path, dimensions: List[str], mappings: str, definitions: str
