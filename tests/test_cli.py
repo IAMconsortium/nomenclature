@@ -121,8 +121,8 @@ def test_cli_wrong_definitions_name():
     assert result_valid.exit_code == 1
 
 
-def test_cli_custom_dimensions():
-    """Check that CLI runs through with a non-default dimension"""
+def test_cli_custom_dimensions_runs():
+    """Check that CLI runs through when specifying a non-default dimension"""
 
     result_valid = runner.invoke(
         cli,
@@ -136,23 +136,8 @@ def test_cli_custom_dimensions():
     assert result_valid.exit_code == 0
 
 
-def test_cli_custom_dimensions_empty():
-    """Check that CLI raises an error when specifying an empty directory ('empty')"""
-
-    result_valid = runner.invoke(
-        cli,
-        [
-            "validate-project",
-            str(TEST_DATA_DIR / "non-default_dimensions_failing"),
-            "--dimensions",
-            "['variable', 'region', 'empty']",
-        ],
-    )
-    assert result_valid.exit_code == 1
-
-
 def test_cli_custom_dimensions_fails():
-    """Check that CLI raises an error when specifying a non-existent
+    """Check that CLI raises an error when specifying a non-existing
     directory ('foo')"""
 
     result_valid = runner.invoke(
@@ -163,6 +148,32 @@ def test_cli_custom_dimensions_fails():
             "--dimensions",
             "['variable', 'region', 'foo']",
         ],
+    )
+    assert result_valid.exit_code == 1
+
+
+def test_cli_empty_dimensions_run():
+    """Check that CLI runs through when an empty directory is not specified in
+    custom dimensions"""
+
+    result_valid = runner.invoke(
+        cli,
+        [
+            "validate-project",
+            str(TEST_DATA_DIR / "non-default_dimensions_failing"),
+            "--dimensions",
+            "['variable', 'region']",
+        ],
+    )
+    assert result_valid.exit_code == 0
+
+
+def test_cli_empty_dimensions_fails():
+    """Check that CLI raises an error on an empty directory with default command"""
+
+    result_valid = runner.invoke(
+        cli,
+        ["validate-project", str(TEST_DATA_DIR / "non-default_dimensions_failing")],
     )
     assert result_valid.exit_code == 1
 

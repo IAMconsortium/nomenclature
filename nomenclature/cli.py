@@ -29,7 +29,7 @@ def cli_valid_yaml(path: Path):
     "--dimensions",
     help="Optional list of dimensions",
     cls=PythonLiteralOption,
-    default="['region', 'variable']",
+    default="[]",
 )
 @click.option(
     "--mappings", help="Optional name for mappings folder", type=str, default=None

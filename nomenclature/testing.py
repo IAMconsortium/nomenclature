@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List
 
 import nomenclature
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ def assert_valid_yaml(path: Path):
 
 def assert_valid_structure(
     path: Path,
-    dimensions: List[str] = ["region", "variable"],
+    dimensions: List[str] = "[]",
     mappings: str = None,
     definitions: str = "definitions",
 ) -> None:
@@ -55,6 +56,8 @@ def assert_valid_structure(
         - If a `mappings` folder exists, it must be a valid :class:`RegionProcessor`
 
     """
+    if dimensions == []:
+        dimensions = os.listdir(f"{str(path)}/{definitions}")
 
     definition = nomenclature.DataStructureDefinition(path / definitions, dimensions)
     if mappings is None:
