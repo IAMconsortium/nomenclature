@@ -128,7 +128,7 @@ def test_cli_custom_dimensions_runs():
         cli,
         [
             "validate-project",
-            str(TEST_DATA_DIR / "non-default_dimensions_passing"),
+            str(TEST_DATA_DIR / "non-default_dimensions"),
             "--dimensions",
             "['variable', 'region', 'scenario']",
         ],
@@ -140,16 +140,18 @@ def test_cli_custom_dimensions_fails():
     """Check that CLI raises an error when specifying a non-existing
     directory ('foo')"""
 
-    result_valid = runner.invoke(
+    result_invalid = runner.invoke(
         cli,
         [
             "validate-project",
-            str(TEST_DATA_DIR / "non-default_dimensions_passing"),
+            str(TEST_DATA_DIR / "non-default_dimensions"),
             "--dimensions",
             "['variable', 'region', 'foo']",
         ],
     )
-    assert result_valid.exit_code == 1
+    assert result_invalid.exit_code == 1
+    assert isinstance(result_invalid.exception, NotADirectoryError)
+    assert "foo directory not found" in str(result_invalid.exception)
 
 
 def test_cli_empty_dimensions_run():
@@ -160,7 +162,7 @@ def test_cli_empty_dimensions_run():
         cli,
         [
             "validate-project",
-            str(TEST_DATA_DIR / "non-default_dimensions_failing"),
+            str(TEST_DATA_DIR / "non-default_dimensions_one_empty"),
             "--dimensions",
             "['variable', 'region']",
         ],
@@ -171,11 +173,13 @@ def test_cli_empty_dimensions_run():
 def test_cli_empty_dimensions_fails():
     """Check that CLI raises an error on an empty directory with default command"""
 
-    result_valid = runner.invoke(
+    result_invalid = runner.invoke(
         cli,
-        ["validate-project", str(TEST_DATA_DIR / "non-default_dimensions_failing")],
+        ["validate-project", str(TEST_DATA_DIR / "non-default_dimensions_one_empty")],
     )
-    assert result_valid.exit_code == 1
+    assert result_invalid.exit_code == 1
+    assert isinstance(result_invalid.exception, ValueError)
+    assert "Empty codelist: empty" in str(result_invalid.exception)
 
 
 def test_cli_missing_mappings_runs():

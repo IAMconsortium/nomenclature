@@ -1,7 +1,7 @@
 import click
 import ast
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from nomenclature.testing import assert_valid_yaml, assert_valid_structure
 
@@ -11,6 +11,8 @@ cli = click.Group()
 class PythonLiteralOption(click.Option):
     def type_cast_value(self, ctx, value):
         try:
+            if value is None:
+                return None
             return ast.literal_eval(value)
         except Exception:
             raise click.BadParameter(value)
@@ -29,7 +31,7 @@ def cli_valid_yaml(path: Path):
     "--dimensions",
     help="Optional list of dimensions",
     cls=PythonLiteralOption,
-    default="[]",
+    default=None,
 )
 @click.option(
     "--mappings", help="Optional name for mappings folder", type=str, default=None
@@ -41,7 +43,10 @@ def cli_valid_yaml(path: Path):
     default="definitions",
 )
 def cli_valid_project(
-    path: Path, dimensions: List[str], mappings: str, definitions: str
+    path: Path,
+    dimensions: Optional[List[str]],
+    mappings: Optional[str],
+    definitions: str,
 ):
     """Assert that `path` is a valid project nomenclature
 
