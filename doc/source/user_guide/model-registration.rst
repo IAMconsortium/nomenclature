@@ -44,6 +44,8 @@ For this guide we will consider a model mapping as an example:
 ``model_a`` reports three regions natively, ``region_1``, ``region_2`` and ``region_3``.
 These three are to be renamed to the ``{model}|{region}`` pattern as is common place in
 many projects. For the ``common_regions``, there are ``World`` and ``Common region 1``.
+*For more details on the model native and common regions refer to*
+:ref:`native-vs-common-region`.
 
 Region definitions
 ^^^^^^^^^^^^^^^^^^
