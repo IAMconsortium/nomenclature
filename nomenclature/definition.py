@@ -36,6 +36,10 @@ class DataStructureDefinition:
         self.dimensions = dimensions
         for dim in self.dimensions:
             self.__setattr__(dim, CodeList.from_directory(dim, path / dim))
+            cl = self.__getattribute__(dim)
+            for code in cl:
+                if "{" in code:
+                    raise ValueError(f"Unexpected {{}} in codelist : {code}")
 
         empty = [d for d in self.dimensions if not self.__getattribute__(d)]
         if empty:
