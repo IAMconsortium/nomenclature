@@ -13,6 +13,18 @@ purposes:
 2. Allowing for renaming of model native regions.
 3. Defining how model native regions should be aggregated to common regions.
 
+.. _native-vs-common-region:
+
+Difference between model-native and common regions
+---------------------------------------------------
+
+Model native regions are regions that are reported *directly* from an integrated
+assessment model. 
+
+Common regions, on the other hand, are calculated by *aggregating model native*
+regions. Common regions are used to compare results from models with different
+native regional resolution. 
+
 
 Model mapping format specification
 ----------------------------------
