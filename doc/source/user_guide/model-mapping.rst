@@ -115,11 +115,10 @@ logic:
       is necessary to check the logs to find out if there were any differences.
       This is intentional since some differences might be expected.
 
-Differences between model-native and common regions
----------------------------------------------------
+.. _native-vs-common-region:
 
-Understanding the differences between the two model concepts is essential in
-using the nomenclature package correctly. 
+Difference between model-native and common regions
+---------------------------------------------------
 
 Model native regions are regions that are reported *directly* from an integrated
 assessment model. 
