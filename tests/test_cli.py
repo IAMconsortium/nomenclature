@@ -150,8 +150,8 @@ def test_cli_custom_dimensions_fails():
         ],
     )
     assert result_invalid.exit_code == 1
-    assert isinstance(result_invalid.exception, NotADirectoryError)
-    assert "foo directory not found" in str(result_invalid.exception)
+    assert isinstance(result_invalid.exception, ValueError)
+    assert "Empty codelist: foo" in str(result_invalid.exception)
 
 
 def test_cli_empty_dimensions_run():

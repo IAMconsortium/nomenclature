@@ -35,10 +35,7 @@ class DataStructureDefinition:
 
         self.dimensions = dimensions
         for dim in self.dimensions:
-            if (path / dim).is_dir():
-                self.__setattr__(dim, CodeList.from_directory(dim, path / dim))
-            else:
-                raise NotADirectoryError(f"{dim} directory not found: {path / dim}")
+            self.__setattr__(dim, CodeList.from_directory(dim, path / dim))
 
         empty = [d for d in self.dimensions if not self.__getattribute__(d)]
         if empty:
