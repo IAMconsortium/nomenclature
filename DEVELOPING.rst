@@ -1,46 +1,36 @@
 Release procedure
 *****************
 
-Before releasing, check https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml to ensure that the push and scheduled builds are passing.
-Address any failures before releasing.
+Before releasing, check
+https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml to ensure
+that the push and scheduled builds are passing. Address any failures before releasing.
 
-1. Create a new branch::
+1. Test if the build runs locally, by running ``python -m build --sdist --wheel --outdir dist/ ``. Fix any errors by creating a PR.
 
-    $ git checkout -b release/v<release version>
-
-2. Tag the release candidate (RC) version, i.e. with a ``rcN`` suffix, and push::
+2. Tag the release candidate (RC) version on the main branch after fixing any packaging
+   issues, with a ``rc<N>`` suffix, and push::
 
     $ git tag v<release version>rc<N>>
-    $ git push --tags origin release/v<release version>
+    $ git push upstream v<release version>rc<N>>
 
-3. Open a PR with the title “Release v<release version>” using this branch.
-   Check:
+3. Check that the GitHub action "Publish to PyPI and TestPyPI" was executed correctly
+   and that the release candidate was successfully uploaded to TestPyPI
+   (https://test.pypi.org/project/nomenclature-iamc/).
 
-   - at https://github.com/IAMconsortium/nomenclature/actions/workflows/publish.yaml that the workflow completes: the package builds successfully and is published to TestPyPI.
-   - at https://test.pypi.org/project/nomenclature-iamc/ that:
+4. (Optional) Create a fresh virtual environment, download the release from TestPyPi and
+   check that tests are passing.
+   In order to install correctly from TestPypi use the following:
+   
+   .. code-block:: python
 
-      - The package can be downloaded, installed and run.
-      - The README is rendered correctly.
+   pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple nomenclature-iamc
 
-   Address any warnings or errors that appear.
-   If needed, make a new commit and go back to step (2), incrementing the rc number.
 
-4. Merge the PR using the ‘rebase and merge’ method.
+5. Visit https://github.com/IAMconsortium/nomenclature/releases and mark the new release: either using the pushed tag from (5), or by creating the tag and release simultaneously.
 
-5. (optional) Switch back to the ``main`` branch, tag the release itself (*without* an RC number) and push::
+6. Check at https://github.com/IAMconsortium/nomenclature/actions/workflows/publish.yaml and https://test.pypi.org/project/nomenclature-iamc/ that the distributions are published.
 
-    $ git checkout main
-    $ git pull --fast-forward
-    $ git tag v<release version>
-    $ git push --tags origin main
-
-   This step (but *not* step (2)) can also be performed directly on GitHub; see (6), next.
-
-6. Visit https://github.com/IAMconsortium/nomenclature/releases and mark the new release: either using the pushed tag from (5), or by creating the tag and release simultaneously.
-
-7. Check at https://github.com/IAMconsortium/nomenclature/actions/workflows/publish.yaml and https://test.pypi.org/project/nomenclature-iamc/ that the distributions are published.
-
-8. Confirm that the doc pages are updated on https://nomenclature-iamc.readthedocs.io/en/stable/
+7. Confirm that the doc pages are updated on https://nomenclature-iamc.readthedocs.io/en/stable/
 
     - Both the latest and the stable versions point to the new release
     - The new release has been added to the list of available versions
