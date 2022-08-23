@@ -11,8 +11,24 @@ purposes:
    exclusion list for model native regions, since only explicitly mentioned regions are
    selected. Any region not mentioned in *native_regions* will cause an error unless explicitly named in the *exclude_regions* section. This to avoid accidentally forgetting a region.
 2. Allowing for renaming of model native regions.
-3. Defining how model native regions should be aggregated to common
-   regions.
+3. Defining how model native regions should be aggregated to common regions.
+
+.. _native-vs-common-region:
+
+Difference between model-native and common regions
+---------------------------------------------------
+
+Model native regions are regions that are reported *directly* from an integrated
+assessment or energy system model.
+
+Common regions, on the other hand, are calculated by *aggregating* a model's *native*
+regions. Common regions are used to compare results from models with different native
+regional resolution. 
+
+As an example, let's say we have two models *model_a* and *model_b*. model_a reports
+native regions *Western Europe* and *Eastern Europe* while *model_b* reports *Northern* and
+*Southern Europe*. In order to compare the results of the two models we might introduce
+a common region called *Europe*. 
 
 
 Model mapping format specification
