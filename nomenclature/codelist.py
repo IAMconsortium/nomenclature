@@ -140,7 +140,7 @@ class CodeList(BaseModel):
         for code in v:
             if "{" in code:
                 raise ValueError(
-                    f"Unexpected {{}} in codelist : {code}."
+                    f"Unexpected {{}} in codelist: {code}."
                     " Check if the tag was spelled correctly."
                 )
         return v
