@@ -32,22 +32,20 @@ def assert_valid_structure(
     path: Path,
     dimensions: Optional[List[str]] = None,
     mappings: Optional[str] = None,
-    definitions: str = "definitions",
+    definitions: Optional[str] = "definitions",
 ) -> None:
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
 
     Parameters
     ----------
     path : Path
-        directory path to the file of interest
+        Project directory to be validated
     dimensions : List[str], optional
-        List of dimensions to be checked, default to None which implies that all
-        directories in `definitions` will be checked
+        Dimensions to be checked, defaults to all sub-folders of `definitions`
     mappings : str, optional
-        Name for the mappings folder, defaults to None which implies that if the
-        `mappings` directory is not found, there are no mappings to check
+        Name of the mappings folder, defaults `mappings` (if this folder exist)
     definitions : str, optional
-        Name for the definitions folder, defaults to "definitions"
+        Name of the definitions folder, defaults to "definitions"
 
     Notes
     -----
