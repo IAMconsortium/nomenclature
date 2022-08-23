@@ -5,7 +5,7 @@ Before releasing, check
 https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml to ensure
 that the push and scheduled builds are passing. Address any failures before releasing.
 
-1. Test if the build runs locally, by running ``python -m build --sdist --wheel --outdir dist/ ``.
+1. Test if the build runs locally, by running ``python -m build --sdist --wheel --outdir dist/``.
    Fix any errors by creating a PR.
 
 2. Tag the release candidate (RC) version on the main branch locally after fixing any 
