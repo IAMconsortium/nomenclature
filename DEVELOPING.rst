@@ -14,16 +14,16 @@ that the push and scheduled builds are passing. Address any failures before rele
     $ git push upstream v<release version>rc<N>>
 
 3. Check that the GitHub action "Publish to PyPI and TestPyPI" was executed correctly
-   and that the release candidate was successfully uploaded to TestPyPI
-   (https://test.pypi.org/project/nomenclature-iamc/).
+   and that the release candidate was successfully uploaded to TestPyPI. The address 
+   will be https://test.pypi.org/project/nomenclature-iamc/<release version>rc<N>/. 
+   E.g.: https://test.pypi.org/project/nomenclature-iamc/0.5rc1/ for v0.5rc1.
 
 4. (Optional) Create a fresh virtual environment, download the release from TestPyPi and
    check that tests are passing.
-   In order to install correctly from TestPypi use the following:
+   In order to install correctly from TestPypi use the following, (adjust the version pin
+   in the end accordingly)::
    
-   .. code-block:: python
-
-   pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple nomenclature-iamc
+    $ pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple nomenclature-iamc==0.5rc1
 
 
 5. Visit https://github.com/IAMconsortium/nomenclature/releases and mark the new release: either using the pushed tag from (5), or by creating the tag and release simultaneously.
