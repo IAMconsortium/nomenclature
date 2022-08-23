@@ -33,4 +33,4 @@ def test_stray_tag_fails():
 
     match = "Unexpected {} in codelist : Primary Energy|{Feul}"
     with pytest.raises(ValueError, match=match):
-        assert_valid_structure(TEST_DATA_DIR / "stray_tag")
+        assert_valid_structure(TEST_DATA_DIR / "stray_tag", dimensions=["variable"])

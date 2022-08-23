@@ -237,6 +237,11 @@ class CodeList(BaseModel):
         for tag, tag_attrs in tag_dict.items():
             code_list = replace_tags(code_list, tag, tag_attrs)
 
+        # check for remaining '{' in codes (meaning a tag with misspelled)
+        for code in code_list:
+            if "{" in code.name:
+                raise ValueError(f"Unexpected {{}} in codelist : {code}")
+
         # iterate over the list to guard against silent replacement of duplicates
         return CodeList(name=name, mapping=code_list)
 
