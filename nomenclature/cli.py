@@ -56,7 +56,7 @@ def cli_valid_project(
         directory path to the file of interest
     dimensions : List[str], optional
         List of dimensions to be checked, default to None which implies that all
-        directories in `dimensions` will be checked
+        directories in `definitions` will be checked
     mappings : str, optional
         Name for the mappings folder, defaults to None which implies that if the
         `mappings` directory is not found, there are no mappings to check
