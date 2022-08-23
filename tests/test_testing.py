@@ -2,8 +2,9 @@ import re
 import pytest
 import logging
 
-from nomenclature.testing import assert_valid_yaml, assert_valid_structure
+from nomenclature.testing import assert_valid_yaml
 from conftest import TEST_DATA_DIR
+from nomenclature.codelist import CodeList
 
 
 def test_assert_yaml():
@@ -33,4 +34,6 @@ def test_stray_tag_fails():
 
     match = "Unexpected {} in codelist : Primary Energy|{Feul}"
     with pytest.raises(ValueError, match=match):
-        assert_valid_structure(TEST_DATA_DIR / "stray_tag", dimensions=["variable"])
+        CodeList.from_directory(
+            "variable", TEST_DATA_DIR / "stray_tag" / "definitions" / "variable"
+        )
