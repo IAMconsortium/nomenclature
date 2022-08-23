@@ -28,25 +28,25 @@ def cli_valid_yaml(path: Path):
 @cli.command("validate-project")
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
 @click.option(
-    "--dimensions",
-    help="Optional list of dimensions",
-    cls=PythonLiteralOption,
-    default=None,
-)
-@click.option(
-    "--mappings", help="Optional name for mappings folder", type=str, default=None
-)
-@click.option(
     "--definitions",
     help="Optional name for definitions folder",
     type=str,
     default="definitions",
 )
+@click.option(
+    "--mappings", help="Optional name for mappings folder", type=str, default=None
+)
+@click.option(
+    "--dimensions",
+    help="Optional list of dimensions",
+    cls=PythonLiteralOption,
+    default=None,
+)
 def cli_valid_project(
     path: Path,
-    dimensions: Optional[List[str]],
+    definitions: str,
     mappings: Optional[str],
-    definitions: Optional[str],
+    dimensions: Optional[List[str]],
 ):
     """Assert that `path` is a valid project nomenclature
 
@@ -54,12 +54,12 @@ def cli_valid_project(
     ----------
     path : Path
         Project directory to be validated
-    dimensions : List[str], optional
-        Dimensions to be checked, defaults to all sub-folders of `definitions`
-    mappings : str, optional
-        Name of the mappings folder, defaults `mappings` (if this folder exist)
     definitions : str, optional
         Name of the definitions folder, defaults to "definitions"
+    mappings : str, optional
+        Name of the mappings folder, defaults `mappings` (if this folder exist)
+    dimensions : List[str], optional
+        Dimensions to be checked, defaults to all sub-folders of `definitions`
 
     Example
     -------
@@ -81,4 +81,4 @@ def cli_valid_project(
 
     """
     assert_valid_yaml(path)
-    assert_valid_structure(path, dimensions, mappings, definitions)
+    assert_valid_structure(path, definitions, mappings, dimensions)
