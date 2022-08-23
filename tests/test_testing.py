@@ -4,7 +4,6 @@ import logging
 
 from nomenclature.testing import assert_valid_yaml
 from conftest import TEST_DATA_DIR
-from nomenclature.codelist import CodeList
 
 
 def test_assert_yaml():
@@ -27,13 +26,3 @@ def test_assert_yaml_fails(caplog):
     obs = log[2].replace("\n", "")  # strip newlines from observed log message
     exp = r"Error parsing file while scanning a simple key.*, line 4, column 1"
     assert re.match(exp, obs)
-
-
-def test_stray_tag_fails():
-    """Check that typos in a tag raises expected error"""
-
-    match = "Unexpected {} in codelist : Primary Energy|{Feul}"
-    with pytest.raises(ValueError, match=match):
-        CodeList.from_directory(
-            "variable", TEST_DATA_DIR / "stray_tag" / "definitions" / "variable"
-        )
