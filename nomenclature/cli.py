@@ -1,7 +1,7 @@
 import click
 import ast
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from nomenclature.testing import assert_valid_yaml, assert_valid_structure
 
@@ -10,6 +10,8 @@ cli = click.Group()
 
 class PythonLiteralOption(click.Option):
     def type_cast_value(self, ctx, value):
+        if value is None:
+            return None
         try:
             return ast.literal_eval(value)
         except Exception:
@@ -26,25 +28,47 @@ def cli_valid_yaml(path: Path):
 @cli.command("validate-project")
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
 @click.option(
-    "--dimensions",
-    help="Optional list of dimensions",
-    cls=PythonLiteralOption,
-    default="['region', 'variable']",
-)
-@click.option(
-    "--mappings", help="Optional name for mappings folder", type=str, default=None
-)
-@click.option(
     "--definitions",
     help="Optional name for definitions folder",
     type=str,
     default="definitions",
 )
+@click.option(
+    "--mappings", help="Optional name for mappings folder", type=str, default=None
+)
+@click.option(
+    "--dimensions",
+    help="Optional list of dimensions",
+    cls=PythonLiteralOption,
+    default=None,
+)
 def cli_valid_project(
-    path: Path, dimensions: List[str], mappings: str, definitions: str
+    path: Path,
+    definitions: str,
+    mappings: Optional[str],
+    dimensions: Optional[List[str]],
 ):
     """Assert that `path` is a valid project nomenclature
 
+    Parameters
+    ----------
+    path : Path
+        Project directory to be validated
+    definitions : str, optional
+        Name of the definitions folder, defaults to "definitions"
+    mappings : str, optional
+        Name of the mappings folder, defaults to "mappings" (if this folder exists)
+    dimensions : List[str], optional
+        Dimensions to be checked, defaults to all sub-folders of `definitions`
+
+    Example
+    -------
+    $ nomenclature validate-project .
+                        --dimensions "['<folder1>', '<folder2>', '<folder3>']"
+                        --mappings <map-folder> --definitions <def-folder>
+
+    Note
+    ----
     This test includes three steps:
 
     1. Test that all yaml files in `definitions/` and `mappings/` can be correctly read
@@ -55,12 +79,6 @@ def cli_valid_project(
        :class:`RegionProcessor` object. This includes a check that all regions mentioned
        in a model mapping are defined in the region codelist.
 
-    Example
-    -------
-    $ nomenclature validate-project .
-                        --dimensions "['<folder1>', '<folder2>', '<folder3>']"
-                        --mappings <map-folder> --definitions <def-folder>
-
     """
     assert_valid_yaml(path)
-    assert_valid_structure(path, dimensions, mappings, definitions)
+    assert_valid_structure(path, definitions, mappings, dimensions)
