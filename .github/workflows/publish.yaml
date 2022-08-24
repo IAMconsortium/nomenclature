@@ -4,6 +4,8 @@ name: Publish to PyPI and TestPyPI
 on: 
   push:
     tags: ["v*"]
+  release:
+    types: ["published"]
 
 jobs:
   build-n-publish:
@@ -30,11 +32,14 @@ jobs:
         --outdir dist/
     - name: Publish distribution to Test PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
+      # Only run for testing
+      if: github.event_name != 'release'
       with:
         password: ${{ secrets.TESTPYPI_TOKEN }}
         repository_url: https://test.pypi.org/legacy/
     - name: Publish distribution to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
+      # Only run for actual release
       if: github.event_name == 'release'
       with:
         password: ${{ secrets.PYPI_TOKEN }}
