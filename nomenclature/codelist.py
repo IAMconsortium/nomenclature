@@ -134,6 +134,17 @@ class CodeList(BaseModel):
 
         return v
 
+    @validator("mapping")
+    def check_stray_tag(cls, v):
+        """Check that no '{' are left in codes after tag replacement"""
+        for code in v:
+            if "{" in code:
+                raise ValueError(
+                    f"Unexpected {{}} in codelist: {code}."
+                    " Check if the tag was spelled correctly."
+                )
+        return v
+
     def __setitem__(self, key, value):
         if key in self.mapping:
             raise DuplicateCodeError(name=self.name, code=key)
