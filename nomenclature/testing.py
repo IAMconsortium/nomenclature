@@ -1,7 +1,8 @@
 import yaml
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
+from string import printable
 
 import nomenclature
 
@@ -74,6 +75,30 @@ def assert_valid_structure(
         )
     else:
         raise FileNotFoundError(f"Mappings directory not found: {path / mappings}")
+
+
+def check_special_character(path: Union[Path, List[Path]]):
+    special_characters = []
+    if isinstance(path, Path):
+        path = [path]
+
+    for p in path:
+        for yaml_file in (f for f in p.glob() if f.suffix in {".yaml", ".yml"}):
+            with open(yaml_file, "r", encoding="utf-8") as all_lines:
+                # check if any special character is found in the file
+                lines = all_lines.readlines()
+                count = 0
+                for li in lines:
+                    count += 1
+                    if set(str(li)).difference(printable):
+                        special_characters.append(f"line {count}, ")
+                        print("found one")
+
+        if special_characters:
+            raise ValueError(
+                f"Unexpected special character(s) on: {special_characters}"
+                " Check for a hidden character."
+            )
 
 
 # Todo: add function which runs `DataStructureDefinition(path).validate(scenario)`

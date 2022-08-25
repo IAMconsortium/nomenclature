@@ -6,7 +6,6 @@ import yaml
 from jsonschema import validate
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
-from string import printable
 
 
 from nomenclature.code import Code, Tag, replace_tags
@@ -147,19 +146,6 @@ class CodeList(BaseModel):
                 )
         return v
 
-    @validator("mapping")
-    def check_special_character(cls, v):
-        """Check that no special characters are present"""
-        if isinstance(v, dict):
-            for code, attributes in v.items():
-                cls.check_string(v, code)
-                if isinstance(attributes, dict):
-                    for att, value in attributes.items():
-                        cls.check_string(v, att)
-                        if isinstance(value, str):
-                            cls.check_string(v, value)
-        return v
-
     def __setitem__(self, key, value):
         if key in self.mapping:
             raise DuplicateCodeError(name=self.name, code=key)
@@ -185,13 +171,6 @@ class CodeList(BaseModel):
 
     def values(self):
         return self.mapping.values()
-
-    def check_string(self, attribute):
-        if set(str(attribute)).difference(printable):
-            raise ValueError(
-                f"Unexpected special character in string: {attribute}."
-                " Check for a hidden character."
-            )
 
     @classmethod
     def from_directory(
@@ -225,7 +204,6 @@ class CodeList(BaseModel):
         for yaml_file in (f for f in path.glob(file) if f.suffix in {".yaml", ".yml"}):
             with open(yaml_file, "r", encoding="utf-8") as stream:
                 _code_list = yaml.safe_load(stream)
-
             # check if this file contains a dictionary with {tag}-style keys
             if yaml_file.name.startswith("tag_"):
                 # validate against the tag schema
