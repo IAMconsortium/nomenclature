@@ -64,8 +64,9 @@ def cli_valid_project(
     Example
     -------
     $ nomenclature validate-project .
+                        --definitions <def-folder> --mappings <map-folder>
                         --dimensions "['<folder1>', '<folder2>', '<folder3>']"
-                        --mappings <map-folder> --definitions <def-folder>
+
 
     Note
     ----
