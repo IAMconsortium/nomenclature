@@ -80,3 +80,13 @@ def test_to_excel(tmpdir):
     exp = pd.read_excel(TEST_DATA_DIR / "validation_nc.xlsx")
 
     pdt.assert_frame_equal(obs, exp)
+
+
+def test_stray_tag_fails():
+    """Check that typos in a tag raises expected error"""
+
+    match = "Unexpected {} in codelist: Primary Energy\\|{Feul}"
+    with pytest.raises(ValueError, match=match):
+        CodeList.from_directory(
+            "variable", TEST_DATA_DIR / "stray_tag" / "definitions" / "variable"
+        )

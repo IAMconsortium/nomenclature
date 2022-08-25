@@ -1,7 +1,7 @@
 import yaml
 import logging
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import nomenclature
 
@@ -30,22 +30,22 @@ def assert_valid_yaml(path: Path):
 
 def assert_valid_structure(
     path: Path,
-    dimensions: List[str] = ["region", "variable"],
-    mappings: str = None,
     definitions: str = "definitions",
+    mappings: Optional[str] = None,
+    dimensions: Optional[List[str]] = None,
 ) -> None:
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
 
     Parameters
     ----------
     path : Path
-        directory path to the file of interest
-    dimensions : List[str], optional
-        List of dimensions to be checked
-    mappings : str, optional
-        Name for the mappings folder, defaults to "mappings"
+        Project directory to be validated
     definitions : str, optional
-        Name for the definitions folder, defaults to "definitions"
+        Name of the definitions folder, defaults to "definitions"
+    mappings : str, optional
+        Name of the mappings folder, defaults to "mappings" (if this folder exists)
+    dimensions : List[str], optional
+        Dimensions to be checked, defaults to all sub-folders of `definitions`
 
     Notes
     -----
@@ -55,6 +55,12 @@ def assert_valid_structure(
         - If a `mappings` folder exists, it must be a valid :class:`RegionProcessor`
 
     """
+    if not (path / definitions).is_dir():
+        raise NotADirectoryError(
+            f"Definitions directory not found: {path / definitions}"
+        )
+    if dimensions is None:
+        dimensions = [x.stem for x in (path / definitions).iterdir() if x.is_dir()]
 
     definition = nomenclature.DataStructureDefinition(path / definitions, dimensions)
     if mappings is None:
