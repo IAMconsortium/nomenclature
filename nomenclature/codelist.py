@@ -6,6 +6,8 @@ import yaml
 from jsonschema import validate
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
+from string import printable
+
 
 from nomenclature.code import Code, Tag, replace_tags
 from nomenclature.error.codelist import DuplicateCodeError
@@ -145,6 +147,19 @@ class CodeList(BaseModel):
                 )
         return v
 
+    @validator("mapping")
+    def check_special_character(cls, v):
+        """Check that no special characters are present"""
+        if isinstance(v, dict):
+            for code, attributes in v.items():
+                cls.check_string(v, code)
+                if isinstance(attributes, dict):
+                    for att, value in attributes.items():
+                        cls.check_string(v, att)
+                        if isinstance(value, str):
+                            cls.check_string(v, value)
+        return v
+
     def __setitem__(self, key, value):
         if key in self.mapping:
             raise DuplicateCodeError(name=self.name, code=key)
@@ -170,6 +185,13 @@ class CodeList(BaseModel):
 
     def values(self):
         return self.mapping.values()
+
+    def check_string(self, attribute):
+        if set(str(attribute)).difference(printable):
+            raise ValueError(
+                f"Unexpected special character in string: {attribute}."
+                " Check for a hidden character."
+            )
 
     @classmethod
     def from_directory(

@@ -1,0 +1,9 @@
+- Primary Energy:
+    definition: Total primary energy consumption
+    unit: EJ/yr
+- Primary Energy|{Fuel}:
+    definition: Primary energy consumption of {Fuel}
+    unit: EJ/yr
+- Share|{Fuel}:
+    definition: Share of {Fuel} in the total primary energy mix
+    unit:
