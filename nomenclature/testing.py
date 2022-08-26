@@ -61,6 +61,11 @@ def assert_valid_structure(
         )
     if dimensions is None:
         dimensions = [x.stem for x in (path / definitions).iterdir() if x.is_dir()]
+        if not dimensions:
+            raise FileNotFoundError(
+                f"`Definitions` directory is empty : {path / definitions}"
+                '. Specify --dimensions "[]" if this is intended.'
+            )
 
     definition = nomenclature.DataStructureDefinition(path / definitions, dimensions)
     if mappings is None:

@@ -214,3 +214,17 @@ def test_cli_missing_mappings_fails():
     assert cli_result.exit_code == 1
     assert isinstance(cli_result.exception, FileNotFoundError)
     assert "Mappings directory not found" in str(cli_result.exception)
+
+
+def test_cli_no_subfolder():
+    """Assert that an error is raised when the `definitions` is empty if
+    no dimension is specified"""
+
+    cli_result = runner.invoke(
+        cli,
+        ["validate-project", str(TEST_DATA_DIR / "definitions_no_subfolders")],
+    )
+
+    assert cli_result.exit_code == 1
+    assert isinstance(cli_result.exception, FileNotFoundError)
+    assert "`Definitions` directory is empty" in str(cli_result.exception)
