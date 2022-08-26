@@ -30,9 +30,6 @@ def test_assert_yaml_fails(caplog):
 
 def test_special_character():
     """Check that a non-printable character in any yaml file will raise an error"""
-    match = (
-        r"Unexpected special character\(s\) in: scenarios.yaml, line 3, col 12."
-        " variables.yaml, line 5, col 53."
-    )
+    match = "variables.yaml, line 5, col 53."
     with pytest.raises(ValueError, match=match):
         assert_valid_yaml(TEST_DATA_DIR / "special_character")
