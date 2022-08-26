@@ -145,6 +145,18 @@ class CodeList(BaseModel):
                 )
         return v
 
+    @validator("mapping")
+    def check_end_whitespace(cls, v):
+        """Check that no code ends with a whitespace"""
+        print(v)
+        for code in v:
+            print(f"{code}bla")
+            if code.endswith(" "):
+                raise ValueError(
+                    f"Unexpected white space at the end of a code: {code}."
+                )
+        return v
+
     def __setitem__(self, key, value):
         if key in self.mapping:
             raise DuplicateCodeError(name=self.name, code=key)
