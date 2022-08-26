@@ -1,7 +1,7 @@
 import yaml
 import logging
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional
 from string import printable
 
 import nomenclature
@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 def assert_valid_yaml(path: Path):
     """Assert that all yaml files in `path` can be parsed without errors"""
 
+    special_characters = ""
+
     # iterate over the yaml files in all sub-folders and try loading each
     error = False
     for file in (f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}):
@@ -21,6 +23,20 @@ def assert_valid_yaml(path: Path):
         except (yaml.scanner.ScannerError, yaml.parser.ParserError) as e:
             error = True
             logger.error(f"Error parsing file {e}")
+
+        with open(file, "r", encoding="utf-8") as all_lines:
+            # check if any special character is found in the file
+            lines = all_lines.readlines()
+            for index, line in enumerate(lines):
+                if set(str(line)).difference(printable):
+                    for col, char in enumerate(line):
+                        if char not in printable:
+                            special_characters = special_characters + (
+                                f"{file.name}, line {index + 1}, col {col + 1}. "
+                            )
+
+    if special_characters:
+        raise ValueError(f"Unexpected special character(s) in: {special_characters}")
 
     # test fails if any file cannot be parsed, raise error with list of these files
     if error:
@@ -75,30 +91,6 @@ def assert_valid_structure(
         )
     else:
         raise FileNotFoundError(f"Mappings directory not found: {path / mappings}")
-
-
-def check_special_character(path: Union[Path, List[Path]]):
-    special_characters = []
-    if isinstance(path, Path):
-        path = [path]
-
-    for p in path:
-        for yaml_file in (f for f in p.glob() if f.suffix in {".yaml", ".yml"}):
-            with open(yaml_file, "r", encoding="utf-8") as all_lines:
-                # check if any special character is found in the file
-                lines = all_lines.readlines()
-                count = 0
-                for li in lines:
-                    count += 1
-                    if set(str(li)).difference(printable):
-                        special_characters.append(f"line {count}, ")
-                        print("found one")
-
-        if special_characters:
-            raise ValueError(
-                f"Unexpected special character(s) on: {special_characters}"
-                " Check for a hidden character."
-            )
 
 
 # Todo: add function which runs `DataStructureDefinition(path).validate(scenario)`
