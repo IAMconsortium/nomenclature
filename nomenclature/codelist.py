@@ -150,7 +150,6 @@ class CodeList(BaseModel):
         """Check that no code ends with a whitespace"""
         print(v)
         for code in v:
-            print(f"{code}bla")
             if code.endswith(" "):
                 raise ValueError(
                     f"Unexpected white space at the end of a code: {code}."
