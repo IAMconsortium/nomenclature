@@ -1,0 +1,6 @@
+# guard against casting of 'NO' to boolean `False` by PyYAML or pydantic
+- countries:
+   - Norway:
+      eu_member: false
+      iso2: 'NO' # interpreted as 'false' without quotes
+      iso3: NOR
