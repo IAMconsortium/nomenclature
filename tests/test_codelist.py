@@ -69,7 +69,7 @@ def test_region_codelist():
 def test_norway_as_str():
     """guard against casting of 'NO' to boolean `False` by PyYAML or pydantic"""
     region = CodeList.from_directory("region", TEST_DATA_DIR / "norway_as_bool")
-    assert region["Norway"]["eu_member"] == False
+    assert region["Norway"]["eu_member"] is False
     assert region["Norway"]["iso2"] == "NO"
 
 
