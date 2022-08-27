@@ -5,7 +5,7 @@ import pandas as pd
 import yaml
 from jsonschema import validate
 from pyam.utils import write_sheet
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, StrictBool
 
 from nomenclature.code import Code, Tag, replace_tags
 from nomenclature.error.codelist import DuplicateCodeError
@@ -54,7 +54,10 @@ class CodeList(BaseModel):
         List,
         Dict[
             str,
-            Union[Dict[str, Union[bool, str, float, int, list, dict, None]], List[str]],
+            Union[
+                Dict[str, Union[StrictBool, str, float, int, list, dict, None]],
+                List[str],
+            ],
         ],
     ] = {}
 
