@@ -26,3 +26,10 @@ def test_assert_yaml_fails(caplog):
     obs = log[2].replace("\n", "")  # strip newlines from observed log message
     exp = r"Error parsing file while scanning a simple key.*, line 4, column 1"
     assert re.match(exp, obs)
+
+
+def test_hidden_character():
+    """Check that a non-printable character in any yaml file will raise an error"""
+    match = "scenarios.yaml, line 3, col 12."
+    with pytest.raises(ValueError, match=match):
+        assert_valid_yaml(TEST_DATA_DIR / "hidden_character")
