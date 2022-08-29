@@ -227,16 +227,7 @@ class CodeList(BaseModel):
                 # a "region" codelist assumes a top-level key to be used as
                 # attribute
                 if name == "region":
-                    _region_code_list = (
-                        []
-                    )  # save refactored list as new (temporary) object
-                    for top_level_cat in _code_list:
-                        for top_key, _codes in top_level_cat.items():
-                            for item in _codes:
-                                item = Code.from_dict(item)
-                                item.set_attribute("hierarchy", top_key)
-                                _region_code_list.append(item)
-                    _code_list = _region_code_list
+                    _code_list = RegionCodeList.refactored_list(_code_list)
                 else:
                     _code_list = [Code.from_dict(_dict) for _dict in _code_list]
 
@@ -343,3 +334,17 @@ class CodeList(BaseModel):
         # close the file if `excel_writer` arg was a file name
         if close:
             excel_writer.close()
+
+
+class RegionCodeList(CodeList):
+    """A subclass of CodeList for region-specific applications"""
+
+    def refactored_list(_code_list):
+        _region_code_list = []  # save refactored list as new (temporary) object
+        for top_level_cat in _code_list:
+            for top_key, _codes in top_level_cat.items():
+                for item in _codes:
+                    item = Code.from_dict(item)
+                    item.set_attribute("hierarchy", top_key)
+                    _region_code_list.append(item)
+        return _region_code_list
