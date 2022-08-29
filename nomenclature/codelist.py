@@ -150,12 +150,13 @@ class CodeList(BaseModel):
         return v
 
     @validator("mapping")
-    def check_end_whitespace(cls, v):
+    def check_end_whitespace(cls, v, values):
         """Check that no code ends with a whitespace"""
         for code in v:
             if code.endswith(" "):
                 raise ValueError(
-                    f"Unexpected whitespace at the end of a {values['name']} code: '{code}'."
+                    f"Unexpected whitespace at the end of a {values['name']}"
+                    f" code: '{code}'."
                 )
         return v
 
