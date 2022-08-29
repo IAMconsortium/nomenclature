@@ -217,7 +217,7 @@ def test_cli_missing_mappings_fails():
 
 
 def test_cli_no_subfolder():
-    """Assert that an error is raised when the `definitions`directory is empty if
+    """Assert that an error is raised when the `definitions` directory is empty if
     no dimension is specified"""
 
     cli_result = runner.invoke(

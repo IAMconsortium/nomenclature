@@ -64,7 +64,6 @@ def assert_valid_structure(
         if not dimensions:
             raise FileNotFoundError(
                 f"`Definitions` directory is empty : {path / definitions}"
-                '. Specify --dimensions "[]" if this is intended.'
             )
 
     definition = nomenclature.DataStructureDefinition(path / definitions, dimensions)
