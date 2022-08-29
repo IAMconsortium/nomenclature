@@ -52,6 +52,7 @@ def assert_valid_structure(
     Folder structure of `path`:
         - A `definitions` folder is required and must be a valid
         :class:`DataStructureDefinition`
+        - The `definitions` folder must contain sub-folder(s) to validate
         - If a `mappings` folder exists, it must be a valid :class:`RegionProcessor`
 
     """
