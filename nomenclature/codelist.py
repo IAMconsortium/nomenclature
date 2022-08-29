@@ -74,67 +74,6 @@ class CodeList(BaseModel):
         return mapping
 
     @validator("mapping")
-    def check_variable_region_aggregation_args(cls, v, values):
-        """Check that any variable "region-aggregation" mappings are valid"""
-        if values["name"] == "variable":
-            items = [
-                (name, attrs)
-                for (name, attrs) in v.items()
-                if "region-aggregation" in attrs
-            ]
-
-            for (name, attrs) in items:
-                # ensure that there no pyam-aggregation-kwargs and
-                conflict_args = [i for i in attrs if i in PYAM_AGG_KWARGS]
-                if conflict_args:
-                    raise VariableRenameArgError(
-                        variable=name,
-                        file=attrs["file"],
-                        args=conflict_args,
-                    )
-
-                # ensure that mapped variables are defined in the nomenclature
-                rename_attrs = CodeList(
-                    name="region-aggregation", mapping=attrs["region-aggregation"]
-                )
-                invalid = [var for var in rename_attrs.keys() if var not in v]
-                if invalid:
-                    raise VariableRenameTargetError(
-                        variable=name, file=attrs["file"], target=invalid
-                    )
-        return v
-
-    @validator("mapping")
-    def check_weight_in_vars(cls, v, values):
-        # Check that all variables specified in 'weight' are present in the codelist
-        if values["name"] == "variable":
-            if missing_weights := [
-                (name, attrs["weight"], attrs["file"])
-                for name, attrs in v.items()
-                if "weight" in attrs and attrs["weight"] not in v
-            ]:
-                raise MissingWeightError(
-                    missing_weights="".join(
-                        f"'{weight}' used for '{var}' in: {file}\n"
-                        for var, weight, file in missing_weights
-                    )
-                )
-        return v
-
-    @validator("mapping")
-    def cast_variable_components_args(cls, v, values):
-        """Cast "components" list of dicts to a codelist"""
-        if values["name"] == "variable":
-            # translate a list of single-key dictionaries to a simple dictionary
-            for name, attrs in v.items():
-                if "components" in attrs and isinstance(attrs["components"][0], dict):
-                    v[name]["components"] = CodeList(
-                        name="components", mapping=attrs["components"]
-                    ).mapping
-
-        return v
-
-    @validator("mapping")
     def check_stray_tag(cls, v):
         """Check that no '{' are left in codes after tag replacement"""
         for code in v:
@@ -249,7 +188,10 @@ class CodeList(BaseModel):
             code_list = replace_tags(code_list, tag, tag_attrs)
 
         # iterate over the list to guard against silent replacement of duplicates
-        return CodeList(name=name, mapping=code_list)
+        if name == "variable":
+            return VariableCodeList(name=name, mapping=code_list)
+        else:
+            return CodeList(name=name, mapping=code_list)
 
     @classmethod
     def read_excel(cls, name, source, sheet_name, col, attrs=[]):
@@ -267,6 +209,10 @@ class CodeList(BaseModel):
             Column from `sheet_name` to use as codes.
         attrs : list, optional
             Columns from `sheet_name` to use as attributes.
+
+        Returns
+        -------
+        CodeList
         """
         source = pd.read_excel(source, sheet_name=sheet_name)
 
@@ -283,7 +229,10 @@ class CodeList(BaseModel):
         codes = source[[col] + attrs].set_index(col)[attrs]
         codes.rename(columns={c: str(c).lower() for c in codes.columns}, inplace=True)
 
-        return CodeList(name=name, mapping=codes.to_dict(orient="index"))
+        if name == "variable":
+            return VariableCodeList(name=name, mapping=codes.to_dict(orient="index"))
+        else:
+            return CodeList(name=name, mapping=codes.to_dict(orient="index"))
 
     def to_yaml(self, path=None):
         """Write mapping to yaml file or return as stream
@@ -340,3 +289,74 @@ class CodeList(BaseModel):
         # close the file if `excel_writer` arg was a file name
         if close:
             excel_writer.close()
+
+
+class VariableCodeList(CodeList):
+    """A subclass of CodeList specified for variables
+
+    Parameters
+    ----------
+    name : str
+        Name of the CodeList
+    mapping : dict, list
+        Dictionary or list of Code items
+
+    """
+
+    @validator("mapping")
+    def check_variable_region_aggregation_args(cls, v):
+        """Check that any variable "region-aggregation" mappings are valid"""
+        items = [
+            (name, attrs)
+            for (name, attrs) in v.items()
+            if "region-aggregation" in attrs
+        ]
+
+        for (name, attrs) in items:
+            # ensure that there no pyam-aggregation-kwargs and
+            conflict_args = [i for i in attrs if i in PYAM_AGG_KWARGS]
+            if conflict_args:
+                raise VariableRenameArgError(
+                    variable=name,
+                    file=attrs["file"],
+                    args=conflict_args,
+                )
+
+            # ensure that mapped variables are defined in the nomenclature
+            rename_attrs = CodeList(
+                name="region-aggregation", mapping=attrs["region-aggregation"]
+            )
+            invalid = [var for var in rename_attrs.keys() if var not in v]
+            if invalid:
+                raise VariableRenameTargetError(
+                    variable=name, file=attrs["file"], target=invalid
+                )
+        return v
+
+    @validator("mapping")
+    def check_weight_in_vars(cls, v):
+        # Check that all variables specified in 'weight' are present in the codelist
+        if missing_weights := [
+            (name, attrs["weight"], attrs["file"])
+            for name, attrs in v.items()
+            if "weight" in attrs and attrs["weight"] not in v
+        ]:
+            raise MissingWeightError(
+                missing_weights="".join(
+                    f"'{weight}' used for '{var}' in: {file}\n"
+                    for var, weight, file in missing_weights
+                )
+            )
+        return v
+
+    @validator("mapping")
+    def cast_variable_components_args(cls, v):
+        """Cast "components" list of dicts to a codelist"""
+        # translate a list of single-key dictionaries to a simple dictionary
+        for name, attrs in v.items():
+            if "components" in attrs and isinstance(attrs["components"][0], dict):
+                v[name]["components"] = CodeList(
+                    name="components", mapping=attrs["components"]
+                ).mapping
+
+        return v
