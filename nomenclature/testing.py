@@ -30,7 +30,7 @@ def assert_valid_yaml(path: Path):
                 for col, char in enumerate(line):
                     if char not in printable:
                         special_characters += (
-                            f"{file.name}, line {index + 1}, col {col + 1}. "
+                            f"\n - {file.name}, line {index + 1}, col {col + 1}. "
                         )
 
     if special_characters:
