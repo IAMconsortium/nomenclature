@@ -352,6 +352,16 @@ class RegionCodeList(CodeList):
 
     @staticmethod
     def refactored_list(_code_list):
+        """Adds the attribute 'hierarchy' to each code
+
+        Parameters
+        ----------
+        _code_list : a region codelist
+
+        Returns
+        -------
+        refactored codelist
+        """
         _region_code_list = []  # save refactored list as new (temporary) object
         for top_level_cat in _code_list:
             for top_key, _codes in top_level_cat.items():
