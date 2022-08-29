@@ -67,6 +67,7 @@ def assert_valid_structure(
     Folder structure of `path`:
         - A `definitions` folder is required and must be a valid
         :class:`DataStructureDefinition`
+        - The `definitions` folder must contain sub-folder(s) to validate
         - If a `mappings` folder exists, it must be a valid :class:`RegionProcessor`
 
     """
@@ -74,8 +75,16 @@ def assert_valid_structure(
         raise NotADirectoryError(
             f"Definitions directory not found: {path / definitions}"
         )
-    if dimensions is None:
+
+    if dimensions == []:  # if "dimensions" were specified as "[]"
+        raise ValueError("No dimensions to validate.")
+
+    if dimensions is None:  # if "dimensions" were not specified
         dimensions = [x.stem for x in (path / definitions).iterdir() if x.is_dir()]
+        if not dimensions:
+            raise FileNotFoundError(
+                f"`definitions` directory is empty: {path / definitions}"
+            )
 
     definition = nomenclature.DataStructureDefinition(path / definitions, dimensions)
     if mappings is None:
