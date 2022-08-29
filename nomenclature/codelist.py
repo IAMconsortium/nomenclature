@@ -350,6 +350,7 @@ class CodeList(BaseModel):
 class RegionCodeList(CodeList):
     """A subclass of CodeList for region-specific applications"""
 
+    @staticmethod
     def refactored_list(_code_list):
         _region_code_list = []  # save refactored list as new (temporary) object
         for top_level_cat in _code_list:
