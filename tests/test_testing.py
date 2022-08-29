@@ -28,8 +28,8 @@ def test_assert_yaml_fails(caplog):
     assert re.match(exp, obs)
 
 
-def test_special_character():
+def test_hidden_character():
     """Check that a non-printable character in any yaml file will raise an error"""
-    match = "variables.yaml, line 5, col 53."
+    match = "scenarios.yaml, line 3, col 12."
     with pytest.raises(ValueError, match=match):
-        assert_valid_yaml(TEST_DATA_DIR / "special_character")
+        assert_valid_yaml(TEST_DATA_DIR / "hidden_character")

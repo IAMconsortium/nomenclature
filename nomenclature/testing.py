@@ -26,14 +26,12 @@ def assert_valid_yaml(path: Path):
 
         with open(file, "r", encoding="utf-8") as all_lines:
             # check if any special character is found in the file
-            lines = all_lines.readlines()
-            for index, line in enumerate(lines):
-                if set(str(line)).difference(printable):
-                    for col, char in enumerate(line):
-                        if char not in printable:
-                            special_characters = special_characters + (
-                                f"{file.name}, line {index + 1}, col {col + 1}. "
-                            )
+            for index, line in enumerate(all_lines.readlines()):
+                for col, char in enumerate(line):
+                    if char not in printable:
+                        special_characters += (
+                            f"{file.name}, line {index + 1}, col {col + 1}. "
+                        )
 
     if special_characters:
         raise ValueError(f"Unexpected special character(s) in: {special_characters}")
