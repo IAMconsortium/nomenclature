@@ -155,7 +155,7 @@ class CodeList(BaseModel):
         for code in v:
             if code.endswith(" "):
                 raise ValueError(
-                    f"Unexpected white space at the end of a code: '{code}'."
+                    f"Unexpected whitespace at the end of a {values['name']} code: '{code}'."
                 )
         return v
 
