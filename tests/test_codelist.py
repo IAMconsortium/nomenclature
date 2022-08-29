@@ -102,7 +102,7 @@ def test_stray_tag_fails():
 def test_end_whitespace_fails():
     """Check that typos in a tag raises expected error"""
 
-    match = "Unexpected white space at the end of a code: 'scenario2 '"
+    match = "Unexpected whitespace at the end of a scenario code: 'scenario2 '"
     with pytest.raises(ValueError, match=match):
         CodeList.from_directory(
             "scenario", TEST_DATA_DIR / "end_whitespace" / "definitions" / "scenario"
