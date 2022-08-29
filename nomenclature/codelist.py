@@ -5,7 +5,8 @@ import pandas as pd
 import yaml
 from jsonschema import validate
 from pyam.utils import write_sheet
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, StrictBool
+
 
 from nomenclature.code import Code, Tag, replace_tags
 from nomenclature.error.codelist import DuplicateCodeError
@@ -54,7 +55,10 @@ class CodeList(BaseModel):
         List,
         Dict[
             str,
-            Union[Dict[str, Union[bool, str, float, int, list, dict, None]], List[str]],
+            Union[
+                Dict[str, Union[StrictBool, str, float, int, list, dict, None]],
+                List[str],
+            ],
         ],
     ] = {}
 
@@ -81,6 +85,17 @@ class CodeList(BaseModel):
                 raise ValueError(
                     f"Unexpected {{}} in codelist: {code}."
                     " Check if the tag was spelled correctly."
+                )
+        return v
+
+    @validator("mapping")
+    def check_end_whitespace(cls, v, values):
+        """Check that no code ends with a whitespace"""
+        for code in v:
+            if code.endswith(" "):
+                raise ValueError(
+                    f"Unexpected whitespace at the end of a {values['name']}"
+                    f" code: '{code}'."
                 )
         return v
 
@@ -142,7 +157,6 @@ class CodeList(BaseModel):
         for yaml_file in (f for f in path.glob(file) if f.suffix in {".yaml", ".yml"}):
             with open(yaml_file, "r", encoding="utf-8") as stream:
                 _code_list = yaml.safe_load(stream)
-
             # check if this file contains a dictionary with {tag}-style keys
             if yaml_file.name.startswith("tag_"):
                 # validate against the tag schema

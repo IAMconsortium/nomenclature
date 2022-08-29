@@ -66,6 +66,13 @@ def test_region_codelist():
     assert code["Some Country"]["iso2"] == "XY"
 
 
+def test_norway_as_str():
+    """guard against casting of 'NO' to boolean `False` by PyYAML or pydantic"""
+    region = CodeList.from_directory("region", TEST_DATA_DIR / "norway_as_bool")
+    assert region["Norway"]["eu_member"] is False
+    assert region["Norway"]["iso2"] == "NO"
+
+
 def test_to_excel(tmpdir):
     """Check writing to xlsx"""
     file = tmpdir / "foo.xlsx"
@@ -89,4 +96,14 @@ def test_stray_tag_fails():
     with pytest.raises(ValueError, match=match):
         CodeList.from_directory(
             "variable", TEST_DATA_DIR / "stray_tag" / "definitions" / "variable"
+        )
+
+
+def test_end_whitespace_fails():
+    """Check that typos in a tag raises expected error"""
+
+    match = "Unexpected whitespace at the end of a scenario code: 'scenario2 '"
+    with pytest.raises(ValueError, match=match):
+        CodeList.from_directory(
+            "scenario", TEST_DATA_DIR / "end_whitespace" / "definitions" / "scenario"
         )
