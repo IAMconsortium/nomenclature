@@ -227,4 +227,4 @@ def test_cli_no_subfolder():
 
     assert cli_result.exit_code == 1
     assert isinstance(cli_result.exception, FileNotFoundError)
-    assert "`Definitions` directory is empty" in str(cli_result.exception)
+    assert "`definitions` directory is empty" in str(cli_result.exception)
