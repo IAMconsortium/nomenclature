@@ -126,7 +126,7 @@ class CodeList(BaseModel):
         return self.mapping.values()
 
     @staticmethod
-    def parse_dir(name: str, path: Path, file: str = None):
+    def _parse_dir(name: str, path: Path, file: str = None, schema: str = "generic"):
         """Extract codes from a directory with codelist files
 
         Parameters
@@ -137,6 +137,8 @@ class CodeList(BaseModel):
             Directory with the codelist files
         file : str, optional
             Pattern to downselect codelist files by name
+        schema: str, optional
+            Schema to be used in the validation
 
         Returns
         -------
@@ -164,9 +166,7 @@ class CodeList(BaseModel):
             # if the file does not start with tag, process normally
             else:
                 # validate the schema of this codelist domain (default `generic`)
-                validate(
-                    _code_list, SCHEMA_MAPPING.get(name, SCHEMA_MAPPING["generic"])
-                )
+                validate(_code_list, schema)
 
                 # a "region" codelist assumes a top-level key to be used as
                 # attribute
@@ -200,10 +200,7 @@ class CodeList(BaseModel):
 
     @classmethod
     def from_directory(
-        cls,
-        name: str,
-        path: Path,
-        file: str = None,
+        cls, name: str, path: Path, file: str = None, schema: str = "generic"
     ):
         """Initialize a CodeList from a directory with codelist files
 
@@ -215,13 +212,15 @@ class CodeList(BaseModel):
             Directory with the codelist files
         file : str, optional
             Pattern to downselect codelist files by name
+        schema: str, optional
+            Schema to be used in the validation
 
         Returns
         -------
         instance of cls (CodeList if not inherited)
 
         """
-        code_list = CodeList.parse_dir(name, path, file)
+        code_list = CodeList._parse_dir(name, path, file, schema)
 
         return cls(name=name, mapping=code_list)
 
