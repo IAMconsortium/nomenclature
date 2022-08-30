@@ -7,7 +7,7 @@ from pyam.index import replace_index_labels
 from pyam.logging import adjust_log_level
 from pyam.utils import write_sheet
 
-from nomenclature.codelist import CodeList
+from nomenclature.codelist import CodeList, VariableCodeList
 from nomenclature.validation import validate
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,10 @@ class DataStructureDefinition:
 
         self.dimensions = dimensions
         for dim in self.dimensions:
-            self.__setattr__(dim, CodeList.from_directory(dim, path / dim))
+            if dim == "variable":
+                self.__setattr__(dim, VariableCodeList.from_directory(dim, path / dim))
+            else:
+                self.__setattr__(dim, CodeList.from_directory(dim, path / dim))
 
         empty = [d for d in self.dimensions if not self.__getattribute__(d)]
         if empty:

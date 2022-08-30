@@ -125,14 +125,9 @@ class CodeList(BaseModel):
     def values(self):
         return self.mapping.values()
 
-    @classmethod
-    def from_directory(
-        cls,
-        name: str,
-        path: Path,
-        file: str = None,
-    ):
-        """Initialize a CodeList from a directory with codelist files
+    @staticmethod
+    def parse_dir(name: str, path: Path, file: str = None):
+        """Extract codes from a directory with codelist files
 
         Parameters
         ----------
@@ -142,12 +137,11 @@ class CodeList(BaseModel):
             Directory with the codelist files
         file : str, optional
             Pattern to downselect codelist files by name
-        top_level_attr : str, optional
-            A top-level hierarchy for codelist files with a nested structure
 
         Returns
         -------
-        CodeList
+        List[Code]
+        :class: `nomenclature.Code`
 
         """
         code_list, tag_dict = [], CodeList(name="tag")
@@ -202,7 +196,34 @@ class CodeList(BaseModel):
             code_list = replace_tags(code_list, tag, tag_attrs)
 
         # iterate over the list to guard against silent replacement of duplicates
-        return CodeList(name=name, mapping=code_list)
+        return code_list
+
+    @classmethod
+    def from_directory(
+        cls,
+        name: str,
+        path: Path,
+        file: str = None,
+    ):
+        """Initialize a CodeList from a directory with codelist files
+
+        Parameters
+        ----------
+        name : str
+            Name of the CodeList
+        path : :class:`pathlib.Path` or path-like
+            Directory with the codelist files
+        file : str, optional
+            Pattern to downselect codelist files by name
+
+        Returns
+        -------
+        instance of cls (CodeList if not inherited)
+
+        """
+        code_list = CodeList.parse_dir(name, path, file)
+
+        return cls(name=name, mapping=code_list)
 
     @classmethod
     def read_excel(cls, name, source, sheet_name, col, attrs=[]):
@@ -236,7 +257,7 @@ class CodeList(BaseModel):
         codes = source[[col] + attrs].set_index(col)[attrs]
         codes.rename(columns={c: str(c).lower() for c in codes.columns}, inplace=True)
 
-        return CodeList(name=name, mapping=codes.to_dict(orient="index"))
+        return cls(name=name, mapping=codes.to_dict(orient="index"))
 
     def to_yaml(self, path=None):
         """Write mapping to yaml file or return as stream
