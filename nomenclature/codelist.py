@@ -385,3 +385,35 @@ class VariableCodeList(CodeList):
                 ).mapping
 
         return v
+
+
+class RegionCodeList(CodeList):
+    """A subclass of CodeList specified for regions"""
+
+    @classmethod
+    def from_directory(
+        cls,
+        name: str,
+        path: Path,
+        file: str = None,
+    ):
+        """Initialize a VariableCodeList from a directory with codelist files
+
+        Parameters
+        ----------
+        _code_list : a region codelist
+
+        Returns
+        -------
+        RegionCodeList
+        """
+        _code_list = CodeList.parse_dir(name, path, file)
+
+        _region_code_list = []  # save refactored list as new (temporary) object
+        for top_level_cat in _code_list:
+            for top_key, _codes in top_level_cat.items():
+                for item in _codes:
+                    item = Code.from_dict(item)
+                    item.set_attribute("hierarchy", top_key)
+                    _region_code_list.append(item)
+        return cls(name=name, mapping=_region_code_list)
