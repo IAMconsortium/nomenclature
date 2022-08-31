@@ -221,9 +221,7 @@ class CodeList(BaseModel):
         instance of cls (CodeList if not inherited)
 
         """
-        code_list = cls._parse_dir(name, path, file)
-
-        return cls(name=name, mapping=code_list)
+        return cls(name=name, mapping=cls._parse_dir(name, path, file))
 
     @classmethod
     def read_excel(cls, name, source, sheet_name, col, attrs=[]):
@@ -331,7 +329,7 @@ class VariableCodeList(CodeList):
     validation_schema = "variable"
 
     @validator("mapping")
-    def check_variable_region_aggregation_args(cls, v, values):
+    def check_variable_region_aggregation_args(cls, v):
         """Check that any variable "region-aggregation" mappings are valid"""
         items = [
             (name, attrs)
@@ -361,7 +359,7 @@ class VariableCodeList(CodeList):
         return v
 
     @validator("mapping")
-    def check_weight_in_vars(cls, v, values):
+    def check_weight_in_vars(cls, v):
         # Check that all variables specified in 'weight' are present in the codelist
         if missing_weights := [
             (name, attrs["weight"], attrs["file"])
@@ -377,7 +375,7 @@ class VariableCodeList(CodeList):
         return v
 
     @validator("mapping")
-    def cast_variable_components_args(cls, v, values):
+    def cast_variable_components_args(cls, v):
         """Cast "components" list of dicts to a codelist"""
         # translate a list of single-key dictionaries to a simple dictionary
         for name, attrs in v.items():
