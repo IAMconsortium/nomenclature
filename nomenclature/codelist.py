@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Union, ClassVar
 
 import pandas as pd
 import yaml
@@ -61,6 +61,8 @@ class CodeList(BaseModel):
             ],
         ],
     ] = {}
+
+    validation_schema: ClassVar[str] = "generic"
 
     @validator("mapping", pre=True)
     def cast_mapping_to_dict(cls, v, values):
@@ -125,8 +127,8 @@ class CodeList(BaseModel):
     def values(self):
         return self.mapping.values()
 
-    @staticmethod
-    def _parse_dir(name: str, path: Path, file: str = None, schema: str = "generic"):
+    @classmethod
+    def _parse_dir(cls, name: str, path: Path, file: str = None) -> List[Code]:
         """Extract codes from a directory with codelist files
 
         Parameters
@@ -137,8 +139,6 @@ class CodeList(BaseModel):
             Directory with the codelist files
         file : str, optional
             Pattern to downselect codelist files by name
-        schema: str, optional
-            Schema to be used in the validation
 
         Returns
         -------
@@ -149,6 +149,12 @@ class CodeList(BaseModel):
         code_list, tag_dict = [], CodeList(name="tag")
         # parse all files in path if file is None
         file = file or "**/*"
+
+        if cls == CodeList:  # This will be removed in the next PR
+            if name == "region":
+                cls.validation_schema = "region"
+            else:
+                cls.validation_schema = "generic"
 
         for yaml_file in (f for f in path.glob(file) if f.suffix in {".yaml", ".yml"}):
             with open(yaml_file, "r", encoding="utf-8") as stream:
@@ -166,8 +172,7 @@ class CodeList(BaseModel):
             # if the file does not start with tag, process normally
             else:
                 # validate the schema of this codelist domain (default `generic`)
-                validate(_code_list, schema)
-
+                validate(_code_list, SCHEMA_MAPPING[cls.validation_schema])
                 # a "region" codelist assumes a top-level key to be used as
                 # attribute
                 if name == "region":
@@ -199,9 +204,7 @@ class CodeList(BaseModel):
         return code_list
 
     @classmethod
-    def from_directory(
-        cls, name: str, path: Path, file: str = None, schema: str = "generic"
-    ):
+    def from_directory(cls, name: str, path: Path, file: str = None):
         """Initialize a CodeList from a directory with codelist files
 
         Parameters
@@ -212,15 +215,13 @@ class CodeList(BaseModel):
             Directory with the codelist files
         file : str, optional
             Pattern to downselect codelist files by name
-        schema: str, optional
-            Schema to be used in the validation
 
         Returns
         -------
         instance of cls (CodeList if not inherited)
 
         """
-        code_list = CodeList._parse_dir(name, path, file, schema)
+        code_list = cls._parse_dir(name, path, file)
 
         return cls(name=name, mapping=code_list)
 
@@ -326,6 +327,8 @@ class VariableCodeList(CodeList):
         Dictionary or list of Code items
 
     """
+
+    validation_schema = "variable"
 
     @validator("mapping")
     def check_variable_region_aggregation_args(cls, v, values):
