@@ -2,7 +2,7 @@ import pytest
 from pydantic import ValidationError
 import pandas as pd
 import pandas.testing as pdt
-from nomenclature import CodeList
+from nomenclature.codelist import CodeList, VariableCodeList
 from nomenclature.error.codelist import DuplicateCodeError
 
 from conftest import TEST_DATA_DIR
@@ -10,7 +10,9 @@ from conftest import TEST_DATA_DIR
 
 def test_simple_codelist():
     """Import a simple codelist"""
-    code = CodeList.from_directory("variable", TEST_DATA_DIR / "simple_codelist")
+    code = VariableCodeList.from_directory(
+        "variable", TEST_DATA_DIR / "simple_codelist"
+    )
 
     assert "Some Variable" in code
     assert code["Some Variable"]["unit"] is None  # this is a dimensionless variable
@@ -19,7 +21,9 @@ def test_simple_codelist():
 
 def test_codelist_to_yaml():
     """Cast a codelist to yaml format"""
-    code = CodeList.from_directory("variable", TEST_DATA_DIR / "simple_codelist")
+    code = VariableCodeList.from_directory(
+        "variable", TEST_DATA_DIR / "simple_codelist"
+    )
 
     assert code.to_yaml() == (
         "- Some Variable:\n"
@@ -34,19 +38,25 @@ def test_duplicate_code_raises():
     """Check that code conflicts across different files raises"""
     match = "Duplicate item in variable codelist: Some Variable"
     with pytest.raises(ValidationError, match=match):
-        CodeList.from_directory("variable", TEST_DATA_DIR / "duplicate_code_raises")
+        VariableCodeList.from_directory(
+            "variable", TEST_DATA_DIR / "duplicate_code_raises"
+        )
 
 
 def test_duplicate_tag_raises():
     """Check that code conflicts across different files raises"""
     match = "Duplicate item in tag codelist: Tag"
     with pytest.raises(DuplicateCodeError, match=match):
-        CodeList.from_directory("variable", TEST_DATA_DIR / "duplicate_tag_raises")
+        VariableCodeList.from_directory(
+            "variable", TEST_DATA_DIR / "duplicate_tag_raises"
+        )
 
 
 def test_tagged_codelist():
     """Check that multiple tags in a code are correctly replaced"""
-    code = CodeList.from_directory("variable", TEST_DATA_DIR / "tagged_codelist")
+    code = VariableCodeList.from_directory(
+        "variable", TEST_DATA_DIR / "tagged_codelist"
+    )
 
     v = "Final Energy|Industry|Renewables"
     d = "Final energy consumption of renewables in the industrial sector"
@@ -78,7 +88,7 @@ def test_to_excel(tmpdir):
     file = tmpdir / "foo.xlsx"
 
     (
-        CodeList.from_directory(
+        VariableCodeList.from_directory(
             "Variable", TEST_DATA_DIR / "validation_nc" / "variable"
         ).to_excel(file)
     )
@@ -94,7 +104,7 @@ def test_stray_tag_fails():
 
     match = r"Unexpected {} in codelist: Primary Energy\|{Feul}"
     with pytest.raises(ValueError, match=match):
-        CodeList.from_directory(
+        VariableCodeList.from_directory(
             "variable", TEST_DATA_DIR / "stray_tag" / "definitions" / "variable"
         )
 
