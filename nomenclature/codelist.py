@@ -139,8 +139,6 @@ class CodeList(BaseModel):
             Directory with the codelist files
         file : str, optional
             Pattern to downselect codelist files by name
-        schema: str, optional
-            Schema to be used in the validation
 
         Returns
         -------
@@ -217,8 +215,6 @@ class CodeList(BaseModel):
             Directory with the codelist files
         file : str, optional
             Pattern to downselect codelist files by name
-        schema: str, optional
-            Schema to be used in the validation
 
         Returns
         -------
