@@ -128,13 +128,15 @@ class CodeList(BaseModel):
         return self.mapping.values()
 
     @classmethod
-    def _parse_dir(cls, name: str, path: Path, file: str = None) -> List[Code]:
-        """Extract codes from a directory with codelist files
+    def _parse_tags(
+        cls, code_list: List[Code], path: Path, file: str = None
+    ) -> List[Code]:
+        """Cast, validate and replace tags into list of codes for one dimension
 
         Parameters
         ----------
-        name : str
-            Name of the CodeList
+        code_list : List[Code]
+            List of Code to modify
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
         file : str, optional
@@ -146,15 +148,7 @@ class CodeList(BaseModel):
         :class: `nomenclature.Code`
 
         """
-        code_list, tag_dict = [], CodeList(name="tag")
-        # parse all files in path if file is None
-        file = file or "**/*"
-
-        if cls == CodeList:  # This will be removed in the next PR
-            if name == "region":
-                cls.validation_schema = "region"
-            else:
-                cls.validation_schema = "generic"
+        tag_dict = CodeList(name="tag")
 
         for yaml_file in (f for f in path.glob(file) if f.suffix in {".yaml", ".yml"}):
             with open(yaml_file, "r", encoding="utf-8") as stream:
@@ -173,34 +167,11 @@ class CodeList(BaseModel):
             else:
                 # validate the schema of this codelist domain (default `generic`)
                 validate(_code_list, SCHEMA_MAPPING[cls.validation_schema])
-                # a "region" codelist assumes a top-level key to be used as
-                # attribute
-                if name == "region":
-                    _region_code_list = (
-                        []
-                    )  # save refactored list as new (temporary) object
-                    for top_level_cat in _code_list:
-                        for top_key, _codes in top_level_cat.items():
-                            for item in _codes:
-                                item = Code.from_dict(item)
-                                item.set_attribute("hierarchy", top_key)
-                                _region_code_list.append(item)
-                    _code_list = _region_code_list
-                else:
-                    _code_list = [Code.from_dict(_dict) for _dict in _code_list]
-
-                # add `file` attribute to each element and add to main list
-                for item in _code_list:
-                    item.set_attribute(
-                        "file", yaml_file.relative_to(path.parent).as_posix()
-                    )
-                code_list.extend(_code_list)
 
         # replace tags by the items of the tag-dictionary
         for tag, tag_attrs in tag_dict.items():
             code_list = replace_tags(code_list, tag, tag_attrs)
 
-        # iterate over the list to guard against silent replacement of duplicates
         return code_list
 
     @classmethod
@@ -221,7 +192,29 @@ class CodeList(BaseModel):
         instance of cls (CodeList if not inherited)
 
         """
-        return cls(name=name, mapping=cls._parse_dir(name, path, file))
+        code_list = []
+        # parse all files in path if file is None
+        file = file or "**/*"
+
+        for yaml_file in (
+            f
+            for f in path.glob(file)
+            if f.suffix in {".yaml", ".yml"} and not f.name.startswith("tag_")
+        ):
+            with open(yaml_file, "r", encoding="utf-8") as stream:
+                _code_list = yaml.safe_load(stream)
+
+            # process the files which do not start with tag
+            _code_list = [Code.from_dict(_dict) for _dict in _code_list]
+
+            # add `file` attribute to each element and add to main list
+            for item in _code_list:
+                item.set_attribute(
+                    "file", yaml_file.relative_to(path.parent).as_posix()
+                )
+            code_list.extend(_code_list)
+
+        return cls(name=name, mapping=cls._parse_tags(code_list, path, file))
 
     @classmethod
     def read_excel(cls, name, source, sheet_name, col, attrs=[]):
@@ -388,32 +381,67 @@ class VariableCodeList(CodeList):
 
 
 class RegionCodeList(CodeList):
-    """A subclass of CodeList specified for regions"""
+    """A subclass of CodeList specified for regions
+
+    Parameters
+    ----------
+    name : str
+        Name of the CodeList
+    mapping : dict, list
+        Dictionary or list of Code items
+
+    """
+
+    validation_schema = "region"
 
     @classmethod
-    def from_directory(
-        cls,
-        name: str,
-        path: Path,
-        file: str = None,
-    ):
-        """Initialize a VariableCodeList from a directory with codelist files
+    def from_directory(cls, name: str, path: Path, file: str = None):
+        """Initialize a RegionCodeList from a directory with codelist files
 
         Parameters
         ----------
-        _code_list : a region codelist
+        name : str
+            Name of the CodeList
+        path : :class:`pathlib.Path` or path-like
+            Directory with the codelist files
+        file : str, optional
+            Pattern to downselect codelist files by name
 
         Returns
         -------
         RegionCodeList
-        """
-        _code_list = CodeList.parse_dir(name, path, file)
 
-        _region_code_list = []  # save refactored list as new (temporary) object
-        for top_level_cat in _code_list:
-            for top_key, _codes in top_level_cat.items():
-                for item in _codes:
-                    item = Code.from_dict(item)
-                    item.set_attribute("hierarchy", top_key)
-                    _region_code_list.append(item)
-        return cls(name=name, mapping=_region_code_list)
+        """
+        code_list = []
+        # parse all files in path if file is None
+        file = file or "**/*"
+
+        for yaml_file in (
+            f
+            for f in path.glob(file)
+            if f.suffix in {".yaml", ".yml"} and not f.name.startswith("tag_")
+        ):
+            with open(yaml_file, "r", encoding="utf-8") as stream:
+                _code_list = yaml.safe_load(stream)
+
+            # process the files which do not start with tag
+            if not yaml_file.name.startswith("tag_"):
+
+                # a "region" codelist assumes a top-level key to be used as attribute
+                _region_code_list = []  # save refactored list as new (temporary) object
+                for top_level_cat in _code_list:
+                    for top_key, _codes in top_level_cat.items():
+                        for item in _codes:
+                            item = Code.from_dict(item)
+                            item.set_attribute("hierarchy", top_key)
+                            _region_code_list.append(item)
+                _code_list = _region_code_list
+
+                # add `file` attribute to each element and add to main list
+                for item in _code_list:
+                    item.set_attribute(
+                        "file", yaml_file.relative_to(path.parent).as_posix()
+                    )
+                code_list.extend(_code_list)
+
+        return cls(name=name, mapping=cls._parse_tags(code_list, path, file))

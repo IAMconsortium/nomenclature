@@ -7,11 +7,11 @@ from pyam.index import replace_index_labels
 from pyam.logging import adjust_log_level
 from pyam.utils import write_sheet
 
-from nomenclature.codelist import CodeList, VariableCodeList
+from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
 from nomenclature.validation import validate
 
 logger = logging.getLogger(__name__)
-SPECIAL_CODELIST = {"variable": VariableCodeList}  # "region": RegionCodeList
+SPECIAL_CODELIST = {"variable": VariableCodeList, "region": RegionCodeList}
 
 
 class DataStructureDefinition:
