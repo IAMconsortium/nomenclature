@@ -424,24 +424,21 @@ class RegionCodeList(CodeList):
             with open(yaml_file, "r", encoding="utf-8") as stream:
                 _code_list = yaml.safe_load(stream)
 
-            # process the files which do not start with tag
-            if not yaml_file.name.startswith("tag_"):
+            # a "region" codelist assumes a top-level key to be used as attribute
+            _region_code_list = []  # save refactored list as new (temporary) object
+            for top_level_cat in _code_list:
+                for top_key, _codes in top_level_cat.items():
+                    for item in _codes:
+                        item = Code.from_dict(item)
+                        item.set_attribute("hierarchy", top_key)
+                        _region_code_list.append(item)
+            _code_list = _region_code_list
 
-                # a "region" codelist assumes a top-level key to be used as attribute
-                _region_code_list = []  # save refactored list as new (temporary) object
-                for top_level_cat in _code_list:
-                    for top_key, _codes in top_level_cat.items():
-                        for item in _codes:
-                            item = Code.from_dict(item)
-                            item.set_attribute("hierarchy", top_key)
-                            _region_code_list.append(item)
-                _code_list = _region_code_list
-
-                # add `file` attribute to each element and add to main list
-                for item in _code_list:
-                    item.set_attribute(
-                        "file", yaml_file.relative_to(path.parent).as_posix()
-                    )
-                code_list.extend(_code_list)
+            # add `file` attribute to each element and add to main list
+            for item in _code_list:
+                item.set_attribute(
+                    "file", yaml_file.relative_to(path.parent).as_posix()
+                )
+            code_list.extend(_code_list)
 
         return cls(name=name, mapping=cls._parse_tags(code_list, path, file))
