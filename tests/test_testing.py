@@ -31,5 +31,5 @@ def test_assert_yaml_fails(caplog):
 def test_hidden_character():
     """Check that a non-printable character in any yaml file will raise an error"""
     match = "scenarios.yaml, line 3, col 12."
-    with pytest.raises(ValueError, match=match):
+    with pytest.raises(AssertionError, match=match):
         assert_valid_yaml(TEST_DATA_DIR / "hidden_character")
