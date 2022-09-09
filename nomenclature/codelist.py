@@ -1,11 +1,11 @@
 from pathlib import Path
-from typing import Dict, List, Union, ClassVar
+from typing import Dict, List, ClassVar
 
 import pandas as pd
 import yaml
 from jsonschema import validate
 from pyam.utils import write_sheet
-from pydantic import BaseModel, validator, StrictBool
+from pydantic import BaseModel, validator
 
 
 from nomenclature.code import Code, Tag, replace_tags
@@ -51,16 +51,7 @@ class CodeList(BaseModel):
     """
 
     name: str
-    mapping: Union[
-        List,
-        Dict[
-            str,
-            Union[
-                Dict[str, Union[StrictBool, str, float, int, list, dict, None]],
-                List[str],
-            ],
-        ],
-    ] = {}
+    mapping: Dict[str, Code] = {}
 
     validation_schema: ClassVar[str] = "generic"
 
@@ -130,7 +121,7 @@ class CodeList(BaseModel):
     @classmethod
     def _parse_tags(
         cls, code_list: List[Code], path: Path, file: str = None
-    ) -> List[Code]:
+    ) -> Dict[str, Code]:
         """Cast, validate and replace tags into list of codes for one dimension
 
         Parameters
@@ -144,7 +135,7 @@ class CodeList(BaseModel):
 
         Returns
         -------
-        List[Code]
+        Dict[str, Code]
         :class: `nomenclature.Code`
 
         """
@@ -172,7 +163,10 @@ class CodeList(BaseModel):
         for tag, tag_attrs in tag_dict.items():
             code_list = replace_tags(code_list, tag, tag_attrs)
 
-        return code_list
+        mapping = {}
+        for code in code_list:
+            mapping.update({code.name: code})
+        return mapping
 
     @classmethod
     def from_directory(cls, name: str, path: Path, file: str = None):
