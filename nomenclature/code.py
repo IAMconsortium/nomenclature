@@ -1,4 +1,4 @@
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Optional
 from pydantic import BaseModel, StrictStr, StrictInt, StrictFloat, StrictBool
 
 
@@ -6,6 +6,7 @@ class Code(BaseModel):
     """A simple class for a mapping of a "code" to its attributes"""
 
     name: str
+    description: Optional[str]
     attributes: Union[
         Dict[str, Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None]],
         List[StrictStr],
@@ -19,7 +20,18 @@ class Code(BaseModel):
         if len(mapping) != 1:
             raise ValueError(f"Code is not a single name-attributes mapping: {mapping}")
 
-        return cls(name=list(mapping.keys())[0], attributes=list(mapping.values())[0])
+        description = ""
+        attributes = list(mapping.values())[0]
+
+        if "definition" in attributes:
+            description = attributes["definition"]
+            del attributes["definition"]
+
+        return cls(
+            name=list(mapping.keys())[0],
+            description=description,
+            attributes=list(mapping.values())[0],
+        )
 
     def set_attribute(self, key, value):
         self.attributes[key] = value
