@@ -20,17 +20,18 @@ class Code(BaseModel):
         if len(mapping) != 1:
             raise ValueError(f"Code is not a single name-attributes mapping: {mapping}")
 
-        description = ""
         attributes = list(mapping.values())[0]
 
-        if "definition" in attributes:
-            description = attributes["definition"]
-            del attributes["definition"]
+        description = None
+        for de in ["definition", "description"]:
+            if de in attributes:
+                description = attributes[de]
+                del attributes[de]
 
         return cls(
             name=list(mapping.keys())[0],
             description=description,
-            attributes=list(mapping.values())[0],
+            attributes=attributes,
         )
 
     def set_attribute(self, key, value):
@@ -75,3 +76,51 @@ def _replace_tags(code, tag, target_list):
         _code_list.append(_code)
 
     return _code_list
+
+
+class VariableCode(Code):
+
+    unit: Optional[str]
+    weight: Optional[str]
+    region_aggregation: Optional[str]
+    skip_region_aggregation: Optional[bool]
+    method: Optional[str]
+    check_aggregate: Optional[bool]
+    components: Optional[str]
+
+    @classmethod
+    def from_dict(cls, mapping):
+        inst = Code.from_dict(mapping)
+
+        EXPECTED_ATTR = [
+            "description",
+            "unit",
+            "weight",
+            "region-aggregation",
+            "skip-region-aggregation",
+            "method",
+            "check-aggregate",
+            "components",
+        ]
+
+        # if "unit" not in inst.attributes:
+        #     raise ValidationErr(f"Unit not defined for variable {inst.name}")
+
+        found_attr = {}
+        for code in EXPECTED_ATTR:
+            if code in inst.attributes:
+                found_attr[code] = inst.attributes[code]
+                del inst.attributes[code]
+
+        return cls(
+            name=inst.name,
+            description=inst.description,
+            attributes=inst.attributes,
+            unit=found_attr["unit"],
+            weight=found_attr.get("weight", None),
+            region_aggregation=found_attr.get("region-aggregation", None),
+            skip_region_aggregation=found_attr.get("skip-region-aggregation", None),
+            method=found_attr.get("method", None),
+            check_aggregate=found_attr.get("check_aggregate", None),
+            components=found_attr.get("components", None),
+        )
