@@ -8,7 +8,7 @@ from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
 
 
-from nomenclature.code import Code, Tag, replace_tags
+from nomenclature.code import Code, VariableCode, Tag, replace_tags
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
     MissingWeightError,
@@ -55,19 +55,22 @@ class CodeList(BaseModel):
 
     validation_schema: ClassVar[str] = "generic"
 
+    code_basis: ClassVar[str] = Code
+
     @validator("mapping", pre=True)
     def cast_mapping_to_dict(cls, v, values):
         """Cast a mapping provided as list to a dictionary"""
         if not isinstance(v, list):
             return v
 
+        print("validator")
         mapping = {}
-        for item in v:
-            if not isinstance(item, Code):
-                item = Code.from_dict(item)
-            if item.name in mapping:
-                raise DuplicateCodeError(name=values["name"], code=item.name)
-            mapping[item.name] = item.attributes
+        for name, code in v.items():
+            if not isinstance(code, Code):
+                code = Code.from_dict(code)
+            if name in mapping:
+                raise DuplicateCodeError(name=values["name"], code=name)
+            mapping[name] = code
         return mapping
 
     @validator("mapping")
@@ -120,7 +123,7 @@ class CodeList(BaseModel):
 
     @classmethod
     def _parse_tags(
-        cls, code_list: List[Code], path: Path, file: str = None
+        cls, name: str, code_list: List[Code], path: Path, file: str = None
     ) -> Dict[str, Code]:
         """Cast, validate and replace tags into list of codes for one dimension
 
@@ -152,7 +155,9 @@ class CodeList(BaseModel):
                 # cast _codes to `Tag`
                 for item in _code_list:
                     tag = Tag.from_dict(mapping=item)
-                    tag_dict[tag.name] = [Code.from_dict(a) for a in tag.attributes]
+                    tag_dict[tag.name] = [
+                        cls.code_basis.from_dict(a) for a in tag.attributes
+                    ]
 
             # if the file does not start with tag, process normally
             else:
@@ -166,6 +171,7 @@ class CodeList(BaseModel):
         mapping = {}
         for code in code_list:
             mapping.update({code.name: code})
+
         return mapping
 
     @classmethod
@@ -199,7 +205,7 @@ class CodeList(BaseModel):
                 _code_list = yaml.safe_load(stream)
 
             # process the files which do not start with tag
-            _code_list = [Code.from_dict(_dict) for _dict in _code_list]
+            _code_list = [cls.code_basis.from_dict(_dict) for _dict in _code_list]
 
             # add `file` attribute to each element and add to main list
             for item in _code_list:
@@ -208,7 +214,7 @@ class CodeList(BaseModel):
                 )
             code_list.extend(_code_list)
 
-        return cls(name=name, mapping=cls._parse_tags(code_list, path, file))
+        return cls(name=name, mapping=cls._parse_tags(name, code_list, path, file))
 
     @classmethod
     def read_excel(cls, name, source, sheet_name, col, attrs=[]):
@@ -255,9 +261,7 @@ class CodeList(BaseModel):
 
         # translate to list of nested dicts, replace None by empty field, write to file
         stream = (
-            yaml.dump(
-                [{code: attrs} for code, attrs in self.mapping.items()], sort_keys=False
-            )
+            yaml.dump([self.codelist_repr()], sort_keys=False)
             .replace(": null\n", ":\n")
             .replace(": nan\n", ":\n")
         )
@@ -300,6 +304,20 @@ class CodeList(BaseModel):
         if close:
             excel_writer.close()
 
+    def codelist_repr(self):
+        nice_dict = {}
+        for name, code in self.mapping.items():
+            code_dict = code.dict()
+            del code_dict["name"]
+            for attr, value in code.dict().items():
+                if value is None and attr != "unit":
+                    del code_dict[attr]
+            code_dict.update(code_dict["attributes"])
+            del code_dict["attributes"]
+            nice_dict.update({name: code_dict})
+
+        return nice_dict
+
 
 class VariableCodeList(CodeList):
     """A subclass of CodeList specified for variables
@@ -312,6 +330,8 @@ class VariableCodeList(CodeList):
         Dictionary or list of Code items
 
     """
+
+    code_basis = VariableCode
 
     validation_schema = "variable"
 
@@ -435,4 +455,4 @@ class RegionCodeList(CodeList):
                 )
             code_list.extend(_code_list)
 
-        return cls(name=name, mapping=cls._parse_tags(code_list, path, file))
+        return cls(name=name, mapping=cls._parse_tags(name, code_list, path, file))

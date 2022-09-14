@@ -15,8 +15,8 @@ def test_simple_codelist():
     )
 
     assert "Some Variable" in code
-    assert code["Some Variable"]["unit"] is None  # this is a dimensionless variable
-    assert type(code["Some Variable"]["bool"]) == bool  # this is a boolean
+    assert code["Some Variable"].unit is None  # this is a dimensionless variable
+    assert type(code["Some Variable"].attributes["bool"]) == bool  # this is a boolean
 
 
 def test_codelist_to_yaml():
@@ -27,7 +27,7 @@ def test_codelist_to_yaml():
 
     assert code.to_yaml() == (
         "- Some Variable:\n"
-        "    definition: Some basic variable\n"
+        "    description: Some basic variable\n"
         "    unit:\n"
         "    bool: true\n"
         "    file: simple_codelist/foo.yaml\n"
@@ -69,7 +69,7 @@ def test_region_codelist():
     code = RegionCodeList.from_directory("region", TEST_DATA_DIR / "region_codelist")
 
     assert "World" in code
-    assert code["World"]["hierarchy"] == "common"
+    assert code["World"].attributes["hierarchy"] == "common"
 
     assert "Some Country" in code
     assert code["Some Country"]["hierarchy"] == "countries"
