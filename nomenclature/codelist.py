@@ -57,22 +57,6 @@ class CodeList(BaseModel):
 
     code_basis: ClassVar[str] = Code
 
-    @validator("mapping", pre=True)
-    def cast_mapping_to_dict(cls, v, values):
-        """Cast a mapping provided as list to a dictionary"""
-        if not isinstance(v, list):
-            return v
-
-        print("validator")
-        mapping = {}
-        for name, code in v.items():
-            if not isinstance(code, Code):
-                code = Code.from_dict(code)
-            if name in mapping:
-                raise DuplicateCodeError(name=values["name"], code=name)
-            mapping[name] = code
-        return mapping
-
     @validator("mapping")
     def check_stray_tag(cls, v):
         """Check that no '{' are left in codes after tag replacement"""
@@ -142,7 +126,7 @@ class CodeList(BaseModel):
         :class: `nomenclature.Code`
 
         """
-        tag_dict = CodeList(name="tag")
+        tag_dict = {}
 
         for yaml_file in (f for f in path.glob(file) if f.suffix in {".yaml", ".yml"}):
             with open(yaml_file, "r", encoding="utf-8") as stream:
@@ -170,7 +154,9 @@ class CodeList(BaseModel):
 
         mapping = {}
         for code in code_list:
-            mapping.update({code.name: code})
+            if code.name in mapping:
+                raise DuplicateCodeError(name=name, code=code.name)
+            mapping[code.name]= code
 
         return mapping
 

@@ -37,7 +37,7 @@ def test_codelist_to_yaml():
 def test_duplicate_code_raises():
     """Check that code conflicts across different files raises"""
     match = "Duplicate item in variable codelist: Some Variable"
-    with pytest.raises(ValidationError, match=match):
+    with pytest.raises(DuplicateCodeError, match=match):
         VariableCodeList.from_directory(
             "variable", TEST_DATA_DIR / "duplicate_code_raises"
         )
