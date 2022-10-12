@@ -317,9 +317,7 @@ class CodeList(BaseModel):
         """
         return self.to_pandas(sort_by_code).to_csv(path, **kwargs)
 
-    def to_excel(
-        self, excel_writer, sheet_name="definitions", sort_by_code=False, **kwargs
-    ):
+    def to_excel(self, excel_writer, sheet_name=None, sort_by_code=False, **kwargs):
         """Write the codelist to an Excel spreadsheet
 
         Parameters
@@ -327,13 +325,17 @@ class CodeList(BaseModel):
         excel_writer : path-like, file-like, or ExcelWriter object
             File path as string or :class:`pathlib.Path`,
             or existing :class:`pandas.ExcelWriter`.
-        sheet_name : str
-            Name of sheet that will contain the codelist.
+        sheet_name : str, optional
+            Name of sheet that will have the codelist. If *None*, use the codelist name.
         sort_by_code : bool, optional
             Sort the codelist before exporting to file.
         **kwargs
             Passed to :class:`pandas.ExcelWriter` (if *excel_writer* is path-like).
         """
+
+        # default sheet_name to the name of the codelist
+        if sheet_name is None:
+            sheet_name = self.name
 
         # open a new ExcelWriter instance (if necessary)
         close = False
