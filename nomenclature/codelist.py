@@ -317,7 +317,9 @@ class CodeList(BaseModel):
         """
         return self.to_pandas(sort_by_code).to_csv(path, **kwargs)
 
-    def to_excel(self, excel_writer, sheet_name="definitions", sort_by_code=False, **kwargs):
+    def to_excel(
+        self, excel_writer, sheet_name="definitions", sort_by_code=False, **kwargs
+    ):
         """Write the codelist to an Excel spreadsheet
 
         Parameters
