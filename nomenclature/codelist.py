@@ -302,7 +302,7 @@ class CodeList(BaseModel):
         return codelist
 
     def to_csv(self, path=None, sort_by_code=False, **kwargs):
-        """Write the codelist to an Excel spreadsheet
+        """Write the codelist to a comma-separated values (csv) file
 
         Parameters
         ----------
