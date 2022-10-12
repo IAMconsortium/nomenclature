@@ -99,6 +99,16 @@ def test_to_excel(tmpdir):
     pdt.assert_frame_equal(obs, exp)
 
 
+def test_to_csv():
+    """Check writing to csv"""
+    obs = VariableCodeList.from_directory(
+        "Variable", TEST_DATA_DIR / "simple_codelist"
+    ).to_csv(lineterminator="\n")
+
+    exp = ",Variable,Definition,Unit,Bool\n0,Some Variable,Some basic variable,,True\n"
+    assert obs == exp
+
+
 def test_stray_tag_fails():
     """Check that typos in a tag raises expected error"""
 
