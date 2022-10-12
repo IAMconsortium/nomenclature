@@ -99,11 +99,12 @@ def test_to_excel(tmpdir):
     pdt.assert_frame_equal(obs, exp)
 
 
-def test_to_csv():
+@pytest.mark.parametrize("sort", (True, False))
+def test_to_csv(sort):
     """Check writing to csv"""
     obs = VariableCodeList.from_directory(
         "Variable", TEST_DATA_DIR / "simple_codelist"
-    ).to_csv(lineterminator="\n")
+    ).to_csv(sort_by_code=sort, lineterminator="\n")
 
     exp = ",Variable,Definition,Unit,Bool\n0,Some Variable,Some basic variable,,True\n"
     assert obs == exp

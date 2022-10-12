@@ -330,7 +330,7 @@ class CodeList(BaseModel):
         sort_by_code : bool, optional
             Sort the codelist before exporting to file.
         **kwargs
-            Passed to :class:`pandas.ExcelWriter` (if *excel_writer* is path-like)
+            Passed to :class:`pandas.ExcelWriter` (if *excel_writer* is path-like).
         """
 
         # open a new ExcelWriter instance (if necessary)
