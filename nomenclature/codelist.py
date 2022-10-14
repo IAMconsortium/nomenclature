@@ -280,7 +280,7 @@ class CodeList(BaseModel):
         else:
             return stream
 
-    def to_pandas(self, sorted=False):
+    def to_pandas(self, sorted: bool=False) -> pd.DataFrame:
         """Export the CodeList to a :class:`pandas.DataFrame`
 
         Parameters
