@@ -280,12 +280,12 @@ class CodeList(BaseModel):
         else:
             return stream
 
-    def to_pandas(self, sorted: bool=False) -> pd.DataFrame:
+    def to_pandas(self, sort_by_code: bool = False) -> pd.DataFrame:
         """Export the CodeList to a :class:`pandas.DataFrame`
 
         Parameters
         ----------
-        sorted : bool, optional
+        sort_by_code : bool, optional
             Sort the codelist before exporting to csv.
         """
         codelist = (
@@ -294,14 +294,14 @@ class CodeList(BaseModel):
             .rename(columns={"index": self.name})
             .drop(columns="file")
         )
-        if sorted:
+        if sort_by_code:
             codelist.sort_values(by=self.name, inplace=True)
         codelist.rename(
             columns={c: str(c).capitalize() for c in codelist.columns}, inplace=True
         )
         return codelist
 
-    def to_csv(self, path=None, sort_by_code=False, **kwargs):
+    def to_csv(self, path=None, sort_by_code: bool = False, **kwargs):
         """Write the codelist to a comma-separated values (csv) file
 
         Parameters
@@ -314,10 +314,16 @@ class CodeList(BaseModel):
             Sort the codelist before exporting to csv.
         **kwargs
             Passed to :meth:`pandas.DataFrame.to_csv`.
+
+        Returns
+        -------
+        None or csv-formatted string (if *path* is None)
         """
         return self.to_pandas(sort_by_code).to_csv(path, **kwargs)
 
-    def to_excel(self, excel_writer, sheet_name=None, sort_by_code=False, **kwargs):
+    def to_excel(
+        self, excel_writer, sheet_name=None, sort_by_code: bool = False, **kwargs
+    ):
         """Write the codelist to an Excel spreadsheet
 
         Parameters
