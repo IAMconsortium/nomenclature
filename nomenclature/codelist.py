@@ -280,34 +280,77 @@ class CodeList(BaseModel):
         else:
             return stream
 
-    def to_excel(self, excel_writer, sheet_name="definitions"):
-        """Write the codelist to an Excel spreadsheet
+    def to_pandas(self, sort_by_code: bool = False) -> pd.DataFrame:
+        """Export the CodeList to a :class:`pandas.DataFrame`
 
         Parameters
         ----------
-        excel_writer : str, path or ExcelWriter object
-            Any valid string path, :class:`pathlib.Path` or :class:`pandas.ExcelWriter`
-        sheet_name : str
-            Name of sheet that will contain the codelist
+        sort_by_code : bool, optional
+            Sort the codelist before exporting to csv.
         """
-
-        # open a new ExcelWriter instance (if necessary)
-        close = False
-        if not isinstance(excel_writer, pd.ExcelWriter):
-            close = True
-            excel_writer = pd.ExcelWriter(excel_writer)
-
-        # format and write the codelist
         codelist = (
             pd.DataFrame.from_dict(self.mapping, orient="index")
             .reset_index()
             .rename(columns={"index": self.name})
             .drop(columns="file")
         )
+        if sort_by_code:
+            codelist.sort_values(by=self.name, inplace=True)
         codelist.rename(
             columns={c: str(c).capitalize() for c in codelist.columns}, inplace=True
         )
-        write_sheet(excel_writer, sheet_name, codelist)
+        return codelist
+
+    def to_csv(self, path=None, sort_by_code: bool = False, **kwargs):
+        """Write the codelist to a comma-separated values (csv) file
+
+        Parameters
+        ----------
+        path : str, path or file-like, optional
+            File path as string or :class:`pathlib.Path`, or file-like object.
+            If *None*, the result is returned as a csv-formatted string.
+            See :meth:`pandas.DataFrame.to_csv` for details.
+        sort_by_code : bool, optional
+            Sort the codelist before exporting to csv.
+        **kwargs
+            Passed to :meth:`pandas.DataFrame.to_csv`.
+
+        Returns
+        -------
+        None or csv-formatted string (if *path* is None)
+        """
+        index = kwargs.pop("index", False)  # by default, do not write index to csv
+        return self.to_pandas(sort_by_code).to_csv(path, index=index, **kwargs)
+
+    def to_excel(
+        self, excel_writer, sheet_name=None, sort_by_code: bool = False, **kwargs
+    ):
+        """Write the codelist to an Excel spreadsheet
+
+        Parameters
+        ----------
+        excel_writer : path-like, file-like, or ExcelWriter object
+            File path as string or :class:`pathlib.Path`,
+            or existing :class:`pandas.ExcelWriter`.
+        sheet_name : str, optional
+            Name of sheet that will have the codelist. If *None*, use the codelist name.
+        sort_by_code : bool, optional
+            Sort the codelist before exporting to file.
+        **kwargs
+            Passed to :class:`pandas.ExcelWriter` (if *excel_writer* is path-like).
+        """
+
+        # default sheet_name to the name of the codelist
+        if sheet_name is None:
+            sheet_name = self.name
+
+        # open a new ExcelWriter instance (if necessary)
+        close = False
+        if not isinstance(excel_writer, pd.ExcelWriter):
+            close = True
+            excel_writer = pd.ExcelWriter(excel_writer, **kwargs)
+
+        write_sheet(excel_writer, sheet_name, self.to_pandas(sort_by_code))
 
         # close the file if `excel_writer` arg was a file name
         if close:
