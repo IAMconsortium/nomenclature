@@ -8,7 +8,7 @@ from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
 
 
-from nomenclature.code import Code, VariableCode, Tag, replace_tags
+from nomenclature.code import Code, VariableCode, Tag
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
     MissingWeightError,
@@ -126,7 +126,7 @@ class CodeList(BaseModel):
         :class: `nomenclature.Code`
 
         """
-        tag_dict = {}
+        tag_dict = CodeList(name="tag")
 
         for yaml_file in (f for f in path.glob(file) if f.suffix in {".yaml", ".yml"}):
             with open(yaml_file, "r", encoding="utf-8") as stream:
@@ -140,7 +140,7 @@ class CodeList(BaseModel):
                 for item in _code_list:
                     tag = Tag.from_dict(mapping=item)
                     tag_dict[tag.name] = [
-                        cls.code_basis.from_dict(a) for a in tag.attributes
+                        Code.from_dict(a) for a in tag.attributes
                     ]
 
             # if the file does not start with tag, process normally
@@ -150,13 +150,13 @@ class CodeList(BaseModel):
 
         # replace tags by the items of the tag-dictionary
         for tag, tag_attrs in tag_dict.items():
-            code_list = replace_tags(code_list, tag, tag_attrs)
+            code_list = cls.code_basis.replace_tags(code_list, tag, tag_attrs)
 
         mapping = {}
         for code in code_list:
             if code.name in mapping:
                 raise DuplicateCodeError(name=name, code=code.name)
-            mapping[code.name]= code
+            mapping[code.name] = code
 
         return mapping
 
@@ -276,7 +276,7 @@ class CodeList(BaseModel):
 
         # format and write the codelist
         codelist = (
-            pd.DataFrame.from_dict(self.mapping, orient="index")
+            pd.DataFrame.from_dict(self.codelist_repr(), orient="index")
             .reset_index()
             .rename(columns={"index": self.name})
             .drop(columns="file")

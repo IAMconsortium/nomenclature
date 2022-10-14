@@ -1,5 +1,4 @@
 import pytest
-from pydantic import ValidationError
 import pandas as pd
 import pandas.testing as pdt
 from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
@@ -61,7 +60,7 @@ def test_tagged_codelist():
     v = "Final Energy|Industry|Renewables"
     d = "Final energy consumption of renewables in the industrial sector"
     assert v in code
-    assert code[v]["definition"] == d
+    assert code[v].description == d
 
 
 def test_region_codelist():
@@ -72,15 +71,15 @@ def test_region_codelist():
     assert code["World"].attributes["hierarchy"] == "common"
 
     assert "Some Country" in code
-    assert code["Some Country"]["hierarchy"] == "countries"
-    assert code["Some Country"]["iso2"] == "XY"
+    assert code["Some Country"].attributes["hierarchy"] == "countries"
+    assert code["Some Country"].attributes["iso2"] == "XY"
 
 
 def test_norway_as_str():
     """guard against casting of 'NO' to boolean `False` by PyYAML or pydantic"""
     region = RegionCodeList.from_directory("region", TEST_DATA_DIR / "norway_as_bool")
-    assert region["Norway"]["eu_member"] is False
-    assert region["Norway"]["iso2"] == "NO"
+    assert region["Norway"].attributes["eu_member"] is False
+    assert region["Norway"].attributes["iso2"] == "NO"
 
 
 def test_to_excel(tmpdir):
