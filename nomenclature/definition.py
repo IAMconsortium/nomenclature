@@ -119,7 +119,9 @@ class DataStructureDefinition:
             error = pd.concat(lst)
             return error if not error.empty else None
 
-    def to_excel(self, excel_writer, sheet_name=None, sort_by_code: bool = False, **kwargs):
+    def to_excel(
+        self, excel_writer, sheet_name=None, sort_by_code: bool = False, **kwargs
+    ):
         """Write the *variable* codelist to an Excel sheet
 
         Parameters
