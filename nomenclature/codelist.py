@@ -319,7 +319,8 @@ class CodeList(BaseModel):
         -------
         None or csv-formatted string (if *path* is None)
         """
-        return self.to_pandas(sort_by_code).to_csv(path, **kwargs)
+        index = kwargs.pop("index", False)  # by default, do not write index to csv
+        return self.to_pandas(sort_by_code).to_csv(path, index=index, **kwargs)
 
     def to_excel(
         self, excel_writer, sheet_name=None, sort_by_code: bool = False, **kwargs
