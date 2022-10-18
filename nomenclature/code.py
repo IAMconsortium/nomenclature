@@ -8,7 +8,14 @@ class Code(BaseModel):
     name: str
     description: Optional[str]
     attributes: Union[
-        Dict[str, Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None]],
+        Dict[
+            str,
+            Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None, Dict[
+                str, Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None]
+                ]
+
+            ]
+        ],
         List[StrictStr],
     ]
 
@@ -83,7 +90,7 @@ class VariableCode(Code):
 
     unit: Optional[str]
     weight: Optional[str]
-    region_aggregation: Optional[str]
+    region_aggregation: Optional[List[Dict[str, Dict]]]
     skip_region_aggregation: Optional[bool]
     method: Optional[str]
     check_aggregate: Optional[bool]

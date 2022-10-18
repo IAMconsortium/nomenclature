@@ -474,9 +474,10 @@ class RegionProcessor(BaseModel):
         self, variables, dsd: DataStructureDefinition, keys: Set[str] = AGG_KWARGS
     ) -> Dict[str, Dict]:
         return {
-            var: {key: value for key, value in kwargs.items() if key in keys}
+            var: {key: value for key, value in kwargs.dict().items() if key in keys}
             for var, kwargs in dsd.variable.items()
-            if var in variables and not kwargs.get("skip-region-aggregation", False)
+            if var in variables and not kwargs.dict().get("skip-region-aggregation",
+                                                          False)
         }
 
 

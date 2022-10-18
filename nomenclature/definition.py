@@ -93,8 +93,8 @@ class DataStructureDefinition:
         with adjust_log_level(level="WARNING"):
             for code in df.variable:
                 attr = self.variable[code]
-                if attr.get("check-aggregate", False):
-                    components = attr.get("components", None)
+                if attr.dict().get("check-aggregate", False):
+                    components = attr.dict().get("components", None)
 
                     # check if multiple lists of components are given for a code
                     if isinstance(components, dict):

@@ -31,7 +31,7 @@ def validate(dsd, df, dimensions):
             if variable not in dsd.variable:
                 invalid_vars.append(variable)
             else:
-                dsd_unit = dsd.variable[variable]["unit"]
+                dsd_unit = dsd.variable[variable].unit
                 # fast-pass for unique units in df and the DataStructureDefinition
                 if dsd_unit == unit:
                     continue
