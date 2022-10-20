@@ -22,7 +22,7 @@ from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.error_wrappers import ErrorWrapper
 from pydantic.types import DirectoryPath, FilePath
 
-AGG_KWARGS = PYAM_AGG_KWARGS + ["region-aggregation"]
+AGG_KWARGS = PYAM_AGG_KWARGS + ["region_aggregation"]
 
 logger = logging.getLogger(__name__)
 
@@ -424,7 +424,7 @@ class RegionProcessor(BaseModel):
                             )
                             # Second, special weighted aggregation
                             for var, kwargs in vars_kwargs.items():
-                                if "region-aggregation" not in kwargs:
+                                if "region_aggregation" not in kwargs:
                                     _df = _aggregate_region(
                                         model_df,
                                         var,
@@ -434,7 +434,7 @@ class RegionProcessor(BaseModel):
                                     if _df is not None and not _df.empty:
                                         _processed_dfs.append(_df)
                                 else:
-                                    for rename_var in kwargs["region-aggregation"]:
+                                    for rename_var in kwargs["region_aggregation"]:
                                         for _rename, _kwargs in rename_var.items():
                                             _df = _aggregate_region(
                                                 model_df,
@@ -477,7 +477,7 @@ class RegionProcessor(BaseModel):
             var: {key: value for key, value in kwargs.dict().items()
                   if key in keys and value is not None}
             for var, kwargs in dsd.variable.items()
-            if var in variables and not kwargs.dict().get("skip-region-aggregation",
+            if var in variables and not kwargs.dict().get("skip_region_aggregation",
                                                           False)
         }
 
