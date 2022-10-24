@@ -94,7 +94,7 @@ class VariableCode(Code):
     skip_region_aggregation: Optional[bool]
     method: Optional[str]
     check_aggregate: Optional[bool]
-    components: Optional[str]
+    components: Optional[Union[List[str], List[Dict[str, List[str]]]]]
 
     EXPECTED_ATTR: ClassVar[List] = [
         "unit",
@@ -128,7 +128,7 @@ class VariableCode(Code):
             region_aggregation=found_attr.get("region-aggregation", None),
             skip_region_aggregation=found_attr.get("skip-region-aggregation", None),
             method=found_attr.get("method", None),
-            check_aggregate=found_attr.get("check_aggregate", None),
+            check_aggregate=found_attr.get("check-aggregate", None),
             components=found_attr.get("components", None),
         )
 

@@ -327,27 +327,31 @@ class VariableCodeList(CodeList):
         items = [
             (name, attrs)
             for (name, attrs) in v.items()
-            if "region-aggregation" in attrs
+            if attrs.region_aggregation is not None
         ]
 
         for (name, attrs) in items:
             # ensure that there no pyam-aggregation-kwargs and
-            conflict_args = [i for i in attrs if i in PYAM_AGG_KWARGS]
+            conflict_args = [
+                             i for i, val in attrs.dict().items()
+                             if i in PYAM_AGG_KWARGS and val is not None
+                            ]
             if conflict_args:
                 raise VariableRenameArgError(
                     variable=name,
-                    file=attrs["file"],
+                    file=attrs.attributes["file"],
                     args=conflict_args,
                 )
 
             # ensure that mapped variables are defined in the nomenclature
-            rename_attrs = CodeList(
-                name="region-aggregation", mapping=attrs["region-aggregation"]
-            )
-            invalid = [var for var in rename_attrs.keys() if var not in v]
+            invalid = []
+            for inst in attrs.region_aggregation:
+                for var in inst:
+                    if var not in v:
+                        invalid.append(var)
             if invalid:
                 raise VariableRenameTargetError(
-                    variable=name, file=attrs["file"], target=invalid
+                    variable=name, file=attrs.attributes["file"], target=invalid
                 )
         return v
 
@@ -355,9 +359,9 @@ class VariableCodeList(CodeList):
     def check_weight_in_vars(cls, v):
         # Check that all variables specified in 'weight' are present in the codelist
         if missing_weights := [
-            (name, attrs["weight"], attrs["file"])
+            (name, attrs.weight, attrs.attributes["file"])
             for name, attrs in v.items()
-            if "weight" in attrs and attrs["weight"] not in v
+            if attrs.weight is not None and attrs.weight not in v
         ]:
             raise MissingWeightError(
                 missing_weights="".join(
