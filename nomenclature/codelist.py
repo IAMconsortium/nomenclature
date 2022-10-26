@@ -233,8 +233,12 @@ class CodeList(BaseModel):
         # set `col` as index and cast all attribute-names to lowercase
         codes = source[[col] + attrs].set_index(col)[attrs]
         codes.rename(columns={c: str(c).lower() for c in codes.columns}, inplace=True)
+        codes_di = codes.to_dict(orient="index")
+        mapp = {}
+        for title, values in codes_di.items():
+            mapp[title] = cls.code_basis.from_dict({title: values})
 
-        return cls(name=name, mapping=codes.to_dict(orient="index"))
+        return cls(name=name, mapping=mapp)
 
     def to_yaml(self, path=None):
         """Write mapping to yaml file or return as stream
@@ -247,10 +251,12 @@ class CodeList(BaseModel):
 
         # translate to list of nested dicts, replace None by empty field, write to file
         stream = (
-            yaml.dump([self.codelist_repr()], sort_keys=False)
+            yaml.dump([{code: attrs} for code, attrs in self.codelist_repr().items()],
+                      sort_keys=False)
             .replace(": null\n", ":\n")
             .replace(": nan\n", ":\n")
         )
+
         if path is not None:
             with open(path, "w") as file:
                 file.write(stream)
@@ -376,10 +382,11 @@ class VariableCodeList(CodeList):
         """Cast "components" list of dicts to a codelist"""
         # translate a list of single-key dictionaries to a simple dictionary
         for name, attrs in v.items():
-            if "components" in attrs and isinstance(attrs["components"][0], dict):
-                v[name]["components"] = CodeList(
-                    name="components", mapping=attrs["components"]
-                ).mapping
+            if attrs.components and isinstance(attrs.components[0], dict):
+                comp = {}
+                for val in attrs.components:
+                    comp.update(val)
+                v[name].components = comp
 
         return v
 

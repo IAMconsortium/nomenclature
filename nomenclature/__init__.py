@@ -5,7 +5,7 @@ from importlib.metadata import version
 
 from nomenclature.core import process  # noqa
 from nomenclature.codelist import CodeList  # noqa
-from nomenclature.definition import DataStructureDefinition  # noqa
+from nomenclature.definition import DataStructureDefinition, SPECIAL_CODELIST  # noqa
 from nomenclature.cli import cli  # noqa
 from nomenclature.processor.region import (  # noqa
     RegionProcessor,
@@ -44,6 +44,6 @@ def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=[]):
     attrs : list, optional
         Columns from `sheet_name` to use as attributes.
     """
-    CodeList.read_excel(
+    SPECIAL_CODELIST.get(col.lower(), CodeList).read_excel(
         name="", source=source, sheet_name=sheet_name, col=col, attrs=attrs
     ).to_yaml(target)

@@ -137,7 +137,7 @@ class DataStructureDefinition:
 
         # write definitions to sheet
         df = (
-            pd.DataFrame.from_dict(self.variable, orient="index")
+            pd.DataFrame.from_dict(self.variable.mapping, orient="index")
             .reset_index()
             .rename(columns={"index": "variable"})
             .drop(columns="file")
