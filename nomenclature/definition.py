@@ -119,33 +119,22 @@ class DataStructureDefinition:
             error = pd.concat(lst)
             return error if not error.empty else None
 
-    def to_excel(self, excel_writer, sheet_name="variable_definitions"):
-        """Write the variable codelist to an Excel sheet
+    def to_excel(
+        self, excel_writer, sheet_name=None, sort_by_code: bool = False, **kwargs
+    ):
+        """Write the *variable* codelist to an Excel sheet
 
         Parameters
         ----------
-        excel_writer : path-like, file-like, or :class:`pandas.ExcelWriter` object
-            File path or existing ExcelWriter.
+        excel_writer : path-like, file-like, or ExcelWriter object
+            File path as string or :class:`pathlib.Path`,
+            or existing :class:`pandas.ExcelWriter`.
         sheet_name : str, optional
-            Name of sheet which will contain the CodeList.
+            Name of sheet that will have the codelist. If *None*, use the codelist name.
+        sort_by_code : bool, optional
+            Sort the codelist before exporting to file.
+        **kwargs
+            Passed to :class:`pandas.ExcelWriter` (if *excel_writer* is path-like).
         """
-
-        close = False
-        if not isinstance(excel_writer, pd.ExcelWriter):
-            close = True
-            excel_writer = pd.ExcelWriter(excel_writer)
-
-        # write definitions to sheet
-        df = (
-            pd.DataFrame.from_dict(self.variable.mapping, orient="index")
-            .reset_index()
-            .rename(columns={"index": "variable"})
-            .drop(columns="file")
-        )
-        df.rename(columns={c: str(c).title() for c in df.columns}, inplace=True)
-
-        write_sheet(excel_writer, sheet_name, df)
-
-        # close the file if `excel_writer` arg was a file name
-        if close:
-            excel_writer.close()
+        # TODO write all dimensions to the file
+        self.variable.to_excel(excel_writer, sheet_name, sort_by_code, **kwargs)

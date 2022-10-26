@@ -2,11 +2,12 @@ import yaml
 import logging
 from pathlib import Path
 from typing import List, Optional
-from string import printable
 
 import nomenclature
 
 logger = logging.getLogger(__name__)
+
+ILLEGAL_CHARS = ["\u202f"]
 
 
 def assert_valid_yaml(path: Path):
@@ -28,13 +29,13 @@ def assert_valid_yaml(path: Path):
             # check if any special character is found in the file
             for index, line in enumerate(all_lines.readlines()):
                 for col, char in enumerate(line):
-                    if char not in printable:
+                    if char in ILLEGAL_CHARS:
                         special_characters += (
                             f"\n - {file.name}, line {index + 1}, col {col + 1}. "
                         )
 
     if special_characters:
-        raise ValueError(f"Unexpected special character(s) in: {special_characters}")
+        raise AssertionError(f"Unexpected special character(s): {special_characters}")
 
     # test fails if any file cannot be parsed, raise error with list of these files
     if error:

@@ -98,6 +98,17 @@ def test_to_excel(tmpdir):
     pdt.assert_frame_equal(obs, exp)
 
 
+@pytest.mark.parametrize("sort", (True, False))
+def test_to_csv(sort):
+    """Check writing to csv"""
+    obs = VariableCodeList.from_directory(
+        "Variable", TEST_DATA_DIR / "simple_codelist"
+    ).to_csv(sort_by_code=sort, lineterminator="\n")
+
+    exp = "Variable,Definition,Unit,Bool\nSome Variable,Some basic variable,,True\n"
+    assert obs == exp
+
+
 def test_stray_tag_fails():
     """Check that typos in a tag raises expected error"""
 
