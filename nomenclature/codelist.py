@@ -150,9 +150,11 @@ class CodeList(BaseModel):
         """
         tag_dict = CodeList(name="tag")
 
-        for yaml_file in (f for f in path.glob(file_glob_pattern)
-                          if f.suffix in {".yaml", ".yml"}
-                          and f.name.startswith("tag_")):
+        for yaml_file in (
+            f
+            for f in path.glob(file_glob_pattern)
+            if f.suffix in {".yaml", ".yml"} and f.name.startswith("tag_")
+        ):
             with open(yaml_file, "r", encoding="utf-8") as stream:
                 _code_list = yaml.safe_load(stream)
 
@@ -210,8 +212,9 @@ class CodeList(BaseModel):
                 )
             code_list.extend(_code_list)
 
-        return cls(name=name,
-                   mapping=cls._parse_tags(code_list, path, file_glob_pattern))
+        return cls(
+            name=name, mapping=cls._parse_tags(code_list, path, file_glob_pattern)
+        )
 
     @classmethod
     def read_excel(cls, name, source, sheet_name, col, attrs=[]):
@@ -436,5 +439,6 @@ class RegionCodeList(CodeList):
                 )
             code_list.extend(_code_list)
 
-        return cls(name=name,
-                   mapping=cls._parse_tags(code_list, path, file_glob_pattern))
+        return cls(
+            name=name, mapping=cls._parse_tags(code_list, path, file_glob_pattern)
+        )
