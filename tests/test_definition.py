@@ -61,7 +61,7 @@ def test_create_yaml_from_xlsx(tmpdir):
         target=file,
         sheet_name="variable_definitions",
         col="Variable",
-        attrs=["Definition", "Unit"],
+        attrs=["Description", "Unit"],
     )
 
     with open(file, "r") as f:
