@@ -263,7 +263,7 @@ class RegionAggregationMapping(BaseModel):
 
     @property
     def common_region_names(self) -> List[str]:
-        # List of the **original** model native region names
+        # List of the common region names
         return [x.name for x in self.common_regions or []]
 
     @property
