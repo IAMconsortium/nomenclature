@@ -41,20 +41,20 @@ SCHEMA_MAPPING = dict([(i, read_validation_schema(i)) for i in SCHEMA_TYPES])
 class CodeList(BaseModel):
     """A class for nomenclature codelists & attributes
 
-    Parameters
+    Attributes
     ----------
     name : str
         Name of the CodeList
-    mapping : dict, list
-        Dictionary or list of Code items
+    mapping : dict
+        Dictionary linking a Code to its name
 
     """
 
     name: str
     mapping: Dict[str, Code] = {}
 
+    # class variable
     validation_schema: ClassVar[str] = "generic"
-
     code_basis: ClassVar[str] = Code
 
     @validator("mapping")
@@ -107,12 +107,14 @@ class CodeList(BaseModel):
 
     @classmethod
     def _parse_tags(
-        cls, code_list: List[Code], path: Path, file_glob_pattern: str = None
+        cls, name: str, code_list: List[Code], path: Path, file_glob_pattern: str = None
     ) -> Dict[str, Code]:
-        """Cast, validate and replace tags into list of codes for one dimension
+        """Replace tags into list of codes for one dimension
 
         Parameters
         ----------
+        name : str
+            Name of the CodeList
         code_list : List[Code]
             List of Code to modify
         path : :class:`pathlib.Path` or path-like
@@ -197,7 +199,7 @@ class CodeList(BaseModel):
             code_list.extend(_code_list)
 
         return cls(
-            name=name, mapping=cls._parse_tags(code_list, path, file_glob_pattern)
+            name=name, mapping=cls._parse_tags(name, code_list, path, file_glob_pattern)
         )
 
     @classmethod
@@ -249,8 +251,10 @@ class CodeList(BaseModel):
 
         # translate to list of nested dicts, replace None by empty field, write to file
         stream = (
-            yaml.dump([{code: attrs} for code, attrs in self.codelist_repr().items()],
-                      sort_keys=False)
+            yaml.dump(
+                [{code: attrs} for code, attrs in self.codelist_repr().items()],
+                sort_keys=False,
+            )
             .replace(": null\n", ":\n")
             .replace(": nan\n", ":\n")
         )
@@ -337,7 +341,9 @@ class CodeList(BaseModel):
         if close:
             excel_writer.close()
 
-    def codelist_repr(self):
+    def codelist_repr(self) -> Dict:
+        """Cast a CodeList into corresponding dictionary"""
+
         nice_dict = {}
         for name, code in self.mapping.items():
             code_dict = code.dict()
@@ -355,17 +361,17 @@ class CodeList(BaseModel):
 class VariableCodeList(CodeList):
     """A subclass of CodeList specified for variables
 
-    Parameters
+    Attributes
     ----------
     name : str
-        Name of the CodeList
-    mapping : dict, list
-        Dictionary or list of Code items
+        Name of the VariableCodeList
+    mapping : dict
+        Dictionary linking a VariableCode to its name
 
     """
 
+    # class variables
     code_basis = VariableCode
-
     validation_schema = "variable"
 
     @validator("mapping")
@@ -380,9 +386,10 @@ class VariableCodeList(CodeList):
         for (name, attrs) in items:
             # ensure that there no pyam-aggregation-kwargs and
             conflict_args = [
-                             i for i, val in attrs.dict().items()
-                             if i in PYAM_AGG_KWARGS and val is not None
-                            ]
+                i
+                for i, val in attrs.dict().items()
+                if i in PYAM_AGG_KWARGS and val is not None
+            ]
             if conflict_args:
                 raise VariableRenameArgError(
                     variable=name,
@@ -435,15 +442,16 @@ class VariableCodeList(CodeList):
 class RegionCodeList(CodeList):
     """A subclass of CodeList specified for regions
 
-    Parameters
+    Attributes
     ----------
     name : str
-        Name of the CodeList
-    mapping : dict, list
-        Dictionary or list of Code items
+        Name of the RegionCodeList
+    mapping : dict
+        Dictionary linking a Code to its name
 
     """
 
+    # class variable
     validation_schema = "region"
 
     @classmethod
@@ -492,5 +500,5 @@ class RegionCodeList(CodeList):
             code_list.extend(_code_list)
 
         return cls(
-            name=name, mapping=cls._parse_tags(code_list, path, file_glob_pattern)
+            name=name, mapping=cls._parse_tags(name, code_list, path, file_glob_pattern)
         )

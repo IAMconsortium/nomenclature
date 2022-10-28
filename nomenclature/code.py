@@ -10,11 +10,18 @@ class Code(BaseModel):
     attributes: Union[
         Dict[
             str,
-            Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None, Dict[
-                str, Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None]
-                ]
-
-            ]
+            Union[
+                StrictStr,
+                StrictInt,
+                StrictFloat,
+                StrictBool,
+                List,
+                None,
+                Dict[
+                    str,
+                    Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None],
+                ],
+            ],
         ],
         List[StrictStr],
     ]
