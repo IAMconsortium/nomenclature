@@ -362,7 +362,7 @@ class VariableCodeList(CodeList):
 
     """
 
-    validation_schema = "variable"
+    validation_schema: ClassVar[str] = "variable"
 
     @validator("mapping")
     def check_variable_region_aggregation_args(cls, v):
@@ -435,7 +435,7 @@ class RegionCodeList(CodeList):
 
     """
 
-    validation_schema = "region"
+    validation_schema: ClassVar[str] = "region"
 
     @classmethod
     def from_directory(cls, name: str, path: Path, file_glob_pattern: str = "**/*"):
