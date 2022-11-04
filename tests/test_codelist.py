@@ -2,7 +2,7 @@ import pytest
 from pydantic import ValidationError
 import pandas as pd
 import pandas.testing as pdt
-from nomenclature.codelist import CodeList, VariableCodeList
+from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
 from nomenclature.error.codelist import DuplicateCodeError
 
 from conftest import TEST_DATA_DIR
@@ -66,7 +66,7 @@ def test_tagged_codelist():
 
 def test_region_codelist():
     """Check replacing top-level hierarchy of yaml file as attribute for regions"""
-    code = CodeList.from_directory("region", TEST_DATA_DIR / "region_codelist")
+    code = RegionCodeList.from_directory("region", TEST_DATA_DIR / "region_codelist")
 
     assert "World" in code
     assert code["World"]["hierarchy"] == "common"
@@ -78,7 +78,7 @@ def test_region_codelist():
 
 def test_norway_as_str():
     """guard against casting of 'NO' to boolean `False` by PyYAML or pydantic"""
-    region = CodeList.from_directory("region", TEST_DATA_DIR / "norway_as_bool")
+    region = RegionCodeList.from_directory("region", TEST_DATA_DIR / "norway_as_bool")
     assert region["Norway"]["eu_member"] is False
     assert region["Norway"]["iso2"] == "NO"
 

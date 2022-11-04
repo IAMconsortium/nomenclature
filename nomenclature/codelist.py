@@ -128,16 +128,18 @@ class CodeList(BaseModel):
         return self.mapping.values()
 
     @classmethod
-    def _parse_dir(cls, name: str, path: Path, file: str = None) -> List[Code]:
-        """Extract codes from a directory with codelist files
+    def _parse_tags(
+        cls, code_list: List[Code], path: Path, file_glob_pattern: str = None
+    ) -> List[Code]:
+        """Cast, validate and replace tags into list of codes for one dimension
 
         Parameters
         ----------
-        name : str
-            Name of the CodeList
+        code_list : List[Code]
+            List of Code to modify
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
-        file : str, optional
+        file_glob_pattern : str, optional
             Pattern to downselect codelist files by name
 
         Returns
@@ -146,65 +148,32 @@ class CodeList(BaseModel):
         :class: `nomenclature.Code`
 
         """
-        code_list, tag_dict = [], CodeList(name="tag")
-        # parse all files in path if file is None
-        file = file or "**/*"
+        tag_dict = CodeList(name="tag")
 
-        if cls == CodeList:  # This will be removed in the next PR
-            if name == "region":
-                cls.validation_schema = "region"
-            else:
-                cls.validation_schema = "generic"
-
-        for yaml_file in (f for f in path.glob(file) if f.suffix in {".yaml", ".yml"}):
+        for yaml_file in (
+            f
+            for f in path.glob(file_glob_pattern)
+            if f.suffix in {".yaml", ".yml"} and f.name.startswith("tag_")
+        ):
             with open(yaml_file, "r", encoding="utf-8") as stream:
                 _code_list = yaml.safe_load(stream)
-            # check if this file contains a dictionary with {tag}-style keys
-            if yaml_file.name.startswith("tag_"):
-                # validate against the tag schema
-                validate(_code_list, SCHEMA_MAPPING["tag"])
 
-                # cast _codes to `Tag`
-                for item in _code_list:
-                    tag = Tag.from_dict(mapping=item)
-                    tag_dict[tag.name] = [Code.from_dict(a) for a in tag.attributes]
+            # validate against the tag schema
+            validate(_code_list, SCHEMA_MAPPING["tag"])
 
-            # if the file does not start with tag, process normally
-            else:
-                # validate the schema of this codelist domain (default `generic`)
-                validate(_code_list, SCHEMA_MAPPING[cls.validation_schema])
-                # a "region" codelist assumes a top-level key to be used as
-                # attribute
-                if name == "region":
-                    _region_code_list = (
-                        []
-                    )  # save refactored list as new (temporary) object
-                    for top_level_cat in _code_list:
-                        for top_key, _codes in top_level_cat.items():
-                            for item in _codes:
-                                item = Code.from_dict(item)
-                                item.set_attribute("hierarchy", top_key)
-                                _region_code_list.append(item)
-                    _code_list = _region_code_list
-                else:
-                    _code_list = [Code.from_dict(_dict) for _dict in _code_list]
-
-                # add `file` attribute to each element and add to main list
-                for item in _code_list:
-                    item.set_attribute(
-                        "file", yaml_file.relative_to(path.parent).as_posix()
-                    )
-                code_list.extend(_code_list)
+            # cast _codes to `Tag`
+            for item in _code_list:
+                tag = Tag.from_dict(mapping=item)
+                tag_dict[tag.name] = [Code.from_dict(a) for a in tag.attributes]
 
         # replace tags by the items of the tag-dictionary
         for tag, tag_attrs in tag_dict.items():
             code_list = replace_tags(code_list, tag, tag_attrs)
 
-        # iterate over the list to guard against silent replacement of duplicates
         return code_list
 
     @classmethod
-    def from_directory(cls, name: str, path: Path, file: str = None):
+    def from_directory(cls, name: str, path: Path, file_glob_pattern: str = "**/*"):
         """Initialize a CodeList from a directory with codelist files
 
         Parameters
@@ -213,7 +182,7 @@ class CodeList(BaseModel):
             Name of the CodeList
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
-        file : str, optional
+        file_glob_pattern : str, optional
             Pattern to downselect codelist files by name
 
         Returns
@@ -221,7 +190,31 @@ class CodeList(BaseModel):
         instance of cls (CodeList if not inherited)
 
         """
-        return cls(name=name, mapping=cls._parse_dir(name, path, file))
+        code_list = []
+
+        for yaml_file in (
+            f
+            for f in path.glob(file_glob_pattern)
+            if f.suffix in {".yaml", ".yml"} and not f.name.startswith("tag_")
+        ):
+            with open(yaml_file, "r", encoding="utf-8") as stream:
+                _code_list = yaml.safe_load(stream)
+
+            # validate the schema of this codelist domain (default `generic`)
+            validate(_code_list, SCHEMA_MAPPING[cls.validation_schema])
+
+            _code_list = [Code.from_dict(_dict) for _dict in _code_list]
+
+            # add `file` attribute to each element and add to main list
+            for item in _code_list:
+                item.set_attribute(
+                    "file", yaml_file.relative_to(path.parent).as_posix()
+                )
+            code_list.extend(_code_list)
+
+        return cls(
+            name=name, mapping=cls._parse_tags(code_list, path, file_glob_pattern)
+        )
 
     @classmethod
     def read_excel(cls, name, source, sheet_name, col, attrs=[]):
@@ -428,3 +421,67 @@ class VariableCodeList(CodeList):
                 ).mapping
 
         return v
+
+
+class RegionCodeList(CodeList):
+    """A subclass of CodeList specified for regions
+
+    Parameters
+    ----------
+    name : str
+        Name of the CodeList
+    mapping : dict, list
+        Dictionary or list of Code items
+
+    """
+
+    validation_schema = "region"
+
+    @classmethod
+    def from_directory(cls, name: str, path: Path, file_glob_pattern: str = "**/*"):
+        """Initialize a RegionCodeList from a directory with codelist files
+
+        Parameters
+        ----------
+        name : str
+            Name of the CodeList
+        path : :class:`pathlib.Path` or path-like
+            Directory with the codelist files
+        file_glob_pattern : str, optional
+            Pattern to downselect codelist files by name
+
+        Returns
+        -------
+        RegionCodeList
+
+        """
+        code_list = []
+
+        for yaml_file in (
+            f
+            for f in path.glob(file_glob_pattern)
+            if f.suffix in {".yaml", ".yml"} and not f.name.startswith("tag_")
+        ):
+            with open(yaml_file, "r", encoding="utf-8") as stream:
+                _code_list = yaml.safe_load(stream)
+
+            # a "region" codelist assumes a top-level key to be used as attribute
+            _region_code_list = []  # save refactored list as new (temporary) object
+            for top_level_cat in _code_list:
+                for top_key, _codes in top_level_cat.items():
+                    for item in _codes:
+                        item = Code.from_dict(item)
+                        item.set_attribute("hierarchy", top_key)
+                        _region_code_list.append(item)
+            _code_list = _region_code_list
+
+            # add `file` attribute to each element and add to main list
+            for item in _code_list:
+                item.set_attribute(
+                    "file", yaml_file.relative_to(path.parent).as_posix()
+                )
+            code_list.extend(_code_list)
+
+        return cls(
+            name=name, mapping=cls._parse_tags(code_list, path, file_glob_pattern)
+        )
