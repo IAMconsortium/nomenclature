@@ -55,7 +55,7 @@ class CodeList(BaseModel):
 
     # class variable
     validation_schema: ClassVar[str] = "generic"
-    code_basis: ClassVar[str] = Code
+    code_basis: ClassVar = Code
 
     @validator("mapping")
     def check_stray_tag(cls, v):
@@ -375,7 +375,7 @@ class VariableCodeList(CodeList):
     """
 
     # class variables
-    code_basis = VariableCode
+    code_basis: ClassVar = VariableCode
     validation_schema: ClassVar[str] = "variable"
 
     @validator("mapping")
