@@ -129,7 +129,7 @@ class CodeList(BaseModel):
 
     @classmethod
     def _parse_tags(
-        cls, code_list: List[Code], path: Path, file_glob_pattern: str = None
+        cls, code_list: List[Code], path: Path, file_glob_pattern: str = "**/*"
     ) -> List[Code]:
         """Cast, validate and replace tags into list of codes for one dimension
 
@@ -140,12 +140,12 @@ class CodeList(BaseModel):
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
         file_glob_pattern : str, optional
-            Pattern to downselect codelist files by name
+            Pattern to downselect codelist files by name, default: "**/*" (i.e. all
+            files in all sub-folders)
 
         Returns
         -------
-        List[Code]
-        :class: `nomenclature.Code`
+        List[Code] :class: `nomenclature.Code`
 
         """
         tag_dict = CodeList(name="tag")
@@ -362,7 +362,7 @@ class VariableCodeList(CodeList):
 
     """
 
-    validation_schema = "variable"
+    validation_schema: ClassVar[str] = "variable"
 
     @validator("mapping")
     def check_variable_region_aggregation_args(cls, v):
@@ -435,7 +435,7 @@ class RegionCodeList(CodeList):
 
     """
 
-    validation_schema = "region"
+    validation_schema: ClassVar[str] = "region"
 
     @classmethod
     def from_directory(cls, name: str, path: Path, file_glob_pattern: str = "**/*"):
@@ -448,7 +448,8 @@ class RegionCodeList(CodeList):
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
         file_glob_pattern : str, optional
-            Pattern to downselect codelist files by name
+            Pattern to downselect codelist files by name, default: "**/*" (i.e. all
+            files in all sub-folders)
 
         Returns
         -------
