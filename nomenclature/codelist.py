@@ -107,25 +107,23 @@ class CodeList(BaseModel):
 
     @classmethod
     def _parse_tags(
-        cls, name: str, code_list: List[Code], path: Path, file_glob_pattern: str = None
-    ) -> Dict[str, Code]:
-        """Replace tags into list of codes for one dimension
+        cls, code_list: List[Code], path: Path, file_glob_pattern: str = "**/*"
+    ) -> List[Code]:
+        """Cast, validate and replace tags into list of codes for one dimension
 
         Parameters
         ----------
-        name : str
-            Name of the CodeList
         code_list : List[Code]
             List of Code to modify
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
         file_glob_pattern : str, optional
-            Pattern to downselect codelist files by name
+            Pattern to downselect codelist files by name, default: "**/*" (i.e. all
+            files in all sub-folders)
 
         Returns
         -------
-        Dict[str, Code]
-        :class: `nomenclature.Code`
+        List[Code] :class: `nomenclature.Code`
 
         """
         tag_dict = CodeList(name="tag")
@@ -149,6 +147,7 @@ class CodeList(BaseModel):
         # replace tags by the items of the tag-dictionary
         for tag, tag_attrs in tag_dict.items():
             code_list = cls.code_basis.replace_tags(code_list, tag, tag_attrs)
+
 
         mapping = {}
         for code in code_list:
@@ -372,7 +371,7 @@ class VariableCodeList(CodeList):
 
     # class variables
     code_basis = VariableCode
-    validation_schema = "variable"
+    validation_schema: ClassVar[str] = "variable"
 
     @validator("mapping")
     def check_variable_region_aggregation_args(cls, v):
@@ -452,7 +451,7 @@ class RegionCodeList(CodeList):
     """
 
     # class variable
-    validation_schema = "region"
+    validation_schema: ClassVar[str] = "region"
 
     @classmethod
     def from_directory(cls, name: str, path: Path, file_glob_pattern: str = "**/*"):
@@ -465,7 +464,8 @@ class RegionCodeList(CodeList):
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
         file_glob_pattern : str, optional
-            Pattern to downselect codelist files by name
+            Pattern to downselect codelist files by name, default: "**/*" (i.e. all
+            files in all sub-folders)
 
         Returns
         -------
