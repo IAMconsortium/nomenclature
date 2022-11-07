@@ -107,12 +107,18 @@ class CodeList(BaseModel):
 
     @classmethod
     def _parse_tags(
-        cls, code_list: List[Code], path: Path, file_glob_pattern: str = "**/*"
+        cls,
+        name: str,
+        code_list: List[Code],
+        path: Path,
+        file_glob_pattern: str = "**/*",
     ) -> List[Code]:
         """Cast, validate and replace tags into list of codes for one dimension
 
         Parameters
         ----------
+        name : str
+            Name of the CodeList
         code_list : List[Code]
             List of Code to modify
         path : :class:`pathlib.Path` or path-like
@@ -147,7 +153,6 @@ class CodeList(BaseModel):
         # replace tags by the items of the tag-dictionary
         for tag, tag_attrs in tag_dict.items():
             code_list = cls.code_basis.replace_tags(code_list, tag, tag_attrs)
-
 
         mapping = {}
         for code in code_list:
