@@ -126,7 +126,7 @@ class CodeList(BaseModel):
         code_list: List[Code],
         path: Path,
         file_glob_pattern: str = "**/*",
-    ) -> list[Code]:
+    ) -> List[Code]:
         """Cast, validate and replace tags into list of codes for one dimension
 
         Parameters
