@@ -28,6 +28,8 @@ def test_codelist_to_yaml():
         "- Some Variable:\n"
         "    description: Some basic variable\n"
         "    unit:\n"
+        "    skip_region_aggregation: false\n"
+        "    check_aggregate: false\n"
         "    bool: true\n"
         "    file: simple_codelist/foo.yaml\n"
     )
@@ -105,7 +107,10 @@ def test_to_csv(sort):
         "Variable", TEST_DATA_DIR / "simple_codelist"
     ).to_csv(sort_by_code=sort, lineterminator="\n")
 
-    exp = "Variable,Description,Unit,Bool\nSome Variable,Some basic variable,,True\n"
+    exp = (
+        "Variable,Description,Unit,Skip_region_aggregation,Check_aggregate,Bool\n"
+        "Some Variable,Some basic variable,,False,False,True\n"
+    )
     assert obs == exp
 
 
