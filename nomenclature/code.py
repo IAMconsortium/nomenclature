@@ -1,5 +1,5 @@
 import re
-from typing import Union, List, Dict, Optional, ClassVar
+from typing import Union, List, Dict, Optional
 from pydantic import BaseModel, StrictStr, StrictInt, StrictFloat, StrictBool
 
 
