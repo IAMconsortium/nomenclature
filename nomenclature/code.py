@@ -1,3 +1,4 @@
+import re
 from typing import Union, List, Dict, Optional, ClassVar
 from pydantic import BaseModel, StrictStr, StrictInt, StrictFloat, StrictBool
 
@@ -34,143 +35,102 @@ class Code(BaseModel):
         if len(mapping) != 1:
             raise ValueError(f"Code is not a single name-attributes mapping: {mapping}")
 
-        attributes = list(mapping.values())[0]
+        # extract the name of the code
+        name = list(mapping.keys())[0]
+        # overwrite the mapping as just the code content
+        mapping = mapping[name]
 
-        description = None
-        for de in ["definition", "description"]:
-            if de in attributes:
-                description = attributes[de]
-                del attributes[de]
+        # check if we have a "definition" attribute and map it to "description"
+        if "definition" in mapping:
+            if "description" not in mapping:
+                mapping["description"] = mapping["definition"]
+                del mapping["definition"]
+            else:
+                raise ValueError(
+                    f"Found both 'definition' and 'description' in {mapping}. "
+                    "Please use 'description'."
+                )
 
+        # k.replace("-", "_") is used convert e.g. "check-aggregate" to
+        # "check_aggregated" since the former is a valid python variable name.
         return cls(
-            name=list(mapping.keys())[0],
-            description=description,
-            attributes=attributes,
+            name=name,
+            **{
+                k.replace("-", "_"): v
+                for k, v in mapping.items()
+                if k.replace("-", "_") in cls.named_attributes()
+            },
+            attributes={
+                k: v
+                for k, v in mapping.items()
+                if k.replace("-", "_") not in cls.named_attributes()
+            },
         )
 
     def set_attribute(self, key, value):
         self.attributes[key] = value
 
     @classmethod
-    def replace_tags(cls, code_list, tag, tag_dict):
-        """Replace tags in `code_list` by `tag_dict`"""
+    def named_attributes(cls) -> List[str]:
+        return [a for a in cls.__dict__["__fields__"].keys() if a != "attributes"]
 
-        _code_list = []
+    @property
+    def contains_tags(self) -> bool:
+        return re.search("{.*}", self.name) is not None
 
-        for code in code_list:
-            if f"{{{tag}}}" in code.name:
-                _code_list.extend(cls._replace_tags(code, tag, tag_dict))
-            else:
-                _code_list.append(code)
+    @property
+    def tags(self):
+        return re.findall("(?<={).*?(?=})", self.name)
 
-        return _code_list
+    def replace_tag(self, tag: str, target):
+        """Return a new instance with tag applied
 
-    @classmethod
-    def _replace_tags(cls, code, tag, target_list):
-        """Utility implementation to replace tags in each item and update attributes"""
+        Parameters
+        ----------
+        tag : str
+            Name of the tag
+        target : _type_
+            Code that is inserted
 
-        _code_list = []
+        Returns
+        -------
+        _type_
+            new instance with occurrences of "{tag}" replaced by target
+        """
 
-        for target in target_list:
-            key = code.name.replace(f"{{{tag}}}", target.name)
-            desc = code.description.replace(f"{{{tag}}}", target.description)
-            attrs = code.attributes.copy()
-            for _key, _value in target.attributes.items():
-                if _key in attrs:
-                    attrs[_key] = attrs[_key].replace(f"{{{tag}}}", _value)
+        mapping = {
+            key: value for key, value in self.dict().items() if key != "attributes"
+        }
+        mapping["name"] = mapping["name"].replace("{" + tag + "}", target.name)
+        mapping["description"] = mapping["description"].replace(
+            "{" + tag + "}", target.description
+        )
+        attributes = self.attributes.copy()
+        for attr, value in target.attributes.items():
+            if attr in attributes:
+                attributes[attr] = attributes[attr].replace("{" + tag + "}", value)
 
-            _code = Code(name=key, description=desc, attributes=attrs)
-            _code_list.append(_code)
+        return self.__class__(**mapping, attributes=attributes)
 
-        return _code_list
+    def __getattr__(self, k):
+        try:
+            return self.attributes[k]
+        except KeyError as ke:
+            raise AttributeError from ke
 
-
-class Tag(Code):
-    """A simple class for a mapping of a "{tag}" to "target codes" and attributes"""
-
-    attributes: List[
-        Dict[str, Union[str, Dict[str, Union[str, int, float, bool, List, None]], None]]
-    ]
+    def __setattr__(self, name, value):
+        if name not in self.__class__.named_attributes():
+            self.attributes[name] = value
+        else:
+            super().__setattr__(name, value)
 
 
 class VariableCode(Code):
 
     unit: Optional[str]
-    weight: Optional[str]
-    region_aggregation: Optional[List[Dict[str, Dict]]]
-    skip_region_aggregation: Optional[bool]
-    method: Optional[str]
-    check_aggregate: Optional[bool]
-    components: Optional[Union[List[str], List[Dict[str, List[str]]]]]
-
-    EXPECTED_ATTR: ClassVar[List] = [
-        "unit",
-        "weight",
-        "region-aggregation",
-        "skip-region-aggregation",
-        "method",
-        "check-aggregate",
-        "components",
-    ]
-
-    @classmethod
-    def from_dict(cls, mapping):
-        inst = Code.from_dict(mapping)
-
-        if "unit" not in inst.attributes:
-            raise ValueError(f"Unit not defined for variable {inst.name}")
-
-        found_attr = {}
-        for code in cls.EXPECTED_ATTR:
-            if code in inst.attributes:
-                found_attr[code] = inst.attributes[code]
-                del inst.attributes[code]
-
-        return cls(
-            name=inst.name,
-            description=inst.description,
-            attributes=inst.attributes,
-            unit=found_attr["unit"],
-            weight=found_attr.get("weight", None),
-            region_aggregation=found_attr.get("region-aggregation", None),
-            skip_region_aggregation=found_attr.get("skip-region-aggregation", None),
-            method=found_attr.get("method", None),
-            check_aggregate=found_attr.get("check-aggregate", None),
-            components=found_attr.get("components", None),
-        )
-
-    @classmethod
-    def _replace_tags(cls, code, tag, target_list):
-        """Utility implementation to replace tags in each item and update attributes"""
-
-        _code_list = []
-
-        for target in target_list:
-            key = code.name.replace(f"{{{tag}}}", target.name)
-            desc = code.description.replace(f"{{{tag}}}", target.description)
-            attrs = code.attributes.copy()
-            for _key, _value in target.attributes.items():
-                if _key in attrs:
-                    attrs[_key] = attrs[_key].replace(f"{{{tag}}}", _value)
-
-            code_dict = code.dict()
-
-            for attr, val in code.dict().items():
-                if attr in target.attributes:
-                    code_dict[attr] = val.replace(f"{{{tag}}}", target.attributes[attr])
-
-            _code = cls(
-                name=key,
-                description=desc,
-                attributes=attrs,
-                unit=code_dict["unit"],
-                weight=code_dict["weight"],
-                region_aggregation=code_dict["region_aggregation"],
-                skip_region_aggregation=code_dict["skip_region_aggregation"],
-                method=code_dict["method"],
-                check_aggregate=code_dict["check_aggregate"],
-                components=code_dict["components"],
-            )
-            _code_list.append(_code)
-
-        return _code_list
+    weight: Optional[str] = None
+    region_aggregation: Optional[List[Dict[str, Dict]]] = None
+    skip_region_aggregation: Optional[bool] = False
+    method: Optional[str] = None
+    check_aggregate: Optional[bool] = False
+    components: Optional[Union[List[str], List[Dict[str, List[str]]]]] = None
