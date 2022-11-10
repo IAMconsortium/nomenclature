@@ -15,7 +15,7 @@ def test_simple_codelist():
 
     assert "Some Variable" in code
     assert code["Some Variable"].unit is None  # this is a dimensionless variable
-    assert type(code["Some Variable"].attributes["bool"]) == bool  # this is a boolean
+    assert type(code["Some Variable"].bool) == bool  # this is a boolean
 
 
 def test_codelist_to_yaml():
@@ -68,18 +68,18 @@ def test_region_codelist():
     code = RegionCodeList.from_directory("region", TEST_DATA_DIR / "region_codelist")
 
     assert "World" in code
-    assert code["World"].attributes["hierarchy"] == "common"
+    assert code["World"].hierarchy == "common"
 
     assert "Some Country" in code
-    assert code["Some Country"].attributes["hierarchy"] == "countries"
-    assert code["Some Country"].attributes["iso2"] == "XY"
+    assert code["Some Country"].hierarchy == "countries"
+    assert code["Some Country"].iso2 == "XY"
 
 
 def test_norway_as_str():
     """guard against casting of 'NO' to boolean `False` by PyYAML or pydantic"""
     region = RegionCodeList.from_directory("region", TEST_DATA_DIR / "norway_as_bool")
-    assert region["Norway"].attributes["eu_member"] is False
-    assert region["Norway"].attributes["iso2"] == "NO"
+    assert region["Norway"].eu_member is False
+    assert region["Norway"].iso2 == "NO"
 
 
 def test_to_excel(tmpdir):
