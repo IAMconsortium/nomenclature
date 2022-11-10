@@ -8,7 +8,7 @@ from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
 
 
-from nomenclature.code import Code, VariableCode, Tag
+from nomenclature.code import Code, VariableCode
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
     MissingWeightError,
@@ -106,19 +106,31 @@ class CodeList(BaseModel):
         return self.mapping.values()
 
     @classmethod
-    def _parse_tags(
+    def replace_tags(
+        cls, code_list: List[Code], tag_name: str, tags: List[Code]
+    ) -> List[Code]:
+
+        _code_list: List[Code] = []
+
+        for code in code_list:
+            if "{" + tag_name + "}" in code.name:
+                _code_list.extend((code.replace_tag(tag_name, tag) for tag in tags))
+            else:
+                _code_list.append(code)
+
+        return _code_list
+
+    @classmethod
+    def _parse_and_replace_tags(
         cls,
-        name: str,
         code_list: List[Code],
         path: Path,
         file_glob_pattern: str = "**/*",
-    ) -> List[Code]:
+    ) -> list[Code]:
         """Cast, validate and replace tags into list of codes for one dimension
 
         Parameters
         ----------
-        name : str
-            Name of the CodeList
         code_list : List[Code]
             List of Code to modify
         path : :class:`pathlib.Path` or path-like
@@ -129,10 +141,10 @@ class CodeList(BaseModel):
 
         Returns
         -------
-        List[Code] :class: `nomenclature.Code`
+        Dict[str, Code] :class: `nomenclature.Code`
 
         """
-        tag_dict = CodeList(name="tag")
+        tag_dict: Dict[str, List[Code]] = {}
 
         for yaml_file in (
             f
@@ -140,27 +152,26 @@ class CodeList(BaseModel):
             if f.suffix in {".yaml", ".yml"} and f.name.startswith("tag_")
         ):
             with open(yaml_file, "r", encoding="utf-8") as stream:
-                _code_list = yaml.safe_load(stream)
+                _tag_list = yaml.safe_load(stream)
 
             # validate against the tag schema
-            validate(_code_list, SCHEMA_MAPPING["tag"])
+            validate(_tag_list, SCHEMA_MAPPING["tag"])
 
-            # cast _codes to `Tag`
-            for item in _code_list:
-                tag = Tag.from_dict(mapping=item)
-                tag_dict[tag.name] = [Code.from_dict(a) for a in tag.attributes]
+            for tag in _tag_list:
+                tag_name = next(iter(tag))
+                if tag_name in tag_dict:
+                    raise DuplicateCodeError(name="tag", code=tag_name)
+                tag_dict[tag_name] = [Code.from_dict(t) for t in tag[tag_name]]
+
+        # start with all non tag codes
+        codes_without_tags = [code for code in code_list if not code.contains_tags]
+        codes_with_tags = [code for code in code_list if code.contains_tags]
 
         # replace tags by the items of the tag-dictionary
-        for tag, tag_attrs in tag_dict.items():
-            code_list = cls.code_basis.replace_tags(code_list, tag, tag_attrs)
+        for tag_name, tags in tag_dict.items():
+            codes_with_tags = cls.replace_tags(codes_with_tags, tag_name, tags)
 
-        mapping = {}
-        for code in code_list:
-            if code.name in mapping:
-                raise DuplicateCodeError(name=name, code=code.name)
-            mapping[code.name] = code
-
-        return mapping
+        return codes_without_tags + codes_with_tags
 
     @classmethod
     def from_directory(cls, name: str, path: Path, file_glob_pattern: str = "**/*"):
@@ -180,7 +191,7 @@ class CodeList(BaseModel):
         instance of cls (CodeList if not inherited)
 
         """
-        code_list = []
+        code_list: List[Code] = []
 
         for yaml_file in (
             f
@@ -193,18 +204,18 @@ class CodeList(BaseModel):
             # validate the schema of this codelist domain (default `generic`)
             validate(_code_list, SCHEMA_MAPPING[cls.validation_schema])
 
-            _code_list = [cls.code_basis.from_dict(_dict) for _dict in _code_list]
-
-            # add `file` attribute to each element and add to main list
-            for item in _code_list:
-                item.set_attribute(
-                    "file", yaml_file.relative_to(path.parent).as_posix()
-                )
-            code_list.extend(_code_list)
-
-        return cls(
-            name=name, mapping=cls._parse_tags(name, code_list, path, file_glob_pattern)
-        )
+            for code_dict in _code_list:
+                code = cls.code_basis.from_dict(code_dict)
+                # add `file` attribute
+                code.file = yaml_file.relative_to(path.parent).as_posix()
+                code_list.append(code)
+        code_list = cls._parse_and_replace_tags(code_list, path, file_glob_pattern)
+        mapping: Dict[str, Code] = {}
+        for code in code_list:
+            if code.name in mapping:
+                raise DuplicateCodeError(name=name, code=code.name)
+            mapping[code.name] = code
+        return cls(name=name, mapping=mapping)
 
     @classmethod
     def read_excel(cls, name, source, sheet_name, col, attrs=[]):
@@ -238,9 +249,10 @@ class CodeList(BaseModel):
         codes = source[[col] + attrs].set_index(col)[attrs]
         codes.rename(columns={c: str(c).lower() for c in codes.columns}, inplace=True)
         codes_di = codes.to_dict(orient="index")
-        mapp = {}
-        for title, values in codes_di.items():
-            mapp[title] = cls.code_basis.from_dict({title: values})
+        mapp = {
+            title: cls.code_basis.from_dict({title: values})
+            for title, values in codes_di.items()
+        }
 
         return cls(name=name, mapping=mapp)
 
@@ -357,7 +369,7 @@ class CodeList(BaseModel):
                     del code_dict[attr]
             code_dict.update(code_dict["attributes"])
             del code_dict["attributes"]
-            nice_dict.update({name: code_dict})
+            nice_dict[name] = code_dict
 
         return nice_dict
 
@@ -382,34 +394,32 @@ class VariableCodeList(CodeList):
     def check_variable_region_aggregation_args(cls, v):
         """Check that any variable "region-aggregation" mappings are valid"""
         items = [
-            (name, attrs)
-            for (name, attrs) in v.items()
-            if attrs.region_aggregation is not None
+            (name, code)
+            for (name, code) in v.items()
+            if code.region_aggregation is not None
         ]
 
-        for (name, attrs) in items:
+        for (name, code) in items:
             # ensure that there no pyam-aggregation-kwargs and
             conflict_args = [
                 i
-                for i, val in attrs.dict().items()
+                for i, val in code.dict().items()
                 if i in PYAM_AGG_KWARGS and val is not None
             ]
             if conflict_args:
                 raise VariableRenameArgError(
                     variable=name,
-                    file=attrs.attributes["file"],
+                    file=code.file,
                     args=conflict_args,
                 )
 
             # ensure that mapped variables are defined in the nomenclature
             invalid = []
-            for inst in attrs.region_aggregation:
-                for var in inst:
-                    if var not in v:
-                        invalid.append(var)
+            for inst in code.region_aggregation:
+                invalid.extend(var for var in inst if var not in v)
             if invalid:
                 raise VariableRenameTargetError(
-                    variable=name, file=attrs.attributes["file"], target=invalid
+                    variable=name, file=code.file, target=invalid
                 )
         return v
 
@@ -417,9 +427,9 @@ class VariableCodeList(CodeList):
     def check_weight_in_vars(cls, v):
         # Check that all variables specified in 'weight' are present in the codelist
         if missing_weights := [
-            (name, attrs.weight, attrs.attributes["file"])
-            for name, attrs in v.items()
-            if attrs.weight is not None and attrs.weight not in v
+            (name, code.weight, code.file)
+            for name, code in v.items()
+            if code.weight is not None and code.weight not in v
         ]:
             raise MissingWeightError(
                 missing_weights="".join(
@@ -433,10 +443,10 @@ class VariableCodeList(CodeList):
     def cast_variable_components_args(cls, v):
         """Cast "components" list of dicts to a codelist"""
         # translate a list of single-key dictionaries to a simple dictionary
-        for name, attrs in v.items():
-            if attrs.components and isinstance(attrs.components[0], dict):
+        for name, code in v.items():
+            if code.components and isinstance(code.components[0], dict):
                 comp = {}
-                for val in attrs.components:
+                for val in code.components:
                     comp.update(val)
                 v[name].components = comp
 
@@ -477,7 +487,7 @@ class RegionCodeList(CodeList):
         RegionCodeList
 
         """
-        code_list = []
+        code_list: List[Code] = []
 
         for yaml_file in (
             f
@@ -488,22 +498,20 @@ class RegionCodeList(CodeList):
                 _code_list = yaml.safe_load(stream)
 
             # a "region" codelist assumes a top-level key to be used as attribute
-            _region_code_list = []  # save refactored list as new (temporary) object
             for top_level_cat in _code_list:
                 for top_key, _codes in top_level_cat.items():
                     for item in _codes:
-                        item = Code.from_dict(item)
-                        item.set_attribute("hierarchy", top_key)
-                        _region_code_list.append(item)
-            _code_list = _region_code_list
+                        code = Code.from_dict(item)
+                        code.hierarchy = top_key
+                        code.file = yaml_file.relative_to(path.parent).as_posix()
+                        code_list.append(code)
 
-            # add `file` attribute to each element and add to main list
-            for item in _code_list:
-                item.set_attribute(
-                    "file", yaml_file.relative_to(path.parent).as_posix()
-                )
-            code_list.extend(_code_list)
+        code_list = cls._parse_and_replace_tags(code_list, path, file_glob_pattern)
 
-        return cls(
-            name=name, mapping=cls._parse_tags(name, code_list, path, file_glob_pattern)
-        )
+        mapping: Dict[str, Code] = {}
+        for code in code_list:
+            if code.name in mapping:
+                raise DuplicateCodeError(name=name, code=code.name)
+            mapping[code.name] = code
+
+        return cls(name=name, mapping=mapping)
