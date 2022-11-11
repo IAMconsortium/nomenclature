@@ -25,12 +25,12 @@ class Code(BaseModel):
             ],
         ],
         List[StrictStr],
-    ]
+    ] = {}
 
     @classmethod
     def from_dict(cls, mapping):
         if isinstance(mapping, str):
-            return cls(name=mapping, attributes={})
+            return cls(name=mapping)
 
         if len(mapping) != 1:
             raise ValueError(f"Code is not a single name-attributes mapping: {mapping}")
