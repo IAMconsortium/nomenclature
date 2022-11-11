@@ -23,7 +23,8 @@ def test_variable_alias_setting():
     )
 
 
-def test_illegal_additional_attribute():
-    match = "i'm not allowed.*'code1'.*not allowed"
+@pytest.mark.parametrize("illegal_key", ["contains-hyphen", "also not allowed", "True"])
+def test_illegal_additional_attribute(illegal_key):
+    match = f"{illegal_key}.*'code1'.*not allowed"
     with pytest.raises(ValueError, match=match):
-        Code(name="code1", attributes={"i'm not allowed": True})
+        Code(name="code1", attributes={illegal_key: True})
