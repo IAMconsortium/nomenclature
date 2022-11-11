@@ -82,12 +82,12 @@ class Code(BaseModel):
         tag : str
             Name of the tag
         target : _type_
-            Code that is inserted
+            Code attributes to be modified by the tag
 
         Returns
         -------
         _type_
-            new instance with occurrences of "{tag}" replaced by target
+            New instance with occurrences of "{tag}" replaced by target
         """
 
         mapping = {
