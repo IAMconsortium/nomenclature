@@ -46,7 +46,7 @@ class CodeList(BaseModel):
     name : str
         Name of the CodeList
     mapping : dict
-        Dictionary linking a Code to its name
+        Dictionary of `Code` objects
 
     """
 
@@ -382,7 +382,7 @@ class VariableCodeList(CodeList):
     name : str
         Name of the VariableCodeList
     mapping : dict
-        Dictionary linking a VariableCode to its name
+        Dictionary of `VariableCode` objects
 
     """
 
@@ -461,7 +461,7 @@ class RegionCodeList(CodeList):
     name : str
         Name of the RegionCodeList
     mapping : dict
-        Dictionary linking a Code to its name
+        Dictionary of `Code` objects
 
     """
 
