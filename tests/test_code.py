@@ -1,6 +1,6 @@
 import pytest
 
-from nomenclature.code import VariableCode
+from nomenclature.code import Code, VariableCode
 
 
 def test_variable_without_unit_raises():
@@ -21,3 +21,9 @@ def test_variable_alias_setting():
         ).skip_region_aggregation
         is True
     )
+
+
+def test_illegal_additional_attribute():
+    match = "i'm not allowed.*'code1'.*not allowed"
+    with pytest.raises(ValueError, match=match):
+        Code(name="code1", attributes={"i'm not allowed": True})
