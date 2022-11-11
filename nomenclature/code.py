@@ -28,7 +28,7 @@ class Code(BaseModel):
     ] = {}
 
     @classmethod
-    def from_dict(cls, mapping):
+    def from_dict(cls, mapping) -> "Code":
         if isinstance(mapping, str):
             return cls(name=mapping)
 
@@ -74,20 +74,20 @@ class Code(BaseModel):
     def tags(self):
         return re.findall("(?<={).*?(?=})", self.name)
 
-    def replace_tag(self, tag: str, target):
+    def replace_tag(self, tag: str, target: "Code") -> "Code":
         """Return a new instance with tag applied
 
         Parameters
         ----------
         tag : str
             Name of the tag
-        target : _type_
+        target : Code
             Code attributes to be modified by the tag
 
         Returns
         -------
-        _type_
-            New instance with occurrences of "{tag}" replaced by target
+        Code
+            New Code instance with occurrences of "{tag}" replaced by target
         """
 
         mapping = {
