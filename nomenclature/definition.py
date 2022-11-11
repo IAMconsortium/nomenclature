@@ -5,7 +5,6 @@ from pathlib import Path
 from pyam import IamDataFrame
 from pyam.index import replace_index_labels
 from pyam.logging import adjust_log_level
-from pyam.utils import write_sheet
 
 from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
 from nomenclature.validation import validate
@@ -92,9 +91,9 @@ class DataStructureDefinition:
 
         with adjust_log_level(level="WARNING"):
             for code in df.variable:
-                attr = self.variable[code]
-                if attr.get("check-aggregate", False):
-                    components = attr.get("components", None)
+                attr = self.variable.mapping[code]
+                if attr.check_aggregate:
+                    components = attr.components
 
                     # check if multiple lists of components are given for a code
                     if isinstance(components, dict):

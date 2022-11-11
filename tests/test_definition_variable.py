@@ -12,11 +12,11 @@ TEST_FOLDER_VARIABLE = TEST_DATA_DIR / "failing_variable_codelist"
     [
         (
             "rename_arg_conflict",
-            ".*attribute 'region-aggregation' and arguments \['weight'\].*",
+            r"attribute 'region-aggregation' and arguments \['weight'\]",
         ),
         (
             "rename_undefined_target",
-            "Region-aggregation-target\(s\) \['Price|Carbon (Max)'\] not defined.*",
+            r"Region-aggregation-target\(s\) \['Price|Carbon (Max)'\] not defined",
         ),
     ],
 )

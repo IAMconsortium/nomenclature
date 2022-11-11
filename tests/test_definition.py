@@ -1,6 +1,7 @@
 import pytest
 import pandas as pd
 from nomenclature import DataStructureDefinition, create_yaml_from_xlsx
+from nomenclature.code import Code
 
 from conftest import TEST_DATA_DIR
 
@@ -19,8 +20,10 @@ def test_definition_with_custom_dimension(simple_definition):
 
     # check that "custom" dimensions are as expected
     file = "scenario/scenarios.yaml"
-    assert obs.scenario["scen_a"] == {"attribute": "value", "file": file}
-    assert obs.scenario["scen_b"] == {"file": file}
+    assert obs.scenario["scen_a"] == Code(
+        name="scen_a", attributes={"attribute": "value", "file": file}
+    )
+    assert obs.scenario["scen_b"] == Code(name="scen_b", attributes={"file": file})
 
 
 def test_nonexisting_path_raises():
@@ -57,7 +60,7 @@ def test_create_yaml_from_xlsx(tmpdir):
         target=file,
         sheet_name="variable_definitions",
         col="Variable",
-        attrs=["Definition", "Unit"],
+        attrs=["Description", "Unit"],
     )
 
     with open(file, "r") as f:

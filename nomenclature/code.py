@@ -1,65 +1,145 @@
-from typing import Union, List, Dict
-from pydantic import BaseModel, StrictStr, StrictInt, StrictFloat, StrictBool
+import re
+from typing import Union, List, Dict, Optional, Set
+from pydantic import BaseModel, StrictStr, StrictInt, StrictFloat, StrictBool, Field
 
 
 class Code(BaseModel):
     """A simple class for a mapping of a "code" to its attributes"""
 
     name: str
+    description: Optional[str]
     attributes: Union[
-        Dict[str, Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None]],
+        Dict[
+            str,
+            Union[
+                StrictStr,
+                StrictInt,
+                StrictFloat,
+                StrictBool,
+                List,
+                None,
+                Dict[
+                    str,
+                    Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None],
+                ],
+            ],
+        ],
         List[StrictStr],
-    ]
+    ] = {}
 
     @classmethod
-    def from_dict(cls, mapping):
+    def from_dict(cls, mapping) -> "Code":
         if isinstance(mapping, str):
-            return cls(name=mapping, attributes={})
+            return cls(name=mapping)
 
         if len(mapping) != 1:
             raise ValueError(f"Code is not a single name-attributes mapping: {mapping}")
 
-        return cls(name=list(mapping.keys())[0], attributes=list(mapping.values())[0])
+        # extract the name of the code
+        name = list(mapping.keys())[0]
+        # overwrite the mapping as just the code content
+        mapping = mapping[name]
+
+        # check if we have a "definition" attribute and map it to "description"
+        if "definition" in mapping:
+            if "description" not in mapping:
+                mapping["description"] = mapping["definition"]
+                del mapping["definition"]
+            else:
+                raise ValueError(
+                    f"Found both 'definition' and 'description' in {mapping}. "
+                    "Please use 'description'."
+                )
+
+        return cls(
+            name=name,
+            **{k: v for k, v in mapping.items() if k in cls.named_attributes()},
+            attributes={
+                k: v for k, v in mapping.items() if k not in cls.named_attributes()
+            },
+        )
 
     def set_attribute(self, key, value):
         self.attributes[key] = value
 
+    @classmethod
+    def named_attributes(cls) -> Set[str]:
+        return {a for a in cls.__dict__["__fields__"].keys() if a != "attributes"}
 
-class Tag(Code):
-    """A simple class for a mapping of a "{tag}" to "target codes" and attributes"""
+    @property
+    def contains_tags(self) -> bool:
+        return re.search("{.*}", self.name) is not None
 
-    attributes: List[
-        Dict[str, Union[str, Dict[str, Union[str, int, float, bool, List, None]], None]]
-    ]
+    @property
+    def tags(self):
+        return re.findall("(?<={).*?(?=})", self.name)
 
+    def replace_tag(self, tag: str, target: "Code") -> "Code":
+        """Return a new instance with tag applied
 
-def replace_tags(code_list, tag, tag_dict):
-    """Replace tags in `code_list` by `tag_dict`"""
+        Parameters
+        ----------
+        tag : str
+            Name of the tag
+        target : Code
+            Code attributes to be modified by the tag
 
-    _code_list = []
+        Returns
+        -------
+        Code
+            New Code instance with occurrences of "{tag}" replaced by target
+        """
 
-    for code in code_list:
-        if f"{{{tag}}}" in code.name:
-            _code_list.extend(_replace_tags(code, tag, tag_dict))
+        mapping = {
+            key: value for key, value in self.dict().items() if key != "attributes"
+        }
+        mapping["name"] = mapping["name"].replace("{" + tag + "}", target.name)
+        mapping["description"] = mapping["description"].replace(
+            "{" + tag + "}", target.description
+        )
+        attributes = self.attributes.copy()
+        for attr, value in target.attributes.items():
+            if attr in attributes:
+                attributes[attr] = attributes[attr].replace("{" + tag + "}", value)
+
+        return self.__class__(**mapping, attributes=attributes)
+
+    def __getattr__(self, k):
+        try:
+            return self.attributes[k]
+        except KeyError as ke:
+            raise AttributeError from ke
+
+    def __setattr__(self, name, value):
+        if name not in self.__class__.named_attributes():
+            self.attributes[name] = value
         else:
-            _code_list.append(code)
-
-    return _code_list
+            super().__setattr__(name, value)
 
 
-def _replace_tags(code, tag, target_list):
-    """Utility implementation to replace tags in each item and update attributes"""
+class VariableCode(Code):
 
-    _code_list = []
+    unit: Optional[str] = Field(...)
+    weight: Optional[str] = None
+    region_aggregation: Optional[List[Dict[str, Dict]]] = Field(
+        None, alias="region-aggregation"
+    )
+    skip_region_aggregation: Optional[bool] = Field(
+        False, alias="skip-region-aggregation"
+    )
+    method: Optional[str] = None
+    check_aggregate: Optional[bool] = Field(False, alias="check-aggregate")
+    components: Optional[Union[List[str], List[Dict[str, List[str]]]]] = None
 
-    for target in target_list:
-        key = code.name.replace(f"{{{tag}}}", target.name)
-        attrs = code.attributes.copy()
-        for _key, _value in target.attributes.items():
-            if _key in attrs:
-                attrs[_key] = attrs[_key].replace(f"{{{tag}}}", _value)
+    class Config:
+        # this allows using both "check_aggregate" and "check-aggregate" for attribute
+        # setting
+        allow_population_by_field_name = True
 
-        _code = Code(name=key, attributes=attrs)
-        _code_list.append(_code)
-
-    return _code_list
+    @classmethod
+    def named_attributes(cls) -> Set[str]:
+        return (
+            super()
+            .named_attributes()
+            .union(f.alias for f in cls.__dict__["__fields__"].values())
+        )

@@ -22,7 +22,7 @@ from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.error_wrappers import ErrorWrapper
 from pydantic.types import DirectoryPath, FilePath
 
-AGG_KWARGS = PYAM_AGG_KWARGS + ["region-aggregation"]
+AGG_KWARGS = PYAM_AGG_KWARGS + ["region_aggregation"]
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ here = Path(__file__).parent.absolute()
 
 
 class NativeRegion(BaseModel):
-    """Defines a model native region.
+    """Define a model native region.
 
     Can optionally have a renaming attribute which is applied in the region processing.
 
@@ -47,7 +47,7 @@ class NativeRegion(BaseModel):
 
     @property
     def target_native_region(self) -> str:
-        """Returns the resulting name, i.e. either rename or, if not given, name.
+        """Return the resulting name, i.e. either rename or, if not given, name.
 
         Returns
         -------
@@ -60,7 +60,7 @@ class NativeRegion(BaseModel):
 class CommonRegion(BaseModel):
     """Common region used for model intercomparison.
 
-    Parameters
+    Attributes
     ----------
     name : str
         Name of the common region.
@@ -87,7 +87,7 @@ class CommonRegion(BaseModel):
 
 
 class RegionAggregationMapping(BaseModel):
-    """Holds information for region processing on a per-model basis.
+    """Hold information for region processing on a per-model basis.
 
     Region processing is comprised of native region selection and potentially renaming
     as well as aggregation to "common regions" (regions used for reporting and
@@ -424,7 +424,7 @@ class RegionProcessor(BaseModel):
                             )
                             # Second, special weighted aggregation
                             for var, kwargs in vars_kwargs.items():
-                                if "region-aggregation" not in kwargs:
+                                if "region_aggregation" not in kwargs:
                                     _df = _aggregate_region(
                                         model_df,
                                         var,
@@ -434,7 +434,7 @@ class RegionProcessor(BaseModel):
                                     if _df is not None and not _df.empty:
                                         _processed_dfs.append(_df)
                                 else:
-                                    for rename_var in kwargs["region-aggregation"]:
+                                    for rename_var in kwargs["region_aggregation"]:
                                         for _rename, _kwargs in rename_var.items():
                                             _df = _aggregate_region(
                                                 model_df,
@@ -474,9 +474,13 @@ class RegionProcessor(BaseModel):
         self, variables, dsd: DataStructureDefinition, keys: Set[str] = AGG_KWARGS
     ) -> Dict[str, Dict]:
         return {
-            var: {key: value for key, value in kwargs.items() if key in keys}
-            for var, kwargs in dsd.variable.items()
-            if var in variables and not kwargs.get("skip-region-aggregation", False)
+            name: {
+                key: value
+                for key, value in code.dict().items()
+                if key in keys and value is not None
+            }
+            for name, code in dsd.variable.items()
+            if name in variables and not code.skip_region_aggregation
         }
 
 
