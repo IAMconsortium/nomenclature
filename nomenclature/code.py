@@ -8,24 +8,7 @@ class Code(BaseModel):
 
     name: str
     description: Optional[str]
-    attributes: Union[
-        Dict[
-            str,
-            Union[
-                StrictStr,
-                StrictInt,
-                StrictFloat,
-                StrictBool,
-                List,
-                None,
-                Dict[
-                    str,
-                    Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None],
-                ],
-            ],
-        ],
-        List[StrictStr],
-    ] = {}
+    attributes: Dict = {}
 
     @classmethod
     def from_dict(cls, mapping) -> "Code":
