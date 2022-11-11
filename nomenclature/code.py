@@ -1,5 +1,5 @@
 import re
-from typing import Union, List, Dict, Optional
+from typing import Union, List, Dict, Optional, Set
 from pydantic import BaseModel, StrictStr, StrictInt, StrictFloat, StrictBool, Field
 
 
@@ -51,19 +51,11 @@ class Code(BaseModel):
                     "Please use 'description'."
                 )
 
-        # k.replace("-", "_") is used convert e.g. "check-aggregate" to
-        # "check_aggregated" since the former is a valid python variable name.
         return cls(
             name=name,
-            **{
-                k.replace("-", "_"): v
-                for k, v in mapping.items()
-                if k.replace("-", "_") in cls.named_attributes()
-            },
+            **{k: v for k, v in mapping.items() if k in cls.named_attributes()},
             attributes={
-                k: v
-                for k, v in mapping.items()
-                if k.replace("-", "_") not in cls.named_attributes()
+                k: v for k, v in mapping.items() if k not in cls.named_attributes()
             },
         )
 
@@ -71,8 +63,8 @@ class Code(BaseModel):
         self.attributes[key] = value
 
     @classmethod
-    def named_attributes(cls) -> List[str]:
-        return [a for a in cls.__dict__["__fields__"].keys() if a != "attributes"]
+    def named_attributes(cls) -> Set[str]:
+        return {a for a in cls.__dict__["__fields__"].keys() if a != "attributes"}
 
     @property
     def contains_tags(self) -> bool:
@@ -129,8 +121,25 @@ class VariableCode(Code):
 
     unit: Optional[str] = Field(...)
     weight: Optional[str] = None
-    region_aggregation: Optional[List[Dict[str, Dict]]] = None
-    skip_region_aggregation: Optional[bool] = False
+    region_aggregation: Optional[List[Dict[str, Dict]]] = Field(
+        None, alias="region-aggregation"
+    )
+    skip_region_aggregation: Optional[bool] = Field(
+        False, alias="skip-region-aggregation"
+    )
     method: Optional[str] = None
-    check_aggregate: Optional[bool] = False
+    check_aggregate: Optional[bool] = Field(False, alias="check-aggregate")
     components: Optional[Union[List[str], List[Dict[str, List[str]]]]] = None
+
+    class Config:
+        # this allows using both "check_aggregate" and "check-aggregate" for attribute
+        # setting
+        allow_population_by_field_name = True
+
+    @classmethod
+    def named_attributes(cls) -> Set[str]:
+        return (
+            super()
+            .named_attributes()
+            .union(f.alias for f in cls.__dict__["__fields__"].values())
+        )
