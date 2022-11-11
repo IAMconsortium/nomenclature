@@ -127,7 +127,7 @@ class Code(BaseModel):
 
 class VariableCode(Code):
 
-    unit: Optional[str]
+    unit: Optional[str] = Field(...)
     weight: Optional[str] = None
     region_aggregation: Optional[List[Dict[str, Dict]]] = None
     skip_region_aggregation: Optional[bool] = False
