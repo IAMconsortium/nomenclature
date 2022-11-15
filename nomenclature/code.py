@@ -93,15 +93,19 @@ class Code(BaseModel):
         mapping = {
             key: value for key, value in self.dict().items() if key != "attributes"
         }
+        # replace name and description
         mapping["name"] = mapping["name"].replace("{" + tag + "}", target.name)
         mapping["description"] = mapping["description"].replace(
             "{" + tag + "}", target.description
         )
+
+        # replace any other attribute
         attributes = self.attributes.copy()
         for attr, value in target.attributes.items():
-            if attr in attributes:
+            if isinstance(attributes.get(attr), str):
                 attributes[attr] = attributes[attr].replace("{" + tag + "}", value)
-
+            elif isinstance(mapping.get(attr), str):
+                mapping[attr] = mapping[attr].replace("{" + tag + "}", value)
         return self.__class__(**mapping, attributes=attributes)
 
     def __getattr__(self, k):
