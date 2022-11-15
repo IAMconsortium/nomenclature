@@ -21,3 +21,9 @@ def test_variable_alias_setting():
         ).skip_region_aggregation
         is True
     )
+
+
+def test_variable_multiple_units():
+    """Test that a VariableCode with multiple units works"""
+    var = VariableCode.from_dict({"Var1": {"unit": ["unit1", "unit2"]}})
+    assert var.unit == ["unit1", "unit2"]
