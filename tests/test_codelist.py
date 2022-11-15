@@ -132,3 +132,11 @@ def test_end_whitespace_fails():
         CodeList.from_directory(
             "scenario", TEST_DATA_DIR / "end_whitespace" / "definitions" / "scenario"
         )
+
+
+def test_variable_codelist_multiple_units():
+    """Check that multiple units work in a VariableCodeList"""
+    codelist = VariableCodeList.from_directory(
+        "variable", TEST_DATA_DIR / "multiple_unit_codelist"
+    )
+    assert codelist["Var1"].unit == ["unit1", "unit2"]
