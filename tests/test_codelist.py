@@ -61,11 +61,15 @@ def test_tagged_codelist():
 
     exp = {
         "Final Energy|Industry|Renewables": {
-            "description": "Final energy consumption of renewables in the industrial sector",
+            "description": (
+                "Final energy consumption of renewables in the industrial sector"
+            ),
             "weight": "Final Energy|Industry",
         },
         "Final Energy|Energy|Renewables": {
-            "description": "Final energy consumption of renewables in the energy sector",
+            "description": (
+                "Final energy consumption of renewables in the energy sector"
+            ),
             "weight": "Final Energy|Energy",
         },
     }
