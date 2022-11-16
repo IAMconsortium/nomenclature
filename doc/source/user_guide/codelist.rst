@@ -51,5 +51,26 @@ to be used as tag. The files defining the tags must be named like ``tag_*.yaml``
          description: a short description of the key
 
 When importing a tagged codelist, any occurrence of ``{Tag}`` in the name of a code will
-be replaced by every element in the Tag dictionary. The ``{Tag}`` will also be replaced
-in any of the code attributes.
+be replaced by the corresponding element in the Tag dictionary. If the tag does not contain an element with ``{Tag}``, the tag name is used.
+
+As an example, the following variable:
+
+.. code:: yaml
+
+    - Variable|{Tag}:
+      description: The description contains {Tag}
+      weight: {Tag}
+
+
+will be translated to:
+
+.. code:: yaml
+
+    - Variable|Some Key:
+      description: The description contains a short description of the key
+      weight: Some Key
+
+Since the tag contains a *description* attribute is it replaced in the variable. 
+
+Additionally, the variable also contains the attribute *weight* which features
+``{Tag}``, which is not in the tag. In this case the tag name *Some Key* is used.
