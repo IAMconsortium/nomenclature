@@ -8,7 +8,7 @@ class Code(BaseModel):
 
     name: str
     description: Optional[str]
-    attributes: Union[
+    extra_attributes: Union[
         Dict[
             str,
             Union[
@@ -54,17 +54,14 @@ class Code(BaseModel):
         return cls(
             name=name,
             **{k: v for k, v in mapping.items() if k in cls.named_attributes()},
-            attributes={
+            extra_attributes={
                 k: v for k, v in mapping.items() if k not in cls.named_attributes()
             },
         )
 
-    def set_attribute(self, key, value):
-        self.attributes[key] = value
-
     @classmethod
     def named_attributes(cls) -> Set[str]:
-        return {a for a in cls.__dict__["__fields__"].keys() if a != "attributes"}
+        return {a for a in cls.__dict__["__fields__"].keys() if a != "extra_attributes"}
 
     @property
     def contains_tags(self) -> bool:
@@ -91,7 +88,9 @@ class Code(BaseModel):
         """
 
         mapping = {
-            key: value for key, value in self.dict().items() if key != "attributes"
+            key: value
+            for key, value in self.dict().items()
+            if key != "extra_attributes"
         }
         # replace name and description
         mapping["name"] = mapping["name"].replace("{" + tag + "}", target.name)
@@ -100,23 +99,25 @@ class Code(BaseModel):
         )
 
         # replace any other attribute
-        attributes = self.attributes.copy()
-        for attr, value in target.attributes.items():
-            if isinstance(attributes.get(attr), str):
-                attributes[attr] = attributes[attr].replace("{" + tag + "}", value)
+        extra_attributes = self.extra_attributes.copy()
+        for attr, value in target.extra_attributes.items():
+            if isinstance(extra_attributes.get(attr), str):
+                extra_attributes[attr] = extra_attributes[attr].replace(
+                    "{" + tag + "}", value
+                )
             elif isinstance(mapping.get(attr), str):
                 mapping[attr] = mapping[attr].replace("{" + tag + "}", value)
-        return self.__class__(**mapping, attributes=attributes)
+        return self.__class__(**mapping, extra_attributes=extra_attributes)
 
     def __getattr__(self, k):
         try:
-            return self.attributes[k]
+            return self.extra_attributes[k]
         except KeyError as ke:
             raise AttributeError from ke
 
     def __setattr__(self, name, value):
         if name not in self.__class__.named_attributes():
-            self.attributes[name] = value
+            self.extra_attributes[name] = value
         else:
             super().__setattr__(name, value)
 
