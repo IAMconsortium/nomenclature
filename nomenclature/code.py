@@ -59,9 +59,6 @@ class Code(BaseModel):
             },
         )
 
-    def set_attribute(self, key, value):
-        self.extra_attributes[key] = value
-
     @classmethod
     def named_attributes(cls) -> Set[str]:
         return {a for a in cls.__dict__["__fields__"].keys() if a != "extra_attributes"}
