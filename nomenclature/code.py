@@ -74,6 +74,13 @@ class Code(BaseModel):
     def tags(self):
         return re.findall("(?<={).*?(?=})", self.name)
 
+    @property
+    def flattened_dict(self):
+        return {
+            **{k: v for k, v in self.dict().items() if k != "attributes"},
+            **self.attributes,
+        }
+
     def replace_tag(self, tag: str, target: "Code") -> "Code":
         """Return a new instance with tag applied
 
