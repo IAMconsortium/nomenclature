@@ -367,8 +367,8 @@ class CodeList(BaseModel):
             for attr, value in code.dict().items():
                 if value is None and attr != "unit":
                     del code_dict[attr]
-            code_dict.update(code_dict["attributes"])
-            del code_dict["attributes"]
+            code_dict.update(code_dict["extra_attributes"])
+            del code_dict["extra_attributes"]
             nice_dict[name] = code_dict
 
         return nice_dict
