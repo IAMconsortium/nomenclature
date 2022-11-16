@@ -59,10 +59,21 @@ def test_tagged_codelist():
         "variable", TEST_DATA_DIR / "tagged_codelist"
     )
 
-    v = "Final Energy|Industry|Renewables"
-    d = "Final energy consumption of renewables in the industrial sector"
-    assert v in code
-    assert code[v].description == d
+    exp = {
+        "Final Energy|Industry|Renewables": {
+            "description": "Final energy consumption of renewables in the industrial sector",
+            "weight": "Final Energy|Industry",
+        },
+        "Final Energy|Energy|Renewables": {
+            "description": "Final energy consumption of renewables in the energy sector",
+            "weight": "Final Energy|Energy",
+        },
+    }
+
+    for code_name, attrs in exp.items():
+        assert code_name in code
+        for attr_name, value in attrs.items():
+            assert getattr(code[code_name], attr_name) == value
 
 
 def test_region_codelist():
