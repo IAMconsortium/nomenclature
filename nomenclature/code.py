@@ -97,23 +97,24 @@ class Code(BaseModel):
             New Code instance with occurrences of "{tag}" replaced by target
         """
 
-        mapping = {
-            key: value for key, value in self.dict().items() if key != "attributes"
-        }
-        # replace name and description
-        mapping["name"] = mapping["name"].replace("{" + tag + "}", target.name)
-        mapping["description"] = mapping["description"].replace(
-            "{" + tag + "}", target.description
-        )
-
-        # replace any other attribute
-        attributes = self.attributes.copy()
-        for attr, value in target.attributes.items():
-            if isinstance(attributes.get(attr), str):
-                attributes[attr] = attributes[attr].replace("{" + tag + "}", value)
-            elif isinstance(mapping.get(attr), str):
-                mapping[attr] = mapping[attr].replace("{" + tag + "}", value)
-        return self.__class__(**mapping, attributes=attributes)
+        mapping = {}
+        for attr, value in self.flattened_dict.items():
+            # if the attribute is a string and contains "{tag}" replace
+            if isinstance(value, str) and "{" + tag + "}" in value:
+                # if the the target has the corresponding attribute replace
+                if attr in target.flattened_dict:
+                    mapping[attr] = value.replace(
+                        "{" + tag + "}", getattr(target, attr)
+                    )
+                # otherwise insert the name
+                else:
+                    mapping[attr] = value.replace("{" + tag + "}", target.name)
+            # otherwise append as is
+            else:
+                mapping[attr] = value
+        name = mapping["name"]
+        del mapping["name"]
+        return self.__class__.from_dict({name: mapping})
 
     def __getattr__(self, k):
         try:
