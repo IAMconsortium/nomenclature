@@ -362,13 +362,11 @@ class CodeList(BaseModel):
 
         nice_dict = {}
         for name, code in self.mapping.items():
-            code_dict = code.dict()
+            code_dict = code.flattened_dict
             del code_dict["name"]
-            for attr, value in code.dict().items():
+            for attr, value in code_dict.items():
                 if value is None and attr != "unit":
                     del code_dict[attr]
-            code_dict.update(code_dict["attributes"])
-            del code_dict["attributes"]
             nice_dict[name] = code_dict
 
         return nice_dict
