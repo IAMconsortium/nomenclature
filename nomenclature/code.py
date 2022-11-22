@@ -12,7 +12,7 @@ class Code(BaseModel):
     description: Optional[str]
     extra_attributes: Dict[str, Any] = {}
 
-    @validator("attributes")
+    @validator("extra_attributes")
     def check_attribute_names(cls, v, values):
         # Check that attributes only contains keys which are valid identifiers
         if illegal_keys := [
