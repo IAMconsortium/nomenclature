@@ -50,7 +50,7 @@ to be used as tag. The files defining the tags must be named like ``tag_*.yaml``
      - Some Key:
          description: a short description of the key
 
-When importing a tagged codelist, code containing ``{Tag}`` in its name of a code will
+When importing a tagged codelist, any code containing ``{Tag}`` in its name will
 be replaced by the name of the corresponding tag. In addition any code attributes
 containing ``{Tag}`` will also be replaced. If the corresponding tag contains the attribute, this will be used for substitution, otherwise the tag name is used.
 
