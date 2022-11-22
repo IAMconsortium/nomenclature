@@ -1,6 +1,7 @@
 import re
-from typing import Union, List, Dict, Optional, Set
-from pydantic import BaseModel, StrictStr, StrictInt, StrictFloat, StrictBool, Field
+from typing import Any, Dict, List, Optional, Set, Union
+
+from pydantic import BaseModel, Field
 
 
 class Code(BaseModel):
@@ -8,24 +9,7 @@ class Code(BaseModel):
 
     name: str
     description: Optional[str]
-    extra_attributes: Union[
-        Dict[
-            str,
-            Union[
-                StrictStr,
-                StrictInt,
-                StrictFloat,
-                StrictBool,
-                List,
-                None,
-                Dict[
-                    str,
-                    Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None],
-                ],
-            ],
-        ],
-        List[StrictStr],
-    ] = {}
+    extra_attributes: Dict[str, Any] = {}
 
     @classmethod
     def from_dict(cls, mapping) -> "Code":
