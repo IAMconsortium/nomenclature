@@ -1,6 +1,7 @@
 import re
-from typing import Union, List, Dict, Optional, Set
-from pydantic import BaseModel, StrictStr, StrictInt, StrictFloat, StrictBool, Field
+from typing import Any, Dict, List, Optional, Set, Union
+
+from pydantic import BaseModel, Field
 
 
 class Code(BaseModel):
@@ -8,24 +9,7 @@ class Code(BaseModel):
 
     name: str
     description: Optional[str]
-    attributes: Union[
-        Dict[
-            str,
-            Union[
-                StrictStr,
-                StrictInt,
-                StrictFloat,
-                StrictBool,
-                List,
-                None,
-                Dict[
-                    str,
-                    Union[StrictStr, StrictInt, StrictFloat, StrictBool, List, None],
-                ],
-            ],
-        ],
-        List[StrictStr],
-    ] = {}
+    extra_attributes: Dict[str, Any] = {}
 
     @classmethod
     def from_dict(cls, mapping) -> "Code":
@@ -54,17 +38,14 @@ class Code(BaseModel):
         return cls(
             name=name,
             **{k: v for k, v in mapping.items() if k in cls.named_attributes()},
-            attributes={
+            extra_attributes={
                 k: v for k, v in mapping.items() if k not in cls.named_attributes()
             },
         )
 
-    def set_attribute(self, key, value):
-        self.attributes[key] = value
-
     @classmethod
     def named_attributes(cls) -> Set[str]:
-        return {a for a in cls.__dict__["__fields__"].keys() if a != "attributes"}
+        return {a for a in cls.__dict__["__fields__"].keys() if a != "extra_attributes"}
 
     @property
     def contains_tags(self) -> bool:
@@ -77,8 +58,8 @@ class Code(BaseModel):
     @property
     def flattened_dict(self):
         return {
-            **{k: v for k, v in self.dict().items() if k != "attributes"},
-            **self.attributes,
+            **{k: v for k, v in self.dict().items() if k != "extra_attributes"},
+            **self.extra_attributes,
         }
 
     def replace_tag(self, tag: str, target: "Code") -> "Code":
@@ -118,13 +99,13 @@ class Code(BaseModel):
 
     def __getattr__(self, k):
         try:
-            return self.attributes[k]
+            return self.extra_attributes[k]
         except KeyError as ke:
             raise AttributeError from ke
 
     def __setattr__(self, name, value):
         if name not in self.__class__.named_attributes():
-            self.attributes[name] = value
+            self.extra_attributes[name] = value
         else:
             super().__setattr__(name, value)
 
