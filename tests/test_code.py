@@ -27,7 +27,7 @@ def test_variable_alias_setting():
 def test_illegal_additional_attribute(illegal_key):
     match = f"{illegal_key}.*'code1'.*not allowed"
     with pytest.raises(ValueError, match=match):
-        Code(name="code1", attributes={illegal_key: True})
+        Code(name="code1", extra_attributes={illegal_key: True})
 
 
 def test_variable_multiple_units():
