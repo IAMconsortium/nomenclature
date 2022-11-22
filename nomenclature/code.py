@@ -68,6 +68,13 @@ class Code(BaseModel):
     def tags(self):
         return re.findall("(?<={).*?(?=})", self.name)
 
+    @property
+    def flattened_dict(self):
+        return {
+            **{k: v for k, v in self.dict().items() if k != "extra_attributes"},
+            **self.extra_attributes,
+        }
+
     def replace_tag(self, tag: str, target: "Code") -> "Code":
         """Return a new instance with tag applied
 
@@ -84,27 +91,24 @@ class Code(BaseModel):
             New Code instance with occurrences of "{tag}" replaced by target
         """
 
-        mapping = {
-            key: value
-            for key, value in self.dict().items()
-            if key != "extra_attributes"
-        }
-        # replace name and description
-        mapping["name"] = mapping["name"].replace("{" + tag + "}", target.name)
-        mapping["description"] = mapping["description"].replace(
-            "{" + tag + "}", target.description
-        )
-
-        # replace any other attribute
-        extra_attributes = self.extra_attributes.copy()
-        for attr, value in target.extra_attributes.items():
-            if isinstance(extra_attributes.get(attr), str):
-                extra_attributes[attr] = extra_attributes[attr].replace(
-                    "{" + tag + "}", value
-                )
-            elif isinstance(mapping.get(attr), str):
-                mapping[attr] = mapping[attr].replace("{" + tag + "}", value)
-        return self.__class__(**mapping, extra_attributes=extra_attributes)
+        mapping = {}
+        for attr, value in self.flattened_dict.items():
+            # if the attribute is a string and contains "{tag}" replace
+            if isinstance(value, str) and "{" + tag + "}" in value:
+                # if the the target has the corresponding attribute replace
+                if attr in target.flattened_dict:
+                    mapping[attr] = value.replace(
+                        "{" + tag + "}", getattr(target, attr)
+                    )
+                # otherwise insert the name
+                else:
+                    mapping[attr] = value.replace("{" + tag + "}", target.name)
+            # otherwise append as is
+            else:
+                mapping[attr] = value
+        name = mapping["name"]
+        del mapping["name"]
+        return self.__class__.from_dict({name: mapping})
 
     def __getattr__(self, k):
         try:
