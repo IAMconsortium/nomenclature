@@ -1,7 +1,8 @@
 import re
+from keyword import iskeyword
 from typing import Any, Dict, List, Optional, Set, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 
 class Code(BaseModel):
@@ -10,6 +11,18 @@ class Code(BaseModel):
     name: str
     description: Optional[str]
     extra_attributes: Dict[str, Any] = {}
+
+    @validator("extra_attributes")
+    def check_attribute_names(cls, v, values):
+        # Check that attributes only contains keys which are valid identifiers
+        if illegal_keys := [
+            key for key in v.keys() if not key.isidentifier() or iskeyword(key)
+        ]:
+            raise ValueError(
+                "Only valid identifiers are allowed as attribute keys. Found "
+                f"'{illegal_keys}' in '{values['name']}' which are not allowed."
+            )
+        return v
 
     @classmethod
     def from_dict(cls, mapping) -> "Code":

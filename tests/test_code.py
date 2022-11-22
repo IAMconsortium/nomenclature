@@ -1,6 +1,6 @@
 import pytest
 
-from nomenclature.code import VariableCode
+from nomenclature.code import Code, VariableCode
 
 
 def test_variable_without_unit_raises():
@@ -21,6 +21,13 @@ def test_variable_alias_setting():
         ).skip_region_aggregation
         is True
     )
+
+
+@pytest.mark.parametrize("illegal_key", ["contains-hyphen", "also not allowed", "True"])
+def test_illegal_additional_attribute(illegal_key):
+    match = f"{illegal_key}.*'code1'.*not allowed"
+    with pytest.raises(ValueError, match=match):
+        Code(name="code1", extra_attributes={illegal_key: True})
 
 
 def test_variable_multiple_units():
