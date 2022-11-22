@@ -3,5 +3,7 @@
       definition: energy
       value_bool: true
       value_number: 2.3
+      weight: Energy
   - Industry:
       definition: industrial
+      weight: Energy
