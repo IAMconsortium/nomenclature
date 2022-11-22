@@ -9,7 +9,7 @@ class Code(BaseModel):
 
     name: str
     description: Optional[str]
-    attributes: Dict[str, Any] = {}
+    extra_attributes: Dict[str, Any] = {}
 
     @classmethod
     def from_dict(cls, mapping) -> "Code":
