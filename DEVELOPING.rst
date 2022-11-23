@@ -19,7 +19,7 @@ Release procedure
    E.g.: https://test.pypi.org/project/nomenclature-iamc/0.5rc1/
 
 4. (Optional) Create a fresh virtual environment, download the release from TestPyPi and
-   check that tests are passing::
+   check that the install of package has worked correctly::
    
    $ pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple nomenclature-iamc==v<release version>rc<N>
 
