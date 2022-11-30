@@ -63,14 +63,24 @@ def test_mapping():
             ".*Name collision in native and common regions.*common_region_1.*",
         ),
         (
-            "illegal_mapping_duplicate_native.yaml",
+            "illegal_mapping_native_duplicate_key.yaml",
             pydantic.ValidationError,
-            ".*Name collision in native regions.*alternative_name_a.*",
+            ".*Name collision in native regions .names.*region_a.*",
         ),
         (
-            "illegal_mapping_duplicate_native_rename.yaml",
+            "illegal_mapping_native_rename_key_conflict.yaml",
             pydantic.ValidationError,
-            ".*Name collision in native regions.*alternative_name_a.*",
+            ".*Name collision in native regions .names.*region_a.*",
+        ),
+        (
+            "illegal_mapping_native_rename_target_conflict_1.yaml",
+            pydantic.ValidationError,
+            ".*Name collision in native regions .rename-target.*alternative_name_a.*",
+        ),
+        (
+            "illegal_mapping_native_rename_target_conflict_2.yaml",
+            pydantic.ValidationError,
+            ".*Name collision in native regions .rename-target.*alternative_name_a.*",
         ),
         (
             "illegal_mapping_duplicate_common.yaml",
@@ -174,7 +184,7 @@ def test_region_processor_wrong_args():
 
 def test_region_processor_multiple_wrong_mappings():
     # Read in the entire region_aggregation directory and return **all** errors
-    msg = "7 validation errors for RegionProcessor"
+    msg = "9 validation errors for RegionProcessor"
 
     with pytest.raises(pydantic.ValidationError, match=msg):
         RegionProcessor.from_directory(TEST_DATA_DIR / "region_aggregation")
