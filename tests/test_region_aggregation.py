@@ -63,12 +63,12 @@ def test_mapping():
             ".*Name collision in native and common regions.*common_region_1.*",
         ),
         (
-            "illegal_mapping_duplicate_native.yaml",
+            "illegal_mapping_native_rename_target_conflict_1.yaml",
             pydantic.ValidationError,
             ".*Name collision in native regions.*alternative_name_a.*",
         ),
         (
-            "illegal_mapping_duplicate_native_rename.yaml",
+            "illegal_mapping_native_rename_target_conflict_2.yaml",
             pydantic.ValidationError,
             ".*Name collision in native regions.*alternative_name_a.*",
         ),
