@@ -116,7 +116,22 @@ class RegionAggregationMapping(BaseModel):
         return pyam.utils.to_list(v)
 
     @validator("native_regions")
-    def validate_native_regions(cls, v, values):
+    def validate_native_regions_name(cls, v, values):
+        native_names = [nr.name for nr in v]
+        duplicates = [
+            item for item, count in Counter(native_names).items() if count > 1
+        ]
+        if duplicates:
+            # Raise a RegionNameCollisionError with parameters duplicates and file.
+            raise RegionNameCollisionError(
+                location="native regions (names)",
+                duplicates=duplicates,
+                file=values["file"],
+            )
+        return v
+
+    @validator("native_regions")
+    def validate_native_regions_target(cls, v, values):
         target_names = [nr.target_native_region for nr in v]
         duplicates = [
             item for item, count in Counter(target_names).items() if count > 1

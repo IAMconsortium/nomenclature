@@ -1,0 +1,5 @@
+# A native region is renamed twice in the native-regions mapping
+model: model_a
+native_regions:
+  - region_a: alternative_name_a
+  - region_a: alternative_name_a_2
