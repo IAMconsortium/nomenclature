@@ -122,10 +122,11 @@ class RegionAggregationMapping(BaseModel):
             item for item, count in Counter(target_names).items() if count > 1
         ]
         if duplicates:
-            # Raise the custom RegionNameCollisionError and give the parameters
-            # duplicates and file.
+            # Raise a RegionNameCollisionError with parameters duplicates and file.
             raise RegionNameCollisionError(
-                location="native regions", duplicates=duplicates, file=values["file"]
+                location="native regions (rename-targets)",
+                duplicates=duplicates,
+                file=values["file"],
             )
         return v
 

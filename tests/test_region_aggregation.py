@@ -65,7 +65,7 @@ def test_mapping():
         (
             "illegal_mapping_native_rename_target_conflict_1.yaml",
             pydantic.ValidationError,
-            ".*Name collision in native regions.*alternative_name_a.*",
+            ".*Name collision in native regions .rename-target.*alternative_name_a.*",
         ),
         (
             "illegal_mapping_native_rename_target_conflict_2.yaml",
