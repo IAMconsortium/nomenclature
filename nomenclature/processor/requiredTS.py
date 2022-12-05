@@ -1,8 +1,8 @@
-from typing import List, Union, Optional
 from pathlib import Path
-from pydantic import BaseModel
+from typing import List, Optional, Union
 
 import yaml
+from pydantic import BaseModel
 
 
 class RequiredTS(BaseModel):
