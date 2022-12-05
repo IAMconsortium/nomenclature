@@ -11,7 +11,7 @@ class RequiredTS(BaseModel):
     region: Optional[Union[str, List[str]]]
     years: Optional[Union[int, List[int]]]
     scenario: Optional[Union[str, List[str]]]
-    required: bool = True
+    optional: bool = False
 
 
 class RequiredTSConfig(BaseModel):
