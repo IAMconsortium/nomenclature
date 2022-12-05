@@ -20,7 +20,7 @@ class RequiredTSConfig(BaseModel):
     required_timeseries: List[RequiredTS]
 
     @classmethod
-    def from_file(cls, file: Union[Path, str]):
+    def from_file(cls, file: Union[Path, str]) -> "RequiredTSConfig":
 
         with open(file, "r") as f:
             content = yaml.safe_load(f)
