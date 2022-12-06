@@ -5,7 +5,7 @@ import yaml
 from pydantic import BaseModel
 
 
-class RequiredTS(BaseModel):
+class RequiredData(BaseModel):
 
     variable: Union[str, List[str]]
     region: Optional[Union[str, List[str]]]
@@ -13,13 +13,13 @@ class RequiredTS(BaseModel):
     optional: bool = False
 
 
-class RequiredTSConfig(BaseModel):
+class RequiredDataConfig(BaseModel):
 
     name: str
-    required_timeseries: List[RequiredTS]
+    required_timeseries: List[RequiredData]
 
     @classmethod
-    def from_file(cls, file: Union[Path, str]) -> "RequiredTSConfig":
+    def from_file(cls, file: Union[Path, str]) -> "RequiredDataConfig":
 
         with open(file, "r") as f:
             content = yaml.safe_load(f)
