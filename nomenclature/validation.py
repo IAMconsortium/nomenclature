@@ -46,7 +46,9 @@ def validate(dsd, df, dimensions):
 
         if invalid_units:
             lst = [
-                f"'{v}' - expected: '{e}', found: '{u}'" for v, u, e in invalid_units
+                f"'{v}' - expected: {'one of ' if isinstance(e, list) else ''}"
+                f"'{e}', found: '{u}'"
+                for v, u, e in invalid_units
             ]
             log_error("variable", lst)
             error = True
