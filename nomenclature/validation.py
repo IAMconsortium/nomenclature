@@ -45,7 +45,9 @@ def validate(dsd, df, dimensions):
             error = True
 
         if invalid_units:
-            lst = [f"{v} - expected: {e}, found: {u}" for v, u, e in invalid_units]
+            lst = [
+                f"'{v}' - expected: '{e}', found: '{u}'" for v, u, e in invalid_units
+            ]
             log_error("variable", lst)
             error = True
 
