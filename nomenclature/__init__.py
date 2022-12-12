@@ -8,10 +8,9 @@ from nomenclature.cli import cli  # noqa
 from nomenclature.codelist import CodeList  # noqa
 from nomenclature.core import process  # noqa
 from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition  # noqa
-from nomenclature.processor import (
-    RegionAggregationMapping,  # noqa
+from nomenclature.processor import (  # noqa
+    RegionAggregationMapping,
     RegionProcessor,
-    RequiredDataProcessor,
 )
 
 # set up logging

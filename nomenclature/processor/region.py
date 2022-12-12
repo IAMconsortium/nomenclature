@@ -7,20 +7,21 @@ import jsonschema
 import pyam
 import pydantic
 import yaml
-from nomenclature.codelist import PYAM_AGG_KWARGS
-from nomenclature.definition import DataStructureDefinition
-from nomenclature.error.region import (
-    ModelMappingCollisionError,
-    RegionNameCollisionError,
-    RegionNotDefinedError,
-    ExcludeRegionOverlapError,
-)
-from nomenclature.processor.utils import get_relative_path
 from pyam import IamDataFrame
 from pyam.logging import adjust_log_level
 from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.error_wrappers import ErrorWrapper
 from pydantic.types import DirectoryPath, FilePath
+
+from nomenclature.codelist import PYAM_AGG_KWARGS
+from nomenclature.definition import DataStructureDefinition
+from nomenclature.error.region import (
+    ExcludeRegionOverlapError,
+    ModelMappingCollisionError,
+    RegionNameCollisionError,
+    RegionNotDefinedError,
+)
+from nomenclature.processor.utils import get_relative_path
 
 AGG_KWARGS = PYAM_AGG_KWARGS + ["region_aggregation"]
 
