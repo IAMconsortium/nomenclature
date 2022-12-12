@@ -1,12 +1,12 @@
-import pandas as pd
 import logging
 from pathlib import Path
 
+import pandas as pd
 from pyam import IamDataFrame
 from pyam.index import replace_index_labels
 from pyam.logging import adjust_log_level
 
-from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
+from nomenclature.codelist import CodeList, RegionCodeList, VariableCodeList
 from nomenclature.validation import validate
 
 logger = logging.getLogger(__name__)
