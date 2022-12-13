@@ -50,7 +50,8 @@ def validate(dsd, df, dimensions):
                 f"'{e}', found: '{u}'"
                 for v, u, e in invalid_units
             ]
-            log_error("variable", lst)
+            msg = "The following items are reported with the wrong unit:"
+            logger.error("\n - ".join([msg] + lst))
             error = True
 
     # validation of all other dimensions
