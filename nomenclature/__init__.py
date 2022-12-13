@@ -1,15 +1,16 @@
 import logging
-from pathlib import Path
-from setuptools_scm import get_version
 from importlib.metadata import version
+from pathlib import Path
 
-from nomenclature.core import process  # noqa
-from nomenclature.codelist import CodeList  # noqa
-from nomenclature.definition import DataStructureDefinition, SPECIAL_CODELIST  # noqa
+from setuptools_scm import get_version
+
 from nomenclature.cli import cli  # noqa
-from nomenclature.processor.region import (  # noqa
-    RegionProcessor,
+from nomenclature.codelist import CodeList  # noqa
+from nomenclature.core import process  # noqa
+from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition  # noqa
+from nomenclature.processor import (  # noqa
     RegionAggregationMapping,
+    RegionProcessor,
 )
 
 # set up logging

@@ -1,9 +1,10 @@
-import click
 import ast
 from pathlib import Path
 from typing import List, Optional
 
-from nomenclature.testing import assert_valid_yaml, assert_valid_structure
+import click
+
+from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 
 cli = click.Group()
 

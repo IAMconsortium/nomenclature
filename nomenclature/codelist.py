@@ -1,12 +1,11 @@
 from pathlib import Path
-from typing import Dict, List, ClassVar
+from typing import ClassVar, Dict, List
 
 import pandas as pd
 import yaml
 from jsonschema import validate
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
-
 
 from nomenclature.code import Code, VariableCode
 from nomenclature.error.codelist import DuplicateCodeError

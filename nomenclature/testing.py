@@ -1,9 +1,11 @@
-import yaml
 import logging
 from pathlib import Path
 from typing import List, Optional
 
-import nomenclature
+import yaml
+
+from nomenclature.definition import DataStructureDefinition
+from nomenclature.processor import RegionProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -87,16 +89,14 @@ def assert_valid_structure(
                 f"`definitions` directory is empty: {path / definitions}"
             )
 
-    definition = nomenclature.DataStructureDefinition(path / definitions, dimensions)
+    definition = DataStructureDefinition(path / definitions, dimensions)
     if mappings is None:
         if (path / "mappings").is_dir():
-            nomenclature.RegionProcessor.from_directory(
-                path / "mappings"
-            ).validate_mappings(definition)
+            RegionProcessor.from_directory(path / "mappings").validate_mappings(
+                definition
+            )
     elif (path / mappings).is_dir():
-        nomenclature.RegionProcessor.from_directory(path / mappings).validate_mappings(
-            definition
-        )
+        RegionProcessor.from_directory(path / mappings).validate_mappings(definition)
     else:
         raise FileNotFoundError(f"Mappings directory not found: {path / mappings}")
 

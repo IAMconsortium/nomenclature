@@ -6,7 +6,7 @@ import pyam
 from pydantic import validate_arguments
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.processor.region import RegionProcessor
+from nomenclature.processor import RegionProcessor
 
 logger = logging.getLogger(__name__)
 
