@@ -21,6 +21,7 @@ from nomenclature.error.region import (
     RegionNameCollisionError,
     RegionNotDefinedError,
 )
+from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 
 AGG_KWARGS = PYAM_AGG_KWARGS + ["region_aggregation"]
@@ -294,7 +295,7 @@ class RegionAggregationMapping(BaseModel):
                 raise RegionNotDefinedError(region=invalid, file=self.file)
 
 
-class RegionProcessor(BaseModel):
+class RegionProcessor(Processor):
     """Region aggregation mappings for scenario processing"""
 
     mappings: Dict[str, RegionAggregationMapping]
@@ -345,7 +346,7 @@ class RegionProcessor(BaseModel):
             raise pydantic.ValidationError(errors, model=RegionProcessor)
         return cls(mappings=mapping_dict)
 
-    def validate_mappings(self, dsd: DataStructureDefinition) -> None:
+    def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         """Check if all mappings are valid and collect all errors."""
         errors = []
         for mapping in self.mappings.values():
