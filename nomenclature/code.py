@@ -142,6 +142,10 @@ class VariableCode(Code):
         # setting
         allow_population_by_field_name = True
 
+    @property
+    def units(self) -> List[Union[str, None]]:
+        return self.unit if isinstance(self.unit, list) else [self.unit]
+
     @classmethod
     def named_attributes(cls) -> Set[str]:
         return (
