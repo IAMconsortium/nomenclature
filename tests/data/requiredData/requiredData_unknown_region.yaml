@@ -1,0 +1,4 @@
+name: Unknown region
+required_data:
+  - variable: Final Energy
+    region: Asia

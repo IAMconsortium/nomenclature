@@ -1,0 +1,5 @@
+name: Raises error with simple_df fixture from conftest
+required_data:
+  - variable: Primary Energy
+    year: [2005, 2010, 2015] # 2015 is missing from simple_df for all models
+    unit: EJ/yr

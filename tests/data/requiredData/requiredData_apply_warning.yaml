@@ -1,0 +1,8 @@
+name: Runs with warnings with simple_df fixture from conftest
+required_data:
+  - variable: Primary Energy
+    year: [2005, 2010]
+    unit: EJ/yr
+optional_data:
+  # this is missing for model_a, scenario_b
+  - variable: Primary Energy|Coal 

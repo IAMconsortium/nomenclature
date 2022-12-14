@@ -1,9 +1,10 @@
 name: MAGICC
-required_timeseries:
+required_data:
   - variable: Emissions|CO2
     region: World
-    years: [2020, 2030, 2040, 2050]
+    year: [2020, 2030, 2040, 2050]
+optional_data:
   - variable: Emissions|CH4
     region: World
-    years: [2020, 2025, 2050, 2075, 2100]
-    optional: True
+    year: [2020, 2025, 2050, 2075, 2100]
+
