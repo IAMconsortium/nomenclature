@@ -21,7 +21,6 @@ from nomenclature.error.region import (
     RegionNameCollisionError,
     RegionNotDefinedError,
 )
-from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 
 AGG_KWARGS = PYAM_AGG_KWARGS + ["region_aggregation"]
@@ -295,7 +294,7 @@ class RegionAggregationMapping(BaseModel):
                 raise RegionNotDefinedError(region=invalid, file=self.file)
 
 
-class RegionProcessor(Processor):
+class RegionProcessor(BaseModel):
     """Region aggregation mappings for scenario processing"""
 
     mappings: Dict[str, RegionAggregationMapping]

@@ -9,7 +9,6 @@ from pydantic import BaseModel, validator
 from pydantic.error_wrappers import ErrorWrapper
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 from nomenclature.error.requiredData import RequiredDataMissingError
 
@@ -78,7 +77,7 @@ class RequiredData(BaseModel):
         return wrong_units
 
 
-class RequiredDataValidator(Processor):
+class RequiredDataValidator(BaseModel):
 
     name: str
     required_data: List[RequiredData]
