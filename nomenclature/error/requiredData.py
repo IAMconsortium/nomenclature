@@ -1,0 +1,2 @@
+class RequiredDataMissingError(ValueError):
+    pass
