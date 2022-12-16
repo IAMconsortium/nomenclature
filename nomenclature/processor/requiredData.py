@@ -31,10 +31,12 @@ class RequiredData(BaseModel):
 
         # check for undefined regions and variables
         for dim in ("region", "variable"):
-            if not_defined_dims := self._undefined_dimension(dim, dsd):
+            values = self.__getattribute__(dim) or []
+            invalid = dsd.__getattribute__(dim).invalid_items(values)
+            if invalid:
                 error_msg += (
                     f"The following {dim}(s) were not found in the "
-                    f"DataStructureDefinition:\n{not_defined_dims}\n"
+                    f"DataStructureDefinition:\n{invalid}\n"
                 )
         # check for defined variables with wrong units
         if wrong_unit_variables := self._wrong_unit_variables(dsd):
@@ -47,21 +49,6 @@ class RequiredData(BaseModel):
 
         if error_msg:
             raise ValueError(error_msg)
-
-    def _undefined_dimension(
-        self, dimension: str, dsd: DataStructureDefinition
-    ) -> List[str]:
-        missing_items: List[str] = []
-        # only check if both the current instance and the DataStructureDefinition
-        # have the dimension in question
-        if getattr(self, dimension) and hasattr(dsd, dimension):
-            missing_items.extend(
-                dim
-                for dim in getattr(self, dimension)
-                if dim not in getattr(dsd, dimension)
-            )
-
-        return missing_items
 
     def _wrong_unit_variables(
         self, dsd: DataStructureDefinition
