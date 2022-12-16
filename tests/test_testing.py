@@ -39,9 +39,9 @@ def test_assert_valid_structure_requiredData_raises():
 
     with pytest.raises(ValueError) as e:
         assert_valid_structure(
-            path=TEST_DATA_DIR / "requiredData",
+            path=TEST_DATA_DIR / "required_data",
             definitions="definition",
-            requireddata="requiredData",
+            required_data="required_data",
         )
     # assert that all issues with requiredData files are reported correctly
     assert all(

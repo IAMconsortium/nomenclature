@@ -2,10 +2,11 @@ import pandas as pd
 import pytest
 from conftest import TEST_DATA_DIR
 
+from pyam import assert_iamframe_equal
 from nomenclature import DataStructureDefinition, RequiredDataValidator
-from nomenclature.error.requireddata import RequiredDataMissingError
+from nomenclature.error.required_data import RequiredDataMissingError
 
-REQUIRED_DATA_TEST_DIR = TEST_DATA_DIR / "requiredData" / "requiredData"
+REQUIRED_DATA_TEST_DIR = TEST_DATA_DIR / "required_data" / "required_data"
 
 
 def test_RequiredDataValidator_from_file():
@@ -32,9 +33,10 @@ def test_RequiredDataValidator_validate_with_definition():
 
     rdv = RequiredDataValidator.from_file(REQUIRED_DATA_TEST_DIR / "requiredData.yaml")
     dsd = DataStructureDefinition(
-        TEST_DATA_DIR / "requiredData" / "definition", dimensions=["region", "variable"]
+        TEST_DATA_DIR / "required_data" / "definition",
+        dimensions=["region", "variable"],
     )
-    assert rdv.validate_with_definition(dsd) is None
+    rdv.validate_with_definition(dsd) is None
 
 
 @pytest.mark.parametrize(
@@ -59,7 +61,8 @@ def test_RequiredDataValidator_validate_with_definition_raises(requiredDataFile,
 
     rdv = RequiredDataValidator.from_file(REQUIRED_DATA_TEST_DIR / requiredDataFile)
     dsd = DataStructureDefinition(
-        TEST_DATA_DIR / "requiredData" / "definition", dimensions=["region", "variable"]
+        TEST_DATA_DIR / "required_data" / "definition",
+        dimensions=["region", "variable"],
     )
 
     with pytest.raises(ValueError, match=match):
@@ -71,7 +74,7 @@ def test_RequiredData_apply(simple_df):
     rdv = RequiredDataValidator.from_file(
         REQUIRED_DATA_TEST_DIR / "requiredData_apply_working.yaml"
     )
-    assert rdv.apply(simple_df) is None
+    assert_iamframe_equal(rdv.apply(simple_df), simple_df)
 
 
 def test_RequiredData_apply_raises(simple_df, caplog):
