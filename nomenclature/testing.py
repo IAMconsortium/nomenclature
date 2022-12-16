@@ -83,19 +83,19 @@ def _check_requiredData(
     path: Path,
     definitions: str = "definitions",
     dimensions: Optional[List[str]] = None,
-    requireddata: Optional[str] = None,
+    required_data: Optional[str] = None,
 ) -> None:
 
     dsd = DataStructureDefinition(path / definitions, dimensions)
-    if requireddata is None:
+    if required_data is None:
         if (path / "requiredData").is_dir():
-            _collect_requiredData_errors(path / "requiredData", dsd)
+            _collect_requiredData_errors(path / "required_data", dsd)
 
-    elif (path / requireddata).is_dir():
-        _collect_requiredData_errors(path / requireddata, dsd)
+    elif (path / required_data).is_dir():
+        _collect_requiredData_errors(path / required_data, dsd)
     else:
         raise FileNotFoundError(
-            f"Directory for required data not found at: {path / requireddata}"
+            f"Directory for required data not found at: {path / required_data}"
         )
 
 
@@ -103,7 +103,7 @@ def assert_valid_structure(
     path: Path,
     definitions: str = "definitions",
     mappings: Optional[str] = None,
-    requireddata: Optional[str] = None,
+    required_data: Optional[str] = None,
     dimensions: Optional[List[str]] = None,
 ) -> None:
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
@@ -116,6 +116,9 @@ def assert_valid_structure(
         Name of the definitions folder, defaults to "definitions"
     mappings : str, optional
         Name of the mappings folder, defaults to "mappings" (if this folder exists)
+    required_data : str, optional
+        Name of the required data folder, defaults to "required_data" (if this folder
+        exists)
     dimensions : List[str], optional
         Dimensions to be checked, defaults to all sub-folders of `definitions`
 
@@ -143,7 +146,7 @@ def assert_valid_structure(
                 f"`definitions` directory is empty: {path / definitions}"
             )
     _check_mappings(path, definitions, dimensions, mappings)
-    _check_requiredData(path, definitions, dimensions, requireddata)
+    _check_requiredData(path, definitions, dimensions, required_data)
 
 
 # Todo: add function which runs `DataStructureDefinition(path).validate(scenario)`
