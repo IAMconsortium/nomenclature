@@ -11,6 +11,7 @@ from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition  #
 from nomenclature.processor import (  # noqa
     RegionAggregationMapping,
     RegionProcessor,
+    RequiredDataValidator,
 )
 
 # set up logging

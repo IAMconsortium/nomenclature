@@ -289,7 +289,8 @@ class RegionAggregationMapping(BaseModel):
 
     def validate_regions(self, dsd: DataStructureDefinition) -> None:
         if hasattr(dsd, "region"):
-            invalid = [c for c in self.all_regions if c not in dsd.region]
+            # invalid = [c for c in self.all_regions if c not in dsd.region]
+            invalid = dsd.region.invalid_items(self.all_regions)
             if invalid:
                 raise RegionNotDefinedError(region=invalid, file=self.file)
 
@@ -345,7 +346,7 @@ class RegionProcessor(BaseModel):
             raise pydantic.ValidationError(errors, model=RegionProcessor)
         return cls(mappings=mapping_dict)
 
-    def validate_mappings(self, dsd: DataStructureDefinition) -> None:
+    def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         """Check if all mappings are valid and collect all errors."""
         errors = []
         for mapping in self.mappings.values():

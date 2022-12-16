@@ -104,6 +104,16 @@ class CodeList(BaseModel):
     def values(self):
         return self.mapping.values()
 
+    def invalid_items(self, items: List[str]) -> List[str]:
+        """Validate that a list of items are valid codes
+
+        Returns
+        -------
+        list
+            Returns the list of items that are not defined in the codelist
+        """
+        return [c for c in items if c not in self.keys()]
+
     @classmethod
     def replace_tags(
         cls, code_list: List[Code], tag_name: str, tags: List[Code]

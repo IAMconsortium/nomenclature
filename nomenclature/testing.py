@@ -2,10 +2,11 @@ import logging
 from pathlib import Path
 from typing import List, Optional
 
+import pydantic
 import yaml
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.processor import RegionProcessor
+from nomenclature.processor import RegionProcessor, RequiredDataValidator
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +47,63 @@ def assert_valid_yaml(path: Path):
         )
 
 
+def _check_mappings(
+    path: Path,
+    definitions: str = "definitions",
+    dimensions: Optional[List[str]] = None,
+    mappings: Optional[str] = None,
+) -> None:
+    dsd = DataStructureDefinition(path / definitions, dimensions)
+    if mappings is None:
+        if (path / "mappings").is_dir():
+            RegionProcessor.from_directory(path / "mappings").validate_with_definition(
+                dsd
+            )
+    elif (path / mappings).is_dir():
+        RegionProcessor.from_directory(path / mappings).validate_with_definition(dsd)
+    else:
+        raise FileNotFoundError(f"Mappings directory not found: {path / mappings}")
+
+
+def _collect_requiredData_errors(
+    requiredDatadir: Path, dsd: DataStructureDefinition
+) -> None:
+    errors: List[str] = []
+    for file in (requiredDatadir).iterdir():
+        try:
+            RequiredDataValidator.from_file(file).validate_with_definition(dsd)
+        except pydantic.ValidationError as pve:
+            errors.append(str(pve))
+    if errors:
+        all_errors = "\n".join(errors)
+        raise ValueError(f"Found error(s) in required data files: {all_errors}")
+
+
+def _check_requiredData(
+    path: Path,
+    definitions: str = "definitions",
+    dimensions: Optional[List[str]] = None,
+    required_data: Optional[str] = None,
+) -> None:
+
+    dsd = DataStructureDefinition(path / definitions, dimensions)
+    if required_data is None:
+        if (path / "requiredData").is_dir():
+            _collect_requiredData_errors(path / "required_data", dsd)
+
+    elif (path / required_data).is_dir():
+        _collect_requiredData_errors(path / required_data, dsd)
+    else:
+        raise FileNotFoundError(
+            f"Directory for required data not found at: {path / required_data}"
+        )
+
+
 def assert_valid_structure(
     path: Path,
     definitions: str = "definitions",
     mappings: Optional[str] = None,
+    required_data: Optional[str] = None,
     dimensions: Optional[List[str]] = None,
 ) -> None:
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
@@ -62,6 +116,9 @@ def assert_valid_structure(
         Name of the definitions folder, defaults to "definitions"
     mappings : str, optional
         Name of the mappings folder, defaults to "mappings" (if this folder exists)
+    required_data : str, optional
+        Name of the required data folder, defaults to "required_data" (if this folder
+        exists)
     dimensions : List[str], optional
         Dimensions to be checked, defaults to all sub-folders of `definitions`
 
@@ -88,17 +145,8 @@ def assert_valid_structure(
             raise FileNotFoundError(
                 f"`definitions` directory is empty: {path / definitions}"
             )
-
-    definition = DataStructureDefinition(path / definitions, dimensions)
-    if mappings is None:
-        if (path / "mappings").is_dir():
-            RegionProcessor.from_directory(path / "mappings").validate_mappings(
-                definition
-            )
-    elif (path / mappings).is_dir():
-        RegionProcessor.from_directory(path / mappings).validate_mappings(definition)
-    else:
-        raise FileNotFoundError(f"Mappings directory not found: {path / mappings}")
+    _check_mappings(path, definitions, dimensions, mappings)
+    _check_requiredData(path, definitions, dimensions, required_data)
 
 
 # Todo: add function which runs `DataStructureDefinition(path).validate(scenario)`

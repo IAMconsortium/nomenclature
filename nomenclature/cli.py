@@ -38,6 +38,12 @@ def cli_valid_yaml(path: Path):
     "--mappings", help="Optional name for mappings folder", type=str, default=None
 )
 @click.option(
+    "--required-data",
+    help="Optional name for required data folder",
+    type=str,
+    default=None,
+)
+@click.option(
     "--dimensions",
     help="Optional list of dimensions",
     cls=PythonLiteralOption,
@@ -47,6 +53,7 @@ def cli_valid_project(
     path: Path,
     definitions: str,
     mappings: Optional[str],
+    required_data: Optional[str],
     dimensions: Optional[List[str]],
 ):
     """Assert that `path` is a valid project nomenclature
@@ -59,6 +66,8 @@ def cli_valid_project(
         Name of the definitions folder, defaults to "definitions"
     mappings : str, optional
         Name of the mappings folder, defaults to "mappings" (if this folder exists)
+    required_data: str, optional
+        Name of the required data folder, default to "required_data" (if folder exists)
     dimensions : List[str], optional
         Dimensions to be checked, defaults to all sub-folders of `definitions`
 
@@ -83,4 +92,4 @@ def cli_valid_project(
 
     """
     assert_valid_yaml(path)
-    assert_valid_structure(path, definitions, mappings, dimensions)
+    assert_valid_structure(path, definitions, mappings, required_data, dimensions)

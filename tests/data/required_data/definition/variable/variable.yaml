@@ -1,0 +1,8 @@
+- Final Energy:
+    unit: EJ/yr
+- Primary Energy:
+    unit: EJ/yr
+- Emissions|CO2:
+    unit: Mt CO2/yr
+- Emissions|CH4:
+    unit: Mt CH4/yr

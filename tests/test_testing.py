@@ -2,7 +2,7 @@ import re
 import pytest
 import logging
 
-from nomenclature.testing import assert_valid_yaml
+from nomenclature.testing import assert_valid_yaml, assert_valid_structure
 from conftest import TEST_DATA_DIR
 
 
@@ -33,3 +33,31 @@ def test_hidden_character():
     match = "scenarios.yaml, line 3, col 12."
     with pytest.raises(AssertionError, match=match):
         assert_valid_yaml(TEST_DATA_DIR / "hidden_character")
+
+
+def test_assert_valid_structure_requiredData_raises():
+
+    with pytest.raises(ValueError) as e:
+        assert_valid_structure(
+            path=TEST_DATA_DIR / "required_data",
+            definitions="definition",
+            required_data="required_data",
+        )
+    # assert that all issues with requiredData files are reported correctly
+    assert all(
+        issue in str(e.value)
+        for issue in (
+            # 1. issue
+            "requiredData_unknown_region.yaml",
+            "region(s) were not found",
+            "Asia",
+            # 2. issue
+            "requiredData_unknown_unit.yaml",
+            "wrong unit",
+            "('Final Energy', 'Mtoe/yr', 'EJ/yr')",
+            # 3. issue
+            "requiredData_unknown_variable.yaml",
+            "variable(s) were not found",
+            "Final Energy|Industry",
+        )
+    )
