@@ -58,7 +58,9 @@ class RequiredData(BaseModel):
             wrong_units.extend(
                 (var, self.unit, getattr(dsd, "variable")[var].unit)
                 for var in getattr(self, "variable")
-                if self.unit and self.unit not in getattr(dsd, "variable")[var].units
+                if var in getattr(dsd, "variable")  # check if the variable exists
+                and self.unit  # check if a unit is specified
+                and self.unit not in getattr(dsd, "variable")[var].units
             )
 
         return wrong_units
