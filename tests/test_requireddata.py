@@ -3,7 +3,7 @@ import pytest
 from conftest import TEST_DATA_DIR
 
 from nomenclature import DataStructureDefinition, RequiredDataValidator
-from nomenclature.error.requiredData import RequiredDataMissingError
+from nomenclature.error.requireddata import RequiredDataMissingError
 
 REQUIRED_DATA_TEST_DIR = TEST_DATA_DIR / "requiredData" / "requiredData"
 
