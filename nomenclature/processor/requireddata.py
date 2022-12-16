@@ -10,7 +10,7 @@ from pydantic.error_wrappers import ErrorWrapper
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor.utils import get_relative_path
-from nomenclature.error.requiredData import RequiredDataMissingError
+from nomenclature.error.requireddata import RequiredDataMissingError
 
 logger = logging.getLogger(__name__)
 
