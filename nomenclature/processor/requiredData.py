@@ -78,7 +78,7 @@ class RequiredDataValidator(BaseModel):
             content = yaml.safe_load(f)
         return cls(file=file, **content)
 
-    def apply(self, df: IamDataFrame) -> IamDataFrame:
+    def apply(self, df: IamDataFrame) -> None:
         error = False
         # check for required data and raise error if missing
         for data in self.required_data:
