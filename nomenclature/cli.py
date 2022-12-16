@@ -66,7 +66,7 @@ def cli_valid_project(
         Name of the definitions folder, defaults to "definitions"
     mappings : str, optional
         Name of the mappings folder, defaults to "mappings" (if this folder exists)
-    requiredData: str, optional
+    requireddata: str, optional
         Name of the required data folder, default to "requiredData" (if folder exists)
     dimensions : List[str], optional
         Dimensions to be checked, defaults to all sub-folders of `definitions`
