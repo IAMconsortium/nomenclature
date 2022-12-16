@@ -104,7 +104,7 @@ class CodeList(BaseModel):
     def values(self):
         return self.mapping.values()
 
-    def invalid_items(self, items: List) -> List[str]:
+    def invalid_items(self, items: List[str]) -> List[str]:
         """Validate that a list of items are valid codes
 
         Returns
