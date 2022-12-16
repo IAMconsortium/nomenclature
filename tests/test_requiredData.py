@@ -1,10 +1,11 @@
 import pandas as pd
 import pytest
 from conftest import TEST_DATA_DIR
-from pyam import assert_iamframe_equal
 
 from nomenclature import DataStructureDefinition, RequiredDataValidator
 from nomenclature.error.requiredData import RequiredDataMissingError
+
+REQUIRED_DATA_TEST_DIR = TEST_DATA_DIR / "requiredData" / "requiredData"
 
 
 def test_RequiredDataValidator_from_file():
@@ -56,9 +57,7 @@ def test_RequiredDataValidator_validate_with_definition_raises(requiredDataFile,
     # 2. Undefined variable
     # 3. Undefined unit
 
-    rdv = RequiredDataValidator.from_file(
-        TEST_DATA_DIR / "requiredData" / requiredDataFile
-    )
+    rdv = RequiredDataValidator.from_file(REQUIRED_DATA_TEST_DIR / requiredDataFile)
     dsd = DataStructureDefinition(
         TEST_DATA_DIR / "requiredData" / "definition", dimensions=["region", "variable"]
     )
@@ -70,15 +69,15 @@ def test_RequiredDataValidator_validate_with_definition_raises(requiredDataFile,
 def test_RequiredData_apply(simple_df):
     # all good no warnings
     rdv = RequiredDataValidator.from_file(
-        TEST_DATA_DIR / "requiredData" / "requiredData_apply_working.yaml"
+        REQUIRED_DATA_TEST_DIR / "requiredData_apply_working.yaml"
     )
-    assert_iamframe_equal(simple_df, rdv.apply(simple_df))
+    assert rdv.apply(simple_df) is None
 
 
 def test_RequiredData_apply_raises(simple_df, caplog):
 
     rdv = RequiredDataValidator.from_file(
-        TEST_DATA_DIR / "requiredData" / "requiredData_apply_error.yaml"
+        REQUIRED_DATA_TEST_DIR / "requiredData_apply_error.yaml"
     )
     # assert that the correct error is raised
     with pytest.raises(RequiredDataMissingError, match="Required data missing"):
