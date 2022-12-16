@@ -289,7 +289,8 @@ class RegionAggregationMapping(BaseModel):
 
     def validate_regions(self, dsd: DataStructureDefinition) -> None:
         if hasattr(dsd, "region"):
-            invalid = [c for c in self.all_regions if c not in dsd.region]
+            # invalid = [c for c in self.all_regions if c not in dsd.region]
+            invalid = dsd.region.invalid_items(self.all_regions)
             if invalid:
                 raise RegionNotDefinedError(region=invalid, file=self.file)
 
