@@ -114,7 +114,6 @@ class CodeList(BaseModel):
         """
         return [c for c in items if c not in self.keys()]
 
-
     @classmethod
     def replace_tags(
         cls, code_list: List[Code], tag_name: str, tags: List[Code]
