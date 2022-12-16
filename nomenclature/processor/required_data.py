@@ -10,7 +10,7 @@ from pydantic.error_wrappers import ErrorWrapper
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor.utils import get_relative_path
-from nomenclature.error.requireddata import RequiredDataMissingError
+from nomenclature.error.required_data import RequiredDataMissingError
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,7 @@ class RequiredDataValidator(BaseModel):
             content = yaml.safe_load(f)
         return cls(file=file, **content)
 
-    def apply(self, df: IamDataFrame) -> None:
+    def apply(self, df: IamDataFrame) -> IamDataFrame:
         error = False
         # check for required data and raise error if missing
         for data in self.required_data:
@@ -92,6 +92,7 @@ class RequiredDataValidator(BaseModel):
             raise RequiredDataMissingError(
                 "Required data missing. Please check the log for details."
             )
+        return df
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
 
