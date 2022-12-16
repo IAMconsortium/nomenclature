@@ -19,29 +19,17 @@ def test_RequiredDataValidator_from_file():
                 "unit": None,
             },
         ],
-        "optional_data": [
-            {
-                "variable": ["Emissions|CH4"],
-                "region": ["World"],
-                "year": [2020, 2025, 2050, 2075, 2100],
-                "unit": None,
-            },
-        ],
-        "file": TEST_DATA_DIR / "requiredData" / "requiredData.yaml",
+        "file": REQUIRED_DATA_TEST_DIR / "requiredData.yaml",
     }
 
-    obs = RequiredDataValidator.from_file(
-        TEST_DATA_DIR / "requiredData" / "requiredData.yaml"
-    )
+    obs = RequiredDataValidator.from_file(REQUIRED_DATA_TEST_DIR / "requiredData.yaml")
 
     assert obs.dict() == exp
 
 
 def test_RequiredDataValidator_validate_with_definition():
 
-    rdv = RequiredDataValidator.from_file(
-        TEST_DATA_DIR / "requiredData" / "requiredData.yaml"
-    )
+    rdv = RequiredDataValidator.from_file(REQUIRED_DATA_TEST_DIR / "requiredData.yaml")
     dsd = DataStructureDefinition(
         TEST_DATA_DIR / "requiredData" / "definition", dimensions=["region", "variable"]
     )
@@ -103,20 +91,4 @@ def test_RequiredData_apply_raises(simple_df, caplog):
     assert all(
         x in caplog.text
         for x in ("ERROR", "Required data", "missing", str(missing_index))
-    )
-
-
-def test_RequiredData_apply_warning(simple_df, caplog):
-    # required_data is there but optional data is missing
-
-    rdv = RequiredDataValidator.from_file(
-        TEST_DATA_DIR / "requiredData" / "requiredData_apply_warning.yaml"
-    )
-    rdv.apply(simple_df)
-
-    missing_index = pd.DataFrame([["model_a", "scen_b"]], columns=["model", "scenario"])
-
-    assert all(
-        x in caplog.text
-        for x in ("WARNING", "Optional data", "missing", str(missing_index))
     )

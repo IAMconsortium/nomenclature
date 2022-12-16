@@ -68,7 +68,6 @@ class RequiredDataValidator(BaseModel):
 
     name: str
     required_data: List[RequiredData]
-    optional_data: Optional[List[RequiredData]]
     file: Path
 
     @classmethod
@@ -92,36 +91,21 @@ class RequiredDataValidator(BaseModel):
                 "Required data missing. Please check the log for details."
             )
 
-        # check for optional data and issue warning if missing
-        if self.optional_data:
-            for data in self.optional_data:
-                if (missing_index := df.require_data(**data.dict())) is not None:
-                    logger.warning(
-                        f"Optional data {data} from file "
-                        f"{get_relative_path(self.file)} missing for:\n{missing_index}"
-                    )
-        return df
-
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
 
         errors = []
-        for field, value in (
-            (field, getattr(self, field))
-            for field in ("required_data", "optional_data")
-            if getattr(self, field) is not None
-        ):
-            for i, data in enumerate(value):
-                try:
-                    data.validate_with_definition(dsd)
-                except ValueError as ve:
-                    errors.append(
-                        ErrorWrapper(
-                            ve,
-                            (
-                                f"In file {get_relative_path(self.file)}\n{field} "
-                                f"entry nr. {i+1}"
-                            ),
-                        )
+        for i, data in enumerate(self.required_data):
+            try:
+                data.validate_with_definition(dsd)
+            except ValueError as ve:
+                errors.append(
+                    ErrorWrapper(
+                        ve,
+                        (
+                            f"In file {get_relative_path(self.file)}\n"
+                            f"entry nr. {i+1}"
+                        ),
                     )
+                )
         if errors:
             raise pydantic.ValidationError(errors, model=self.__class__)
