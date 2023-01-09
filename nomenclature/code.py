@@ -136,6 +136,7 @@ class VariableCode(Code):
     method: Optional[str] = None
     check_aggregate: Optional[bool] = Field(False, alias="check-aggregate")
     components: Optional[Union[List[str], List[Dict[str, List[str]]]]] = None
+    drop_negative_weights: Optional[bool] = None
 
     class Config:
         # this allows using both "check_aggregate" and "check-aggregate" for attribute
