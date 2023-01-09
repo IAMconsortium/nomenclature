@@ -154,3 +154,25 @@ class VariableCode(Code):
             .named_attributes()
             .union(f.alias for f in cls.__dict__["__fields__"].values())
         )
+
+    @property
+    def pyam_agg_kwargs(self) -> Dict[str, Any]:
+        # return a dict of all not None pyam aggregation properties
+        return {
+            field: getattr(self, field)
+            for field in (
+                "components",
+                "method",
+                "weight",
+                "drop_negative_weights",
+            )
+            if getattr(self, field) is not None
+        }
+
+    @property
+    def agg_kwargs(self) -> Dict[str, Any]:
+        return (
+            {**self.pyam_agg_kwargs, **{"region_aggregation": self.region_aggregation}}
+            if self.region_aggregation is not None
+            else self.pyam_agg_kwargs
+        )
