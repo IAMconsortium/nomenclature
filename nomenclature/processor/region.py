@@ -286,10 +286,30 @@ class RegionAggregationMapping(BaseModel):
 
     def validate_regions(self, dsd: DataStructureDefinition) -> None:
         if hasattr(dsd, "region"):
-            # invalid = [c for c in self.all_regions if c not in dsd.region]
-            invalid = dsd.region.validate_items(self.all_regions)
-            if invalid:
+            if invalid := dsd.region.validate_items(self.all_regions):
                 raise RegionNotDefinedError(region=invalid, file=self.file)
+
+    def check_unexpected_regions(self, df: IamDataFrame) -> None:
+        # Raise value error if a region in the input data is not mentioned in the model
+        # mapping
+
+        if regions_not_found := set(df.region) - set(
+            self.model_native_region_names
+            + self.common_region_names
+            + [
+                const_reg
+                for comm_reg in self.common_regions or []
+                for const_reg in comm_reg.constituent_regions
+            ]
+            + (self.exclude_regions or [])
+        ):
+            raise ValueError(
+                f"Did not find region(s) {regions_not_found} in 'native_regions', "
+                "'common_regions' or 'exclude_regions' in model mapping for "
+                f"{self.model} in {self.file}. If they are not meant to be included "
+                "in the results add to the 'exclude_regions' section in the model "
+                "mapping to silence this error."
+            )
 
 
 class RegionProcessor(BaseModel):
