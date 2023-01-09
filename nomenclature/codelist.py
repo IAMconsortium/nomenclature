@@ -15,14 +15,6 @@ from nomenclature.error.variable import (
     VariableRenameTargetError,
 )
 
-# arguments of the method `pyam.IamDataFrame.aggregate_region`
-# required for checking validity of variable-CodeList-attributes
-PYAM_AGG_KWARGS = [
-    "components",
-    "method",
-    "weight",
-    "drop_negative_weights",
-]
 
 here = Path(__file__).parent.absolute()
 

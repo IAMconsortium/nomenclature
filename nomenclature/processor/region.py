@@ -13,7 +13,6 @@ from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.error_wrappers import ErrorWrapper
 from pydantic.types import DirectoryPath, FilePath
 
-from nomenclature.codelist import PYAM_AGG_KWARGS
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error.region import (
     ExcludeRegionOverlapError,
@@ -22,8 +21,6 @@ from nomenclature.error.region import (
     RegionNotDefinedError,
 )
 from nomenclature.processor.utils import get_relative_path
-
-AGG_KWARGS = PYAM_AGG_KWARGS + ["region_aggregation"]
 
 logger = logging.getLogger(__name__)
 
