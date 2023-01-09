@@ -443,14 +443,32 @@ class VariableCodeList(CodeList):
     def cast_variable_components_args(cls, v):
         """Cast "components" list of dicts to a codelist"""
         # translate a list of single-key dictionaries to a simple dictionary
-        for name, code in v.items():
-            if code.components and isinstance(code.components[0], dict):
+        for var in v.values():
+            if var.components and isinstance(var.components[0], dict):
                 comp = {}
-                for val in code.components:
+                for val in var.components:
                     comp.update(val)
-                v[name].components = comp
+                v[var.name].components = comp
 
         return v
+
+    def vars_default_args(self, variables: List[str]) -> List[VariableCode]:
+        # return subset of variables which does not feature any special pyam aggregation
+        # arguments and where skip_region_aggregation is False
+        return [
+            self[var]
+            for var in variables
+            if not self[var].agg_kwargs and not self[var].skip_region_aggregation
+        ]
+
+    def vars_kwargs(self, variables: List[str]) -> List[VariableCode]:
+        # return subset of variables which features special pyam aggregation arguments
+        # and where skip_region_aggregation is False
+        return [
+            self[var]
+            for var in variables
+            if self[var].agg_kwargs and not self[var].skip_region_aggregation
+        ]
 
 
 class RegionCodeList(CodeList):
