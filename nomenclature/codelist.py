@@ -401,43 +401,35 @@ class VariableCodeList(CodeList):
     @validator("mapping")
     def check_variable_region_aggregation_args(cls, v):
         """Check that any variable "region-aggregation" mappings are valid"""
-        items = [
-            (name, code)
-            for (name, code) in v.items()
-            if code.region_aggregation is not None
-        ]
 
-        for (name, code) in items:
-            # ensure that there no pyam-aggregation-kwargs and
-            conflict_args = [
-                i
-                for i, val in code.dict().items()
-                if i in PYAM_AGG_KWARGS and val is not None
-            ]
-            if conflict_args:
-                raise VariableRenameArgError(
-                    variable=name,
-                    file=code.file,
-                    args=conflict_args,
-                )
+        for var in v.values():
+            # ensure that a variable does not have both pyam-aggregation-kwargs and
+            # region-aggregation
+            if var.region_aggregation is not None:
+                if conflict_args := list(var.pyam_agg_kwargs.keys()):
+                    raise VariableRenameArgError(
+                        variable=var.name,
+                        file=var.file,
+                        args=conflict_args,
+                    )
 
-            # ensure that mapped variables are defined in the nomenclature
-            invalid = []
-            for inst in code.region_aggregation:
-                invalid.extend(var for var in inst if var not in v)
-            if invalid:
-                raise VariableRenameTargetError(
-                    variable=name, file=code.file, target=invalid
-                )
+                # ensure that mapped variables are defined in the nomenclature
+                invalid = []
+                for inst in var.region_aggregation:
+                    invalid.extend(var for var in inst if var not in v)
+                if invalid:
+                    raise VariableRenameTargetError(
+                        variable=var.name, file=var.file, target=invalid
+                    )
         return v
 
     @validator("mapping")
     def check_weight_in_vars(cls, v):
         # Check that all variables specified in 'weight' are present in the codelist
         if missing_weights := [
-            (name, code.weight, code.file)
-            for name, code in v.items()
-            if code.weight is not None and code.weight not in v
+            (var.name, var.weight, var.file)
+            for var in v.values()
+            if var.weight is not None and var.weight not in v
         ]:
             raise MissingWeightError(
                 missing_weights="".join(
