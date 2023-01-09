@@ -32,7 +32,7 @@ class RequiredData(BaseModel):
         # check for undefined regions and variables
         for dim in ("region", "variable"):
             values = self.__getattribute__(dim) or []
-            invalid = dsd.__getattribute__(dim).invalid_items(values)
+            invalid = dsd.__getattribute__(dim).validate_items(values)
             if invalid:
                 error_msg += (
                     f"The following {dim}(s) were not found in the "

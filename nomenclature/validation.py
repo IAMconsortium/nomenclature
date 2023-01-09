@@ -56,7 +56,7 @@ def validate(dsd, df, dimensions):
 
     # validation of all other dimensions
     for dim in [d for d in dimensions if d != "variable"]:
-        invalid = dsd.__getattribute__(dim).invalid_items(df.__getattribute__(dim))
+        invalid = dsd.__getattribute__(dim).validate_items(df.__getattribute__(dim))
         if invalid:
             log_error(dim, invalid)
             error = True
