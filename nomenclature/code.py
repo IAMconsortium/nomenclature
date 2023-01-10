@@ -161,9 +161,9 @@ class VariableCode(Code):
         return {
             field: getattr(self, field)
             for field in (
-                "components",
-                "method",
                 "weight",
+                "method",
+                "components",
                 "drop_negative_weights",
             )
             if getattr(self, field) is not None
