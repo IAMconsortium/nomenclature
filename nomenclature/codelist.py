@@ -15,14 +15,6 @@ from nomenclature.error.variable import (
     VariableRenameTargetError,
 )
 
-# arguments of the method `pyam.IamDataFrame.aggregate_region`
-# required for checking validity of variable-CodeList-attributes
-PYAM_AGG_KWARGS = [
-    "components",
-    "method",
-    "weight",
-    "drop_negative_weights",
-]
 
 here = Path(__file__).parent.absolute()
 
@@ -401,43 +393,35 @@ class VariableCodeList(CodeList):
     @validator("mapping")
     def check_variable_region_aggregation_args(cls, v):
         """Check that any variable "region-aggregation" mappings are valid"""
-        items = [
-            (name, code)
-            for (name, code) in v.items()
-            if code.region_aggregation is not None
-        ]
 
-        for (name, code) in items:
-            # ensure that there no pyam-aggregation-kwargs and
-            conflict_args = [
-                i
-                for i, val in code.dict().items()
-                if i in PYAM_AGG_KWARGS and val is not None
-            ]
-            if conflict_args:
-                raise VariableRenameArgError(
-                    variable=name,
-                    file=code.file,
-                    args=conflict_args,
-                )
+        for var in v.values():
+            # ensure that a variable does not have both individual
+            # pyam-aggregation-kwargs and a 'region-aggregation' attribute
+            if var.region_aggregation is not None:
+                if conflict_args := list(var.pyam_agg_kwargs.keys()):
+                    raise VariableRenameArgError(
+                        variable=var.name,
+                        file=var.file,
+                        args=conflict_args,
+                    )
 
-            # ensure that mapped variables are defined in the nomenclature
-            invalid = []
-            for inst in code.region_aggregation:
-                invalid.extend(var for var in inst if var not in v)
-            if invalid:
-                raise VariableRenameTargetError(
-                    variable=name, file=code.file, target=invalid
-                )
+                # ensure that mapped variables are defined in the nomenclature
+                invalid = []
+                for inst in var.region_aggregation:
+                    invalid.extend(var for var in inst if var not in v)
+                if invalid:
+                    raise VariableRenameTargetError(
+                        variable=var.name, file=var.file, target=invalid
+                    )
         return v
 
     @validator("mapping")
     def check_weight_in_vars(cls, v):
-        # Check that all variables specified in 'weight' are present in the codelist
+        """Check that all variables specified in 'weight' are present in the codelist"""
         if missing_weights := [
-            (name, code.weight, code.file)
-            for name, code in v.items()
-            if code.weight is not None and code.weight not in v
+            (var.name, var.weight, var.file)
+            for var in v.values()
+            if var.weight is not None and var.weight not in v
         ]:
             raise MissingWeightError(
                 missing_weights="".join(
@@ -450,15 +434,34 @@ class VariableCodeList(CodeList):
     @validator("mapping")
     def cast_variable_components_args(cls, v):
         """Cast "components" list of dicts to a codelist"""
+
         # translate a list of single-key dictionaries to a simple dictionary
-        for name, code in v.items():
-            if code.components and isinstance(code.components[0], dict):
+        for var in v.values():
+            if var.components and isinstance(var.components[0], dict):
                 comp = {}
-                for val in code.components:
+                for val in var.components:
                     comp.update(val)
-                v[name].components = comp
+                v[var.name].components = comp
 
         return v
+
+    def vars_default_args(self, variables: List[str]) -> List[VariableCode]:
+        """return subset of variables which does not feature any special pyam
+        aggregation arguments and where skip_region_aggregation is False"""
+        return [
+            self[var]
+            for var in variables
+            if not self[var].agg_kwargs and not self[var].skip_region_aggregation
+        ]
+
+    def vars_kwargs(self, variables: List[str]) -> List[VariableCode]:
+        # return subset of variables which features special pyam aggregation arguments
+        # and where skip_region_aggregation is False
+        return [
+            self[var]
+            for var in variables
+            if self[var].agg_kwargs and not self[var].skip_region_aggregation
+        ]
 
 
 class RegionCodeList(CodeList):

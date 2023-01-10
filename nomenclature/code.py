@@ -136,6 +136,7 @@ class VariableCode(Code):
     method: Optional[str] = None
     check_aggregate: Optional[bool] = Field(False, alias="check-aggregate")
     components: Optional[Union[List[str], List[Dict[str, List[str]]]]] = None
+    drop_negative_weights: Optional[bool] = None
 
     class Config:
         # this allows using both "check_aggregate" and "check-aggregate" for attribute
@@ -152,4 +153,26 @@ class VariableCode(Code):
             super()
             .named_attributes()
             .union(f.alias for f in cls.__dict__["__fields__"].values())
+        )
+
+    @property
+    def pyam_agg_kwargs(self) -> Dict[str, Any]:
+        # return a dict of all not None pyam aggregation properties
+        return {
+            field: getattr(self, field)
+            for field in (
+                "weight",
+                "method",
+                "components",
+                "drop_negative_weights",
+            )
+            if getattr(self, field) is not None
+        }
+
+    @property
+    def agg_kwargs(self) -> Dict[str, Any]:
+        return (
+            {**self.pyam_agg_kwargs, **{"region_aggregation": self.region_aggregation}}
+            if self.region_aggregation is not None
+            else self.pyam_agg_kwargs
         )

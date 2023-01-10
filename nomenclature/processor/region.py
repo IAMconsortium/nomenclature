@@ -1,7 +1,7 @@
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional, Union
 
 import jsonschema
 import pyam
@@ -13,7 +13,6 @@ from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.error_wrappers import ErrorWrapper
 from pydantic.types import DirectoryPath, FilePath
 
-from nomenclature.codelist import PYAM_AGG_KWARGS
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error.region import (
     ExcludeRegionOverlapError,
@@ -22,8 +21,6 @@ from nomenclature.error.region import (
     RegionNotDefinedError,
 )
 from nomenclature.processor.utils import get_relative_path
-
-AGG_KWARGS = PYAM_AGG_KWARGS + ["region_aggregation"]
 
 logger = logging.getLogger(__name__)
 
@@ -289,10 +286,29 @@ class RegionAggregationMapping(BaseModel):
 
     def validate_regions(self, dsd: DataStructureDefinition) -> None:
         if hasattr(dsd, "region"):
-            # invalid = [c for c in self.all_regions if c not in dsd.region]
-            invalid = dsd.region.validate_items(self.all_regions)
-            if invalid:
+            if invalid := dsd.region.validate_items(self.all_regions):
                 raise RegionNotDefinedError(region=invalid, file=self.file)
+
+    def check_unexpected_regions(self, df: IamDataFrame) -> None:
+        # Raise error if a region in the input data is not used in the model mapping
+
+        if regions_not_found := set(df.region) - set(
+            self.model_native_region_names
+            + self.common_region_names
+            + [
+                const_reg
+                for comm_reg in self.common_regions or []
+                for const_reg in comm_reg.constituent_regions
+            ]
+            + (self.exclude_regions or [])
+        ):
+            raise ValueError(
+                f"Did not find region(s) {regions_not_found} in 'native_regions', "
+                "'common_regions' or 'exclude_regions' in model mapping for "
+                f"{self.model} in {self.file}. If they are not meant to be included "
+                "in the results add to the 'exclude_regions' section in the model "
+                "mapping to silence this error."
+            )
 
 
 class RegionProcessor(BaseModel):
@@ -397,7 +413,7 @@ class RegionProcessor(BaseModel):
                     f"{self.mappings[model].file}"
                 )
                 # Check for regions not mentioned in the model mapping
-                _check_unexpected_regions(model_df, self.mappings[model])
+                self.mappings[model].check_unexpected_regions(model_df)
                 _processed_dfs = []
 
                 # Silence pyam's empty filter warnings
@@ -414,16 +430,7 @@ class RegionProcessor(BaseModel):
 
                     # Aggregate
                     if self.mappings[model].common_regions is not None:
-                        vars = self._filter_dict_args(model_df.variable, dsd)
-                        vars_default_args = [
-                            var for var, kwargs in vars.items() if not kwargs
-                        ]
-                        # TODO skip if required weight does not exist
-                        vars_kwargs = {
-                            var: kwargs
-                            for var, kwargs in vars.items()
-                            if var not in vars_default_args
-                        }
+
                         for cr in self.mappings[model].common_regions:
                             # If the common region is only comprised of a single model
                             # native region, just rename
@@ -434,35 +441,48 @@ class RegionProcessor(BaseModel):
                                     ).rename(region=cr.rename_dict)
                                 )
                                 continue
+
                             # if there are multiple constituent regions, aggregate
                             regions = [cr.name, cr.constituent_regions]
+
                             # First, perform 'simple' aggregation (no arguments)
                             _processed_dfs.append(
-                                model_df.aggregate_region(vars_default_args, *regions)
+                                model_df.aggregate_region(
+                                    [
+                                        var.name
+                                        for var in dsd.variable.vars_default_args(
+                                            df.variable
+                                        )
+                                    ],
+                                    *regions,
+                                )
                             )
+
                             # Second, special weighted aggregation
-                            for var, kwargs in vars_kwargs.items():
-                                if "region_aggregation" not in kwargs:
+                            for var in dsd.variable.vars_kwargs(df.variable):
+                                if var.region_aggregation is None:
                                     _df = _aggregate_region(
                                         model_df,
-                                        var,
+                                        var.name,
                                         *regions,
-                                        **kwargs,
+                                        **var.pyam_agg_kwargs,
                                     )
                                     if _df is not None and not _df.empty:
                                         _processed_dfs.append(_df)
                                 else:
-                                    for rename_var in kwargs["region_aggregation"]:
+                                    for rename_var in var.region_aggregation:
                                         for _rename, _kwargs in rename_var.items():
                                             _df = _aggregate_region(
                                                 model_df,
-                                                var,
+                                                var.name,
                                                 *regions,
                                                 **_kwargs,
                                             )
                                             if _df is not None and not _df.empty:
                                                 _processed_dfs.append(
-                                                    _df.rename(variable={var: _rename})
+                                                    _df.rename(
+                                                        variable={var.name: _rename}
+                                                    )
                                                 )
 
                     common_region_df = model_df.filter(
@@ -487,19 +507,6 @@ class RegionProcessor(BaseModel):
             )
 
         return pyam.concat(processed_dfs)
-
-    def _filter_dict_args(
-        self, variables, dsd: DataStructureDefinition, keys: Set[str] = AGG_KWARGS
-    ) -> Dict[str, Dict]:
-        return {
-            name: {
-                key: value
-                for key, value in code.dict().items()
-                if key in keys and value is not None
-            }
-            for name, code in dsd.variable.items()
-            if name in variables and not code.skip_region_aggregation
-        }
 
 
 def _aggregate_region(df, var, *regions, **kwargs):
@@ -549,28 +556,3 @@ def _check_exclude_region_overlap(values: Dict, region_type: str) -> Dict:
             region=overlap, region_type=region_type, file=values["file"]
         )
     return values
-
-
-def _check_unexpected_regions(
-    df: IamDataFrame, mapping: RegionAggregationMapping
-) -> None:
-    # Raise value error if a region in the input data is not mentioned in the model
-    # mapping
-
-    if regions_not_found := set(df.region) - set(
-        mapping.model_native_region_names
-        + mapping.common_region_names
-        + [
-            const_reg
-            for comm_reg in mapping.common_regions or []
-            for const_reg in comm_reg.constituent_regions
-        ]
-        + (mapping.exclude_regions or [])
-    ):
-        raise ValueError(
-            f"Did not find region(s) {regions_not_found} in 'native_regions', "
-            "'common_regions' or 'exclude_regions' in model mapping for "
-            f"{mapping.model} in {mapping.file}. If they are not meant to be included "
-            "in the results add to the 'exclude_regions' section in the model mapping "
-            "to silence this error."
-        )
