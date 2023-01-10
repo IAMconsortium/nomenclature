@@ -417,7 +417,7 @@ class VariableCodeList(CodeList):
 
     @validator("mapping")
     def check_weight_in_vars(cls, v):
-        # Check that all variables specified in 'weight' are present in the codelist
+        """Check that all variables specified in 'weight' are present in the codelist"""
         if missing_weights := [
             (var.name, var.weight, var.file)
             for var in v.values()
@@ -434,6 +434,7 @@ class VariableCodeList(CodeList):
     @validator("mapping")
     def cast_variable_components_args(cls, v):
         """Cast "components" list of dicts to a codelist"""
+
         # translate a list of single-key dictionaries to a simple dictionary
         for var in v.values():
             if var.components and isinstance(var.components[0], dict):
@@ -445,8 +446,8 @@ class VariableCodeList(CodeList):
         return v
 
     def vars_default_args(self, variables: List[str]) -> List[VariableCode]:
-        # return subset of variables which does not feature any special pyam aggregation
-        # arguments and where skip_region_aggregation is False
+        """return subset of variables which does not feature any special pyam
+        aggregation arguments and where skip_region_aggregation is False"""
         return [
             self[var]
             for var in variables
