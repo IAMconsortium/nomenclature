@@ -290,8 +290,7 @@ class RegionAggregationMapping(BaseModel):
                 raise RegionNotDefinedError(region=invalid, file=self.file)
 
     def check_unexpected_regions(self, df: IamDataFrame) -> None:
-        # Raise value error if a region in the input data is not mentioned in the model
-        # mapping
+        # Raise error if a region in the input data is not used in the model mapping
 
         if regions_not_found := set(df.region) - set(
             self.model_native_region_names
