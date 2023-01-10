@@ -395,8 +395,8 @@ class VariableCodeList(CodeList):
         """Check that any variable "region-aggregation" mappings are valid"""
 
         for var in v.values():
-            # ensure that a variable does not have both individual pyam-aggregation-kwargs
-            # and a 'region-aggregation' attribute
+            # ensure that a variable does not have both individual
+            # pyam-aggregation-kwargs and a 'region-aggregation' attribute
             if var.region_aggregation is not None:
                 if conflict_args := list(var.pyam_agg_kwargs.keys()):
                     raise VariableRenameArgError(
