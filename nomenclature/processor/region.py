@@ -285,10 +285,9 @@ class RegionAggregationMapping(BaseModel):
     def rename_mapping(self) -> Dict[str, str]:
         return {r.name: r.target_native_region for r in self.native_regions or []}
 
-    def validate_regions(self, dsd: DataStructureDefinition) -> None:
-        if hasattr(dsd, "region"):
-            if invalid := dsd.region.validate_items(self.all_regions):
-                raise RegionNotDefinedError(region=invalid, file=self.file)
+    def validate_regions(self, region_codelist: RegionCodeList) -> None:
+        if invalid := region_codelist.validate_items(self.all_regions):
+            raise RegionNotDefinedError(region=invalid, file=self.file)
 
     def check_unexpected_regions(self, df: IamDataFrame) -> None:
         # Raise error if a region in the input data is not used in the model mapping
