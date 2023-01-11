@@ -417,7 +417,7 @@ class RegionProcessor(BaseModel):
             # Otherwise we first rename, then aggregate
             else:
                 # before aggregating, check that all regions are valid
-                self.mappings[model].validate_regions(dsd)
+                self.mappings[model].validate_regions(self.region_codelist)
                 logger.info(
                     f"Applying region-processing for model {model} from file "
                     f"{self.mappings[model].file}"
@@ -456,20 +456,21 @@ class RegionProcessor(BaseModel):
                             regions = [cr.name, cr.constituent_regions]
 
                             # First, perform 'simple' aggregation (no arguments)
+                            simple_vars = [
+                                var.name
+                                for var in self.variable_codelist.vars_default_args(
+                                    df.variable
+                                )
+                            ]
                             _processed_dfs.append(
                                 model_df.aggregate_region(
-                                    [
-                                        var.name
-                                        for var in dsd.variable.vars_default_args(
-                                            df.variable
-                                        )
-                                    ],
+                                    simple_vars,
                                     *regions,
                                 )
                             )
 
                             # Second, special weighted aggregation
-                            for var in dsd.variable.vars_kwargs(df.variable):
+                            for var in self.variable_codelist.vars_kwargs(df.variable):
                                 if var.region_aggregation is None:
                                     _df = _aggregate_region(
                                         model_df,
@@ -497,7 +498,7 @@ class RegionProcessor(BaseModel):
 
                     common_region_df = model_df.filter(
                         region=self.mappings[model].common_region_names,
-                        variable=dsd.variable,
+                        variable=self.variable_codelist,
                     )
 
                     # concatenate and merge with data provided at common-region level
