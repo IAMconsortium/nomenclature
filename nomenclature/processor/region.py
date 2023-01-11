@@ -13,6 +13,7 @@ from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.error_wrappers import ErrorWrapper
 from pydantic.types import DirectoryPath, FilePath
 
+from nomenclature.codelist import RegionCodeList, VariableCodeList
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error.region import (
     ExcludeRegionOverlapError,
@@ -314,17 +315,22 @@ class RegionAggregationMapping(BaseModel):
 class RegionProcessor(BaseModel):
     """Region aggregation mappings for scenario processing"""
 
+    region_codelist: RegionCodeList
+    variable_codelist: VariableCodeList
     mappings: Dict[str, RegionAggregationMapping]
 
     @classmethod
-    @validate_arguments
-    def from_directory(cls, path: DirectoryPath):
+    @validate_arguments(config={"arbitrary_types_allowed": True})
+    def from_directory(cls, path: DirectoryPath, dsd: DataStructureDefinition):
         """Initialize a RegionProcessor from a directory of model-aggregation mappings.
 
         Parameters
         ----------
         path : DirectoryPath
             Directory which holds all the mappings.
+        dsd : DataStructureDefinition
+            Instance of DataStructureDefinition used for validation of mappings and
+            region aggregation.
 
         Returns
         -------
