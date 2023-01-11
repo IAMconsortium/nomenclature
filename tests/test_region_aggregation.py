@@ -108,9 +108,9 @@ def test_illegal_mappings(file, error_type, error_msg_pattern):
         (TEST_DATA_DIR / "regionprocessor_working").relative_to(Path.cwd()),
     ],
 )
-def test_region_processor_working(region_processor_path):
+def test_region_processor_working(region_processor_path, simple_definition):
 
-    obs = RegionProcessor.from_directory(region_processor_path)
+    obs = RegionProcessor.from_directory(region_processor_path, simple_definition)
     exp_data = [
         {
             "model": ["model_a"],
@@ -155,14 +155,16 @@ def test_region_processor_not_defined(simple_definition):
     )
     with pytest.raises(pydantic.ValidationError, match=error_msg):
         RegionProcessor.from_directory(
-            TEST_DATA_DIR / "regionprocessor_not_defined"
-        ).validate_with_definition(simple_definition)
+            TEST_DATA_DIR / "regionprocessor_not_defined", simple_definition
+        )
 
 
-def test_region_processor_duplicate_model_mapping():
+def test_region_processor_duplicate_model_mapping(simple_definition):
     error_msg = ".*model_a.*mapping_(1|2).yaml.*mapping_(1|2).yaml"
     with pytest.raises(pydantic.ValidationError, match=error_msg):
-        RegionProcessor.from_directory(TEST_DATA_DIR / "regionprocessor_duplicate")
+        RegionProcessor.from_directory(
+            TEST_DATA_DIR / "regionprocessor_duplicate", simple_definition
+        )
 
 
 def test_region_processor_wrong_args():
@@ -182,15 +184,17 @@ def test_region_processor_wrong_args():
         )
 
 
-def test_region_processor_multiple_wrong_mappings():
+def test_region_processor_multiple_wrong_mappings(simple_definition):
     # Read in the entire region_aggregation directory and return **all** errors
     msg = "9 validation errors for RegionProcessor"
 
     with pytest.raises(pydantic.ValidationError, match=msg):
-        RegionProcessor.from_directory(TEST_DATA_DIR / "region_aggregation")
+        RegionProcessor.from_directory(
+            TEST_DATA_DIR / "region_aggregation", simple_definition
+        )
 
 
-def test_region_processor_exclude_model_native_overlap_raises():
+def test_region_processor_exclude_model_native_overlap_raises(simple_definition):
     # Test that exclude regions in either native or common regions raise errors
 
     with pytest.raises(
@@ -201,7 +205,7 @@ def test_region_processor_exclude_model_native_overlap_raises():
         ),
     ):
         RegionProcessor.from_directory(
-            TEST_DATA_DIR / "regionprocessor_exclude_region_overlap"
+            TEST_DATA_DIR / "regionprocessor_exclude_region_overlap", simple_definition
         )
 
 
@@ -219,8 +223,8 @@ def test_region_processor_unexpected_region_raises():
     with pytest.raises(ValueError, match="Did not find.*'region_B'.*in.*model_a.yaml"):
         process(
             test_df,
-            DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+            dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
             processor=RegionProcessor.from_directory(
-                TEST_DATA_DIR / "regionprocessor_unexpected_region"
+                TEST_DATA_DIR / "regionprocessor_unexpected_region", dsd
             ),
         )

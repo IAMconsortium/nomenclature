@@ -39,9 +39,9 @@ def test_region_processing_rename(model_name):
 
     obs = process(
         test_df,
-        DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+        dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
         processor=RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing/rename_only"
+            TEST_DATA_DIR / "region_processing/rename_only", dsd
         ),
     )
 
@@ -67,8 +67,8 @@ def test_region_processing_empty_raises(rp_dir):
     with pytest.raises(ValueError, match=("'model_a', 'model_b'.*empty dataset")):
         process(
             test_df,
-            DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
-            processor=RegionProcessor.from_directory(TEST_DATA_DIR / rp_dir),
+            dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+            processor=RegionProcessor.from_directory(TEST_DATA_DIR / rp_dir, dsd),
         )
 
 
@@ -79,9 +79,9 @@ def test_region_processing_no_mapping(simple_df):
 
     obs = process(
         simple_df,
-        DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+        dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
         processor=RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing/no_mapping"
+            TEST_DATA_DIR / "region_processing/no_mapping", dsd
         ),
     )
     assert_iamframe_equal(obs, exp)
@@ -113,9 +113,9 @@ def test_region_processing_aggregate():
 
     obs = process(
         test_df,
-        DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+        dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
         processor=RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing/aggregate_only"
+            TEST_DATA_DIR / "region_processing/aggregate_only", dsd
         ),
     )
 
@@ -161,9 +161,9 @@ def test_region_processing_complete(directory):
 
     obs = process(
         test_df,
-        DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+        dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
         processor=RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing" / directory
+            TEST_DATA_DIR / "region_processing" / directory, dsd
         ),
     )
     assert_iamframe_equal(obs, exp)
@@ -227,9 +227,11 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
 
     obs = process(
         test_df,
-        DataStructureDefinition(TEST_DATA_DIR / "region_processing" / folder / "dsd"),
+        dsd := DataStructureDefinition(
+            TEST_DATA_DIR / "region_processing" / folder / "dsd"
+        ),
         processor=RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing" / folder / "aggregate"
+            TEST_DATA_DIR / "region_processing" / folder / "aggregate", dsd
         ),
     )
     assert_iamframe_equal(obs, exp)
@@ -272,11 +274,11 @@ def test_region_processing_skip_aggregation(model_name, region_names):
 
     obs = process(
         input_df,
-        DataStructureDefinition(
+        dsd := DataStructureDefinition(
             TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
         ),
         processor=RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing/skip_aggregation/mappings"
+            TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
         ),
     )
     assert_iamframe_equal(obs, exp)
@@ -383,9 +385,9 @@ def test_partial_aggregation(input_data, exp_data, warning, caplog):
 
     obs = process(
         IamDataFrame(pd.DataFrame(input_data, columns=IAMC_IDX + [2005, 2010])),
-        DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+        dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
         processor=RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing/partial_aggregation"
+            TEST_DATA_DIR / "region_processing/partial_aggregation", dsd
         ),
     )
     exp = IamDataFrame(pd.DataFrame(exp_data, columns=IAMC_IDX + [2005, 2010]))
