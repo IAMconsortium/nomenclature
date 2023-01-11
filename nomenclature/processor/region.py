@@ -366,29 +366,33 @@ class RegionProcessor(BaseModel):
 
         if errors:
             raise pydantic.ValidationError(errors, model=RegionProcessor)
-        return cls(mappings=mapping_dict)
 
-    def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
+        if missing_dims := [
+            dim for dim in ("region", "variable") if not hasattr(dsd, dim)
+        ]:
+            raise AttributeError(
+                "Provided DataStructureDefinition is missing the following attributes "
+                f"{missing_dims}"
+            )
+        return cls(
+            mappings=mapping_dict,
+            region_codelist=dsd.region,
+            variable_codelist=dsd.variable,
+        )
+
+    @validator("mappings", each_item=True)
+    def validate_with_definition(cls, v, values):
         """Check if all mappings are valid and collect all errors."""
-        errors = []
-        for mapping in self.mappings.values():
-            try:
-                mapping.validate_regions(dsd)
-            except RegionNotDefinedError as rnde:
-                errors.append(ErrorWrapper(rnde, f"mappings -> {mapping.model}"))
-        if errors:
-            raise pydantic.ValidationError(errors, model=self.__class__)
+        v.validate_regions(values["region_codelist"])
+        return v
 
-    def apply(self, df: IamDataFrame, dsd: DataStructureDefinition) -> IamDataFrame:
+    def apply(self, df: IamDataFrame) -> IamDataFrame:
         """Apply region processing
 
         Parameters
         ----------
         df : IamDataFrame
             Input data that the region processing is applied to
-        dsd : DataStructureDefinition
-            Used for region validation and variable information for performing region
-            processing
 
         Returns
         -------
