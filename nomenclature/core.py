@@ -62,11 +62,11 @@ def process(
         if "region" in dimensions:
             dimensions.remove("region")
             dsd.validate(df, dimensions=dimensions)
-            df = processor.apply(df, dsd)
+            df = processor.apply(df)
             dsd.validate(df, dimensions=["region"])
         else:
             dsd.validate(df, dimensions=dimensions)
-            df = processor.apply(df, dsd)
+            df = processor.apply(df)
 
     # check consistency across the variable hierarchy
     error = dsd.check_aggregate(df)

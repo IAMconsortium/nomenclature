@@ -56,11 +56,9 @@ def _check_mappings(
     dsd = DataStructureDefinition(path / definitions, dimensions)
     if mappings is None:
         if (path / "mappings").is_dir():
-            RegionProcessor.from_directory(path / "mappings").validate_with_definition(
-                dsd
-            )
+            RegionProcessor.from_directory(path / "mappings", dsd)
     elif (path / mappings).is_dir():
-        RegionProcessor.from_directory(path / mappings).validate_with_definition(dsd)
+        RegionProcessor.from_directory(path / mappings, dsd)
     else:
         raise FileNotFoundError(f"Mappings directory not found: {path / mappings}")
 
