@@ -53,16 +53,23 @@ def test_to_excel(simple_definition, tmpdir):
     pd.testing.assert_frame_equal(obs, exp)
 
 
-def test_create_yaml_from_xlsx(tmpdir):
+@pytest.mark.parametrize(
+    "input_file, attrs",
+    [
+        ("validation_nc.xlsx", ["Description", "Unit"]),
+        ("validation_nc_list_arg.xlsx", ["Description", "Unit", "Region-aggregation"]),
+    ],
+)
+def test_create_yaml_from_xlsx(input_file, attrs, tmpdir):
     """Check that creating a yaml codelist from xlsx yields the expected output file"""
     file = tmpdir / "foo.yaml"
 
     create_yaml_from_xlsx(
-        source=TEST_DATA_DIR / "validation_nc.xlsx",
+        source=TEST_DATA_DIR / input_file,
         target=file,
         sheet_name="variable_definitions",
         col="Variable",
-        attrs=["Description", "Unit"],
+        attrs=attrs,
     )
 
     with open(file, "r") as f:

@@ -68,6 +68,8 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+# include xlsx files needed for testing
+!tests/data/*.xlsx
 
 # Translations
 *.mo
