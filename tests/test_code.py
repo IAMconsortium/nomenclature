@@ -34,3 +34,16 @@ def test_variable_multiple_units():
     """Test that a VariableCode with multiple units works"""
     var = VariableCode.from_dict({"Var1": {"unit": ["unit1", "unit2"]}})
     assert var.unit == ["unit1", "unit2"]
+
+
+@pytest.mark.parametrize("unit", ["Test unit", ["Test unit 1", "Test unit 2"]])
+def test_set_attributes_with_json(unit):
+
+    var = VariableCode(
+        name="Test var",
+        unit=unit,
+        region_aggregation='[{"Test var (mean)": {"method": "mean"}}]',
+    )
+
+    assert var.region_aggregation == [{"Test var (mean)": {"method": "mean"}}]
+    assert var.unit == unit
