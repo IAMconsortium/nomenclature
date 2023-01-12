@@ -88,5 +88,5 @@ def test_create_yaml_from_xlsx_duplicate():
             target="_",
             sheet_name="duplicate_index_raises",
             col="Variable",
-            attrs=["Unit", "Definition"],
+            attrs=["Unit", "Description"],
         )

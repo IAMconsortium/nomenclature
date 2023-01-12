@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import ClassVar, Dict, List
 
 import pandas as pd
+import numpy as np
 import yaml
 from jsonschema import validate
 from pyam.utils import write_sheet
@@ -235,19 +236,22 @@ class CodeList(BaseModel):
         attrs : list, optional
             Columns from `sheet_name` to use as attributes.
         """
-        source = pd.read_excel(source, sheet_name=sheet_name)
+        codelist = pd.read_excel(source, sheet_name=sheet_name, usecols=[col] + attrs)
+
+        # replace nan with None
+        codelist = codelist.replace(np.nan, None)
 
         # check for duplicates in the codelist
-        duplicate_rows = source[col].duplicated(keep=False).values
+        duplicate_rows = codelist[col].duplicated(keep=False).values
         if any(duplicate_rows):
-            duplicates = source[duplicate_rows]
+            duplicates = codelist[duplicate_rows]
             # set index to equal the row numbers to simplify identifying the issue
             duplicates.index = pd.Index([i + 2 for i in duplicates.index])
             msg = f"Duplicate values in the codelist:\n{duplicates.head(20)}"
             raise ValueError(msg + ("\n..." if len(duplicates) > 20 else ""))
 
         # set `col` as index and cast all attribute-names to lowercase
-        codes = source[[col] + attrs].set_index(col)[attrs]
+        codes = codelist[[col] + attrs].set_index(col)[attrs]
         codes.rename(columns={c: str(c).lower() for c in codes.columns}, inplace=True)
         codes_di = codes.to_dict(orient="index")
         mapp = {
@@ -291,7 +295,9 @@ class CodeList(BaseModel):
             Sort the codelist before exporting to csv.
         """
         codelist = (
-            pd.DataFrame.from_dict(self.codelist_repr(), orient="index")
+            pd.DataFrame.from_dict(
+                self.codelist_repr(json_serialized=True), orient="index"
+            )
             .reset_index()
             .rename(columns={"index": self.name})
             .drop(columns="file")
@@ -358,14 +364,19 @@ class CodeList(BaseModel):
         if close:
             excel_writer.close()
 
-    def codelist_repr(self) -> Dict:
+    def codelist_repr(self, json_serialized=False) -> Dict:
         """Cast a CodeList into corresponding dictionary"""
 
         nice_dict = {}
         for name, code in self.mapping.items():
+            code_dict = (
+                code.flattened_dict_serialized
+                if json_serialized
+                else code.flattened_dict
+            )
             code_dict = {
                 k: v
-                for k, v in code.flattened_dict.items()
+                for k, v in code_dict.items()
                 if (v is not None and k != "name") or k == "unit"
             }
 
