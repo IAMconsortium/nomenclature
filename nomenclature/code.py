@@ -75,6 +75,13 @@ class Code(BaseModel):
             **self.extra_attributes,
         }
 
+    @property
+    def flattened_dict_serialized(self):
+        return {
+            key: (json.dumps(value) if isinstance(value, (list, dict)) else value)
+            for key, value in self.flattened_dict.items()
+        }
+
     def replace_tag(self, tag: str, target: "Code") -> "Code":
         """Return a new instance with tag applied
 
