@@ -1,3 +1,4 @@
+import json
 import re
 from keyword import iskeyword
 from typing import Any, Dict, List, Optional, Set, Union
@@ -149,6 +150,13 @@ class VariableCode(Code):
         # this allows using both "check_aggregate" and "check-aggregate" for attribute
         # setting
         allow_population_by_field_name = True
+
+    @validator("region_aggregation", "components", "unit", pre=True)
+    def deserialize_json(cls, v):
+        try:
+            return json.loads(v) if isinstance(v, str) else v
+        except json.decoder.JSONDecodeError:
+            return v
 
     @property
     def units(self) -> List[Union[str, None]]:
