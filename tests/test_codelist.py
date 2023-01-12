@@ -1,6 +1,8 @@
+from typing import Dict, List
 import pytest
 import pandas as pd
 import pandas.testing as pdt
+from nomenclature.code import Code
 from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
 from nomenclature.error.codelist import DuplicateCodeError
 
@@ -155,3 +157,33 @@ def test_variable_codelist_multiple_units():
         "variable", TEST_DATA_DIR / "multiple_unit_codelist"
     )
     assert codelist["Var1"].unit == ["unit1", "unit2"]
+
+
+def test_to_excel_read_excel_roundtrip(tmpdir):
+    def remove_file_from_mapping(mapping: Dict[str, Code]) -> List[Dict]:
+        return [
+            {key: value for key, value in code.flattened_dict.items() if key != "file"}
+            for code in mapping.values()
+        ]
+
+    codelist_dir = TEST_DATA_DIR / "variable_codelist_complex_attr"
+
+    # read VariableCodeList
+    exp = VariableCodeList.from_directory("variable", codelist_dir)
+    # save to temporary file
+    exp.to_excel(tmpdir / "output.xlsx")
+    # read from temporary file
+    obs = VariableCodeList.read_excel(
+        "variable",
+        tmpdir / "output.xlsx",
+        "variable",
+        "Variable",
+        attrs=["Description", "Unit", "Region_aggregation"],
+    )
+
+    assert obs.name == exp.name
+    # since the obs and exp are read from different files, the file attribute will be
+    # different. For comparison we remove it
+    assert remove_file_from_mapping(obs.mapping) == remove_file_from_mapping(
+        exp.mapping
+    )
