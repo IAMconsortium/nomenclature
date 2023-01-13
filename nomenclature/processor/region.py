@@ -13,6 +13,7 @@ from pydantic import BaseModel, root_validator, validate_arguments, validator
 from pydantic.error_wrappers import ErrorWrapper
 from pydantic.types import DirectoryPath, FilePath
 
+from nomenclature.codelist import RegionCodeList, VariableCodeList
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error.region import (
     ExcludeRegionOverlapError,
@@ -284,10 +285,9 @@ class RegionAggregationMapping(BaseModel):
     def rename_mapping(self) -> Dict[str, str]:
         return {r.name: r.target_native_region for r in self.native_regions or []}
 
-    def validate_regions(self, dsd: DataStructureDefinition) -> None:
-        if hasattr(dsd, "region"):
-            if invalid := dsd.region.validate_items(self.all_regions):
-                raise RegionNotDefinedError(region=invalid, file=self.file)
+    def validate_regions(self, region_codelist: RegionCodeList) -> None:
+        if invalid := region_codelist.validate_items(self.all_regions):
+            raise RegionNotDefinedError(region=invalid, file=self.file)
 
     def check_unexpected_regions(self, df: IamDataFrame) -> None:
         # Raise error if a region in the input data is not used in the model mapping
@@ -314,17 +314,22 @@ class RegionAggregationMapping(BaseModel):
 class RegionProcessor(BaseModel):
     """Region aggregation mappings for scenario processing"""
 
+    region_codelist: RegionCodeList
+    variable_codelist: VariableCodeList
     mappings: Dict[str, RegionAggregationMapping]
 
     @classmethod
-    @validate_arguments
-    def from_directory(cls, path: DirectoryPath):
+    @validate_arguments(config={"arbitrary_types_allowed": True})
+    def from_directory(cls, path: DirectoryPath, dsd: DataStructureDefinition):
         """Initialize a RegionProcessor from a directory of model-aggregation mappings.
 
         Parameters
         ----------
         path : DirectoryPath
             Directory which holds all the mappings.
+        dsd : DataStructureDefinition
+            Instance of DataStructureDefinition used for validation of mappings and
+            region aggregation.
 
         Returns
         -------
@@ -360,29 +365,33 @@ class RegionProcessor(BaseModel):
 
         if errors:
             raise pydantic.ValidationError(errors, model=RegionProcessor)
-        return cls(mappings=mapping_dict)
 
-    def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
+        if missing_dims := [
+            dim for dim in ("region", "variable") if not hasattr(dsd, dim)
+        ]:
+            raise AttributeError(
+                "Provided DataStructureDefinition is missing the following attributes "
+                f"{missing_dims}"
+            )
+        return cls(
+            mappings=mapping_dict,
+            region_codelist=dsd.region,
+            variable_codelist=dsd.variable,
+        )
+
+    @validator("mappings", each_item=True)
+    def validate_with_definition(cls, v, values):
         """Check if all mappings are valid and collect all errors."""
-        errors = []
-        for mapping in self.mappings.values():
-            try:
-                mapping.validate_regions(dsd)
-            except RegionNotDefinedError as rnde:
-                errors.append(ErrorWrapper(rnde, f"mappings -> {mapping.model}"))
-        if errors:
-            raise pydantic.ValidationError(errors, model=self.__class__)
+        v.validate_regions(values["region_codelist"])
+        return v
 
-    def apply(self, df: IamDataFrame, dsd: DataStructureDefinition) -> IamDataFrame:
+    def apply(self, df: IamDataFrame) -> IamDataFrame:
         """Apply region processing
 
         Parameters
         ----------
         df : IamDataFrame
             Input data that the region processing is applied to
-        dsd : DataStructureDefinition
-            Used for region validation and variable information for performing region
-            processing
 
         Returns
         -------
@@ -407,7 +416,7 @@ class RegionProcessor(BaseModel):
             # Otherwise we first rename, then aggregate
             else:
                 # before aggregating, check that all regions are valid
-                self.mappings[model].validate_regions(dsd)
+                self.mappings[model].validate_regions(self.region_codelist)
                 logger.info(
                     f"Applying region-processing for model {model} from file "
                     f"{self.mappings[model].file}"
@@ -446,20 +455,21 @@ class RegionProcessor(BaseModel):
                             regions = [cr.name, cr.constituent_regions]
 
                             # First, perform 'simple' aggregation (no arguments)
+                            simple_vars = [
+                                var.name
+                                for var in self.variable_codelist.vars_default_args(
+                                    df.variable
+                                )
+                            ]
                             _processed_dfs.append(
                                 model_df.aggregate_region(
-                                    [
-                                        var.name
-                                        for var in dsd.variable.vars_default_args(
-                                            df.variable
-                                        )
-                                    ],
+                                    simple_vars,
                                     *regions,
                                 )
                             )
 
                             # Second, special weighted aggregation
-                            for var in dsd.variable.vars_kwargs(df.variable):
+                            for var in self.variable_codelist.vars_kwargs(df.variable):
                                 if var.region_aggregation is None:
                                     _df = _aggregate_region(
                                         model_df,
@@ -487,7 +497,7 @@ class RegionProcessor(BaseModel):
 
                     common_region_df = model_df.filter(
                         region=self.mappings[model].common_region_names,
-                        variable=dsd.variable,
+                        variable=self.variable_codelist,
                     )
 
                     # concatenate and merge with data provided at common-region level
