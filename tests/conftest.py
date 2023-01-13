@@ -1,8 +1,10 @@
 from pathlib import Path
+from typing import Dict, List
 import pytest
 import pandas as pd
 from pyam import IamDataFrame, IAMC_IDX
 from nomenclature import DataStructureDefinition
+from nomenclature.code import Code
 
 
 here = Path(__file__).parent
@@ -32,3 +34,10 @@ def extras_definition():
 @pytest.fixture(scope="function")
 def simple_df():
     yield IamDataFrame(TEST_DF)
+
+
+def remove_file_from_mapping(mapping: Dict[str, Code]) -> List[Dict]:
+    return [
+        {key: value for key, value in code.flattened_dict.items() if key != "file"}
+        for code in mapping.values()
+    ]

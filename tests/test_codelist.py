@@ -6,7 +6,7 @@ from nomenclature.code import Code
 from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
 from nomenclature.error.codelist import DuplicateCodeError
 
-from conftest import TEST_DATA_DIR
+from conftest import TEST_DATA_DIR, remove_file_from_mapping
 
 
 def test_simple_codelist():
@@ -160,11 +160,6 @@ def test_variable_codelist_multiple_units():
 
 
 def test_to_excel_read_excel_roundtrip(tmpdir):
-    def remove_file_from_mapping(mapping: Dict[str, Code]) -> List[Dict]:
-        return [
-            {key: value for key, value in code.flattened_dict.items() if key != "file"}
-            for code in mapping.values()
-        ]
 
     codelist_dir = TEST_DATA_DIR / "variable_codelist_complex_attr"
 
@@ -180,6 +175,26 @@ def test_to_excel_read_excel_roundtrip(tmpdir):
         "Variable",
         attrs=["Description", "Unit", "Region_aggregation"],
     )
+
+    assert obs.name == exp.name
+    # since the obs and exp are read from different files, the file attribute will be
+    # different. For comparison we remove it
+    assert remove_file_from_mapping(obs.mapping) == remove_file_from_mapping(
+        exp.mapping
+    )
+
+
+def test_to_yaml_from_directory(tmp_path):
+    """Test that creating a codelist from a yaml file and writing it to yaml produces
+    the same file"""
+
+    # read VariableCodeList
+    exp = VariableCodeList.from_directory(
+        "variable", TEST_DATA_DIR / "variable_codelist_complex_attr"
+    ).to_yaml(tmp_path / "variables.yaml")
+
+    # read from temporary file
+    obs = VariableCodeList.from_directory("variable", tmp_path)
 
     assert obs.name == exp.name
     # since the obs and exp are read from different files, the file attribute will be
