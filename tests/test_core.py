@@ -37,13 +37,11 @@ def test_region_processing_rename(model_name):
     exp.filter(region=["region_a", "region_B"], inplace=True)
     exp.rename(region={"region_a": "region_A"}, inplace=True)
 
-    obs = process(
-        test_df,
-        dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
-        processor=RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing/rename_only", dsd
-        ),
+    dsd = DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd")
+    region_processor = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/rename_only", dsd
     )
+    obs = process(test_df, dsd, processor=region_processor)
 
     assert_iamframe_equal(obs, exp)
 
