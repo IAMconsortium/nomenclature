@@ -4,7 +4,7 @@ import pandas.testing as pdt
 from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
 from nomenclature.error.codelist import DuplicateCodeError
 
-from conftest import TEST_DATA_DIR
+from conftest import TEST_DATA_DIR, remove_file_from_mapping
 
 
 def test_simple_codelist():
@@ -28,8 +28,8 @@ def test_codelist_to_yaml():
         "- Some Variable:\n"
         "    description: Some basic variable\n"
         "    unit:\n"
-        "    skip_region_aggregation: false\n"
-        "    check_aggregate: false\n"
+        "    skip-region-aggregation: false\n"
+        "    check-aggregate: false\n"
         "    bool: true\n"
         "    file: simple_codelist/foo.yaml\n"
     )
@@ -123,7 +123,7 @@ def test_to_csv(sort):
     ).to_csv(sort_by_code=sort, lineterminator="\n")
 
     exp = (
-        "Variable,Description,Unit,Skip_region_aggregation,Check_aggregate,Bool\n"
+        "Variable,Description,Unit,Skip-region-aggregation,Check-aggregate,Bool\n"
         "Some Variable,Some basic variable,,False,False,True\n"
     )
     assert obs == exp
@@ -155,3 +155,49 @@ def test_variable_codelist_multiple_units():
         "variable", TEST_DATA_DIR / "multiple_unit_codelist"
     )
     assert codelist["Var1"].unit == ["unit1", "unit2"]
+
+
+def test_to_excel_read_excel_roundtrip(tmpdir):
+
+    codelist_dir = TEST_DATA_DIR / "variable_codelist_complex_attr"
+
+    # read VariableCodeList
+    exp = VariableCodeList.from_directory("variable", codelist_dir)
+    # save to temporary file
+    exp.to_excel(tmpdir / "output.xlsx")
+    # read from temporary file
+    obs = VariableCodeList.read_excel(
+        "variable",
+        tmpdir / "output.xlsx",
+        "variable",
+        "Variable",
+        attrs=["Description", "Unit", "Region-aggregation"],
+    )
+
+    assert obs.name == exp.name
+    # since the obs and exp are read from different files, the file attribute will be
+    # different. For comparison we remove it
+    assert remove_file_from_mapping(obs.mapping) == remove_file_from_mapping(
+        exp.mapping
+    )
+
+
+def test_to_yaml_from_directory(tmp_path):
+    """Test that creating a codelist from a yaml file and writing it to yaml produces
+    the same file"""
+
+    # read VariableCodeList
+    exp = VariableCodeList.from_directory(
+        "variable", TEST_DATA_DIR / "variable_codelist_complex_attr"
+    )
+    exp.to_yaml(tmp_path / "variables.yaml")
+
+    # read from temporary file
+    obs = VariableCodeList.from_directory("variable", tmp_path)
+
+    assert obs.name == exp.name
+    # since the obs and exp are read from different files, the file attribute will be
+    # different. For comparison we remove it
+    assert remove_file_from_mapping(obs.mapping) == remove_file_from_mapping(
+        exp.mapping
+    )

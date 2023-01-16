@@ -1,0 +1,9 @@
+- Price|Carbon:
+    definition: Price of carbon (as reported by the model)
+    unit: US$2010/t CO2
+    region-aggregation:
+        - Price|Carbon (mean):
+            method: mean
+- Price|Carbon (mean):
+    definition: Price of carbon (computed as unweighted mean across regions)
+    unit: US$2010/t CO2

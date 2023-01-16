@@ -1,3 +1,4 @@
+import json
 import re
 from keyword import iskeyword
 from typing import Any, Dict, List, Optional, Set, Union
@@ -71,8 +72,19 @@ class Code(BaseModel):
     @property
     def flattened_dict(self):
         return {
-            **{k: v for k, v in self.dict().items() if k != "extra_attributes"},
+            **{
+                k: v
+                for k, v in self.dict(by_alias=True).items()
+                if k != "extra_attributes"
+            },
             **self.extra_attributes,
+        }
+
+    @property
+    def flattened_dict_serialized(self):
+        return {
+            key: (json.dumps(value) if isinstance(value, (list, dict)) else value)
+            for key, value in self.flattened_dict.items()
         }
 
     def replace_tag(self, tag: str, target: "Code") -> "Code":
@@ -142,6 +154,13 @@ class VariableCode(Code):
         # this allows using both "check_aggregate" and "check-aggregate" for attribute
         # setting
         allow_population_by_field_name = True
+
+    @validator("region_aggregation", "components", "unit", pre=True)
+    def deserialize_json(cls, v):
+        try:
+            return json.loads(v) if isinstance(v, str) else v
+        except json.decoder.JSONDecodeError:
+            return v
 
     @property
     def units(self) -> List[Union[str, None]]:

@@ -1,15 +1,15 @@
 - Primary Energy:
     description: Total primary energy consumption
     unit: EJ/yr
-    skip_region_aggregation: false
-    check_aggregate: false
+    skip-region-aggregation: false
+    check-aggregate: false
 - Primary Energy|Coal:
     description: Primary energy consumption of coal
     unit: EJ/yr
-    skip_region_aggregation: false
-    check_aggregate: false
+    skip-region-aggregation: false
+    check-aggregate: false
 - Share|Coal:
     description: Share of coal in the total primary energy mix
     unit:
-    skip_region_aggregation: false
-    check_aggregate: false
+    skip-region-aggregation: false
+    check-aggregate: false
