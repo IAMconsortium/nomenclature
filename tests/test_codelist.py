@@ -30,8 +30,8 @@ def test_codelist_to_yaml():
         "- Some Variable:\n"
         "    description: Some basic variable\n"
         "    unit:\n"
-        "    skip_region_aggregation: false\n"
-        "    check_aggregate: false\n"
+        "    skip-region-aggregation: false\n"
+        "    check-aggregate: false\n"
         "    bool: true\n"
         "    file: simple_codelist/foo.yaml\n"
     )
@@ -125,7 +125,7 @@ def test_to_csv(sort):
     ).to_csv(sort_by_code=sort, lineterminator="\n")
 
     exp = (
-        "Variable,Description,Unit,Skip_region_aggregation,Check_aggregate,Bool\n"
+        "Variable,Description,Unit,Skip-region-aggregation,Check-aggregate,Bool\n"
         "Some Variable,Some basic variable,,False,False,True\n"
     )
     assert obs == exp
@@ -173,7 +173,7 @@ def test_to_excel_read_excel_roundtrip(tmpdir):
         tmpdir / "output.xlsx",
         "variable",
         "Variable",
-        attrs=["Description", "Unit", "Region_aggregation"],
+        attrs=["Description", "Unit", "Region-aggregation"],
     )
 
     assert obs.name == exp.name
@@ -191,7 +191,8 @@ def test_to_yaml_from_directory(tmp_path):
     # read VariableCodeList
     exp = VariableCodeList.from_directory(
         "variable", TEST_DATA_DIR / "variable_codelist_complex_attr"
-    ).to_yaml(tmp_path / "variables.yaml")
+    )
+    exp.to_yaml(tmp_path / "variables.yaml")
 
     # read from temporary file
     obs = VariableCodeList.from_directory("variable", tmp_path)
