@@ -270,11 +270,16 @@ class CodeList(BaseModel):
             Write to file path if not None, otherwise return as stream
         """
 
+        class Dumper(yaml.Dumper):
+            def increase_indent(self, flow=False, *args, **kwargs):
+                return super().increase_indent(flow=flow, indentless=False)
+
         # translate to list of nested dicts, replace None by empty field, write to file
         stream = (
             yaml.dump(
                 [{code: attrs} for code, attrs in self.codelist_repr().items()],
                 sort_keys=False,
+                Dumper=Dumper,
             )
             .replace(": null\n", ":\n")
             .replace(": nan\n", ":\n")
