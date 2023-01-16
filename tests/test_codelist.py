@@ -1,8 +1,6 @@
-from typing import Dict, List
 import pytest
 import pandas as pd
 import pandas.testing as pdt
-from nomenclature.code import Code
 from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
 from nomenclature.error.codelist import DuplicateCodeError
 
