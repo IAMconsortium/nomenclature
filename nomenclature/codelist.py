@@ -542,12 +542,12 @@ class RegionCodeList(CodeList):
             mapping[code.name] = code
 
         return cls(name=name, mapping=mapping)
-    
+
     def hierarchy_filter(self, hierarchy: str) -> List[str]:
         countries = []
         for country in self.mapping.values():
-            if country.hierarchy == hierarchy:
-                countries.append(country.name)
+                if country.hierarchy == hierarchy:
+                    countries.append(country.name)
         if countries != []:        
             return countries
         else:
