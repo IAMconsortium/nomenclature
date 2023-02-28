@@ -201,3 +201,22 @@ def test_to_yaml_from_directory(tmp_path):
     assert remove_file_from_mapping(obs.mapping) == remove_file_from_mapping(
         exp.mapping
     )
+
+def test_RegionCodeList_hierarchy_filter():
+    """Test that verifies the hierarchy filter can sort through list of regions and 
+    give list of regions contained in the given filter parameter, in this case hierarchy"""
+
+    # read RegionCodeList
+    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
+    obs = rcl.hierarchy_filter("countries")
+    exp = ["Some Country"]
+
+    assert obs == exp
+
+def test_RegionCodeList_hierarchy_filter_ValueError():
+    """Test that verifies the filter gives error when user inputs an unrecognizeable hierarchy"""
+
+    # read RegionCodeList
+    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
+    with pytest.raises(ValueError, match = "No hierarchy found for R77. Either the hierarchy entered is not used for this model, or there was a typo. Try R5, R10, R12, or another standard IAM hierarchy."): 
+        rcl.hierarchy_filter("R77")

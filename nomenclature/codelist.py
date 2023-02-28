@@ -524,7 +524,7 @@ class RegionCodeList(CodeList):
             with open(yaml_file, "r", encoding="utf-8") as stream:
                 _code_list = yaml.safe_load(stream)
 
-            # a "region" codelist assumes a top-level key to be used as attribute
+            # a "region" codelist assumes a top-level category to be used as attribute
             for top_level_cat in _code_list:
                 for top_key, _codes in top_level_cat.items():
                     for item in _codes:
@@ -542,3 +542,13 @@ class RegionCodeList(CodeList):
             mapping[code.name] = code
 
         return cls(name=name, mapping=mapping)
+    
+    def hierarchy_filter(self, hierarchy: str) -> List[str]:
+        countries = []
+        for country in self.mapping.values():
+            if country.hierarchy == hierarchy:
+                countries.append(country.name)
+        if countries != []:        
+            return countries
+        else:
+            raise ValueError(f"No hierarchy found for {hierarchy}. Either the hierarchy entered is not used for this model, or there was a typo. Try R5, R10, R12, or another standard IAM hierarchy.")
