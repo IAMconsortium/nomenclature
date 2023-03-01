@@ -8,7 +8,7 @@ from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor.region import RegionProcessor
 from pyam import IAMC_IDX, IamDataFrame, assert_iamframe_equal
 
-from conftest import TEST_DATA_DIR
+from conftest import TEST_DATA_DIR, add_meta
 
 
 @pytest.mark.parametrize("model_name", ["model_a", "model_c"])
@@ -32,6 +32,7 @@ def test_region_processing_rename(model_name):
             columns=IAMC_IDX + [2005, 2010],
         )
     )
+    add_meta(test_df)
 
     exp = copy.deepcopy(test_df)
     exp.filter(region=["region_a", "region_B"], inplace=True)
@@ -99,6 +100,8 @@ def test_region_processing_aggregate():
             columns=IAMC_IDX + [2005, 2010],
         )
     )
+    add_meta(test_df)
+
     exp = IamDataFrame(
         pd.DataFrame(
             [
@@ -108,6 +111,7 @@ def test_region_processing_aggregate():
             columns=IAMC_IDX + [2005, 2010],
         )
     )
+    add_meta(exp)
 
     obs = process(
         test_df,
@@ -142,6 +146,8 @@ def test_region_processing_complete(directory):
             columns=IAMC_IDX + [2005, 2010],
         )
     )
+    add_meta(test_df)
+
     exp = IamDataFrame(
         pd.DataFrame(
             [
@@ -156,6 +162,7 @@ def test_region_processing_complete(directory):
             columns=IAMC_IDX + [2005, 2010],
         )
     )
+    add_meta(exp)
 
     obs = process(
         test_df,
@@ -217,11 +224,13 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
             columns=IAMC_IDX + [2005, 2010],
         )
     )
+    add_meta(test_df)
 
     if args is not None:
         test_df = test_df.filter(**args)
 
     exp = IamDataFrame(pd.DataFrame(exp_df, columns=IAMC_IDX + [2005, 2010]))
+    add_meta(exp)
 
     obs = process(
         test_df,
@@ -251,7 +260,7 @@ def test_region_processing_skip_aggregation(model_name, region_names):
     # * model "m_a" renames native regions and the world region is skipped
     # * model "m_b" renames single constituent common regions
 
-    input_df = IamDataFrame(
+    test_df = IamDataFrame(
         pd.DataFrame(
             [
                 [model_name, "s_a", region_names[0], "Primary Energy", "EJ/yr", 1, 2],
@@ -260,6 +269,8 @@ def test_region_processing_skip_aggregation(model_name, region_names):
             columns=IAMC_IDX + [2005, 2010],
         )
     )
+    add_meta(test_df)
+
     exp = IamDataFrame(
         pd.DataFrame(
             [
@@ -269,9 +280,10 @@ def test_region_processing_skip_aggregation(model_name, region_names):
             columns=IAMC_IDX + [2005, 2010],
         )
     )
+    add_meta(exp)
 
     obs = process(
-        input_df,
+        test_df,
         dsd := DataStructureDefinition(
             TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
         ),
@@ -381,14 +393,19 @@ def test_partial_aggregation(input_data, exp_data, warning, caplog):
     # * Using the region-aggregation attribute to create an additional variable
     # * Variable is available in provided and aggregated data but different
 
+    test_df = IamDataFrame(pd.DataFrame(input_data, columns=IAMC_IDX + [2005, 2010]))
+    add_meta(test_df)
+
     obs = process(
-        IamDataFrame(pd.DataFrame(input_data, columns=IAMC_IDX + [2005, 2010])),
+        test_df,
         dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
         processor=RegionProcessor.from_directory(
             TEST_DATA_DIR / "region_processing/partial_aggregation", dsd
         ),
     )
+
     exp = IamDataFrame(pd.DataFrame(exp_data, columns=IAMC_IDX + [2005, 2010]))
+    add_meta(exp)
 
     # Assert that we get the expected values
     assert_iamframe_equal(obs, exp)
