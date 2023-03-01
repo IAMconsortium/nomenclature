@@ -204,7 +204,7 @@ def test_to_yaml_from_directory(tmp_path):
 
 def test_RegionCodeList_hierarchy_filter():
     """Test that verifies the hierarchy filter can sort through list of regions and 
-    give list of regions contained in the given filter parameter, in this case hierarchy"""
+    give list of regions contained in the given hierarchy"""
 
     # read RegionCodeList
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")

@@ -544,6 +544,24 @@ class RegionCodeList(CodeList):
         return cls(name=name, mapping=mapping)
 
     def hierarchy_filter(self, hierarchy: str) -> List[str]:
+        """A filter that returns the regions within a provided hierarchy.
+
+        Parameters
+        ----------
+        hierarchy : str
+            The name of the hierarchy whose components you are looking for.
+
+        Raises
+        ------
+        ValueError 
+            If User inputs a typo or a hierarchy not compatible with the given model.
+
+        Returns
+        -------
+        List[str] 
+            Returns a list of the component regions of the inputted hierarchy.
+        """        
+
         countries = []
         for country in self.mapping.values():
                 if country.hierarchy == hierarchy:
