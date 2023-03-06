@@ -226,6 +226,6 @@ def test_RegionCodeList_hierarchy_filter_ValueError():
     
     # read RegionCodeList
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
-    match = "Hierarchy level does not exist: R77."
+    match = "Hierarchy level does not exist: R77"
     with pytest.raises(ValueError, match=match):
         rcl.filter("R77")
