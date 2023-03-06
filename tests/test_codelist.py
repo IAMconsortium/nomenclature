@@ -202,23 +202,30 @@ def test_to_yaml_from_directory(tmp_path):
     assert remove_file_from_mapping(obs.mapping) == remove_file_from_mapping(
         exp.mapping
     )
-
+    
+    
 def test_RegionCodeList_hierarchy_filter():
     """Test that verifies the hierarchy filter can sort through list of regions and
     give list of regions contained in the given hierarchy"""
 
     # read RegionCodeList
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
-    filter_param="countries"
+    filter_param = "countries"
     obs = rcl.hierarchy_filter(filter_param)
-    mapping: dict[str, Code] = {'Some Country': Code(name='Some Country', description=None, extra_attributes={'iso2': 'XY', 'iso3': 'XYZ', 'hierarchy': 'countries', 'file': 'region_codelist/region.yaml'})}
-    exp: RegionCodeList = RegionCodeList(name=filter_param, mapping=mapping) 
+    extra_attributes = {'iso2': 'XY', 'iso3': 'XYZ', 'hierarchy': 'countries', 
+                        'file': 'region_codelist/region.yaml'}
+    mapping = {'Some Country': Code(name = 'Some Country', description = None, 
+                                    extra_attributes = extra_attributes)}
+    exp = RegionCodeList(name=filter_param, mapping=mapping)
     assert obs == exp
+    
 
 def test_RegionCodeList_hierarchy_filter_ValueError():
-    """Test that verifies the filter gives error when user inputs an unrecognizeable hierarchy"""
-
+    """Test that verifies the filter gives error when user inputs an unrecognizeable
+    hierarchy"""
+    
     # read RegionCodeList
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
-    match = "No hierarchy found for R77. Either the hierarchy entered is not used for this model, or there was a typo."
-    with pytest.raises(ValueError, match = match):rcl.hierarchy_filter("R77")
+    match = "Hierarchy level does not exist: R77."
+    with pytest.raises(ValueError, match = match):
+        rcl.hierarchy_filter("R77")
