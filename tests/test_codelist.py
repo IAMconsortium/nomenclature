@@ -211,7 +211,7 @@ def test_RegionCodeList_hierarchy_filter():
     # read RegionCodeList
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
     filter_param = "countries"
-    obs = rcl.hierarchy_filter(filter_param)
+    obs = rcl.filter(filter_param)
     extra_attributes = {'iso2': 'XY', 'iso3': 'XYZ', 'hierarchy': 'countries', 
                         'file': 'region_codelist/region.yaml'}
     mapping = {'Some Country': Code(name = 'Some Country', description = None, 
@@ -228,4 +228,4 @@ def test_RegionCodeList_hierarchy_filter_ValueError():
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
     match = "Hierarchy level does not exist: R77."
     with pytest.raises(ValueError, match = match):
-        rcl.hierarchy_filter("R77")
+        rcl.filter("R77")
