@@ -565,6 +565,6 @@ class RegionCodeList(CodeList):
 
         mapping = {k: v for (k, v) in self.mapping.items() if v.hierarchy == hierarchy}
         if mapping:
-            return RegionCodeList(name=f"{hierarchy}", mapping=mapping)
+            return RegionCodeList(name=hierarchy, mapping=mapping)
         else:
             raise ValueError(f"Hierarchy level does not exist: {hierarchy}")
