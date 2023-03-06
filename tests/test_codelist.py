@@ -1,6 +1,7 @@
 import pytest
 import pandas as pd
 import pandas.testing as pdt
+from nomenclature.code import Code
 from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
 from nomenclature.error.codelist import DuplicateCodeError
 
@@ -203,14 +204,15 @@ def test_to_yaml_from_directory(tmp_path):
     )
 
 def test_RegionCodeList_hierarchy_filter():
-    """Test that verifies the hierarchy filter can sort through list of regions and 
+    """Test that verifies the hierarchy filter can sort through list of regions and
     give list of regions contained in the given hierarchy"""
 
     # read RegionCodeList
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
-    obs = rcl.hierarchy_filter("countries")
-    exp = ["Some Country"]
-
+    filter_param="countries"
+    obs = rcl.hierarchy_filter(filter_param)
+    mapping: dict[str, Code] = {'Some Country': Code(name='Some Country', description=None, extra_attributes={'iso2': 'XY', 'iso3': 'XYZ', 'hierarchy': 'countries', 'file': 'region_codelist/region.yaml'})}
+    exp: RegionCodeList = RegionCodeList(name=filter_param, mapping=mapping) 
     assert obs == exp
 
 def test_RegionCodeList_hierarchy_filter_ValueError():
@@ -218,5 +220,5 @@ def test_RegionCodeList_hierarchy_filter_ValueError():
 
     # read RegionCodeList
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
-    with pytest.raises(ValueError, match = "No hierarchy found for R77. Either the hierarchy entered is not used for this model, or there was a typo. Try R5, R10, R12, or another standard IAM hierarchy."): 
-        rcl.hierarchy_filter("R77")
+    match = "No hierarchy found for R77. Either the hierarchy entered is not used for this model, or there was a typo."
+    with pytest.raises(ValueError, match = match):rcl.hierarchy_filter("R77")

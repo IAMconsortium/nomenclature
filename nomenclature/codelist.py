@@ -17,6 +17,7 @@ from nomenclature.error.variable import (
 )
 
 
+
 here = Path(__file__).parent.absolute()
 
 
@@ -543,8 +544,8 @@ class RegionCodeList(CodeList):
 
         return cls(name=name, mapping=mapping)
 
-    def hierarchy_filter(self, hierarchy: str) -> List[str]:
-        """A filter that returns the regions within a provided hierarchy.
+    def hierarchy_filter(self, hierarchy: str) -> "RegionCodeList":
+        """A filter that returns the components within a provided hierarchy.
 
         Parameters
         ----------
@@ -553,20 +554,17 @@ class RegionCodeList(CodeList):
 
         Raises
         ------
-        ValueError 
+        ValueError
             If User inputs a typo or a hierarchy not compatible with the given model.
 
         Returns
         -------
-        List[str] 
+        RegionCodeList
             Returns a list of the component regions of the inputted hierarchy.
-        """        
-
-        countries = []
-        for country in self.mapping.values():
-                if country.hierarchy == hierarchy:
-                    countries.append(country.name)
-        if countries != []:        
-            return countries
+        """
+        
+        mapping = {k:v for (k,v) in self.mapping.items() if v.hierarchy == hierarchy}
+        if mapping:
+            return RegionCodeList(name=f"{hierarchy}", mapping=mapping)
         else:
-            raise ValueError(f"No hierarchy found for {hierarchy}. Either the hierarchy entered is not used for this model, or there was a typo. Try R5, R10, R12, or another standard IAM hierarchy.")
+            raise ValueError(f"No hierarchy found for {hierarchy}. Either the hierarchy entered is not used for this model, or there was a typo.")
