@@ -567,4 +567,4 @@ class RegionCodeList(CodeList):
         if mapping:
             return RegionCodeList(name=f"{hierarchy}", mapping=mapping)
         else:
-            raise ValueError(f"No hierarchy found for {hierarchy}.")
+            raise ValueError(f"Hierarchy level does not exist: {hierarchy}")
