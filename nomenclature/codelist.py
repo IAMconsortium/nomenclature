@@ -563,7 +563,7 @@ class RegionCodeList(CodeList):
             Returns a list of the component regions of the inputted hierarchy.
         """
         
-        mapping = {k:v for (k,v) in self.mapping.items() if v.hierarchy == hierarchy}
+        mapping = {k: v for (k, v) in self.mapping.items() if v.hierarchy == hierarchy}
         if mapping:
             return RegionCodeList(name=f"{hierarchy}", mapping=mapping)
         else:
