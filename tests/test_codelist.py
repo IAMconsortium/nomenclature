@@ -212,14 +212,14 @@ def test_RegionCodeList_hierarchy_filter():
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
     filter_param = "countries"
     obs = rcl.filter(filter_param)
-    extra_attributes = {'iso2': 'XY', 'iso3': 'XYZ', 'hierarchy': 'countries', 
+    extra_attributes = {'iso2': 'XY', 'iso3': 'XYZ', 'hierarchy': 'countries',
                         'file': 'region_codelist/region.yaml'}
-    mapping = {'Some Country': Code(name = 'Some Country', description = None, 
-                                    extra_attributes = extra_attributes)}
+    mapping = {'Some Country': Code(name='Some Country', description=None, 
+                                    extra_attributes=extra_attributes)}
     exp = RegionCodeList(name=filter_param, mapping=mapping)
     assert obs == exp
     
-
+    
 def test_RegionCodeList_hierarchy_filter_ValueError():
     """Test that verifies the filter gives error when user inputs an unrecognizeable
     hierarchy"""
@@ -227,5 +227,5 @@ def test_RegionCodeList_hierarchy_filter_ValueError():
     # read RegionCodeList
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
     match = "Hierarchy level does not exist: R77."
-    with pytest.raises(ValueError, match = match):
+    with pytest.raises(ValueError, match=match):
         rcl.filter("R77")
