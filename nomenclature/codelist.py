@@ -562,9 +562,9 @@ class RegionCodeList(CodeList):
         RegionCodeList
             Returns a list of the component regions of the inputted hierarchy.
         """
-        
+
         mapping = {k: v for (k, v) in self.mapping.items() if v.hierarchy == hierarchy}
         if mapping:
             return RegionCodeList(name=f"{hierarchy}", mapping=mapping)
         else:
-            raise ValueError(f"No hierarchy found for {hierarchy}. Either the hierarchy entered is not used for this model, or there was a typo.")
+            raise ValueError(f"No hierarchy found for {hierarchy}.")
