@@ -159,7 +159,6 @@ def test_variable_codelist_multiple_units():
 
 
 def test_to_excel_read_excel_roundtrip(tmpdir):
-
     codelist_dir = TEST_DATA_DIR / "variable_codelist_complex_attr"
 
     # read VariableCodeList
@@ -211,10 +210,17 @@ def test_RegionCodeList_hierarchy_filter():
     # read RegionCodeList
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
     obs = rcl.filter("countries")
-    extra_attributes = {'iso2': 'XY', 'iso3': 'XYZ', 'hierarchy': 'countries',
-                        'file': 'region_codelist/region.yaml'}
-    mapping = {'Some Country': Code(name='Some Country', description=None,
-                                    extra_attributes=extra_attributes)}
+    extra_attributes = {
+        "iso2": "XY",
+        "iso3": "XYZ",
+        "hierarchy": "countries",
+        "file": "region_codelist/region.yaml",
+    }
+    mapping = {
+        "Some Country": Code(
+            name="Some Country", description=None, extra_attributes=extra_attributes
+        )
+    }
     exp = RegionCodeList(name=rcl.name, mapping=mapping)
     assert obs == exp
 
@@ -249,5 +255,5 @@ def test_RegionCodeList_hierarchy_filter_ValueError_four_options():
     rc = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist_four")
     match_a = "No hierarchy found for R77. Options available: "
     match_b = "First Region, Second Region, Third Region and Fourth Region"
-    with pytest.raises(ValueError, match=match_a+match_b):
+    with pytest.raises(ValueError, match=match_a + match_b):
         rc.filter("R77")

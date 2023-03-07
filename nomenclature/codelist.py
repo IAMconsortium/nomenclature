@@ -111,7 +111,6 @@ class CodeList(BaseModel):
     def replace_tags(
         cls, code_list: List[Code], tag_name: str, tags: List[Code]
     ) -> List[Code]:
-
         _code_list: List[Code] = []
 
         for code in code_list:
@@ -572,13 +571,13 @@ class RegionCodeList(CodeList):
             # creating the error message that will be displayed
             n = len(avail_ops)
             msg_1: str = f"No hierarchy found for {hierarchy}. Options available: "
-            if n-1 >= 2:
+            if n - 1 >= 2:
                 # when there are three or more options
                 msg_3: str = (
                     f"{'{} and {}'.format(', '.join(avail_ops[:-1]), avail_ops[-1])}"
                 )
                 raise ValueError(msg_1 + msg_3)
-            elif n-1 == 1:
+            elif n - 1 == 1:
                 # when there are only two options
                 msg_2: str = f"{'{} and {}'.format(avail_ops[0], avail_ops[1])}"
                 raise ValueError(msg_1 + msg_2)
