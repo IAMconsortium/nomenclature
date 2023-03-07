@@ -202,30 +202,52 @@ def test_to_yaml_from_directory(tmp_path):
     assert remove_file_from_mapping(obs.mapping) == remove_file_from_mapping(
         exp.mapping
     )
-    
-    
+
+
 def test_RegionCodeList_hierarchy_filter():
     """Test that verifies the hierarchy filter can sort through list of regions and
     give list of regions contained in the given hierarchy"""
 
     # read RegionCodeList
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
-    name = rcl.name
     obs = rcl.filter("countries")
     extra_attributes = {'iso2': 'XY', 'iso3': 'XYZ', 'hierarchy': 'countries',
                         'file': 'region_codelist/region.yaml'}
-    mapping = {'Some Country': Code(name='Some Country', description=None, 
+    mapping = {'Some Country': Code(name='Some Country', description=None,
                                     extra_attributes=extra_attributes)}
-    exp = RegionCodeList(name=name, mapping=mapping)
+    exp = RegionCodeList(name=rcl.name, mapping=mapping)
     assert obs == exp
-    
-    
-def test_RegionCodeList_hierarchy_filter_ValueError():
+
+
+def test_RegionCodeList_hierarchy_filter_ValueError_one_option():
     """Test that verifies the filter gives error when user inputs an unrecognizeable
-    hierarchy"""
-    
+    hierarchy and there is one possible hierarcy to enter"""
+
     # read RegionCodeList
-    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
-    match = "No hierarchy found for R77. Options available: 'common', 'countries'."
+    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist_one")
+    match = "No hierarchy found for R77. Options available: common"
     with pytest.raises(ValueError, match=match):
         rcl.filter("R77")
+
+
+def test_RegionCodeList_hierarchy_filter_ValueError_two_options():
+    """Test that verifies the filter gives error when user inputs an unrecognizeable
+    hierarchy and there are only 2 possible hierarchies to enter"""
+
+    # read RegionCodeList
+    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
+    match = "No hierarchy found for R77. Options available: common and countries"
+    with pytest.raises(ValueError, match=match):
+        rcl.filter("R77")
+
+
+def test_RegionCodeList_hierarchy_filter_ValueError_four_options():
+    """Test that verifies the filter gives error when user inputs an unrecognizeable
+    hierarchy and there are 3+ possible hierarchies to enter"""
+
+    # read RegionCodeList
+    rc = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist_four")
+    match_a = "No hierarchy found for R77. Options available: "
+    match_b = "First Region, Second Region, Third Region and Fourth Region"
+    with pytest.raises(ValueError, match=match_a+match_b):
+        rc.filter("R77")
