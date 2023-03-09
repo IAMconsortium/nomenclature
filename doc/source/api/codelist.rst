@@ -5,3 +5,11 @@
 
 .. autoclass:: CodeList
    :members:
+
+
+.. autoclass:: VariableCodeList
+   :members:
+
+
+.. autoclass:: RegionCodeList
+   :members:
