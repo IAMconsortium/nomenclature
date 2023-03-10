@@ -544,6 +544,7 @@ class RegionCodeList(CodeList):
 
     def filter(self, hierarchy: str) -> "RegionCodeList":
         """A filter that returns the components within a provided hierarchy.
+
         Parameters
         ----------
         hierarchy : str
