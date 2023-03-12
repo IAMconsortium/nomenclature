@@ -553,7 +553,8 @@ def _merge_with_provided_data(
 
     # merge aggregated data onto original common-region data
     index = aggregate_df._data.index.difference(common_region_df._data.index)
-    return common_region_df.append(aggregate_df._data[index])
+    aggregate_df = pyam.IamDataFrame(aggregate_df._data[index], meta=aggregate_df.meta)
+    return common_region_df.append(aggregate_df)
 
 
 def _check_exclude_region_overlap(values: Dict, region_type: str) -> Dict:
