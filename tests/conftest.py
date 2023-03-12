@@ -42,10 +42,10 @@ def simple_df():
 def add_meta(df):
     """Add simple meta indicators"""
     if len(df.index) == 1:
-        df.set_meta([1], "number")
+        df.set_meta([1.], "number")
         df.set_meta(["foo"], "string")
     if len(df.index) == 2:
-        df.set_meta([1, 2], "number")
+        df.set_meta([1., 2.], "number")
         df.set_meta(["foo", np.nan], "string")
 
 
