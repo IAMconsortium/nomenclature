@@ -411,123 +411,129 @@ class RegionProcessor(BaseModel):
 
             model_df = df.filter(model=model)
 
-            # If no mapping is defined the data frame is returned unchanged
+            # if no mapping is defined the data frame is returned unchanged
             if model not in self.mappings:
                 logger.info(f"No model mapping found for model '{model}'")
                 processed_dfs.append(model_df)
 
-            # Otherwise we first rename, then aggregate
+            # otherwise we first rename, then aggregate
             else:
-
-                # Before aggregating, check that all regions are valid
-                self.mappings[model].validate_regions(self.region_codelist)
                 file = self.mappings[model].file
                 logger.info(
                     f"Applying region-processing for model '{model}' from '{file}'"
                 )
+                processed_dfs.append(self._apply_region_processing(model_df))
 
-                # Check for regions not mentioned in the model mapping
-                self.mappings[model].check_unexpected_regions(model_df)
-                _processed_data: List[pd.Series] = []
+        return pyam.concat(processed_dfs)
 
-                # Silence pyam's empty filter warnings
-                with adjust_log_level(logger="pyam", level="ERROR"):
-                    # Rename
-                    if self.mappings[model].native_regions is not None:
-                        _df = model_df.filter(
-                            region=self.mappings[model].model_native_region_names
+    def _apply_region_processing(self, model_df: IamDataFrame) -> IamDataFrame:
+        """Apply the region processing for a single model"""
+        if len(model_df.model) != 1:
+            raise ValueError(
+                f"Must be called for a unique model, found: {model_df.model}"
+            )
+        model = model_df.model[0]
+
+        # before aggregating, check that all regions are valid
+        self.mappings[model].validate_regions(self.region_codelist)
+
+        # check for regions not mentioned in the model mapping
+        self.mappings[model].check_unexpected_regions(model_df)
+
+        _processed_data: List[pd.Series] = []
+
+        # silence pyam's empty filter warnings
+        with adjust_log_level(logger="pyam", level="ERROR"):
+            # rename native regions
+            if self.mappings[model].native_regions is not None:
+                _df = model_df.filter(
+                    region=self.mappings[model].model_native_region_names
+                )
+                if not _df.empty:
+                    _processed_data.append(
+                        _df.rename(region=self.mappings[model].rename_mapping)._data
+                    )
+
+            # aggregate common regions
+            if self.mappings[model].common_regions is not None:
+
+                for cr in self.mappings[model].common_regions:
+                    # if a common region is consists of a single native region, rename
+                    if cr.is_single_constituent_region:
+                        _df = model_df.filter(region=cr.constituent_regions[0]).rename(
+                            region=cr.rename_dict
                         )
                         if not _df.empty:
-                            _processed_data.append(
-                                _df.rename(
-                                    region=self.mappings[model].rename_mapping
-                                )._data
-                            )
+                            _processed_data.append(_df._data)
+                        continue
 
-                    # Aggregate
-                    if self.mappings[model].common_regions is not None:
+                    # if there are multiple constituent regions, aggregate
+                    regions = [cr.name, cr.constituent_regions]
 
-                        for cr in self.mappings[model].common_regions:
-                            # If the common region is only comprised of a single model
-                            # native region, just rename
-                            if cr.is_single_constituent_region:
-                                _df = model_df.filter(
-                                    region=cr.constituent_regions[0]
-                                ).rename(region=cr.rename_dict)
-                                if not _df.empty:
-                                    _processed_data.append(_df._data)
-                                continue
+                    # first, perform 'simple' aggregation (no arguments)
+                    simple_vars = [
+                        var.name
+                        for var in self.variable_codelist.vars_default_args(
+                            model_df.variable
+                        )
+                    ]
+                    _df = model_df.aggregate_region(
+                        simple_vars,
+                        *regions,
+                    )
+                    if _df is not None and not _df.empty:
+                        _processed_data.append(_df._data)
 
-                            # if there are multiple constituent regions, aggregate
-                            regions = [cr.name, cr.constituent_regions]
-
-                            # First, perform 'simple' aggregation (no arguments)
-                            simple_vars = [
-                                var.name
-                                for var in self.variable_codelist.vars_default_args(
-                                    df.variable
-                                )
-                            ]
-                            _df = model_df.aggregate_region(
-                                simple_vars,
+                    # second, special weighted aggregation
+                    for var in self.variable_codelist.vars_kwargs(model_df.variable):
+                        if var.region_aggregation is None:
+                            _df = _aggregate_region(
+                                model_df,
+                                var.name,
                                 *regions,
+                                **var.pyam_agg_kwargs,
                             )
                             if _df is not None and not _df.empty:
                                 _processed_data.append(_df._data)
-
-                            # Second, special weighted aggregation
-                            for var in self.variable_codelist.vars_kwargs(df.variable):
-                                if var.region_aggregation is None:
+                        else:
+                            for rename_var in var.region_aggregation:
+                                for _rename, _kwargs in rename_var.items():
                                     _df = _aggregate_region(
                                         model_df,
                                         var.name,
                                         *regions,
-                                        **var.pyam_agg_kwargs,
+                                        **_kwargs,
                                     )
                                     if _df is not None and not _df.empty:
-                                        _processed_data.append(_df._data)
-                                else:
-                                    for rename_var in var.region_aggregation:
-                                        for _rename, _kwargs in rename_var.items():
-                                            _df = _aggregate_region(
-                                                model_df,
-                                                var.name,
-                                                *regions,
-                                                **_kwargs,
-                                            )
-                                            if _df is not None and not _df.empty:
-                                                _processed_data.append(
-                                                    _df.rename(
-                                                        variable={var.name: _rename}
-                                                    )._data
-                                                )
+                                        _processed_data.append(
+                                            _df.rename(
+                                                variable={var.name: _rename}
+                                            )._data
+                                        )
 
-                    common_region_df = model_df.filter(
-                        region=self.mappings[model].common_region_names,
-                        variable=self.variable_codelist,
-                    )
+            common_region_df = model_df.filter(
+                region=self.mappings[model].common_region_names,
+                variable=self.variable_codelist,
+            )
 
-                    # concatenate and merge with data provided at common-region level
-                    if _processed_data:
-                        _data = pd.concat(_processed_data)
-                        if not common_region_df.empty:
-                            _data = _compare_and_merge(common_region_df._data, _data)
+            # concatenate and merge with data provided at common-region level
+            if _processed_data:
+                _data = pd.concat(_processed_data)
+                if not common_region_df.empty:
+                    _data = _compare_and_merge(common_region_df._data, _data)
 
-                    # if data exists only at the common-region level
-                    elif not common_region_df.empty:
-                        _data = common_region_df._data
+            # if data exists only at the common-region level
+            elif not common_region_df.empty:
+                _data = common_region_df._data
 
-                    # raise an error if region-processing yields an empty result
-                    else:
-                        raise ValueError(
-                            f"Region-processing for model '{model}' returned an empty "
-                            "dataset"
-                        )
+            # raise an error if region-processing yields an empty result
+            else:
+                raise ValueError(
+                    f"Region-processing for model '{model}' returned an empty dataset"
+                )
 
-                # cast processed timeseries data and meta indicators to IamDataFrame
-                processed_dfs.append(IamDataFrame(_data, meta=model_df.meta))
-
-        return pyam.concat(processed_dfs)
+        # cast processed timeseries data and meta indicators to IamDataFrame
+        return IamDataFrame(_data, meta=model_df.meta)
 
 
 def _aggregate_region(df, var, *regions, **kwargs):
