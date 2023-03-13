@@ -63,7 +63,7 @@ def test_region_processing_empty_raises(rp_dir):
             columns=IAMC_IDX + [2005, 2010],
         )
     )
-    with pytest.raises(ValueError, match=("'model_a', 'model_b'.*empty dataset")):
+    with pytest.raises(ValueError, match=("Region.*'model_a'.*empty dataset")):
         process(
             test_df,
             dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
