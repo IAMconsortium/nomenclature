@@ -408,9 +408,8 @@ class RegionProcessor(BaseModel):
         """
         processed_dfs: List[IamDataFrame] = []
         for model in df.model:
-            model_df = df.filter(model=model)
 
-            _processed_data: List[pd.Series] = []
+            model_df = df.filter(model=model)
 
             # If no mapping is defined the data frame is returned unchanged
             if model not in self.mappings:
@@ -419,15 +418,17 @@ class RegionProcessor(BaseModel):
 
             # Otherwise we first rename, then aggregate
             else:
-                # before aggregating, check that all regions are valid
+
+                # Before aggregating, check that all regions are valid
                 self.mappings[model].validate_regions(self.region_codelist)
+                file = self.mappings[model].file
                 logger.info(
-                    f"Applying region-processing for model '{model}' from file "
-                    f"{self.mappings[model].file}"
+                    f"Applying region-processing for model '{model}' from '{file}'"
                 )
+
                 # Check for regions not mentioned in the model mapping
                 self.mappings[model].check_unexpected_regions(model_df)
-                _processed_data = []
+                _processed_data: List[pd.Series] = []
 
                 # Silence pyam's empty filter warnings
                 with adjust_log_level(logger="pyam", level="ERROR"):
@@ -510,7 +511,7 @@ class RegionProcessor(BaseModel):
                     if _processed_data:
                         _data = pd.concat(_processed_data)
                         if not common_region_df.empty:
-                            _data = _merge(_data, common_region_df._data)
+                            _data = _compare_and_merge(common_region_df._data, _data)
 
                     # if data exists only at the common-region level
                     elif not common_region_df.empty:
@@ -542,13 +543,13 @@ def _aggregate_region(df, var, *regions, **kwargs):
             raise e
 
 
-def _merge(_processed_data: pd.Series, _provided_data: pd.Series) -> IamDataFrame:
-    """Compare and merge provided and aggregated results"""
+def _compare_and_merge(original: pd.Series, aggregated: pd.Series, ) -> IamDataFrame:
+    """Compare and merge original and aggregated results"""
 
     # compare processed (aggregated) data and data provided at the common-region level
     compare = pd.merge(
-        left=_provided_data.rename(index="common-region"),
-        right=_processed_data.rename(index="aggregation"),
+        left=original.rename(index="original"),
+        right=aggregated.rename(index="aggregated"),
         how="outer",
         left_index=True,
         right_index=True,
@@ -556,14 +557,14 @@ def _merge(_processed_data: pd.Series, _provided_data: pd.Series) -> IamDataFram
 
     # drop rows that are not in conflict
     compare = compare.dropna()
-    compare = compare[~np.isclose(compare["common-region"], compare["aggregation"])]
+    compare = compare[~np.isclose(compare["original"], compare["aggregated"])]
 
     if compare is not None and len(compare):
         logging.warning(f"Difference between original and aggregated data:\n{compare}")
 
     # merge aggregated data onto original common-region data
-    index = _processed_data.index.difference(_provided_data.index)
-    return pd.concat([_provided_data, _processed_data[index]])
+    index = aggregated.index.difference(original.index)
+    return pd.concat([original, aggregated[index]])
 
 
 def _check_exclude_region_overlap(values: Dict, region_type: str) -> Dict:
