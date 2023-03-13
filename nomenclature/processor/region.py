@@ -438,7 +438,9 @@ class RegionProcessor(BaseModel):
                         )
                         if not _df.empty:
                             _processed_data.append(
-                                _df.rename(region=self.mappings[model].rename_mapping)._data
+                                _df.rename(
+                                    region=self.mappings[model].rename_mapping
+                                )._data
                             )
 
                     # Aggregate
@@ -449,8 +451,8 @@ class RegionProcessor(BaseModel):
                             # native region, just rename
                             if cr.is_single_constituent_region:
                                 _df = model_df.filter(
-                                        region=cr.constituent_regions[0]
-                                    ).rename(region=cr.rename_dict)
+                                    region=cr.constituent_regions[0]
+                                ).rename(region=cr.rename_dict)
                                 if not _df.empty:
                                     _processed_data.append(_df._data)
                                 continue
@@ -466,9 +468,9 @@ class RegionProcessor(BaseModel):
                                 )
                             ]
                             _df = model_df.aggregate_region(
-                                    simple_vars,
-                                    *regions,
-                                )
+                                simple_vars,
+                                *regions,
+                            )
                             if _df is not None and not _df.empty:
                                 _processed_data.append(_df._data)
 
