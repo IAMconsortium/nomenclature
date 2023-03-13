@@ -543,7 +543,7 @@ def _aggregate_region(df, var, *regions, **kwargs):
             raise e
 
 
-def _compare_and_merge(original: pd.Series, aggregated: pd.Series, ) -> IamDataFrame:
+def _compare_and_merge(original: pd.Series, aggregated: pd.Series) -> IamDataFrame:
     """Compare and merge original and aggregated results"""
 
     # compare processed (aggregated) data and data provided at the common-region level
