@@ -237,3 +237,10 @@ def test_RegionCodeList_hierarchy_filter_ValueError():
     )
     with pytest.raises(ValueError, match=match):
         rcl.filter("R77")
+
+
+def test_hierarchy():
+    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
+    match = "This method is not yet implemented."
+    with pytest.raises(NotImplementedError, match=match):
+        rcl.hierarchy
