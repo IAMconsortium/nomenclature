@@ -203,7 +203,7 @@ def test_to_yaml_from_directory(tmp_path):
     )
 
 
-def test_RegionCodeList_hierarchy_filter():
+def test_RegionCodeList_filter():
     """Test that verifies the hierarchy filter can sort through list of regions and
     give list of regions contained in the given hierarchy"""
 
@@ -225,7 +225,7 @@ def test_RegionCodeList_hierarchy_filter():
     assert obs == exp
 
 
-def test_RegionCodeList_hierarchy_filter_ValueError():
+def test_RegionCodeList_filter_ValueError():
     """Test that verifies the filter gives error when user inputs an unrecognizeable
     hierarchy"""
 
@@ -239,8 +239,33 @@ def test_RegionCodeList_hierarchy_filter_ValueError():
         rcl.filter("R77")
 
 
-def test_hierarchy():
+def test_RegionCodeList_hierarchy_one_option():
+    """Verifies that when only one hierarchy available, hierarchy() returns
+    str specifying that hierarchy"""
+
+    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist_one")
+    match = "Options available: common"
+    assert rcl.hierarchy() == match
+
+
+def test_RegionCodeList_hierarchy_two_options():
+    """Verifies that when there are two hierarchies available, hierarchy() returns
+    str specifying them with only an 'and' in between"""
+
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
-    match = "This method is not yet implemented."
-    with pytest.raises(NotImplementedError, match=match):
-        rcl.hierarchy
+    match = "Options available: common and countries"
+    assert rcl.hierarchy() == match
+
+
+def test_RegionCodeList_hierarchy_four_options():
+    """Verifies that when there are more than three hierarchies available,
+    hierarchy() returns str specifying them with commas and an 'and' in between
+    the last hierarchies"""
+
+    rcl = RegionCodeList.from_directory(
+        "Region", TEST_DATA_DIR / "region_codelist_four"
+    )
+    match = (
+        "Options available: First Region, Second Region, Third Region and Fourth Region"
+    )
+    assert rcl.hierarchy() == match
