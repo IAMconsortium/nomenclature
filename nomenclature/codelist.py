@@ -542,6 +542,7 @@ class RegionCodeList(CodeList):
 
         return cls(name=name, mapping=mapping)
 
+    @property
     def hierarchy(self) -> str:
         """Return string of available hierarchies to filter
 
