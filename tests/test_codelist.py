@@ -225,35 +225,15 @@ def test_RegionCodeList_hierarchy_filter():
     assert obs == exp
 
 
-def test_RegionCodeList_hierarchy_filter_ValueError_one_option():
+def test_RegionCodeList_hierarchy_filter_ValueError():
     """Test that verifies the filter gives error when user inputs an unrecognizeable
-    hierarchy and there is one possible hierarcy to enter"""
-
-    # read RegionCodeList
-    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist_one")
-    match = "No hierarchy found for R77. Options available: common"
-    with pytest.raises(ValueError, match=match):
-        rcl.filter("R77")
-
-
-def test_RegionCodeList_hierarchy_filter_ValueError_two_options():
-    """Test that verifies the filter gives error when user inputs an unrecognizeable
-    hierarchy and there are only 2 possible hierarchies to enter"""
+    hierarchy"""
 
     # read RegionCodeList
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
-    match = "No hierarchy found for R77. Options available: common and countries"
+    match = (
+        "Filtered RegionCodeList is empty: hierarchy=R77\n"
+        "Use `RegionCodeList.hierarchy` for available items."
+    )
     with pytest.raises(ValueError, match=match):
         rcl.filter("R77")
-
-
-def test_RegionCodeList_hierarchy_filter_ValueError_four_options():
-    """Test that verifies the filter gives error when user inputs an unrecognizeable
-    hierarchy and there are 3+ possible hierarchies to enter"""
-
-    # read RegionCodeList
-    rc = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist_four")
-    match_a = "No hierarchy found for R77. Options available: "
-    match_b = "First Region, Second Region, Third Region and Fourth Region"
-    with pytest.raises(ValueError, match=match_a + match_b):
-        rc.filter("R77")

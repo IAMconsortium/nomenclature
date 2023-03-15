@@ -542,46 +542,40 @@ class RegionCodeList(CodeList):
 
         return cls(name=name, mapping=mapping)
 
+    def hierarchy(self):
+        raise NotImplementedError("This method is not yet implemented.")
+
     def filter(self, hierarchy: str) -> "RegionCodeList":
-        """A filter that returns the components within a provided hierarchy.
+        """Return a filtered RegionCodeList object
 
         Parameters
         ----------
         hierarchy : str
-            The name of the hierarchy whose components you are looking for.
+            String with filter parameter.
+
         Raises
         ------
         ValueError
-            If User inputs a typo or a hierarchy not compatible with the given model.
+            Provided hierarchy is not compatible with the given model.
+
         Returns
         -------
-        RegionCodeList
-            Returns a list of the component regions of the inputted hierarchy.
+        :class:'RegionCodeList'
+
+        Notes
+        -----
+        The following arguments are available for filtering:
+
+        - 'hierarchy': filter by the hierarchy of each region
+
         """
 
         mapping = {k: v for k, v in self.mapping.items() if v.hierarchy == hierarchy}
         if mapping:
             return RegionCodeList(name=self.name, mapping=mapping)
         else:
-            # creating list of possible hierarchies user can enter
-            avail_ops = []
-            for v in self.mapping.values():
-                # making sure there are no duplicates in avail_ops
-                if v.hierarchy not in avail_ops:
-                    avail_ops.append(v.hierarchy)
-            # creating the error message that will be displayed
-            n = len(avail_ops)
-            msg_1: str = f"No hierarchy found for {hierarchy}. Options available: "
-            if n - 1 >= 2:
-                # when there are three or more options
-                msg_3: str = (
-                    f"{'{} and {}'.format(', '.join(avail_ops[:-1]), avail_ops[-1])}"
-                )
-                raise ValueError(msg_1 + msg_3)
-            elif n - 1 == 1:
-                # when there are only two options
-                msg_2: str = f"{'{} and {}'.format(avail_ops[0], avail_ops[1])}"
-                raise ValueError(msg_1 + msg_2)
-            else:
-                # when there is only one option
-                raise ValueError(msg_1 + f"{avail_ops[0]}")
+            msg: str = (
+                f"Filtered RegionCodeList is empty: hierarchy={hierarchy}\n"
+                "Use `RegionCodeList.hierarchy` for available items."
+            )
+            raise ValueError(msg)
