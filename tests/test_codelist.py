@@ -1,6 +1,7 @@
 import pytest
 import pandas as pd
 import pandas.testing as pdt
+from nomenclature.code import Code
 from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
 from nomenclature.error.codelist import DuplicateCodeError
 
@@ -158,7 +159,6 @@ def test_variable_codelist_multiple_units():
 
 
 def test_to_excel_read_excel_roundtrip(tmpdir):
-
     codelist_dir = TEST_DATA_DIR / "variable_codelist_complex_attr"
 
     # read VariableCodeList
@@ -201,3 +201,46 @@ def test_to_yaml_from_directory(tmp_path):
     assert remove_file_from_mapping(obs.mapping) == remove_file_from_mapping(
         exp.mapping
     )
+
+
+def test_RegionCodeList_hierarchy_filter():
+    """Test that verifies the hierarchy filter can sort through list of regions and
+    give list of regions contained in the given hierarchy"""
+
+    # read RegionCodeList
+    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
+    obs = rcl.filter("countries")
+    extra_attributes = {
+        "iso2": "XY",
+        "iso3": "XYZ",
+        "hierarchy": "countries",
+        "file": "region_codelist/region.yaml",
+    }
+    mapping = {
+        "Some Country": Code(
+            name="Some Country", description=None, extra_attributes=extra_attributes
+        )
+    }
+    exp = RegionCodeList(name=rcl.name, mapping=mapping)
+    assert obs == exp
+
+
+def test_RegionCodeList_hierarchy_filter_ValueError():
+    """Test that verifies the filter gives error when user inputs an unrecognizeable
+    hierarchy"""
+
+    # read RegionCodeList
+    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
+    match = (
+        "Filtered RegionCodeList is empty: hierarchy=R77\n"
+        "Use `RegionCodeList.hierarchy` for available items."
+    )
+    with pytest.raises(ValueError, match=match):
+        rcl.filter("R77")
+
+
+def test_hierarchy():
+    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
+    match = "This method is not yet implemented."
+    with pytest.raises(NotImplementedError, match=match):
+        rcl.hierarchy

@@ -111,7 +111,6 @@ class CodeList(BaseModel):
     def replace_tags(
         cls, code_list: List[Code], tag_name: str, tags: List[Code]
     ) -> List[Code]:
-
         _code_list: List[Code] = []
 
         for code in code_list:
@@ -524,7 +523,7 @@ class RegionCodeList(CodeList):
             with open(yaml_file, "r", encoding="utf-8") as stream:
                 _code_list = yaml.safe_load(stream)
 
-            # a "region" codelist assumes a top-level key to be used as attribute
+            # a "region" codelist assumes a top-level category to be used as attribute
             for top_level_cat in _code_list:
                 for top_key, _codes in top_level_cat.items():
                     for item in _codes:
@@ -542,3 +541,42 @@ class RegionCodeList(CodeList):
             mapping[code.name] = code
 
         return cls(name=name, mapping=mapping)
+
+    @property
+    def hierarchy(self):
+        raise NotImplementedError("This method is not yet implemented.")
+
+    def filter(self, hierarchy: str) -> "RegionCodeList":
+        """Return a filtered RegionCodeList object
+
+        Parameters
+        ----------
+        hierarchy : str
+            String with filter parameter.
+
+        Raises
+        ------
+        ValueError
+            Provided hierarchy is not compatible with the given model.
+
+        Returns
+        -------
+        :class:'RegionCodeList'
+
+        Notes
+        -----
+        The following arguments are available for filtering:
+
+        - 'hierarchy': filter by the hierarchy of each region
+
+        """
+
+        mapping = {k: v for k, v in self.mapping.items() if v.hierarchy == hierarchy}
+        if mapping:
+            return RegionCodeList(name=self.name, mapping=mapping)
+        else:
+            msg: str = (
+                f"Filtered RegionCodeList is empty: hierarchy={hierarchy}\n"
+                "Use `RegionCodeList.hierarchy` for available items."
+            )
+            raise ValueError(msg)
