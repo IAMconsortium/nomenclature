@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List
 import pytest
+import numpy as np
 import pandas as pd
 from pyam import IamDataFrame, IAMC_IDX
 from nomenclature import DataStructureDefinition
@@ -33,7 +34,19 @@ def extras_definition():
 
 @pytest.fixture(scope="function")
 def simple_df():
-    yield IamDataFrame(TEST_DF)
+    df = IamDataFrame(TEST_DF)
+    add_meta(df)
+    yield df
+
+
+def add_meta(df):
+    """Add simple meta indicators"""
+    if len(df.index) == 1:
+        df.set_meta([1.0], "number")
+        df.set_meta(["foo"], "string")
+    if len(df.index) == 2:
+        df.set_meta([1.0, 2.0], "number")
+        df.set_meta(["foo", np.nan], "string")
 
 
 def remove_file_from_mapping(mapping: Dict[str, Code]) -> List[Dict]:
