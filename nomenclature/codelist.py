@@ -544,20 +544,14 @@ class RegionCodeList(CodeList):
 
     @property
     def hierarchy(self) -> List[str]:
-        """Return List of strings of available hierarchies to filter
+        """Return the hierarchies defined in the RegionCodeList
 
         Returns
         -------
         List[str]
 
         """
-
-        # creates a sorted list of strings from a set with
-        # all available hierarchy options
-        avail_ops: List[str] = sorted(
-            list({v.hierarchy for v in self.mapping.values()})
-        )
-        return avail_ops
+        return sorted(list({v.hierarchy for v in self.mapping.values()}))
 
     def filter(self, hierarchy: str) -> "RegionCodeList":
         """Return a filtered RegionCodeList object
