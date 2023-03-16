@@ -239,33 +239,9 @@ def test_RegionCodeList_filter_ValueError():
         rcl.filter("R77")
 
 
-def test_RegionCodeList_hierarchy_one_option():
-    """Verifies that when only one hierarchy available, hierarchy() returns
-    str specifying that hierarchy"""
-
-    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist_one")
-    match = "Option available: common"
-    assert rcl.hierarchy == match
-
-
-def test_RegionCodeList_hierarchy_two_options():
-    """Verifies that when there are two hierarchies available, hierarchy() returns
-    str specifying them with only an 'and' in between"""
+def test_RegionCodeList_hierarchy():
+    """Verifies that the hierarchy method returns a List[str]"""
 
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
-    match = "Options available: common and countries"
-    assert rcl.hierarchy == match
-
-
-def test_RegionCodeList_hierarchy_four_options():
-    """Verifies that when there are more than three hierarchies available,
-    hierarchy() returns str specifying them with commas and an 'and' in between
-    the last hierarchies"""
-
-    rcl = RegionCodeList.from_directory(
-        "Region", TEST_DATA_DIR / "region_codelist_four"
-    )
-    match = (
-        "Options available: First Region, Fourth Region, Second Region and Third Region"
-    )
+    match = ["common", "countries"]
     assert rcl.hierarchy == match

@@ -543,26 +543,21 @@ class RegionCodeList(CodeList):
         return cls(name=name, mapping=mapping)
 
     @property
-    def hierarchy(self) -> str:
+    def hierarchy(self) -> List[str]:
         """Return string of available hierarchies to filter
 
         Returns
         -------
-        str
+        List[str]
 
         """
 
-        # creates a sorted list from a set with all available hierarchy options
-        avail_ops: list = sorted(list({v.hierarchy for v in self.mapping.values()}))
-        n = len(avail_ops)
-        # creates a message with the availble hierarchies with appropriate
-        # commas and 'and's
-        msg: str = (
-            f"Options available: {', '.join(avail_ops[:-1])} and {avail_ops[-1]}"
-            if n > 1
-            else f"Option available: {avail_ops[0]}"
+        # creates a sorted list of strings from a set with
+        # all available hierarchy options
+        avail_ops: List[str] = sorted(
+            list({v.hierarchy for v in self.mapping.values()})
         )
-        return msg
+        return avail_ops
 
     def filter(self, hierarchy: str) -> "RegionCodeList":
         """Return a filtered RegionCodeList object
