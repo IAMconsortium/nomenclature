@@ -544,7 +544,7 @@ class RegionCodeList(CodeList):
 
     @property
     def hierarchy(self) -> List[str]:
-        """Return string of available hierarchies to filter
+        """Return List of strings of available hierarchies to filter
 
         Returns
         -------
