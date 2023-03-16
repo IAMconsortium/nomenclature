@@ -244,8 +244,8 @@ def test_RegionCodeList_hierarchy_one_option():
     str specifying that hierarchy"""
 
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist_one")
-    match = "Options available: common"
-    assert rcl.hierarchy() == match
+    match = "Option available: common"
+    assert rcl.hierarchy == match
 
 
 def test_RegionCodeList_hierarchy_two_options():
@@ -254,7 +254,7 @@ def test_RegionCodeList_hierarchy_two_options():
 
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
     match = "Options available: common and countries"
-    assert rcl.hierarchy() == match
+    assert rcl.hierarchy == match
 
 
 def test_RegionCodeList_hierarchy_four_options():
@@ -266,6 +266,6 @@ def test_RegionCodeList_hierarchy_four_options():
         "Region", TEST_DATA_DIR / "region_codelist_four"
     )
     match = (
-        "Options available: First Region, Second Region, Third Region and Fourth Region"
+        "Options available: First Region, Fourth Region, Second Region and Third Region"
     )
-    assert rcl.hierarchy() == match
+    assert rcl.hierarchy == match

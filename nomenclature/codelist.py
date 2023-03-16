@@ -551,28 +551,18 @@ class RegionCodeList(CodeList):
         str
 
         """
-        # creating list of possible hierarchies user can enter
-        avail_ops = []
-        for v in self.mapping.values():
-            # making sure there are no duplicates in avail_ops
-            if v.hierarchy not in avail_ops:
-                avail_ops.append(v.hierarchy)
-        # creating the error message that will be displayed
+
+        # creates a sorted list from a set with all available hierarchy options
+        avail_ops: list = sorted(list({v.hierarchy for v in self.mapping.values()}))
         n = len(avail_ops)
-        msg_1: str = "Options available: "
-        if n - 1 >= 2:
-            # when there are three or more options
-            msg_3: str = (
-                f"{'{} and {}'.format(', '.join(avail_ops[:-1]), avail_ops[-1])}"
-            )
-            return msg_1 + msg_3
-        elif n - 1 == 1:
-            # when there are only two options
-            msg_2: str = f"{'{} and {}'.format(avail_ops[0], avail_ops[1])}"
-            return msg_1 + msg_2
-        else:
-            # when there is only one option
-            return msg_1 + f"{avail_ops[0]}"
+        # creates a message with the availble hierarchies with appropriate
+        # commas and 'and's
+        msg: str = (
+            f"Options available: {', '.join(avail_ops[:-1])} and {avail_ops[-1]}"
+            if n > 1
+            else f"Option available: {avail_ops[0]}"
+        )
+        return msg
 
     def filter(self, hierarchy: str) -> "RegionCodeList":
         """Return a filtered RegionCodeList object

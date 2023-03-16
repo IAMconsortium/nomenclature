@@ -13,10 +13,9 @@
       part1: peatbogs
       part2: forest
 - Fourth Region:
-  - North America:
-      country1: Canada
-      country2: USA
-      country3: Mexico
-  - South America:
-      country1: Brazil
-      country2: Argentina
+  - ComponentC:
+      part1: sunny
+      part2: cloudy
+  - ComponentD:
+      part1: mountains
+      part2: beach
