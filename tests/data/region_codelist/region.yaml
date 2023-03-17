@@ -5,3 +5,6 @@
   - Some Country:
       iso2: XY
       iso3: XYZ
+  - Another Country:
+      iso4: AB
+      iso5: ABC

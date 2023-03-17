@@ -551,7 +551,7 @@ class RegionCodeList(CodeList):
         List[str]
 
         """
-        return sorted(list({v.hierarchy for v in self.mapping.values()}))
+        return sorted(list(set(v.hierarchy for v in self.mapping.values())))
 
     def filter(self, hierarchy: str) -> "RegionCodeList":
         """Return a filtered RegionCodeList object

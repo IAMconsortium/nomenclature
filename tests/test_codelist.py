@@ -210,16 +210,25 @@ def test_RegionCodeList_filter():
     # read RegionCodeList
     rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
     obs = rcl.filter("countries")
-    extra_attributes = {
+    extra_attributes_1 = {
         "iso2": "XY",
         "iso3": "XYZ",
         "hierarchy": "countries",
         "file": "region_codelist/region.yaml",
     }
+    extra_attributes_2 = {
+        "iso4": "AB",
+        "iso5": "ABC",
+        "hierarchy": "countries",
+        "file": "region_codelist/region.yaml",
+    }
     mapping = {
         "Some Country": Code(
-            name="Some Country", description=None, extra_attributes=extra_attributes
-        )
+            name="Some Country", description=None, extra_attributes=extra_attributes_1
+        ),
+        "Another Country": Code(
+            name="Another Country", descripion=None, extra_attributes=extra_attributes_2
+        ),
     }
     exp = RegionCodeList(name=rcl.name, mapping=mapping)
     assert obs == exp
