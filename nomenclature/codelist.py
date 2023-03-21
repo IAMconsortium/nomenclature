@@ -379,13 +379,7 @@ class CodeList(BaseModel):
                 if json_serialized
                 else code.flattened_dict
             )
-            code_dict = {
-                k: v
-                for k, v in code_dict.items()
-                if (v is not None and k != "name") or k == "unit"
-            }
-
-            nice_dict[name] = code_dict
+            nice_dict[name] = {k: v for k, v in code_dict.items() if k != "name"}
 
         return nice_dict
 
