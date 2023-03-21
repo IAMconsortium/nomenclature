@@ -37,7 +37,6 @@ def test_codelist_to_yaml():
         "    description: Some basic variable\n"
         "    unit:\n"
         "    skip-region-aggregation: false\n"
-        "    check-aggregate: false\n"
         "    bool: true\n"
         "    file: simple_codelist/foo.yaml\n"
     )
