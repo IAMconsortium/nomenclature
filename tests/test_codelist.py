@@ -208,26 +208,28 @@ def test_RegionCodeList_filter():
     give list of regions contained in the given hierarchy"""
 
     # read RegionCodeList
-    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
+    rcl = RegionCodeList.from_directory(
+        "Region", TEST_DATA_DIR / "region_to_filter_codelist"
+    )
     obs = rcl.filter("countries")
     extra_attributes_1 = {
-        "iso2": "XY",
-        "iso3": "XYZ",
         "hierarchy": "countries",
-        "file": "region_codelist/region.yaml",
+        "file": "region_to_filter_codelist/region_filtering.yaml",
     }
     extra_attributes_2 = {
-        "iso4": "AB",
-        "iso5": "ABC",
         "hierarchy": "countries",
-        "file": "region_codelist/region.yaml",
+        "file": "region_to_filter_codelist/region_filtering.yaml",
     }
     mapping = {
         "Some Country": Code(
-            name="Some Country", description=None, extra_attributes=extra_attributes_1
+            name="Some Country",
+            description="some small country",
+            extra_attributes=extra_attributes_1,
         ),
         "Another Country": Code(
-            name="Another Country", descripion=None, extra_attributes=extra_attributes_2
+            name="Another Country",
+            description="another small country",
+            extra_attributes=extra_attributes_2,
         ),
     }
     exp = RegionCodeList(name=rcl.name, mapping=mapping)
@@ -239,7 +241,9 @@ def test_RegionCodeList_filter_ValueError():
     hierarchy"""
 
     # read RegionCodeList
-    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
+    rcl = RegionCodeList.from_directory(
+        "Region", TEST_DATA_DIR / "region_to_filter_codelist"
+    )
     match = (
         "Filtered RegionCodeList is empty: hierarchy=R77\n"
         "Use `RegionCodeList.hierarchy` for available items."
@@ -251,6 +255,7 @@ def test_RegionCodeList_filter_ValueError():
 def test_RegionCodeList_hierarchy():
     """Verifies that the hierarchy method returns a List[str]"""
 
-    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
-    match = ["common", "countries"]
-    assert rcl.hierarchy == match
+    rcl = RegionCodeList.from_directory(
+        "Region", TEST_DATA_DIR / "region_to_filter_codelist"
+    )
+    assert rcl.hierarchy == ["common", "countries"]
