@@ -212,11 +212,7 @@ def test_RegionCodeList_filter():
         "Region", TEST_DATA_DIR / "region_to_filter_codelist"
     )
     obs = rcl.filter("countries")
-    extra_attributes_1 = {
-        "hierarchy": "countries",
-        "file": "region_to_filter_codelist/region_filtering.yaml",
-    }
-    extra_attributes_2 = {
+    extra_attributes = {
         "hierarchy": "countries",
         "file": "region_to_filter_codelist/region_filtering.yaml",
     }
@@ -224,12 +220,12 @@ def test_RegionCodeList_filter():
         "Some Country": Code(
             name="Some Country",
             description="some small country",
-            extra_attributes=extra_attributes_1,
+            extra_attributes=extra_attributes,
         ),
         "Another Country": Code(
             name="Another Country",
             description="another small country",
-            extra_attributes=extra_attributes_2,
+            extra_attributes=extra_attributes,
         ),
     }
     exp = RegionCodeList(name=rcl.name, mapping=mapping)
