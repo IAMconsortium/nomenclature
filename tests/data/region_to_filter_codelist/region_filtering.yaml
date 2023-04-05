@@ -1,0 +1,8 @@
+- common:
+  - World:
+      definition: The entire world
+- countries:
+  - Some Country:
+      definition: some small country
+  - Another Country:
+      definition: another small country

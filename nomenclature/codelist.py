@@ -543,8 +543,15 @@ class RegionCodeList(CodeList):
         return cls(name=name, mapping=mapping)
 
     @property
-    def hierarchy(self):
-        raise NotImplementedError("This method is not yet implemented.")
+    def hierarchy(self) -> List[str]:
+        """Return the hierarchies defined in the RegionCodeList
+
+        Returns
+        -------
+        List[str]
+
+        """
+        return sorted(list(set(v.hierarchy for v in self.mapping.values())))
 
     def filter(self, hierarchy: str) -> "RegionCodeList":
         """Return a filtered RegionCodeList object
