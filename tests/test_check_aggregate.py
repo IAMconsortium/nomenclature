@@ -31,7 +31,7 @@ def expected_fail_return(name):
             ("model_a", "scen_a", "World", f"Final Energy{name}", "EJ/yr", 2005),
             ("model_a", "scen_a", "World", "Final Energy|Industry", "EJ/yr", 2005),
         ],
-        names=["model", "scenario", "region", "variable", "unit", "year"],
+        name=("model", "scenario", "region", "variable", "unit", "year"),
     )
     columns = ["variable", "components"]
     return pd.DataFrame([[9.0, 10.0], [8.0, 7.0]], columns=columns, index=index)
