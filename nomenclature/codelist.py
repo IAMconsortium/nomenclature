@@ -388,6 +388,97 @@ class CodeList(BaseModel):
 
         return nice_dict
 
+    def filter(self, **kwargs) -> "CodeList":
+        """A filter that sorts by attribute
+
+        Parameters
+        ----------
+        self :
+        **kwargs :
+
+        Raises
+        ------
+        AttributeError
+            Provided attribute is not compatible with the given model.
+
+        Returns
+        -------
+        :class:'CodeList'
+
+        """
+        # first try: (not so good, maybe salvageable)
+        # keep = np.ones(len(self), dtype=bool)
+        # for attribute, value in kwargs.items():
+        #     # print(self.mapping.extra_attributes)
+        #     if self.mapping.extra_attributes[attribute] is None:
+        #         raise AttributeError("The provided attribute does not exist.")
+        #     else:
+        #         keep = np.logical_and(
+        #             keep,
+        #             [
+        #                 getattr(code, attribute, None) == value
+        #                 for code in self
+        #                 if hasattr(code, attribute)
+        #             ],
+        #         )
+        # return CodeList(
+        #     name=self.name, mapping=[code for code, k in zip(self, keep) if k]
+        # )
+
+        # second try:
+        keep = np.ones(len(self), dtype=bool)
+        for attribute, value in kwargs.items():
+            for code in self.mapping.values():
+                # setting the variable code.'attribute' for any attribute
+                if attribute in code.extra_attributes:
+                    setattr(code, attribute, code.extra_attributes[attribute])
+                    # print(code.attribute)
+            # If desired attribute to filter by doesn't apply
+            # to any elements of self, raise error
+            all_None = True
+            for code in self.mapping.values():
+                if code.attribute is not None:
+                    all_None = False
+                    break
+            if all_None:
+                raise AttributeError("The provided attribute does not exist.")
+            # All other cases, filter
+            else:
+                keep = np.logical_and(
+                    keep,
+                    [code.attribute == value for code in self.mapping.values()],
+                )
+        return CodeList(
+            name=self.name,
+            mapping={code.name: code for code, k in zip(self, keep) if k},
+        )
+
+        # third try:
+        # keep = []
+        # for attribute, value in kwargs.items():
+        #     for code in self.mapping.values():
+        #         # setting the variable code.'attribute' for any attribute
+        #         # print(code.extra_attributes["required"])
+        #         # print(code.extra_attributes.keys())
+        #         # print(code.extra_attributes.values())
+        #         if (
+        #             attribute in code.extra_attributes.keys()
+        #             and code.extra_attributes[attribute] == value
+        #         ):
+        #             #make this a nested if statment? so it doesn't freak out when an element that doesn't have the attribute gets pushed through
+        #             keep.append(code)
+        #     # If desired attribute to filter by doesn't apply
+        #     # to any elements of self, raise error
+        # # print(keep)
+        # if keep:
+        #     # only keep the duplicates if filtering by more than one parameter!!
+        #     code_names = []
+        #     for code in keep:
+        #         code_names.append(code.name)
+        #         return CodeList(name=self.name, mapping={dict(zip(code_names, keep))})
+        # else:
+        #     raise AttributeError("The provided attribute does not exist.")
+
 
 class VariableCodeList(CodeList):
     """A subclass of CodeList specified for variables

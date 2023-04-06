@@ -255,3 +255,51 @@ def test_RegionCodeList_hierarchy():
         "Region", TEST_DATA_DIR / "region_to_filter_codelist"
     )
     assert rcl.hierarchy == ["common", "countries"]
+
+
+def test_codelist_general_filter():
+    var = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
+    obs = var.filter(required="True")
+    mapping = {
+        "Big Variable": Code(
+            name="Big Variable",
+            description="Some basic variable",
+            extra_attributes={
+                "required": True,
+                "file": "general_filtering/basic_codelist.yaml",
+            },
+        )
+    }
+    exp = CodeList(name=var.name, mapping=mapping)
+    assert obs == exp
+
+
+def test_codelist_general_filter_multiple_attributes():
+    var = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
+    obs = var.filter(required_A=True, required_B=True)
+    mapping = {
+        "Another Variable": Code(
+            name="Another Variable",
+            description="some details",
+            extra_attributes={
+                "required_A": True,
+                "required_B": True,
+                "file": "general_filtering/basic_codelist.yaml",
+            },
+        )
+    }
+    exp = CodeList(name=var.name, mapping=mapping)
+    assert obs == exp
+
+
+def test_codelist_general_filter_No_Elements():
+    var = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
+    obs = var.filter(required_A=True, required_B=True, required_C=True)
+    exp = CodeList()
+    assert obs == exp
+
+
+def test_codelist_general_filter_AttributeError():
+    rcl = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
+    with pytest.raises(AttributeError, match="The provided attribute does not exist."):
+        rcl.filter(required_D=True)
