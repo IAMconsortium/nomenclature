@@ -203,34 +203,43 @@ def test_to_yaml_from_directory(tmp_path):
     )
 
 
-def test_RegionCodeList_hierarchy_filter():
+def test_RegionCodeList_filter():
     """Test that verifies the hierarchy filter can sort through list of regions and
     give list of regions contained in the given hierarchy"""
 
     # read RegionCodeList
-    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
+    rcl = RegionCodeList.from_directory(
+        "Region", TEST_DATA_DIR / "region_to_filter_codelist"
+    )
     obs = rcl.filter("countries")
     extra_attributes = {
-        "iso2": "XY",
-        "iso3": "XYZ",
         "hierarchy": "countries",
-        "file": "region_codelist/region.yaml",
+        "file": "region_to_filter_codelist/region_filtering.yaml",
     }
     mapping = {
         "Some Country": Code(
-            name="Some Country", description=None, extra_attributes=extra_attributes
-        )
+            name="Some Country",
+            description="some small country",
+            extra_attributes=extra_attributes,
+        ),
+        "Another Country": Code(
+            name="Another Country",
+            description="another small country",
+            extra_attributes=extra_attributes,
+        ),
     }
     exp = RegionCodeList(name=rcl.name, mapping=mapping)
     assert obs == exp
 
 
-def test_RegionCodeList_hierarchy_filter_ValueError():
+def test_RegionCodeList_filter_ValueError():
     """Test that verifies the filter gives error when user inputs an unrecognizeable
     hierarchy"""
 
     # read RegionCodeList
-    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
+    rcl = RegionCodeList.from_directory(
+        "Region", TEST_DATA_DIR / "region_to_filter_codelist"
+    )
     match = (
         "Filtered RegionCodeList is empty: hierarchy=R77\n"
         "Use `RegionCodeList.hierarchy` for available items."
@@ -239,8 +248,10 @@ def test_RegionCodeList_hierarchy_filter_ValueError():
         rcl.filter("R77")
 
 
-def test_hierarchy():
-    rcl = RegionCodeList.from_directory("Region", TEST_DATA_DIR / "region_codelist")
-    match = "This method is not yet implemented."
-    with pytest.raises(NotImplementedError, match=match):
-        rcl.hierarchy
+def test_RegionCodeList_hierarchy():
+    """Verifies that the hierarchy method returns a List[str]"""
+
+    rcl = RegionCodeList.from_directory(
+        "Region", TEST_DATA_DIR / "region_to_filter_codelist"
+    )
+    assert rcl.hierarchy == ["common", "countries"]
