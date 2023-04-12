@@ -3,7 +3,6 @@ import pandas as pd
 import pandas.testing as pdt
 import logging
 
-# import unittest
 from nomenclature.code import Code
 from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
 from nomenclature.error.codelist import DuplicateCodeError
