@@ -407,23 +407,35 @@ class CodeList(BaseModel):
         :class:'CodeList'
 
         """
+
         keep = np.ones(len(self), dtype=bool)
+
         for attribute, value in kwargs.items():
+            # Set that attribute to None if codes don't have it
             for code in self.mapping.values():
                 code.extra_attributes.setdefault(attribute, None)
                 setattr(code, attribute, code.extra_attributes[attribute])
+
+            # Raise error if none of the code have specified attribute
             if all(getattr(code, attribute) is None for code in self.mapping.values()):
                 raise AttributeError(
-                    "At least one of the provided attributes does not exist."
+                    "At least one of the provided attributes does not "
+                    "exist for any code within the CodeList."
                 )
+
+            # Set elements with None values to not match the filter attributes
             for code in self.mapping.values():
                 if getattr(code, attribute) is None:
-                    setattr(code, attribute, False)
+                    setattr(code, attribute, not value)
+
+            # Update keep array based on the codes that satisfy the filter attributes
             keep = np.logical_and(
                 keep,
                 [getattr(code, attribute) == value for code in self.mapping.values()],
             )
+
         if any(keep):
+            # Return a new CodeList with all code elements that satisfy filter
             return CodeList(
                 name=self.name,
                 mapping={
@@ -431,6 +443,7 @@ class CodeList(BaseModel):
                 },
             )
         else:
+            # Return empty CodeList and log warning if no codes satisfy filter
             logging.warning("Formatted data is empty!")
             return CodeList(name=self.name, mapping={})
 

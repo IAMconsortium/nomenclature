@@ -2,7 +2,8 @@ import pytest
 import pandas as pd
 import pandas.testing as pdt
 import logging
-import unittest
+
+# import unittest
 from nomenclature.code import Code
 from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
 from nomenclature.error.codelist import DuplicateCodeError
@@ -294,36 +295,22 @@ def test_codelist_general_filter_multiple_attributes():
     assert obs == exp
 
 
-def test_codelist_general_filter_No_Elements():
+def test_codelist_general_filter_No_Elements(caplog):
     var = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
-    logger = logging.getLogger("test_logger")
-    logger.setLevel(logging.WARNING)
-    with unittest.assertLogs(logger, level="WARNING") as log:
-        obs = var.filter(required_A=True, required_B=True, required=True)
-    unittest.assertEqual(obs, CodeList(name="Variable", mapping={}))
-    unittest.assertEqual(len(log.records), 1)
-    unittest.assertEqual(log.records[0].levelname, "WARNING")
-    unittest.assertEqual(log.records[0].message, "Formatted data is empty!")
-
-    # self.assertEqual(obs, CodeList(name="Variable", mapping={}))
-    # self.assertEqual(len(log.records), 1)
-    # self.assertEqual(log.records[0].levelname, "WARNING")
-    # self.assertEqual(log.records[0].message, "Formatted data is empty!")
-
-    # assert obs == CodeList(name="Variable", mapping={})
-    # assert len(log.records) == 1
-    # assert log.records[0].levelname == "WARNING"
-    # assert log.records[0].message == "Formatted data is empty!"
-
-
-# class MyTestCase(unittest.TestCase):
-#     def test_my_method(self):
-#         test_codelist_general_filter_No_Elements()
+    caplog.set_level(logging.WARNING)
+    with caplog.at_level(logging.WARNING):
+        obs = var.filter(required_A=True, required_B=True, required=False)
+        assert obs == CodeList(name="Variable", mapping={})
+        assert len(caplog.records) == 1
+        assert caplog.records[0].levelname == "WARNING"
+        assert caplog.records[0].message == "Formatted data is empty!"
 
 
 def test_codelist_general_filter_AttributeError():
     rcl = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
     with pytest.raises(
-        AttributeError, match="At least one of the provided attributes does not exist."
+        AttributeError,
+        match="At least one of the provided attributes does not "
+        "exist for any code within the CodeList.",
     ):
         rcl.filter(required_D=True)

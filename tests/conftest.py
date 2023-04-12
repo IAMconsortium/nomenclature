@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Dict, List
+import logging
 import pytest
 import numpy as np
 import pandas as pd
@@ -54,3 +55,8 @@ def remove_file_from_mapping(mapping: Dict[str, Code]) -> List[Dict]:
         {key: value for key, value in code.flattened_dict.items() if key != "file"}
         for code in mapping.values()
     ]
+
+
+@pytest.fixture
+def logger():
+    return logging.getLogger(__name__)
