@@ -426,7 +426,7 @@ def test_partial_aggregation(input_data, exp_data, warning, caplog):
                 ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 5, 6],
             ],
             [
-                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 2005, 5, 4],
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 2005, 5, 4, 20],
             ],
         ),
         (  # Conflict between overlapping renamed variable and provided data
@@ -436,8 +436,8 @@ def test_partial_aggregation(input_data, exp_data, warning, caplog):
                 ["m_a", "s_a", "World", "Variable B", "EJ/yr", 4, 6],
             ],
             [
-                ["m_a", "s_a", "World", "Variable B", "EJ/yr", 2005, 4, 3],
-                ["m_a", "s_a", "World", "Variable B", "EJ/yr", 2010, 6, 4],
+                ["m_a", "s_a", "World", "Variable B", "EJ/yr", 2010, 6, 4, 100.0 / 3.0],
+                ["m_a", "s_a", "World", "Variable B", "EJ/yr", 2005, 4, 3, 25],
             ],
         ),
     ],
@@ -461,6 +461,7 @@ def test_aggregation_differences_export_to_file(
         "year",
         "original",
         "aggregated",
+        "relative difference (%)",
     ]
     exp = pd.DataFrame(difference, columns=columns)
     obs = pd.read_excel("difference.xlsx")
