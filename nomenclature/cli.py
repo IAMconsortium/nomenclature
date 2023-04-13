@@ -4,6 +4,9 @@ from typing import List, Optional
 
 import click
 
+from pyam import IamDataFrame
+from nomenclature.definition import DataStructureDefinition
+from nomenclature.processor import RegionProcessor
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 
 cli = click.Group()
@@ -93,3 +96,31 @@ def cli_valid_project(
     """
     assert_valid_yaml(path)
     assert_valid_structure(path, definitions, mappings, required_data, dimensions)
+
+
+@cli.command("run-region-processing")
+@click.argument("input_data_file", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "-d",
+    "--definitions",
+    type=click.Path(exists=True, path_type=Path),
+    default="definitions",
+)
+@click.option(
+    "-m", "--mappings", type=click.Path(exists=True, path_type=Path), default="mappings"
+)
+@click.option("--export-processing-result", is_flag=True, default=True)
+@click.option("--export-differences", is_flag=True, default=False)
+def run_region_processing(
+    input_data_file: Path,
+    definitions: Path,
+    mappings: Path,
+    export_processing_result: bool,
+    export_differences: bool,
+):
+
+    result = RegionProcessor.from_directory(
+        mappings, DataStructureDefinition(definitions)
+    ).apply(IamDataFrame(input_data_file), export_difference=export_differences)
+    if export_processing_result:
+        result.to_excel("result.xlsx")
