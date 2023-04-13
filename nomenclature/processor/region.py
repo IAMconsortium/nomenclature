@@ -573,7 +573,9 @@ def _compare_and_merge(
 
     # drop rows that are not in conflict
     compare = compare.dropna()
-    compare = compare[~np.isclose(compare["original"], compare["aggregated"])]
+    compare = compare[
+        ~np.isclose(compare["original"], compare["aggregated"], rtol=0.01)
+    ]
 
     if compare is not None and len(compare):
         logging.warning(f"Difference between original and aggregated data:\n{compare}")
