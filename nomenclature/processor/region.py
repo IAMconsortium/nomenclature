@@ -390,14 +390,16 @@ class RegionProcessor(Processor):
         v.validate_regions(values["region_codelist"])
         return v
 
-    def apply(self, df: IamDataFrame) -> IamDataFrame:
+    def apply(self, df: IamDataFrame, export_difference: bool = False) -> IamDataFrame:
         """Apply region processing
 
         Parameters
         ----------
         df : IamDataFrame
             Input data that the region processing is applied to
-
+        export_difference : bool
+            If True, export differences between aggregated and original data to
+            "differences.xlsx", default False
         Returns
         -------
         IamDataFrame
@@ -429,7 +431,9 @@ class RegionProcessor(Processor):
         self.region_codelist.validate_items(res.region)
         return res
 
-    def _apply_region_processing(self, model_df: IamDataFrame) -> IamDataFrame:
+    def _apply_region_processing(
+        self, model_df: IamDataFrame, export_difference: bool = False
+    ) -> IamDataFrame:
         """Apply the region processing for a single model"""
         if len(model_df.model) != 1:
             raise ValueError(
@@ -522,7 +526,9 @@ class RegionProcessor(Processor):
             if _processed_data:
                 _data = pd.concat(_processed_data)
                 if not common_region_df.empty:
-                    _data = _compare_and_merge(common_region_df._data, _data)
+                    _data = _compare_and_merge(
+                        common_region_df._data, _data, export_difference
+                    )
 
             # if data exists only at the common-region level
             elif not common_region_df.empty:
@@ -551,7 +557,9 @@ def _aggregate_region(df, var, *regions, **kwargs):
             raise error
 
 
-def _compare_and_merge(original: pd.Series, aggregated: pd.Series) -> IamDataFrame:
+def _compare_and_merge(
+    original: pd.Series, aggregated: pd.Series, export_difference: bool = False
+) -> IamDataFrame:
     """Compare and merge original and aggregated results"""
 
     # compare processed (aggregated) data and data provided at the common-region level
@@ -569,6 +577,21 @@ def _compare_and_merge(original: pd.Series, aggregated: pd.Series) -> IamDataFra
 
     if compare is not None and len(compare):
         logging.warning(f"Difference between original and aggregated data:\n{compare}")
+
+        if export_difference:
+            difference_file_path = Path("difference.xlsx")
+            compare.to_excel(difference_file_path, merge_cells=False)
+            logging.info(
+                "Exported differences between original and aggregated data to: "
+                f"{difference_file_path.absolute()}"
+            )
+        else:
+            logging.warning(
+                "If you want to get the differences, run the following command on your "
+                "local machine `nomenclature run-region-processing your_data.xlsx "
+                "--export-differences` from the processing workflow directory. The "
+                "differences will be exported to `difference.xlsx`."
+            )
 
     # merge aggregated data onto original common-region data
     index = aggregated.index.difference(original.index)
