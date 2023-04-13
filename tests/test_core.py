@@ -3,6 +3,7 @@ import pytest
 
 import numpy as np
 import pandas as pd
+from pandas.testing import assert_frame_equal
 from nomenclature.core import process
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor.region import RegionProcessor
@@ -413,3 +414,55 @@ def test_partial_aggregation(input_data, exp_data, warning, caplog):
         assert "WARNING" not in caplog.text
     else:
         assert all(c in caplog.text for c in warning)
+
+
+@pytest.mark.parametrize(
+    "input_data, difference",
+    [
+        (  # Variable is available in provided and aggregated data but different
+            [
+                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 5, 6],
+            ],
+            [
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 2005, 5, 4],
+            ],
+        ),
+        (  # Conflict between overlapping renamed variable and provided data
+            [
+                ["m_a", "s_a", "region_A", "Variable B", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Variable B", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "World", "Variable B", "EJ/yr", 4, 6],
+            ],
+            [
+                ["m_a", "s_a", "World", "Variable B", "EJ/yr", 2005, 4, 3],
+                ["m_a", "s_a", "World", "Variable B", "EJ/yr", 2010, 6, 4],
+            ],
+        ),
+    ],
+)
+def test_aggregation_differences_export_to_file(
+    input_data, difference, cleanup_diff_file
+):
+
+    test_df = IamDataFrame(pd.DataFrame(input_data, columns=IAMC_IDX + [2005, 2010]))
+    dsd = DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd")
+    processor = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/partial_aggregation", dsd
+    )
+    processor.apply(test_df, export_difference=True)
+    columns = [
+        "model",
+        "scenario",
+        "region",
+        "variable",
+        "unit",
+        "year",
+        "original",
+        "aggregated",
+    ]
+    exp = pd.DataFrame(difference, columns=columns)
+    obs = pd.read_excel("difference.xlsx")
+
+    assert_frame_equal(exp, obs)
