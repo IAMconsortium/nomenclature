@@ -114,7 +114,6 @@ def run_region_processing(
     output: Optional[bool],
     export_differences: Optional[bool],
 ):
-
     result, difference = process(
         IamDataFrame(input_data_file),
         dsd := DataStructureDefinition(path / definitions),
