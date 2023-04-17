@@ -4,7 +4,7 @@
 - Another Variable:
     definition: some details
     required_A: True
-    required_B: True
+    required_B: This is true
 - Second Big Variable:
     definition: a very basic variable
     required: False

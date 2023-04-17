@@ -408,40 +408,41 @@ class CodeList(BaseModel):
 
         """
 
-        keep = np.ones(len(self), dtype=bool)
-
-        for attribute, value in kwargs.items():
-            # Set that attribute to None if codes don't have it
+        keep: List(Code) = []
+        for attribute in kwargs:
+            # Set the syntax as: code.<attribute>
             for code in self.mapping.values():
-                code.extra_attributes.setdefault(attribute, None)
-                setattr(code, attribute, code.extra_attributes[attribute])
+                if attribute in code.extra_attributes:
+                    setattr(code, attribute, code.extra_attributes[attribute])
+                else:
+                    setattr(code, attribute, None)
 
             # Raise error if none of the code have specified attribute
-            if all(getattr(code, attribute) is None for code in self.mapping.values()):
+            if all(
+                [getattr(code, attribute) is None for code in self.mapping.values()]
+            ):
                 raise AttributeError(
                     "At least one of the provided attributes does not "
                     "exist for any code within the CodeList."
                 )
 
-            # Set elements with None values to not match the filter attributes
-            for code in self.mapping.values():
-                if getattr(code, attribute) is None:
-                    setattr(code, attribute, not value)
+        # Append the code(s) that satisfy all provided filter parameters
+        for code in self.mapping.values():
+            if all(
+                [
+                    getattr(code, attribute) == value
+                    for attribute, value in kwargs.items()
+                ]
+            ):
+                keep.append(code)
 
-            # Update keep array based on the codes that satisfy the filter attributes
-            keep = np.logical_and(
-                keep,
-                [getattr(code, attribute) == value for code in self.mapping.values()],
-            )
-
-        if any(keep):
+        if keep:
             # Return a new CodeList with all code elements that satisfy filter
             return CodeList(
                 name=self.name,
-                mapping={
-                    code.name: code for code, k in zip(self.mapping.values(), keep) if k
-                },
+                mapping={code.name: code for code in keep},
             )
+
         else:
             # Return empty CodeList and log warning if no codes satisfy filter
             logging.warning("Formatted data is empty!")
