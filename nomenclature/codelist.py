@@ -409,9 +409,10 @@ class CodeList(BaseModel):
         """
 
         keep: List(Code) = []
+        copy_self = self
         for attribute in kwargs:
             # Set the syntax as: code.<attribute>
-            for code in self.mapping.values():
+            for code in copy_self.mapping.values():
                 if attribute in code.extra_attributes:
                     setattr(code, attribute, code.extra_attributes[attribute])
                 else:
@@ -419,7 +420,10 @@ class CodeList(BaseModel):
 
             # Raise error if none of the code have specified attribute
             if all(
-                [getattr(code, attribute) is None for code in self.mapping.values()]
+                [
+                    getattr(code, attribute) is None
+                    for code in copy_self.mapping.values()
+                ]
             ):
                 raise AttributeError(
                     "At least one of the provided attributes does not "
@@ -427,7 +431,7 @@ class CodeList(BaseModel):
                 )
 
         # Append the code(s) that satisfy all provided filter parameters
-        for code in self.mapping.values():
+        for code in copy_self.mapping.values():
             if all(
                 [
                     getattr(code, attribute) == value
@@ -436,8 +440,12 @@ class CodeList(BaseModel):
             ):
                 keep.append(code)
 
+        # Delete the copy of self
+        del copy_self
+
         if keep:
             # Return a new CodeList with all code elements that satisfy filter
+
             return CodeList(
                 name=self.name,
                 mapping={code.name: code for code in keep},
