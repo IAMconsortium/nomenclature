@@ -413,6 +413,7 @@ def test_partial_aggregation(input_data, exp_data, warning, caplog):
     if warning is None:
         assert "WARNING" not in caplog.text
     else:
+        print(caplog.text)
         assert all(c in caplog.text for c in warning)
 
 
