@@ -364,7 +364,7 @@ def test_region_processing_skip_aggregation(model_name, region_names):
             [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 5, 6]],
             [
                 "Difference between original and aggregated data:",
-                "m_a   s_a      World  Primary Energy EJ/yr 2005         5           4",
+                "m_a   s_a      World  Primary Energy EJ/yr 2005         5",
             ],
         ),
         (  # Conflict between overlapping renamed variable and provided data
@@ -376,7 +376,7 @@ def test_region_processing_skip_aggregation(model_name, region_names):
             [["m_a", "s_a", "World", "Variable B", "EJ/yr", 4, 6]],
             [
                 "Difference between original and aggregated data:",
-                "m_a   s_a      World  Variable B EJ/yr 2005         4           3",
+                "m_a   s_a      World  Variable B EJ/yr 2010         6",
             ],
         ),
     ],
@@ -413,7 +413,6 @@ def test_partial_aggregation(input_data, exp_data, warning, caplog):
     if warning is None:
         assert "WARNING" not in caplog.text
     else:
-        print(caplog.text)
         assert all(c in caplog.text for c in warning)
 
 
@@ -454,7 +453,7 @@ def test_aggregation_differences_export_to_file(
     )
     _, obs = processor.apply(test_df)
     index = ["model", "scenario", "region", "variable", "unit", "year"]
-    columns = ["original", "aggregated", "relative difference (%)"]
+    columns = ["original", "aggregated", "difference (%)"]
     exp = pd.DataFrame(difference, columns=index + columns).set_index(index)
 
     assert_frame_equal(exp, obs)
