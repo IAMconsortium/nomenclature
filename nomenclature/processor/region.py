@@ -576,10 +576,10 @@ def _compare_and_merge(
     difference = compare[
         ~np.isclose(compare["original"], compare["aggregated"], rtol=rtol)
     ]
-    difference["relative difference (%)"] = 100 * np.abs(
+    difference["difference (%)"] = 100 * np.abs(
         (difference["original"] - difference["aggregated"]) / difference["original"]
     )
-    difference = difference.sort_values("relative difference (%)", ascending=False)
+    difference = difference.sort_values("difference (%)", ascending=False)
     if difference is not None and len(difference):
         logging.warning(
             (
