@@ -123,4 +123,4 @@ def run_region_processing(
     if output:
         result.to_excel(output)
     if export_differences:
-        difference.to_excel(export_differences)
+        difference.reset_index().to_excel(export_differences, index=False)

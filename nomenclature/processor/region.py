@@ -590,8 +590,6 @@ def _compare_and_merge(
                 "differences will be exported to `difference.xlsx`."
             )
         )
-        difference = difference.reset_index()
-
     # merge aggregated data onto original common-region data
     index = aggregated.index.difference(original.index)
     return pd.concat([original, aggregated[index]]), difference
