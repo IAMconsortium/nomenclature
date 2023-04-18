@@ -322,6 +322,7 @@ class RegionProcessor(Processor):
     region_codelist: RegionCodeList
     variable_codelist: VariableCodeList
     mappings: Dict[str, RegionAggregationMapping]
+    rtol_difference: float = 0.01
 
     @classmethod
     @validate_arguments(config={"arbitrary_types_allowed": True})
@@ -523,11 +524,12 @@ class RegionProcessor(Processor):
             )
 
             # concatenate and merge with data provided at common-region level
+            difference = pd.DataFrame()
             if _processed_data:
                 _data = pd.concat(_processed_data)
                 if not common_region_df.empty:
-                    _data = _compare_and_merge(
-                        common_region_df._data, _data, export_difference
+                    _data, difference = _compare_and_merge(
+                        common_region_df._data, _data, self.rtol_difference
                     )
 
             # if data exists only at the common-region level
@@ -558,8 +560,8 @@ def _aggregate_region(df, var, *regions, **kwargs):
 
 
 def _compare_and_merge(
-    original: pd.Series, aggregated: pd.Series, export_difference: bool = False
-) -> IamDataFrame:
+    original: pd.Series, aggregated: pd.Series, rtol: float = 0.01
+) -> Tuple[IamDataFrame, pd.DataFrame]:
     """Compare and merge original and aggregated results"""
 
     # compare processed (aggregated) data and data provided at the common-region level
