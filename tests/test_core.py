@@ -453,17 +453,8 @@ def test_aggregation_differences_export_to_file(
         TEST_DATA_DIR / "region_processing/partial_aggregation", dsd
     )
     _, obs = processor.apply(test_df)
-    columns = [
-        "model",
-        "scenario",
-        "region",
-        "variable",
-        "unit",
-        "year",
-        "original",
-        "aggregated",
-        "relative difference (%)",
-    ]
-    exp = pd.DataFrame(difference, columns=columns)
+    index = ["model", "scenario", "region", "variable", "unit", "year"]
+    columns = ["original", "aggregated", "relative difference (%)"]
+    exp = pd.DataFrame(difference, columns=index + columns).set_index(index)
 
     assert_frame_equal(exp, obs)
