@@ -1,7 +1,7 @@
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Tuple
 
 import jsonschema
 import numpy as np
@@ -391,20 +391,17 @@ class RegionProcessor(Processor):
         v.validate_regions(values["region_codelist"])
         return v
 
-    def apply(self, df: IamDataFrame, export_difference: bool = False) -> IamDataFrame:
+    def apply(self, df: IamDataFrame) -> Tuple[IamDataFrame, pd.DataFrame]:
         """Apply region processing
 
         Parameters
         ----------
         df : IamDataFrame
             Input data that the region processing is applied to
-        export_difference : bool
-            If True, export differences between aggregated and original data to
-            "differences.xlsx", default False
         Returns
         -------
-        IamDataFrame
-            Processed data
+        Tuple[IamDataFrame, pd.DataFrame]:
+            Processed data and differences between aggregated and original data
 
         Raises
         ------
@@ -413,6 +410,7 @@ class RegionProcessor(Processor):
             * If the region-processing results in an empty **IamDataFrame**.
         """
         processed_dfs: List[IamDataFrame] = []
+        difference_dfs: List[pd.DataFrame] = []
         for model in df.model:
             model_df = df.filter(model=model)
 
@@ -433,8 +431,8 @@ class RegionProcessor(Processor):
         return res
 
     def _apply_region_processing(
-        self, model_df: IamDataFrame, export_difference: bool = False
-    ) -> IamDataFrame:
+        self, model_df: IamDataFrame
+    ) -> Tuple[IamDataFrame, pd.DataFrame]:
         """Apply the region processing for a single model"""
         if len(model_df.model) != 1:
             raise ValueError(
@@ -543,7 +541,7 @@ class RegionProcessor(Processor):
                 )
 
         # cast processed timeseries data and meta indicators to IamDataFrame
-        return IamDataFrame(_data, meta=model_df.meta)
+        return IamDataFrame(_data, meta=model_df.meta), difference
 
 
 def _aggregate_region(df, var, *regions, **kwargs):
@@ -575,34 +573,28 @@ def _compare_and_merge(
 
     # drop rows that are not in conflict
     compare = compare.dropna()
-    compare = compare[
-        ~np.isclose(compare["original"], compare["aggregated"], rtol=0.01)
+    difference = compare[
+        ~np.isclose(compare["original"], compare["aggregated"], rtol=rtol)
     ]
-    compare["relative difference (%)"] = 100 * np.abs(
-        (compare["original"] - compare["aggregated"]) / compare["original"]
+    difference["relative difference (%)"] = 100 * np.abs(
+        (difference["original"] - difference["aggregated"]) / difference["original"]
     )
-    compare = compare.sort_values("relative difference (%)", ascending=False)
-    if compare is not None and len(compare):
-        logging.warning(f"Difference between original and aggregated data:\n{compare}")
-
-        if export_difference:
-            difference_file_path = Path("difference.xlsx")
-            compare.to_excel(difference_file_path, merge_cells=False)
-            logging.info(
-                "Exported differences between original and aggregated data to: "
-                f"{difference_file_path.absolute()}"
-            )
-        else:
-            logging.warning(
+    difference = difference.sort_values("relative difference (%)", ascending=False)
+    if difference is not None and len(difference):
+        logging.warning(
+            (
+                f"Difference between original and aggregated data:\n{difference}\n"
                 "If you want to get the differences, run the following command on your "
                 "local machine `nomenclature run-region-processing your_data.xlsx "
                 "--export-differences` from the processing workflow directory. The "
                 "differences will be exported to `difference.xlsx`."
             )
+        )
+        difference = difference.reset_index()
 
     # merge aggregated data onto original common-region data
     index = aggregated.index.difference(original.index)
-    return pd.concat([original, aggregated[index]])
+    return pd.concat([original, aggregated[index]]), difference
 
 
 def _check_exclude_region_overlap(values: Dict, region_type: str) -> Dict:
