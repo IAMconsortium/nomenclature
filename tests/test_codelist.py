@@ -303,13 +303,3 @@ def test_codelist_general_filter_No_Elements(caplog):
         assert len(caplog.records) == 1
         assert caplog.records[0].levelname == "WARNING"
         assert caplog.records[0].message == "Formatted data is empty!"
-
-
-def test_codelist_general_filter_AttributeError():
-    rcl = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
-    with pytest.raises(
-        AttributeError,
-        match="At least one of the provided attributes does not "
-        "exist for any code within the CodeList.",
-    ):
-        rcl.filter(required_D="This is false")

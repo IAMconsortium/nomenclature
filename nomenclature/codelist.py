@@ -390,71 +390,66 @@ class CodeList(BaseModel):
         return nice_dict
 
     def filter(self, **kwargs) -> "CodeList":
-        """A filter that sorts a CodeList by any attribute
+        """Filter a CodeList by any attribute-value pairs.
 
         Parameters
         ----------
-        self :
-        **kwargs :
-
-        Raises
-        ------
-        AttributeError
-            Provided attribute is not compatible with the given model.
+        **kwargs
+            a variable number of keyword arguments representing
+            attribute-value pairs.
 
         Returns
         -------
-        :class:'CodeList'
+        Instance of 'CodeList'
+            A new CodeList object with only the Code objects that
+            match all the attribute-value pairs.
+
+        Raises
+        ------
+        logging.WARNING
+            A warning if the new CodeList is empty.
+
 
         """
 
-        keep: List(Code) = []
-        copy_self = self
-        for attribute in kwargs:
-            # Set the syntax as: code.<attribute>
-            for code in copy_self.mapping.values():
-                if attribute in code.extra_attributes:
-                    setattr(code, attribute, code.extra_attributes[attribute])
-                else:
-                    setattr(code, attribute, None)
+        # Check if a code object's specified attribute matches
+        # a given value to determine filter match.
+        def _match_attribute(code, attribute, value):
+            if hasattr(code, attribute):
+                # if attribute in code, and matches with kwargs value:
+                return getattr(code, attribute, None) == value
+            return False
 
-            # Raise error if none of the code have specified attribute
-            if all(
+        # Create a Boolean array `keep` and update it
+        # based on filter criteria specified in `kwargs`.
+        keep = np.ones(len(self), dtype=bool)
+        for attribute, value in kwargs.items():
+            keep = np.logical_and(
+                keep,
                 [
-                    getattr(code, attribute) is None
-                    for code in copy_self.mapping.values()
-                ]
-            ):
-                raise AttributeError(
-                    "At least one of the provided attributes does not "
-                    "exist for any code within the CodeList."
-                )
-
-        # Append the code(s) that satisfy all provided filter parameters
-        for code in copy_self.mapping.values():
-            if all(
-                [
-                    getattr(code, attribute) == value
-                    for attribute, value in kwargs.items()
-                ]
-            ):
-                keep.append(code)
-
-        # Delete the copy of self
-        del copy_self
-
-        if keep:
-            # Return a new CodeList with all code elements that satisfy filter
-
-            return CodeList(
-                name=self.name,
-                mapping={code.name: code for code in keep},
+                    _match_attribute(code, attribute, value)
+                    for code in self.mapping.values()
+                ],
             )
 
-        else:
-            # Return empty CodeList and log warning if no codes satisfy filter
-            logging.warning("Formatted data is empty!")
-            return CodeList(name=self.name, mapping={})
+        # Create a filtered `CodeList` object based on `kwargs` criteria.
+        filtered_codelist = CodeList(
+            name=self.name,
+            mapping=dict(
+                [
+                    (code.name, code)
+                    for code, _keep in zip(self.mapping.values(), keep)
+                    if _keep
+                ]
+            ),
+        )
+
+        if filtered_codelist.mapping:
+            # If the filtered CodeList's mapping is not empty, return it
+            return filtered_codelist
+        # log a warning and return the filtered CodeList
+        logging.warning("Formatted data is empty!")
+        return filtered_codelist
 
 
 class VariableCodeList(CodeList):
