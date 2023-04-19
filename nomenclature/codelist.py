@@ -412,43 +412,24 @@ class CodeList(BaseModel):
 
         """
 
-        # Check if a code object's specified attribute matches
-        # a given value to determine filter match.
-        def _match_attribute(code, attribute, value):
-            if hasattr(code, attribute):
-                # if attribute in code, and matches with kwargs value:
-                return getattr(code, attribute, None) == value
-            return False
-
-        # Create a Boolean array `keep` and update it
-        # based on filter criteria specified in `kwargs`.
-        keep = np.ones(len(self), dtype=bool)
-        for attribute, value in kwargs.items():
-            keep = np.logical_and(
-                keep,
-                [
-                    _match_attribute(code, attribute, value)
-                    for code in self.mapping.values()
-                ],
+        # Returns True if code satisfies all filter parameters
+        def _match_attribute(code, kwargs):
+            return all(
+                hasattr(code, attribute) and getattr(code, attribute, None) == value
+                for attribute, value in kwargs.items()
             )
 
-        # Create a filtered `CodeList` object based on `kwargs` criteria.
         filtered_codelist = CodeList(
             name=self.name,
-            mapping=dict(
-                [
-                    (code.name, code)
-                    for code, _keep in zip(self.mapping.values(), keep)
-                    if _keep
-                ]
-            ),
+            mapping={
+                code.name: code
+                for code in self.mapping.values()
+                if _match_attribute(code, kwargs)
+            },
         )
 
-        if filtered_codelist.mapping:
-            # If the filtered CodeList's mapping is not empty, return it
-            return filtered_codelist
-        # log a warning and return the filtered CodeList
-        logging.warning("Formatted data is empty!")
+        if not filtered_codelist.mapping:
+            logging.warning("Formatted data is empty!")
         return filtered_codelist
 
 
