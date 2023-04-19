@@ -395,21 +395,12 @@ class CodeList(BaseModel):
         Parameters
         ----------
         **kwargs
-            a variable number of keyword arguments representing
-            attribute-value pairs.
+            Attribute-value mappings to be used for filtering.
 
         Returns
         -------
-        Instance of 'CodeList'
-            A new CodeList object with only the Code objects that
-            match all the attribute-value pairs.
-
-        Raises
-        ------
-        logging.WARNING
-            A warning if the new CodeList is empty.
-
-
+        CodeList
+            CodeList with Codes that match attribute-value pairs.
         """
 
         # Returns True if code satisfies all filter parameters

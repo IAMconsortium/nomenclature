@@ -278,14 +278,14 @@ def test_codelist_general_filter():
 
 def test_codelist_general_filter_multiple_attributes():
     var = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
-    obs = var.filter(required_A=True, required_B="This is true")
+    obs = var.filter(some_attribute=True, another_attribute="This is true")
     mapping = {
         "Another Variable": Code(
             name="Another Variable",
             description="some details",
             extra_attributes={
-                "required_A": True,
-                "required_B": "This is true",
+                "some_attribute": True,
+                "another_attribute": "This is true",
                 "file": "general_filtering/basic_codelist.yaml",
             },
         )
@@ -298,7 +298,9 @@ def test_codelist_general_filter_No_Elements(caplog):
     var = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
     caplog.set_level(logging.WARNING)
     with caplog.at_level(logging.WARNING):
-        obs = var.filter(required_A=True, required_B="This is true", required=False)
+        obs = var.filter(
+            some_attribute=True, another_attribute="This is true", required=False
+        )
         assert obs == CodeList(name="Variable", mapping={})
         assert len(caplog.records) == 1
         assert caplog.records[0].levelname == "WARNING"

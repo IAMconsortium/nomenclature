@@ -3,8 +3,8 @@
     required: True
 - Another Variable:
     definition: some details
-    required_A: True
-    required_B: This is true
+    some_attribute: True
+    another_attribute: This is true
 - Second Big Variable:
     definition: a very basic variable
     required: False
