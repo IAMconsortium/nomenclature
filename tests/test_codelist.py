@@ -1,6 +1,8 @@
 import pytest
 import pandas as pd
 import pandas.testing as pdt
+import logging
+
 from nomenclature.code import Code
 from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
 from nomenclature.error.codelist import DuplicateCodeError
@@ -255,3 +257,51 @@ def test_RegionCodeList_hierarchy():
         "Region", TEST_DATA_DIR / "region_to_filter_codelist"
     )
     assert rcl.hierarchy == ["common", "countries"]
+
+
+def test_codelist_general_filter():
+    var = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
+    obs = var.filter(required=True)
+    mapping = {
+        "Big Variable": Code(
+            name="Big Variable",
+            description="Some basic variable",
+            extra_attributes={
+                "required": True,
+                "file": "general_filtering/basic_codelist.yaml",
+            },
+        )
+    }
+    exp = CodeList(name=var.name, mapping=mapping)
+    assert obs == exp
+
+
+def test_codelist_general_filter_multiple_attributes():
+    var = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
+    obs = var.filter(some_attribute=True, another_attribute="This is true")
+    mapping = {
+        "Another Variable": Code(
+            name="Another Variable",
+            description="some details",
+            extra_attributes={
+                "some_attribute": True,
+                "another_attribute": "This is true",
+                "file": "general_filtering/basic_codelist.yaml",
+            },
+        )
+    }
+    exp = CodeList(name=var.name, mapping=mapping)
+    assert obs == exp
+
+
+def test_codelist_general_filter_No_Elements(caplog):
+    var = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
+    caplog.set_level(logging.WARNING)
+    with caplog.at_level(logging.WARNING):
+        obs = var.filter(
+            some_attribute=True, another_attribute="This is true", required=False
+        )
+        assert obs == CodeList(name="Variable", mapping={})
+        assert len(caplog.records) == 1
+        assert caplog.records[0].levelname == "WARNING"
+        assert caplog.records[0].message == "Formatted data is empty!"

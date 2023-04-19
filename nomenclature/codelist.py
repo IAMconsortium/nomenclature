@@ -4,6 +4,7 @@ from typing import ClassVar, Dict, List
 import pandas as pd
 import numpy as np
 import yaml
+import logging
 from jsonschema import validate
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
@@ -387,6 +388,40 @@ class CodeList(BaseModel):
             nice_dict[name] = code_dict
 
         return nice_dict
+
+    def filter(self, **kwargs) -> "CodeList":
+        """Filter a CodeList by any attribute-value pairs.
+
+        Parameters
+        ----------
+        **kwargs
+            Attribute-value mappings to be used for filtering.
+
+        Returns
+        -------
+        CodeList
+            CodeList with Codes that match attribute-value pairs.
+        """
+
+        # Returns True if code satisfies all filter parameters
+        def _match_attribute(code, kwargs):
+            return all(
+                hasattr(code, attribute) and getattr(code, attribute, None) == value
+                for attribute, value in kwargs.items()
+            )
+
+        filtered_codelist = CodeList(
+            name=self.name,
+            mapping={
+                code.name: code
+                for code in self.mapping.values()
+                if _match_attribute(code, kwargs)
+            },
+        )
+
+        if not filtered_codelist.mapping:
+            logging.warning("Formatted data is empty!")
+        return filtered_codelist
 
 
 class VariableCodeList(CodeList):

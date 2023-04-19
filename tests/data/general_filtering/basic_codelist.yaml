@@ -1,0 +1,10 @@
+- Big Variable:
+    definition: Some basic variable
+    required: True
+- Another Variable:
+    definition: some details
+    some_attribute: True
+    another_attribute: This is true
+- Second Big Variable:
+    definition: a very basic variable
+    required: False
