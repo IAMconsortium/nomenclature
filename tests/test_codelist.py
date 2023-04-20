@@ -3,7 +3,7 @@ import pandas as pd
 import pandas.testing as pdt
 import logging
 
-from nomenclature.code import Code
+from nomenclature.code import Code, RegionCode
 from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
 from nomenclature.error.codelist import DuplicateCodeError
 
@@ -215,19 +215,20 @@ def test_RegionCodeList_filter():
     )
     obs = rcl.filter("countries")
     extra_attributes = {
-        "hierarchy": "countries",
         "file": "region_to_filter_codelist/region_filtering.yaml",
     }
     mapping = {
-        "Some Country": Code(
+        "Some Country": RegionCode(
             name="Some Country",
             description="some small country",
             extra_attributes=extra_attributes,
+            hierarchy="countries",
         ),
-        "Another Country": Code(
+        "Another Country": RegionCode(
             name="Another Country",
             description="another small country",
             extra_attributes=extra_attributes,
+            hierarchy="countries",
         ),
     }
     exp = RegionCodeList(name=rcl.name, mapping=mapping)
@@ -244,7 +245,7 @@ def test_RegionCodeList_filter_ValueError():
     )
     match = (
         "Filtered RegionCodeList is empty: hierarchy=R77\n"
-        "Use `RegionCodeList.hierarchy` for available items."
+        "Use `RegionCodeList.hierarchy` method for available items."
     )
     with pytest.raises(ValueError, match=match):
         rcl.filter("R77")
