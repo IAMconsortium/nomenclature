@@ -548,7 +548,9 @@ class RegionCodeList(CodeList):
         RegionCodeList
 
         """
+        mapping: Dict[str, RegionCode] = {}
         code_list: List[RegionCode] = []
+        code_basis: ClassVar = RegionCode
 
         for yaml_file in (
             f

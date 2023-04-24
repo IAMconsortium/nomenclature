@@ -208,4 +208,4 @@ class RegionCode(Code):
 
     """
 
-    hierarchy: Optional[str] = None
+    hierarchy: str = None
