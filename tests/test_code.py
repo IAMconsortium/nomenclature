@@ -1,6 +1,6 @@
 import pytest
 
-from nomenclature.code import Code, VariableCode
+from nomenclature.code import Code, VariableCode, RegionCode
 
 
 def test_variable_without_unit_raises():
@@ -38,7 +38,6 @@ def test_variable_multiple_units():
 
 @pytest.mark.parametrize("unit", ["Test unit", ["Test unit 1", "Test unit 2"]])
 def test_set_attributes_with_json(unit):
-
     var = VariableCode(
         name="Test var",
         unit=unit,
@@ -47,3 +46,12 @@ def test_set_attributes_with_json(unit):
 
     assert var.region_aggregation == [{"Test var (mean)": {"method": "mean"}}]
     assert var.unit == unit
+
+
+def test_RegionCode_hierarchy_attribute():
+    reg = RegionCode(
+        name="RegionCode test",
+        hierarchy="R5",
+    )
+
+    assert reg.hierarchy == "R5"

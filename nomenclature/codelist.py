@@ -9,7 +9,7 @@ from jsonschema import validate
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
 
-from nomenclature.code import Code, VariableCode
+from nomenclature.code import Code, VariableCode, RegionCode
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
     MissingWeightError,
@@ -522,11 +522,12 @@ class RegionCodeList(CodeList):
     name : str
         Name of the RegionCodeList
     mapping : dict
-        Dictionary of `Code` objects
+        Dictionary of `RegionCode` objects
 
     """
 
     # class variable
+    code_basis: ClassVar = RegionCode
     validation_schema: ClassVar[str] = "region"
 
     @classmethod
@@ -548,7 +549,8 @@ class RegionCodeList(CodeList):
         RegionCodeList
 
         """
-        code_list: List[Code] = []
+        mapping: Dict[str, RegionCode] = {}
+        code_list: List[RegionCode] = []
 
         for yaml_file in (
             f
@@ -562,14 +564,14 @@ class RegionCodeList(CodeList):
             for top_level_cat in _code_list:
                 for top_key, _codes in top_level_cat.items():
                     for item in _codes:
-                        code = Code.from_dict(item)
+                        code = RegionCode.from_dict(item)
                         code.hierarchy = top_key
                         code.file = yaml_file.relative_to(path.parent).as_posix()
                         code_list.append(code)
 
         code_list = cls._parse_and_replace_tags(code_list, path, file_glob_pattern)
 
-        mapping: Dict[str, Code] = {}
+        mapping: Dict[str, RegionCode] = {}
         for code in code_list:
             if code.name in mapping:
                 raise DuplicateCodeError(name=name, code=code.name)
@@ -619,6 +621,6 @@ class RegionCodeList(CodeList):
         else:
             msg: str = (
                 f"Filtered RegionCodeList is empty: hierarchy={hierarchy}\n"
-                "Use `RegionCodeList.hierarchy` for available items."
+                "Use `RegionCodeList.hierarchy` method for available items."
             )
             raise ValueError(msg)

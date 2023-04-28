@@ -194,3 +194,18 @@ class VariableCode(Code):
             if self.region_aggregation is not None
             else self.pyam_agg_kwargs
         )
+
+
+class RegionCode(Code):
+    """A subclass of Code specified for regions
+
+    Attributes
+    ----------
+    name : str
+        Name of the RegionCode
+    hierarchy : str
+        Hierarchy of the RegionCode
+
+    """
+
+    hierarchy: str = None
