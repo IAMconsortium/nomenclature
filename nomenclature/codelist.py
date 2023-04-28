@@ -527,6 +527,7 @@ class RegionCodeList(CodeList):
     """
 
     # class variable
+    code_basis: ClassVar = RegionCode
     validation_schema: ClassVar[str] = "region"
 
     @classmethod
@@ -550,7 +551,6 @@ class RegionCodeList(CodeList):
         """
         mapping: Dict[str, RegionCode] = {}
         code_list: List[RegionCode] = []
-        code_basis: ClassVar = RegionCode
 
         for yaml_file in (
             f
