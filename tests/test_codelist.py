@@ -205,6 +205,52 @@ def test_to_yaml_from_directory(tmp_path):
     )
 
 
+def test_RegionCodeList_filter():
+    """Test that verifies the hierarchy filter can sort through list of regions and
+    give list of regions contained in the given hierarchy"""
+
+    # read RegionCodeList
+    rcl = RegionCodeList.from_directory(
+        "Region", TEST_DATA_DIR / "region_to_filter_codelist"
+    )
+    obs = rcl.filter("countries")
+    extra_attributes = {
+        "file": "region_to_filter_codelist/region_filtering.yaml",
+    }
+    mapping = {
+        "Some Country": RegionCode(
+            name="Some Country",
+            description="some small country",
+            extra_attributes=extra_attributes,
+            hierarchy="countries",
+        ),
+        "Another Country": RegionCode(
+            name="Another Country",
+            description="another small country",
+            extra_attributes=extra_attributes,
+            hierarchy="countries",
+        ),
+    }
+    exp = RegionCodeList(name=rcl.name, mapping=mapping)
+    assert obs == exp
+
+
+def test_RegionCodeList_filter_ValueError():
+    """Test that verifies the filter gives error when user inputs an unrecognizeable
+    hierarchy"""
+
+    # read RegionCodeList
+    rcl = RegionCodeList.from_directory(
+        "Region", TEST_DATA_DIR / "region_to_filter_codelist"
+    )
+    match = (
+        "Filtered RegionCodeList is empty: hierarchy=R77\n"
+        "Use `RegionCodeList.hierarchy` method for available items."
+    )
+    with pytest.raises(ValueError, match=match):
+        rcl.filter("R77")
+
+
 def test_RegionCodeList_hierarchy():
     """Verifies that the hierarchy method returns a List[str]"""
 

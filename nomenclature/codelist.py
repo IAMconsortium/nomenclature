@@ -589,3 +589,38 @@ class RegionCodeList(CodeList):
 
         """
         return sorted(list(set(v.hierarchy for v in self.mapping.values())))
+
+    def filter(self, hierarchy: str) -> "RegionCodeList":
+        """Return a filtered RegionCodeList object
+
+        Parameters
+        ----------
+        hierarchy : str
+            String with filter parameter.
+
+        Raises
+        ------
+        ValueError
+            Provided hierarchy is not compatible with the given model.
+
+        Returns
+        -------
+        :class:'RegionCodeList'
+
+        Notes
+        -----
+        The following arguments are available for filtering:
+
+        - 'hierarchy': filter by the hierarchy of each region
+
+        """
+
+        mapping = {k: v for k, v in self.mapping.items() if v.hierarchy == hierarchy}
+        if mapping:
+            return RegionCodeList(name=self.name, mapping=mapping)
+        else:
+            msg: str = (
+                f"Filtered RegionCodeList is empty: hierarchy={hierarchy}\n"
+                "Use `RegionCodeList.hierarchy` method for available items."
+            )
+            raise ValueError(msg)
