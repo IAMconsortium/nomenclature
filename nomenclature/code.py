@@ -1,5 +1,7 @@
 import json
 import re
+import pycountry
+import logging
 from keyword import iskeyword
 from typing import Any, Dict, List, Optional, Set, Union
 
@@ -209,3 +211,11 @@ class RegionCode(Code):
     """
 
     hierarchy: str = None
+    countries: List[str] = None
+
+    def check_iso3_codes(self) -> bool:
+        for country in self.countries:
+            if pycountry.countries.get(alpha_3=country) is None:
+                logging.warning(f"{country} is not a valid iso3 country code!")
+                return False
+        return True

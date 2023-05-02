@@ -1,4 +1,5 @@
 import pytest
+import logging
 
 from nomenclature.code import Code, VariableCode, RegionCode
 
@@ -55,3 +56,27 @@ def test_RegionCode_hierarchy_attribute():
     )
 
     assert reg.hierarchy == "R5"
+
+
+def test_RegionCode_iso3_code():
+    reg = RegionCode(
+        name="OECD",
+        hierarchy="R5",
+        countries=["ALB", "BGR", "DEU", "AUS"],
+    )
+
+    assert reg.check_iso3_codes() is True
+
+
+def test_RegionCode_iso3_code_fail(caplog):
+    reg = RegionCode(
+        name="OECD",
+        hierarchy="R5",
+        countries=["ALB", "BGR", "DEX", "AUS"],
+    )
+    caplog.set_level(logging.WARNING)
+    with caplog.at_level(logging.WARNING):
+        assert reg.check_iso3_codes() is False
+        assert len(caplog.records) == 1
+        assert caplog.records[0].levelname == "WARNING"
+        assert caplog.records[0].message == "DEX is not a valid iso3 country code!"
