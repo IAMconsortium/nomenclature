@@ -1,5 +1,4 @@
 import pytest
-import logging
 
 from nomenclature.code import Code, VariableCode, RegionCode
 
@@ -60,23 +59,94 @@ def test_RegionCode_hierarchy_attribute():
 
 def test_RegionCode_iso3_code():
     reg = RegionCode(
-        name="OECD",
-        hierarchy="R5",
-        countries=["ALB", "BGR", "DEU", "AUS"],
+        name="Western Europe",
+        hierarchy="R5OECD",
+        countries=[
+            "DNK",
+            "IRL",
+            "AUT",
+            "FIN",
+            "FRA",
+            "DEU",
+            "GRC",
+            "ISL",
+            "ITA",
+            "LIE",
+            "MLT",
+            "BEL",
+            "FRO",
+            "AND",
+            "GIB",
+            "LUX",
+            "MCO",
+            "NLD",
+            "NOR",
+            "PRT",
+            "ESP",
+            "SWE",
+            "CHE",
+            "GBR",
+            "SMR",
+        ],
     )
 
-    assert reg.check_iso3_codes() is True
+    assert reg.countries == [
+        "DNK",
+        "IRL",
+        "AUT",
+        "FIN",
+        "FRA",
+        "DEU",
+        "GRC",
+        "ISL",
+        "ITA",
+        "LIE",
+        "MLT",
+        "BEL",
+        "FRO",
+        "AND",
+        "GIB",
+        "LUX",
+        "MCO",
+        "NLD",
+        "NOR",
+        "PRT",
+        "ESP",
+        "SWE",
+        "CHE",
+        "GBR",
+        "SMR",
+    ]
 
 
-def test_RegionCode_iso3_code_fail(caplog):
-    reg = RegionCode(
-        name="OECD",
-        hierarchy="R5",
-        countries=["ALB", "BGR", "DEX", "AUS"],
-    )
-    caplog.set_level(logging.WARNING)
-    with caplog.at_level(logging.WARNING):
-        assert reg.check_iso3_codes() is False
-        assert len(caplog.records) == 1
-        assert caplog.records[0].levelname == "WARNING"
-        assert caplog.records[0].message == "DEX is not a valid iso3 country code!"
+def test_RegionCode_iso3_code_fail():
+    countries = [
+        "DMK",
+        "IPL",
+        "ATZ",
+        "FNL",
+        "FRE",
+        "DEX",
+        "GRE",
+        "IBL",
+        "ITL",
+        "LIC",
+        "MLA",
+        "BEG",
+        "FRT",
+        "ANB",
+        "GDR",
+        "LXB",
+        "MNO",
+        "NTD",
+        "NRW",
+        "PRE",
+        "EPA",
+        "SWD",
+        "CEW",
+        "GTR",
+        "SOR",
+    ]
+
+    with pytest.raises(ValueError):
+        RegionCode(name="Western Europe", hierarchy="R5OECD", countries=countries)
