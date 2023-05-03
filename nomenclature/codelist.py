@@ -9,7 +9,7 @@ from jsonschema import validate
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
 
-from nomenclature.code import Code, VariableCode, RegionCode
+from nomenclature.code import Code, VariableCode, RegionCode, MetaCode
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
     MissingWeightError,
@@ -624,3 +624,20 @@ class RegionCodeList(CodeList):
                 "Use `RegionCodeList.hierarchy` method for available items."
             )
             raise ValueError(msg)
+
+
+class MetaCodeList(CodeList):
+    """A subclass of CodeList specified for MetaCodes
+
+    Attributes
+    ----------
+    name : str
+        Name of the MetaCodeList
+    mapping : dict
+        Dictionary of `MetaCode` objects
+
+    """
+
+    # class variable
+    code_basis: ClassVar = MetaCode
+    validation_schema: ClassVar[str] = "meta indicators"

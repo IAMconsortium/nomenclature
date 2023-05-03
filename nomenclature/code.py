@@ -209,3 +209,16 @@ class RegionCode(Code):
     """
 
     hierarchy: str = None
+
+
+class MetaCode(Code):
+    """A subclass of Code
+
+    Attributes
+    ----------
+    allowed_values : Optional(list[any])
+        An optional list...
+
+    """
+
+    allowed_values: Optional(list[any])

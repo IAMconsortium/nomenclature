@@ -1,0 +1,2 @@
+- Meta category with boolean values:
+  allowed_values: [true, false]
