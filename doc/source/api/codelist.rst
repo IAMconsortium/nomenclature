@@ -4,7 +4,7 @@
 ============
 
 .. autoclass:: CodeList
-   :members: validate_items, from_directory, read_excel, to_yaml, to_pandas, to_csv, to_excel, codelist_repr, filter 
+   :members: from_directory, read_excel, validate_items, filter, to_yaml, to_pandas, to_csv, to_excel
 
 
 .. autoclass:: VariableCodeList
