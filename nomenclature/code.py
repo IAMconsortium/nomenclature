@@ -4,7 +4,7 @@ import pycountry
 from keyword import iskeyword
 from typing import Any, Dict, List, Optional, Set, Union
 
-from pydantic import BaseModel, Field, validator, ValidationError
+from pydantic import BaseModel, Field, validator
 
 
 class Code(BaseModel):
@@ -219,8 +219,8 @@ class RegionCode(Code):
             if pycountry.countries.get(alpha_3=country) is None:
                 invalid_iso3_codes.append(country)
         if invalid_iso3_codes:
-            raise ValidationError(
+            raise ValueError(
                 f"Region {values['name']} has invalid\n"
-                " ISO3 country codes: {invalid_iso3_codes}"
+                f" ISO3 country codes: {invalid_iso3_codes}"
             )
         return v
