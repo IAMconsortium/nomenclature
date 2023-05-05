@@ -1,4 +1,5 @@
 import pytest
+from pydantic import ValidationError
 
 from nomenclature.code import Code, VariableCode, RegionCode
 
@@ -148,5 +149,11 @@ def test_RegionCode_iso3_code_fail():
         "SOR",
     ]
 
-    with pytest.raises(ValueError):
+    error_pattern = (
+        r"1 validation error for RegionCode\n"
+        r"countries\n"
+        r"Region Western Europe has invalid ISO3 country codes: \['DMK', 'IPL', 'ATZ', 'FNL', 'FRE', 'DEX', 'GRE', 'IBL', 'ITL', 'LIC', 'MLA', 'BEG', 'FRT', 'ANB', 'GDR', 'LXB', 'MNO', 'NTD', 'NRW', 'PRE', 'EPA', 'SWD', 'CEW', 'GTR', 'SOR'\]"
+    )
+
+    with pytest.raises(ValidationError, match=error_pattern):
         RegionCode(name="Western Europe", hierarchy="R5OECD", countries=countries)
