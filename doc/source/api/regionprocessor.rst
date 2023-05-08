@@ -4,4 +4,4 @@
 ===================
 
 .. autoclass:: RegionProcessor
-   :members:
+   :members: from_directory, validate_with_definition, apply
