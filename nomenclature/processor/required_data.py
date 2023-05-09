@@ -1,43 +1,57 @@
 import logging
 from pathlib import Path
-from typing import List, Optional, Union, Tuple
+from typing import Any, Optional, Union
 
+import pydantic
 import yaml
 from pyam import IamDataFrame
-import pydantic
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, Field
 from pydantic.error_wrappers import ErrorWrapper
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.processor.utils import get_relative_path
 from nomenclature.error.required_data import RequiredDataMissingError
+from nomenclature.processor import Processor
+from nomenclature.processor.utils import get_relative_path
 
 logger = logging.getLogger(__name__)
 
 
+class RequiredMeasurand(BaseModel):
+
+    variable: str
+    unit: Optional[Union[str, list[str]]] = Field(...)
+
+
 class RequiredData(BaseModel):
 
-    variable: List[str]
-    region: Optional[List[str]]
-    year: Optional[List[int]]
-    unit: Optional[str]
+    measurand: list[RequiredMeasurand]
+    region: Optional[list[str]]
+    year: Optional[list[int]]
 
-    @validator("variable", "region", "year", pre=True)
+    @validator("measurand", "region", "year", pre=True)
     def single_input_to_list(cls, v):
         return v if isinstance(v, list) else [v]
+
+    @validator("measurand", pre=True, each_item=True)
+    def cast_to_RequiredMeasurand(cls, v):
+        if len(v) != 1:
+            raise ValueError("Measurand must be a single value dictionary")
+        variable = next(iter(v))
+        return RequiredMeasurand(variable=variable, **v[variable])
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         error_msg = ""
 
         # check for undefined regions and variables
         for dim in ("region", "variable"):
-            values = self.__getattribute__(dim) or []
-            invalid = dsd.__getattribute__(dim).validate_items(values)
-            if invalid:
+            if invalid := dsd.__getattribute__(dim).validate_items(
+                self.__getattribute__(dim) or []
+            ):
                 error_msg += (
                     f"The following {dim}(s) were not found in the "
                     f"DataStructureDefinition:\n{invalid}\n"
                 )
+
         # check for defined variables with wrong units
         if wrong_unit_variables := self._wrong_unit_variables(dsd):
             error_msg += (
@@ -50,26 +64,42 @@ class RequiredData(BaseModel):
         if error_msg:
             raise ValueError(error_msg)
 
+    @property
+    def variable(self) -> list[str]:
+        return [m.variable for m in self.measurand]
+
+    @property
+    def pyam_required_data_list(self) -> list[dict]:
+
+        return [
+            {
+                "region": self.region,
+                "year": self.year,
+                "variable": m.variable,
+                "unit": m.unit,
+            }
+            for m in self.measurand
+        ]
+
     def _wrong_unit_variables(
         self, dsd: DataStructureDefinition
-    ) -> List[Tuple[str, str, str]]:
-        wrong_units: List[Tuple[str, str, str]] = []
+    ) -> list[tuple[str, str, str]]:
+        wrong_units: list[tuple[str, Any, Any]] = []
         if hasattr(dsd, "variable"):
             wrong_units.extend(
-                (var, self.unit, getattr(dsd, "variable")[var].unit)
-                for var in getattr(self, "variable")
-                if var in getattr(dsd, "variable")  # check if the variable exists
-                and self.unit  # check if a unit is specified
-                and self.unit not in getattr(dsd, "variable")[var].units
+                (m.variable, m.unit, dsd.variable[m.variable].unit)
+                for m in self.measurand
+                if m.variable in dsd.variable  # check if the variable exists
+                and m.unit not in dsd.variable[m.variable].units
             )
 
         return wrong_units
 
 
-class RequiredDataValidator(BaseModel):
+class RequiredDataValidator(Processor):
 
     name: str
-    required_data: List[RequiredData]
+    required_data: list[RequiredData]
     file: Path
 
     @classmethod
@@ -82,12 +112,14 @@ class RequiredDataValidator(BaseModel):
         error = False
         # check for required data and raise error if missing
         for data in self.required_data:
-            if (missing_index := df.require_data(**data.dict())) is not None:
-                error = True
-                logger.error(
-                    f"Required data {data} from file {get_relative_path(self.file)} "
-                    f"missing for:\n{missing_index}"
-                )
+            for requirement in data.pyam_required_data_list:
+                if (missing_index := df.require_data(**requirement)) is not None:
+                    error = True
+                    logger.error(
+                        f"Required data {requirement} from file "
+                        f"{get_relative_path(self.file)} missing for:\n"
+                        f"{missing_index}"
+                    )
         if error:
             raise RequiredDataMissingError(
                 "Required data missing. Please check the log for details."
