@@ -222,11 +222,11 @@ class RegionAggregationMapping(BaseModel):
         This function is used to convert a model mapping yaml file into a dictionary
         which is used to initialize a RegionAggregationMapping.
         """
-        SCHEMA_FILE = here / "../validation_schemas" / "region_mapping_schema.yaml"
+        schema_file = here / "../validation_schemas" / "region_mapping_schema.yaml"
         file = Path(file) if isinstance(file, str) else file
         with open(file, "r") as f:
             mapping_input = yaml.safe_load(f)
-        with open(SCHEMA_FILE, "r") as f:
+        with open(schema_file, "r") as f:
             schema = yaml.safe_load(f)
 
         # Validate the input data using jsonschema
@@ -244,24 +244,27 @@ class RegionAggregationMapping(BaseModel):
         # Reformat the "native_regions"
         if "native_regions" in mapping_input:
             native_region_list: List[Dict] = []
-            for nr in mapping_input["native_regions"]:
-                if isinstance(nr, str):
-                    native_region_list.append({"name": nr})
-                elif isinstance(nr, dict):
+            for native_region in mapping_input["native_regions"]:
+                if isinstance(native_region, str):
+                    native_region_list.append({"name": native_region})
+                elif isinstance(native_region, dict):
                     native_region_list.append(
-                        {"name": list(nr)[0], "rename": list(nr.values())[0]}
+                        {
+                            "name": list(native_region)[0],
+                            "rename": list(native_region.values())[0],
+                        }
                     )
             mapping_input["native_regions"] = native_region_list
 
         # Reformat the "common_regions"
         if "common_regions" in mapping_input:
             common_region_list: List[Dict[str, List[Dict[str, str]]]] = []
-            for cr in mapping_input["common_regions"]:
-                cr_name = list(cr)[0]
+            for common_region in mapping_input["common_regions"]:
+                common_region_name = list(common_region)[0]
                 common_region_list.append(
                     {
-                        "name": cr_name,
-                        "constituent_regions": cr[cr_name],
+                        "name": common_region_name,
+                        "constituent_regions": common_region[common_region_name],
                     }
                 )
             mapping_input["common_regions"] = common_region_list
@@ -348,16 +351,16 @@ class RegionProcessor(Processor):
         for file in (f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}):
             try:
                 mapping = RegionAggregationMapping.from_file(file)
-                for m in mapping.model:
-                    if m not in mapping_dict:
-                        mapping_dict[m] = mapping
+                for model in mapping.model:
+                    if model not in mapping_dict:
+                        mapping_dict[model] = mapping
                     else:
                         errors.append(
                             ErrorWrapper(
                                 ModelMappingCollisionError(
-                                    model=m,
+                                    model=model,
                                     file1=mapping.file,
-                                    file2=mapping_dict[m].file,
+                                    file2=mapping_dict[model].file,
                                 ),
                                 "__root__",
                             )
@@ -456,18 +459,18 @@ class RegionProcessor(Processor):
 
             # aggregate common regions
             if self.mappings[model].common_regions is not None:
-                for cr in self.mappings[model].common_regions:
+                for common_region in self.mappings[model].common_regions:
                     # if a common region is consists of a single native region, rename
-                    if cr.is_single_constituent_region:
-                        _df = model_df.filter(region=cr.constituent_regions[0]).rename(
-                            region=cr.rename_dict
-                        )
+                    if common_region.is_single_constituent_region:
+                        _df = model_df.filter(
+                            region=common_region.constituent_regions[0]
+                        ).rename(region=common_region.rename_dict)
                         if not _df.empty:
                             _processed_data.append(_df._data)
                         continue
 
                     # if there are multiple constituent regions, aggregate
-                    regions = [cr.name, cr.constituent_regions]
+                    regions = [common_region.name, common_region.constituent_regions]
 
                     # first, perform 'simple' aggregation (no arguments)
                     simple_vars = [

@@ -1,10 +1,10 @@
+import logging
 from pathlib import Path
 from typing import ClassVar, Dict, List
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import yaml
-import logging
 from jsonschema import validate
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
@@ -17,18 +17,17 @@ from nomenclature.error.variable import (
     VariableRenameTargetError,
 )
 
-
 here = Path(__file__).parent.absolute()
 
 
-def read_validation_schema(i):
-    with open(here / "validation_schemas" / f"{i}_schema.yaml", "r") as f:
+def read_validation_schema(schema):
+    with open(here / "validation_schemas" / f"{schema}_schema.yaml", "r") as f:
         schema = yaml.safe_load(f)
     return schema
 
 
 SCHEMA_TYPES = ("variable", "tag", "region", "generic")
-SCHEMA_MAPPING = dict([(i, read_validation_schema(i)) for i in SCHEMA_TYPES])
+SCHEMA_MAPPING = {schema: read_validation_schema(schema) for schema in SCHEMA_TYPES}
 
 
 class CodeList(BaseModel):
