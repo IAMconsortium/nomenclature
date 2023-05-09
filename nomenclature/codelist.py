@@ -275,8 +275,8 @@ class CodeList(BaseModel):
         """
 
         class Dumper(yaml.Dumper):
-            def increase_indent(self, flow=False, *args, **kwargs):
-                return super().increase_indent(flow=flow, indentless=False)
+            def increase_indent(self, flow: bool = False, indentless: bool = False):
+                return super().increase_indent(flow=flow, indentless=indentless)
 
         # translate to list of nested dicts, replace None by empty field, write to file
         stream = (
@@ -289,11 +289,10 @@ class CodeList(BaseModel):
             .replace(": nan\n", ":\n")
         )
 
-        if path is not None:
-            with open(path, "w") as file:
-                file.write(stream)
-        else:
+        if path is None:
             return stream
+        with open(path, "w") as file:
+            file.write(stream)
 
     def to_pandas(self, sort_by_code: bool = False) -> pd.DataFrame:
         """Export the CodeList to a :class:`pandas.DataFrame`
@@ -586,7 +585,7 @@ class RegionCodeList(CodeList):
         List[str]
 
         """
-        return sorted(list(set(v.hierarchy for v in self.mapping.values())))
+        return sorted(list({v.hierarchy for v in self.mapping.values()}))
 
 
 class MetaCodeList(CodeList):

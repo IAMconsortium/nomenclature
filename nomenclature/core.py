@@ -10,7 +10,7 @@ from nomenclature.processor import Processor, RegionProcessor
 logger = logging.getLogger(__name__)
 
 
-@validate_arguments(config=dict(arbitrary_types_allowed=True))
+@validate_arguments(config={"arbitrary_types_allowed": True})
 def process(
     df: pyam.IamDataFrame,
     dsd: DataStructureDefinition,
