@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def process(
     df: pyam.IamDataFrame,
     dsd: DataStructureDefinition,
-    dimensions: Optional[list[str]] = None,
+    dimensions: Optional[List[str]] = None,
     processor: Optional[Union[Processor, List[Processor]]] = None,
 ) -> pyam.IamDataFrame:
     """Function for validation and region aggregation in one step

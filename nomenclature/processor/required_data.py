@@ -19,14 +19,14 @@ logger = logging.getLogger(__name__)
 class RequiredMeasurand(BaseModel):
 
     variable: str
-    unit: Optional[Union[str,List[str]]] = Field(...)
+    unit: Optional[Union[str, List[str]]] = Field(...)
 
 
 class RequiredData(BaseModel):
 
-    measurand:List[RequiredMeasurand]
-    region: Optional[list[str]]
-    year: Optional[list[int]]
+    measurand: List[RequiredMeasurand]
+    region: Optional[List[str]]
+    year: Optional[List[int]]
 
     @validator("measurand", "region", "year", pre=True)
     def single_input_to_list(cls, v):
@@ -65,11 +65,11 @@ class RequiredData(BaseModel):
             raise ValueError(error_msg)
 
     @property
-    def variable(self) ->List[str]:
+    def variable(self) -> List[str]:
         return [m.variable for m in self.measurand]
 
     @property
-    def pyam_required_data_list(self) ->List[dict]:
+    def pyam_required_data_list(self) -> List[dict]:
 
         return [
             {
@@ -83,8 +83,8 @@ class RequiredData(BaseModel):
 
     def _wrong_unit_variables(
         self, dsd: DataStructureDefinition
-    ) ->List[tuple[str, str, str]]:
-        wrong_units:List[tuple[str, Any, Any]] = []
+    ) -> List[tuple[str, str, str]]:
+        wrong_units: List[tuple[str, Any, Any]] = []
         if hasattr(dsd, "variable"):
             wrong_units.extend(
                 (m.variable, m.unit, dsd.variable[m.variable].unit)
@@ -99,7 +99,7 @@ class RequiredData(BaseModel):
 class RequiredDataValidator(Processor):
 
     name: str
-    required_data:List[RequiredData]
+    required_data: List[RequiredData]
     file: Path
 
     @classmethod
