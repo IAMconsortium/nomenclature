@@ -1,11 +1,11 @@
 import logging
 from pathlib import Path
-from typing import Any, Optional, Union, List
+from typing import Any, List, Optional, Tuple, Union
 
 import pydantic
 import yaml
 from pyam import IamDataFrame
-from pydantic import BaseModel, validator, Field
+from pydantic import BaseModel, Field, validator
 from pydantic.error_wrappers import ErrorWrapper
 
 from nomenclature.definition import DataStructureDefinition
@@ -83,8 +83,8 @@ class RequiredData(BaseModel):
 
     def _wrong_unit_variables(
         self, dsd: DataStructureDefinition
-    ) -> List[tuple[str, str, str]]:
-        wrong_units: List[tuple[str, Any, Any]] = []
+    ) -> List[Tuple[str, str, str]]:
+        wrong_units: List[Tuple[str, Any, Any]] = []
         if hasattr(dsd, "variable"):
             wrong_units.extend(
                 (m.variable, m.unit, dsd.variable[m.variable].unit)
