@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 import pyam
 from pydantic import validate_arguments
@@ -15,7 +15,7 @@ def process(
     df: pyam.IamDataFrame,
     dsd: DataStructureDefinition,
     dimensions: Optional[list[str]] = None,
-    processor: Optional[Union[Processor, list[Processor]]] = None,
+    processor: Optional[Union[Processor, List[Processor]]] = None,
 ) -> pyam.IamDataFrame:
     """Function for validation and region aggregation in one step
 
