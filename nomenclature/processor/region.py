@@ -82,10 +82,9 @@ class CommonRegion(BaseModel):
     def rename_dict(self):
         if self.is_single_constituent_region:
             return {self.constituent_regions[0]: self.name}
-        else:
-            raise AttributeError(
-                "rename_dict is only available for single constituent regions"
-            )
+        raise AttributeError(
+            "rename_dict is only available for single constituent regions"
+        )
 
 
 class RegionAggregationMapping(BaseModel):
