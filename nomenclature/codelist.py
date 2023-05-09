@@ -223,7 +223,7 @@ class CodeList(BaseModel):
         return cls(name=name, mapping=mapping)
 
     @classmethod
-    def read_excel(cls, name, source, sheet_name, col, attrs=[]):
+    def read_excel(cls, name, source, sheet_name, col, attrs=None):
         """Parses an xlsx file with a codelist
 
         Parameters
@@ -239,6 +239,8 @@ class CodeList(BaseModel):
         attrs : list, optional
             Columns from `sheet_name` to use as attributes.
         """
+        if attrs is None:
+            attrs = []
         codelist = pd.read_excel(source, sheet_name=sheet_name, usecols=[col] + attrs)
 
         # replace nan with None
