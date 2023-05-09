@@ -1,5 +1,6 @@
 name: Runs through with simple_df fixture from conftest
 required_data:
-  - variable: Primary Energy
+  - measurand:
+      - Primary Energy:
+          unit: EJ/yr
     year: [2005, 2010]
-    unit: EJ/yr

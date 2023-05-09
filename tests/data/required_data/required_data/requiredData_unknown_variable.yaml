@@ -1,3 +1,5 @@
 name: Unknown variable
 required_data:
-  - variable: Final Energy|Industry
+  - measurand:
+      Final Energy|Industry:
+        unit: EJ/yr

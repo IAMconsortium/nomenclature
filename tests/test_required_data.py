@@ -4,6 +4,7 @@ from conftest import TEST_DATA_DIR
 
 from pyam import assert_iamframe_equal
 from nomenclature import DataStructureDefinition, RequiredDataValidator
+from nomenclature.processor.required_data import RequiredMeasurand
 from nomenclature.error.required_data import RequiredDataMissingError
 
 REQUIRED_DATA_TEST_DIR = TEST_DATA_DIR / "required_data" / "required_data"
@@ -15,10 +16,11 @@ def test_RequiredDataValidator_from_file():
         "name": "MAGICC",
         "required_data": [
             {
-                "variable": ["Emissions|CO2"],
+                "measurand": [
+                    RequiredMeasurand(variable="Emissions|CO2", unit="Mt CO2/yr")
+                ],
                 "region": ["World"],
                 "year": [2020, 2030, 2040, 2050],
-                "unit": None,
             },
         ],
         "file": REQUIRED_DATA_TEST_DIR / "requiredData.yaml",
