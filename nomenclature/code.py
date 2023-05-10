@@ -217,7 +217,7 @@ class MetaCode(Code):
     Attributes
     ----------
     allowed_values : Optional(list[any])
-        An optional list...
+        An optional list of allowed values
 
     """
 
