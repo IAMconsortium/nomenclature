@@ -12,7 +12,7 @@ from nomenclature.codelist import (
 )
 from nomenclature.error.codelist import DuplicateCodeError
 
-from conftest import TEST_DATA_DIR, remove_file_from_mapping
+from conftest import TEST_DATA_DIR
 
 
 def test_simple_codelist():
@@ -35,10 +35,10 @@ def test_codelist_to_yaml():
     assert code.to_yaml() == (
         "- Some Variable:\n"
         "    description: Some basic variable\n"
+        "    file: simple_codelist/foo.yaml\n"
         "    unit:\n"
         "    skip-region-aggregation: false\n"
         "    bool: true\n"
-        "    file: simple_codelist/foo.yaml\n"
     )
 
 
@@ -122,16 +122,15 @@ def test_to_excel(tmpdir):
     pdt.assert_frame_equal(obs, exp)
 
 
-@pytest.mark.parametrize("sort", (True, False))
-def test_to_csv(sort):
+def test_to_csv():
     """Check writing to csv"""
     obs = VariableCodeList.from_directory(
         "Variable", TEST_DATA_DIR / "simple_codelist"
-    ).to_csv(sort_by_code=sort, lineterminator="\n")
+    ).to_csv(lineterminator="\n")
 
     exp = (
-        "Variable,Description,Unit,Skip-region-aggregation,Check-aggregate,Bool\n"
-        "Some Variable,Some basic variable,,False,False,True\n"
+        "Variable,Description,Unit,Skip-region-aggregation,Bool\n"
+        "Some Variable,Some basic variable,,False,True\n"
     )
     assert obs == exp
 
@@ -180,12 +179,7 @@ def test_to_excel_read_excel_roundtrip(tmpdir):
         attrs=["Description", "Unit", "Region-aggregation"],
     )
 
-    assert obs.name == exp.name
-    # since the obs and exp are read from different files, the file attribute will be
-    # different. For comparison we remove it
-    assert remove_file_from_mapping(obs.mapping) == remove_file_from_mapping(
-        exp.mapping
-    )
+    assert obs == exp
 
 
 def test_to_yaml_from_directory(tmp_path):
@@ -201,12 +195,7 @@ def test_to_yaml_from_directory(tmp_path):
     # read from temporary file
     obs = VariableCodeList.from_directory("variable", tmp_path)
 
-    assert obs.name == exp.name
-    # since the obs and exp are read from different files, the file attribute will be
-    # different. For comparison we remove it
-    assert remove_file_from_mapping(obs.mapping) == remove_file_from_mapping(
-        exp.mapping
-    )
+    assert obs == exp
 
 
 def test_RegionCodeList_filter():
@@ -223,15 +212,11 @@ def test_RegionCodeList_filter():
     }
     mapping = {
         "Some Country": RegionCode(
-            name="Some Country",
-            description="some small country",
-            extra_attributes=extra_attributes,
-            hierarchy="countries",
+            name="Some Country", description="some small country", hierarchy="countries"
         ),
         "Another Country": RegionCode(
             name="Another Country",
             description="another small country",
-            extra_attributes=extra_attributes,
             hierarchy="countries",
         ),
     }
@@ -257,7 +242,6 @@ def test_codelist_general_filter():
             description="Some basic variable",
             extra_attributes={
                 "required": True,
-                "file": "general_filtering/basic_codelist.yaml",
             },
         )
     }
@@ -275,7 +259,6 @@ def test_codelist_general_filter_multiple_attributes():
             extra_attributes={
                 "some_attribute": True,
                 "another_attribute": "This is true",
-                "file": "general_filtering/basic_codelist.yaml",
             },
         )
     }

@@ -21,11 +21,9 @@ def test_definition_with_custom_dimension(simple_definition):
     # check that "custom" dimensions are as expected
     file = "scenario/scenarios.yaml"
     assert obs.scenario["scen_a"] == Code(
-        name="scen_a", extra_attributes={"attribute": "value", "file": file}
+        name="scen_a", extra_attributes={"attribute": "value"}
     )
-    assert obs.scenario["scen_b"] == Code(
-        name="scen_b", extra_attributes={"file": file}
-    )
+    assert obs.scenario["scen_b"] == Code(name="scen_b")
 
 
 def test_nonexisting_path_raises():
