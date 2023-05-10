@@ -641,3 +641,45 @@ class MetaCodeList(CodeList):
     # class variable
     code_basis: ClassVar = MetaCode
     validation_schema: ClassVar[str] = "meta indicators"
+
+    @classmethod
+    def from_yaml_files(cls, name: str, path: Path, file_glob_pattern: str = "**/*"):
+        """Initialize a MetaCodeList from file(s) with MetaCodes
+
+        Parameters
+        ----------
+        name : str
+            Name of the MetaCodeList
+        path : :class:`pathlib.Path` or path-like
+            Directory with the codelist files
+        file_glob_pattern : str, optional
+            Pattern to downselect codelist files by name, default: "**/*" (i.e. all
+            files in all sub-folders)
+
+        Returns
+        -------
+        MetaCodeList
+
+        """
+        mapping: Dict[str, MetaCode] = {}
+        code_list: List[MetaCode] = []
+
+        for yaml_file in (
+            f for f in path.glob(file_glob_pattern) if f.suffix in {".yaml", ".yml"}
+        ):
+            with open(yaml_file, "r", encoding="utf-8") as stream:
+                _code_list = yaml.safe_load(stream)
+
+            for top_level_cat in _code_list:
+                code = MetaCode(
+                    name=list(top_level_cat.keys())[0],
+                    mapping=top_level_cat,
+                )
+                code.file = yaml_file.relative_to(path.parent).as_posix()
+                code.allowed_values = list(top_level_cat.values())[1]
+                code_list.append(code)
+
+        for code in code_list:
+            mapping[code.name] = code
+
+        return cls(name=name, mapping=mapping)

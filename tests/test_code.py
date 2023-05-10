@@ -1,6 +1,6 @@
 import pytest
 
-from nomenclature.code import Code, VariableCode, RegionCode
+from nomenclature.code import Code, VariableCode, RegionCode, MetaCode
 
 
 def test_variable_without_unit_raises():
@@ -55,3 +55,12 @@ def test_RegionCode_hierarchy_attribute():
     )
 
     assert reg.hierarchy == "R5"
+
+
+def test_MetaCode_allowed_values_attribute():
+    reg = MetaCode(
+        name="MetaCode test",
+        allowed_values=[True],
+    )
+
+    assert reg.allowed_values == [True]

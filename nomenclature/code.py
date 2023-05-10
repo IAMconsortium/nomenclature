@@ -221,4 +221,4 @@ class MetaCode(Code):
 
     """
 
-    allowed_values: Optional(list[any])
+    allowed_values: Optional[List[Any]]
