@@ -50,6 +50,9 @@ class CodeList(BaseModel):
     validation_schema: ClassVar[str] = "generic"
     code_basis: ClassVar = Code
 
+    def __eq__(self, other):
+        return self.name == other.name and self.mapping == other.mapping
+
     @validator("mapping")
     def check_stray_tag(cls, v):
         """Check that no '{' are left in codes after tag replacement"""
