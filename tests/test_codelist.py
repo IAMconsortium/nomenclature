@@ -117,7 +117,7 @@ def test_to_excel(tmpdir):
     )
 
     obs = pd.read_excel(file)
-    exp = pd.read_excel(TEST_DATA_DIR / "validation_nc.xlsx")
+    exp = pd.read_excel(TEST_DATA_DIR / "excel_io" / "validation_nc.xlsx")
 
     pdt.assert_frame_equal(obs, exp)
 

@@ -47,23 +47,27 @@ def test_to_excel(simple_definition, tmpdir):
     simple_definition.to_excel(file)
 
     obs = pd.read_excel(file)
-    exp = pd.read_excel(TEST_DATA_DIR / "validation_nc.xlsx")
+    exp = pd.read_excel(TEST_DATA_DIR / "excel_io" / "validation_nc.xlsx")
     pd.testing.assert_frame_equal(obs, exp)
 
 
 @pytest.mark.parametrize(
-    "input_file, attrs",
+    "input_file, attrs, exp_file",
     [
-        ("validation_nc.xlsx", ["Description", "Unit"]),
-        ("validation_nc_list_arg.xlsx", ["Description", "Unit", "Region-aggregation"]),
+        ("validation_nc.xlsx", ["Description", "Unit"], "validation_nc_flat.yaml"),
+        (
+            "validation_nc_list_arg.xlsx",
+            ["Description", "Unit", "Region-aggregation"],
+            "validation_nc_list_arg.yaml",
+        ),
     ],
 )
-def test_create_yaml_from_xlsx(input_file, attrs, tmpdir):
+def test_create_yaml_from_xlsx(input_file, attrs, exp_file, tmpdir):
     """Check that creating a yaml codelist from xlsx yields the expected output file"""
     file = tmpdir / "foo.yaml"
 
     create_yaml_from_xlsx(
-        source=TEST_DATA_DIR / input_file,
+        source=TEST_DATA_DIR / "excel_io" / input_file,
         target=file,
         sheet_name="variable_definitions",
         col="Variable",
@@ -72,7 +76,7 @@ def test_create_yaml_from_xlsx(input_file, attrs, tmpdir):
 
     with open(file, "r") as f:
         obs = f.read()
-    with open(TEST_DATA_DIR / "validation_nc_flat.yaml", "r") as f:
+    with open(TEST_DATA_DIR / "excel_io" / exp_file, "r") as f:
         exp = f.read()
 
     assert obs == exp
@@ -82,7 +86,7 @@ def test_create_yaml_from_xlsx_duplicate():
     """Check that creating a yaml codelist from xlsx with duplicates raises"""
     with pytest.raises(ValueError, match="Duplicate values in the codelist:"):
         create_yaml_from_xlsx(
-            source=TEST_DATA_DIR / "validation_nc_duplicates.xlsx",
+            source=TEST_DATA_DIR / "excel_io" / "validation_nc_duplicates.xlsx",
             target="_",
             sheet_name="duplicate_index_raises",
             col="Variable",
