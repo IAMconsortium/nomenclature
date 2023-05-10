@@ -1,6 +1,7 @@
 import json
 import re
 from keyword import iskeyword
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union
 
 from pydantic import BaseModel, Field, validator
@@ -11,7 +12,13 @@ class Code(BaseModel):
 
     name: str
     description: Optional[str]
+    file: Optional[Union[str, Path]] = None
     extra_attributes: Dict[str, Any] = {}
+
+    def __eq__(self, other) -> bool:
+        return {key: value for key, value in self.dict().items() if key != "file"} == {
+            key: value for key, value in other.dict().items() if key != "file"
+        }
 
     @validator("extra_attributes")
     def check_attribute_names(cls, v, values):
