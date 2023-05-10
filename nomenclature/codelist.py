@@ -406,11 +406,11 @@ class CodeList(BaseModel):
         # Returns True if code satisfies all filter parameters
         def _match_attribute(code, kwargs):
             return all(
-                hasattr(code, attribute) and getattr(code, attribute, None) == value
+                hasattr(code, attribute) and getattr(code, attribute) == value
                 for attribute, value in kwargs.items()
             )
 
-        filtered_codelist = CodeList(
+        filtered_codelist = self.__class__(
             name=self.name,
             mapping={
                 code.name: code
@@ -420,7 +420,7 @@ class CodeList(BaseModel):
         )
 
         if not filtered_codelist.mapping:
-            logging.warning("Formatted data is empty!")
+            logging.warning(f"Filtered {self.__class__.__name__} is empty!")
         return filtered_codelist
 
 
