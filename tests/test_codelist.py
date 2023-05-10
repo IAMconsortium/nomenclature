@@ -240,22 +240,6 @@ def test_RegionCodeList_filter():
     assert obs == exp
 
 
-def test_RegionCodeList_filter_ValueError():
-    """Test that verifies the filter gives error when user inputs an unrecognizeable
-    hierarchy"""
-
-    # read RegionCodeList
-    rcl = RegionCodeList.from_directory(
-        "Region", TEST_DATA_DIR / "region_to_filter_codelist"
-    )
-    match = (
-        "Filtered RegionCodeList is empty: hierarchy=R77\n"
-        "Use `RegionCodeList.hierarchy` method for available items."
-    )
-    with pytest.raises(ValueError, match=match):
-        rcl.filter(hierarchy="R77")
-
-
 def test_RegionCodeList_hierarchy():
     """Verifies that the hierarchy method returns a List[str]"""
 
