@@ -314,8 +314,7 @@ def test_codelist_general_filter_No_Elements(caplog):
 
 
 def test_MetaCodeList_from_directory():
-    meta_codes = MetaCodeList.from_directory(name="Meta", path=TEST_DATA_DIR / "meta")
-
+    obs = MetaCodeList.from_directory(name="Meta", path=TEST_DATA_DIR / "meta")
     mapping = {
         "Meta category with boolean values": MetaCode(
             name="Meta category with boolean values",
@@ -330,5 +329,5 @@ def test_MetaCodeList_from_directory():
             allowed_values=[1, 2, 3],
         ),
     }
-
-    assert meta_codes.name == "Meta" and meta_codes.mapping == mapping
+    exp = MetaCodeList(name="Meta", mapping=mapping)
+    assert obs == exp
