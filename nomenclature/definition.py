@@ -10,11 +10,16 @@ from nomenclature.codelist import (
     CodeList,
     RegionCodeList,
     VariableCodeList,
+    MetaCodeList,
 )
 from nomenclature.validation import validate
 
 logger = logging.getLogger(__name__)
-SPECIAL_CODELIST = {"variable": VariableCodeList, "region": RegionCodeList}
+SPECIAL_CODELIST = {
+    "variable": VariableCodeList,
+    "region": RegionCodeList,
+    "meta": MetaCodeList,
+}
 
 
 class DataStructureDefinition:

@@ -212,7 +212,7 @@ class RegionCode(Code):
 
 
 class MetaCode(Code):
-    """A subclass of Code
+    """
 
     Attributes
     ----------

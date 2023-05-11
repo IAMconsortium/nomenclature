@@ -313,22 +313,10 @@ def test_codelist_general_filter_No_Elements(caplog):
         assert caplog.records[0].message == "Formatted data is empty!"
 
 
-def test_MetaCodeList_from_yaml_files():
-    meta_codes = MetaCodeList.from_yaml_files(name="Meta", path=TEST_DATA_DIR / "meta")
+def test_MetaCodeList_from_directory():
+    meta_codes = MetaCodeList.from_directory(name="Meta", path=TEST_DATA_DIR / "meta")
 
     mapping = {
-        "Meta cat with boolean values": MetaCode(
-            name="Meta cat with boolean values",
-            description=None,
-            extra_attributes={"file": "meta/allowed_values_2.yaml"},
-            allowed_values=[True, False],
-        ),
-        "Another category with str values": MetaCode(
-            name="Another category with str values",
-            description=None,
-            extra_attributes={"file": "meta/allowed_values_2.yaml"},
-            allowed_values=["ABC"],
-        ),
         "Meta category with boolean values": MetaCode(
             name="Meta category with boolean values",
             description=None,

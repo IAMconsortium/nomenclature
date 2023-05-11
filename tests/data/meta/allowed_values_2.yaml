@@ -1,4 +1,0 @@
-- Meta cat with boolean values:
-  allowed_values: [True, False]
-- Another category with str values:
-  allowed_values: ['ABC']

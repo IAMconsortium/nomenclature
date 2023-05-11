@@ -58,9 +58,9 @@ def test_RegionCode_hierarchy_attribute():
 
 
 def test_MetaCode_allowed_values_attribute():
-    reg = MetaCode(
+    meta = MetaCode(
         name="MetaCode test",
         allowed_values=[True],
     )
 
-    assert reg.allowed_values == [True]
+    assert meta.allowed_values == [True]
