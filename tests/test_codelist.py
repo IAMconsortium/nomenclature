@@ -3,8 +3,13 @@ import pandas as pd
 import pandas.testing as pdt
 import logging
 
-from nomenclature.code import Code, RegionCode
-from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
+from nomenclature.code import Code, RegionCode, MetaCode
+from nomenclature.codelist import (
+    CodeList,
+    VariableCodeList,
+    RegionCodeList,
+    MetaCodeList,
+)
 from nomenclature.error.codelist import DuplicateCodeError
 
 from conftest import TEST_DATA_DIR, remove_file_from_mapping
@@ -306,3 +311,23 @@ def test_codelist_general_filter_No_Elements(caplog):
         assert len(caplog.records) == 1
         assert caplog.records[0].levelname == "WARNING"
         assert caplog.records[0].message == "Formatted data is empty!"
+
+
+def test_MetaCodeList_from_directory():
+    obs = MetaCodeList.from_directory(name="Meta", path=TEST_DATA_DIR / "meta")
+    mapping = {
+        "Meta category with boolean values": MetaCode(
+            name="Meta category with boolean values",
+            description=None,
+            extra_attributes={"file": "meta/meta_indicators_allowed_values.yaml"},
+            allowed_values=[True, False],
+        ),
+        "Meta cat with int values": MetaCode(
+            name="Meta cat with int values",
+            description=None,
+            extra_attributes={"file": "meta/meta_indicators_allowed_values.yaml"},
+            allowed_values=[1, 2, 3],
+        ),
+    }
+    exp = MetaCodeList(name="Meta", mapping=mapping)
+    assert obs == exp

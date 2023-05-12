@@ -209,3 +209,16 @@ class RegionCode(Code):
     """
 
     hierarchy: str = None
+
+
+class MetaCode(Code):
+    """Code object with allowed values list
+
+    Attributes
+    ----------
+    allowed_values : Optional(list[any])
+        An optional list of allowed values
+
+    """
+
+    allowed_values: Optional[List[Any]]
