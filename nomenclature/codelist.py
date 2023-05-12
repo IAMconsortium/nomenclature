@@ -27,7 +27,7 @@ def read_validation_schema(i):
     return schema
 
 
-SCHEMA_TYPES = ("variable", "tag", "region", "generic", "meta")
+SCHEMA_TYPES = ("variable", "tag", "region", "generic")
 SCHEMA_MAPPING = dict([(i, read_validation_schema(i)) for i in SCHEMA_TYPES])
 
 
@@ -193,7 +193,7 @@ class CodeList(BaseModel):
         instance of cls (CodeList if not inherited)
 
         """
-        code_list: List[cls.code_basis] = []
+        code_list: List[Code] = []
 
         for yaml_file in (
             f
@@ -212,7 +212,7 @@ class CodeList(BaseModel):
                 code.file = yaml_file.relative_to(path.parent).as_posix()
                 code_list.append(code)
         code_list = cls._parse_and_replace_tags(code_list, path, file_glob_pattern)
-        mapping: Dict[str, cls.code_basis] = {}
+        mapping: Dict[str, Code] = {}
         for code in code_list:
             if code.name in mapping:
                 raise DuplicateCodeError(name=name, code=code.name)
@@ -639,4 +639,4 @@ class MetaCodeList(CodeList):
     """
 
     code_basis: ClassVar = MetaCode
-    validation_schema: ClassVar[str] = "meta"
+    validation_schema: ClassVar[str] = "generic"
