@@ -212,7 +212,7 @@ class RegionCode(Code):
 
 
 class MetaCode(Code):
-    """
+    """Code object with allowed values list
 
     Attributes
     ----------
