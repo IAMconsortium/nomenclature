@@ -218,7 +218,7 @@ def test_RegionCodeList_filter():
     rcl = RegionCodeList.from_directory(
         "Region", TEST_DATA_DIR / "region_to_filter_codelist"
     )
-    obs = rcl.filter("countries")
+    obs = rcl.filter(hierarchy="countries")
     extra_attributes = {
         "file": "region_to_filter_codelist/region_filtering.yaml",
     }
@@ -238,22 +238,6 @@ def test_RegionCodeList_filter():
     }
     exp = RegionCodeList(name=rcl.name, mapping=mapping)
     assert obs == exp
-
-
-def test_RegionCodeList_filter_ValueError():
-    """Test that verifies the filter gives error when user inputs an unrecognizeable
-    hierarchy"""
-
-    # read RegionCodeList
-    rcl = RegionCodeList.from_directory(
-        "Region", TEST_DATA_DIR / "region_to_filter_codelist"
-    )
-    match = (
-        "Filtered RegionCodeList is empty: hierarchy=R77\n"
-        "Use `RegionCodeList.hierarchy` method for available items."
-    )
-    with pytest.raises(ValueError, match=match):
-        rcl.filter("R77")
 
 
 def test_RegionCodeList_hierarchy():
@@ -310,7 +294,7 @@ def test_codelist_general_filter_No_Elements(caplog):
         assert obs == CodeList(name="Variable", mapping={})
         assert len(caplog.records) == 1
         assert caplog.records[0].levelname == "WARNING"
-        assert caplog.records[0].message == "Formatted data is empty!"
+        assert caplog.records[0].message == "Filtered CodeList is empty!"
 
 
 def test_MetaCodeList_from_directory():
