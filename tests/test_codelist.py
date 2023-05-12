@@ -3,8 +3,13 @@ import pandas as pd
 import pandas.testing as pdt
 import logging
 
-from nomenclature.code import Code, RegionCode
-from nomenclature.codelist import CodeList, VariableCodeList, RegionCodeList
+from nomenclature.code import Code, RegionCode, MetaCode
+from nomenclature.codelist import (
+    CodeList,
+    VariableCodeList,
+    RegionCodeList,
+    MetaCodeList,
+)
 from nomenclature.error.codelist import DuplicateCodeError
 
 from conftest import TEST_DATA_DIR, remove_file_from_mapping
@@ -213,7 +218,7 @@ def test_RegionCodeList_filter():
     rcl = RegionCodeList.from_directory(
         "Region", TEST_DATA_DIR / "region_to_filter_codelist"
     )
-    obs = rcl.filter("countries")
+    obs = rcl.filter(hierarchy="countries")
     extra_attributes = {
         "file": "region_to_filter_codelist/region_filtering.yaml",
     }
@@ -233,22 +238,6 @@ def test_RegionCodeList_filter():
     }
     exp = RegionCodeList(name=rcl.name, mapping=mapping)
     assert obs == exp
-
-
-def test_RegionCodeList_filter_ValueError():
-    """Test that verifies the filter gives error when user inputs an unrecognizeable
-    hierarchy"""
-
-    # read RegionCodeList
-    rcl = RegionCodeList.from_directory(
-        "Region", TEST_DATA_DIR / "region_to_filter_codelist"
-    )
-    match = (
-        "Filtered RegionCodeList is empty: hierarchy=R77\n"
-        "Use `RegionCodeList.hierarchy` method for available items."
-    )
-    with pytest.raises(ValueError, match=match):
-        rcl.filter("R77")
 
 
 def test_RegionCodeList_hierarchy():
@@ -305,4 +294,24 @@ def test_codelist_general_filter_No_Elements(caplog):
         assert obs == CodeList(name="Variable", mapping={})
         assert len(caplog.records) == 1
         assert caplog.records[0].levelname == "WARNING"
-        assert caplog.records[0].message == "Formatted data is empty!"
+        assert caplog.records[0].message == "Filtered CodeList is empty!"
+
+
+def test_MetaCodeList_from_directory():
+    obs = MetaCodeList.from_directory(name="Meta", path=TEST_DATA_DIR / "meta")
+    mapping = {
+        "Meta category with boolean values": MetaCode(
+            name="Meta category with boolean values",
+            description=None,
+            extra_attributes={"file": "meta/meta_indicators_allowed_values.yaml"},
+            allowed_values=[True, False],
+        ),
+        "Meta cat with int values": MetaCode(
+            name="Meta cat with int values",
+            description=None,
+            extra_attributes={"file": "meta/meta_indicators_allowed_values.yaml"},
+            allowed_values=[1, 2, 3],
+        ),
+    }
+    exp = MetaCodeList(name="Meta", mapping=mapping)
+    assert obs == exp

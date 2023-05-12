@@ -9,7 +9,7 @@ from jsonschema import validate
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
 
-from nomenclature.code import Code, VariableCode, RegionCode
+from nomenclature.code import Code, VariableCode, RegionCode, MetaCode
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
     MissingWeightError,
@@ -406,11 +406,11 @@ class CodeList(BaseModel):
         # Returns True if code satisfies all filter parameters
         def _match_attribute(code, kwargs):
             return all(
-                hasattr(code, attribute) and getattr(code, attribute, None) == value
+                hasattr(code, attribute) and getattr(code, attribute) == value
                 for attribute, value in kwargs.items()
             )
 
-        filtered_codelist = CodeList(
+        filtered_codelist = self.__class__(
             name=self.name,
             mapping={
                 code.name: code
@@ -420,7 +420,7 @@ class CodeList(BaseModel):
         )
 
         if not filtered_codelist.mapping:
-            logging.warning("Formatted data is empty!")
+            logging.warning(f"Filtered {self.__class__.__name__} is empty!")
         return filtered_codelist
 
 
@@ -590,37 +590,18 @@ class RegionCodeList(CodeList):
         """
         return sorted(list(set(v.hierarchy for v in self.mapping.values())))
 
-    def filter(self, hierarchy: str) -> "RegionCodeList":
-        """Return a filtered RegionCodeList object
 
-        Parameters
-        ----------
-        hierarchy : str
-            String with filter parameter.
+class MetaCodeList(CodeList):
+    """A subclass of CodeList specified for MetaCodes
 
-        Raises
-        ------
-        ValueError
-            Provided hierarchy is not compatible with the given model.
+    Attributes
+    ----------
+    name : str
+        Name of the MetaCodeList
+    mapping : dict
+        Dictionary of `MetaCode` objects
 
-        Returns
-        -------
-        :class:'RegionCodeList'
+    """
 
-        Notes
-        -----
-        The following arguments are available for filtering:
-
-        - 'hierarchy': filter by the hierarchy of each region
-
-        """
-
-        mapping = {k: v for k, v in self.mapping.items() if v.hierarchy == hierarchy}
-        if mapping:
-            return RegionCodeList(name=self.name, mapping=mapping)
-        else:
-            msg: str = (
-                f"Filtered RegionCodeList is empty: hierarchy={hierarchy}\n"
-                "Use `RegionCodeList.hierarchy` method for available items."
-            )
-            raise ValueError(msg)
+    code_basis: ClassVar = MetaCode
+    validation_schema: ClassVar[str] = "generic"

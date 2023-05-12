@@ -225,3 +225,16 @@ class RegionCode(Code):
                 f" ISO3 country codes: {invalid_iso3_codes}"
             )
         return v
+
+
+class MetaCode(Code):
+    """Code object with allowed values list
+
+    Attributes
+    ----------
+    allowed_values : Optional(list[any])
+        An optional list of allowed values
+
+    """
+
+    allowed_values: Optional[List[Any]]
