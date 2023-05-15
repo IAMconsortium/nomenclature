@@ -4,6 +4,7 @@ from typing import Any, List, Optional, Tuple, Union
 
 import pydantic
 import yaml
+import pyam
 from pyam import IamDataFrame
 from pydantic import BaseModel, Field, validator
 from pydantic.error_wrappers import ErrorWrapper
@@ -17,13 +18,11 @@ logger = logging.getLogger(__name__)
 
 
 class RequiredMeasurand(BaseModel):
-
     variable: str
     unit: Optional[Union[str, List[str]]] = Field(...)
 
 
 class RequiredData(BaseModel):
-
     measurand: List[RequiredMeasurand]
     region: Optional[List[str]]
     year: Optional[List[int]]
@@ -70,7 +69,6 @@ class RequiredData(BaseModel):
 
     @property
     def pyam_required_data_list(self) -> List[dict]:
-
         return [
             {
                 "region": self.region,
@@ -97,10 +95,13 @@ class RequiredData(BaseModel):
 
 
 class RequiredDataValidator(Processor):
-
-    name: str
+    model: List[str]
     required_data: List[RequiredData]
     file: Path
+
+    @validator("model", pre=True)
+    def convert_to_list(cls, v):
+        return pyam.utils.to_list(v)
 
     @classmethod
     def from_file(cls, file: Union[Path, str]) -> "RequiredDataValidator":
@@ -109,33 +110,41 @@ class RequiredDataValidator(Processor):
         return cls(file=file, **content)
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
-        error = False
-        # check for required data and raise error if missing
-        for data in self.required_data:
-            for requirement in data.pyam_required_data_list:
-                if (missing_index := df.require_data(**requirement)) is not None:
-                    error = True
-                    logger.error(
-                        f"Required data {requirement} from file "
-                        f"{get_relative_path(self.file)} missing for:\n"
-                        f"{missing_index}"
-                    )
+        models_to_check = [model for model in df.model if model in self.model]
+        error = any(
+            self.check_required_data_per_model(df, model) for model in models_to_check
+        )
         if error:
             raise RequiredDataMissingError(
                 "Required data missing. Please check the log for details."
             )
         return df
 
-    def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
+    def check_required_data_per_model(self, df: IamDataFrame, model: str) -> bool:
+        per_model_data = df.filter(model=model)
+        error = False
+        for data in self.required_data:
+            for requirement in data.pyam_required_data_list:
+                if (
+                    missing_index := per_model_data.require_data(**requirement)
+                ) is not None:
+                    error = True
+                    logger.error(
+                        f"Required data {requirement} from file "
+                        f"{get_relative_path(self.file)} missing for:\n"
+                        f"{missing_index}"
+                    )
+        return error
 
+    def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         errors = []
         for i, data in enumerate(self.required_data):
             try:
                 data.validate_with_definition(dsd)
-            except ValueError as ve:
+            except ValueError as value_error:
                 errors.append(
                     ErrorWrapper(
-                        ve,
+                        value_error,
                         (
                             f"In file {get_relative_path(self.file)}\n"
                             f"entry nr. {i+1}"

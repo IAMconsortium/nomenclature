@@ -1,3 +1,4 @@
+from copy import deepcopy
 import pandas as pd
 import pytest
 from conftest import TEST_DATA_DIR
@@ -11,9 +12,8 @@ REQUIRED_DATA_TEST_DIR = TEST_DATA_DIR / "required_data" / "required_data"
 
 
 def test_RequiredDataValidator_from_file():
-
     exp = {
-        "name": "MAGICC",
+        "model": ["model_a"],
         "required_data": [
             {
                 "measurand": [
@@ -32,13 +32,14 @@ def test_RequiredDataValidator_from_file():
 
 
 def test_RequiredDataValidator_validate_with_definition():
-
-    rdv = RequiredDataValidator.from_file(REQUIRED_DATA_TEST_DIR / "requiredData.yaml")
+    required_data_validator = RequiredDataValidator.from_file(
+        REQUIRED_DATA_TEST_DIR / "requiredData.yaml"
+    )
     dsd = DataStructureDefinition(
         TEST_DATA_DIR / "required_data" / "definition",
         dimensions=["region", "variable"],
     )
-    rdv.validate_with_definition(dsd) is None
+    required_data_validator.validate_with_definition(dsd) is None
 
 
 @pytest.mark.parametrize(
@@ -61,32 +62,33 @@ def test_RequiredDataValidator_validate_with_definition_raises(requiredDataFile,
     # 2. Undefined variable
     # 3. Undefined unit
 
-    rdv = RequiredDataValidator.from_file(REQUIRED_DATA_TEST_DIR / requiredDataFile)
+    required_data_validator = RequiredDataValidator.from_file(
+        REQUIRED_DATA_TEST_DIR / requiredDataFile
+    )
     dsd = DataStructureDefinition(
         TEST_DATA_DIR / "required_data" / "definition",
         dimensions=["region", "variable"],
     )
 
     with pytest.raises(ValueError, match=match):
-        rdv.validate_with_definition(dsd)
+        required_data_validator.validate_with_definition(dsd)
 
 
 def test_RequiredData_apply(simple_df):
     # all good no warnings
-    rdv = RequiredDataValidator.from_file(
+    required_data_validator = RequiredDataValidator.from_file(
         REQUIRED_DATA_TEST_DIR / "requiredData_apply_working.yaml"
     )
-    assert_iamframe_equal(rdv.apply(simple_df), simple_df)
+    assert_iamframe_equal(required_data_validator.apply(simple_df), simple_df)
 
 
 def test_RequiredData_apply_raises(simple_df, caplog):
-
-    rdv = RequiredDataValidator.from_file(
+    required_data_validator = RequiredDataValidator.from_file(
         REQUIRED_DATA_TEST_DIR / "requiredData_apply_error.yaml"
     )
     # assert that the correct error is raised
     with pytest.raises(RequiredDataMissingError, match="Required data missing"):
-        rdv.apply(simple_df)
+        required_data_validator.apply(simple_df)
 
     missing_index = pd.DataFrame(
         [["model_a", "scen_a"], ["model_a", "scen_b"]], columns=["model", "scenario"]
@@ -96,3 +98,14 @@ def test_RequiredData_apply_raises(simple_df, caplog):
         x in caplog.text
         for x in ("ERROR", "Required data", "missing", str(missing_index))
     )
+
+
+def test_per_model_RequiredData(simple_df):
+    # required data is missing but it's only required for model_a
+    # therefore this should return the dataframe intact
+    required_data_validator = RequiredDataValidator.from_file(
+        REQUIRED_DATA_TEST_DIR / "requiredData_apply_error.yaml"
+    )
+    simple_df = simple_df.rename(model={"model_a": "model_b"})
+    exp = deepcopy(simple_df)
+    assert_iamframe_equal(exp, required_data_validator.apply(simple_df))

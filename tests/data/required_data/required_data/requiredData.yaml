@@ -1,4 +1,4 @@
-name: MAGICC
+model: model_a
 required_data:
   - measurand:
       Emissions|CO2:

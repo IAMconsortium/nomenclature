@@ -409,7 +409,6 @@ class RegionProcessor(Processor):
         """
         processed_dfs: List[IamDataFrame] = []
         for model in df.model:
-
             model_df = df.filter(model=model)
 
             # if no mapping is defined the data frame is returned unchanged
@@ -458,7 +457,6 @@ class RegionProcessor(Processor):
 
             # aggregate common regions
             if self.mappings[model].common_regions is not None:
-
                 for cr in self.mappings[model].common_regions:
                     # if a common region is consists of a single native region, rename
                     if cr.is_single_constituent_region:

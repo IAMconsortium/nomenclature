@@ -1,4 +1,4 @@
-name: Raises error with simple_df fixture from conftest
+model: model_a
 required_data:
   - measurand:
     - Primary Energy:

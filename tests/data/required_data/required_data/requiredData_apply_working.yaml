@@ -1,4 +1,4 @@
-name: Runs through with simple_df fixture from conftest
+model: model_a
 required_data:
   - measurand:
       - Primary Energy:
