@@ -6,7 +6,7 @@ import pydantic
 import yaml
 import pyam
 from pyam import IamDataFrame
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, validator
 from pydantic.error_wrappers import ErrorWrapper
 
 from nomenclature.definition import DataStructureDefinition
