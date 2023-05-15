@@ -2,6 +2,6 @@ model: model_a
 required_data:
   - measurand:
     - Primary Energy:
-        unit: EJ/yr
+        unit: [GWh/yr, Mtoe]
     year: [2005, 2010, 2015] # 2015 is missing from simple_df for all models
 

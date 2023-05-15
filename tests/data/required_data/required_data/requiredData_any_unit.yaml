@@ -1,0 +1,7 @@
+model: model_a
+required_data:
+  - measurand:
+      Primary Energy:
+    region: World
+    year: [2005, 2010]
+

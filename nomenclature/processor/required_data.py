@@ -19,7 +19,11 @@ logger = logging.getLogger(__name__)
 
 class RequiredMeasurand(BaseModel):
     variable: str
-    unit: Optional[Union[str, List[str]]] = Field(...)
+    unit: List[Optional[str]]
+
+    @validator("unit", pre=True)
+    def single_input_to_list(cls, v):
+        return v if isinstance(v, list) else [v]
 
 
 class RequiredData(BaseModel):
@@ -36,7 +40,8 @@ class RequiredData(BaseModel):
         if len(v) != 1:
             raise ValueError("Measurand must be a single value dictionary")
         variable = next(iter(v))
-        return RequiredMeasurand(variable=variable, **v[variable])
+        unit = v[variable] if v[variable] is None else v[variable]["unit"]
+        return RequiredMeasurand(variable=variable, unit=unit)
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         error_msg = ""
@@ -68,14 +73,17 @@ class RequiredData(BaseModel):
         return [m.variable for m in self.measurand]
 
     @property
-    def pyam_required_data_list(self) -> List[dict]:
+    def pyam_required_data_list(self) -> List[List[dict]]:
         return [
-            {
-                "region": self.region,
-                "year": self.year,
-                "variable": m.variable,
-                "unit": m.unit,
-            }
+            [
+                {
+                    "region": self.region,
+                    "year": self.year,
+                    "variable": m.variable,
+                    "unit": unit,
+                }
+                for unit in m.unit
+            ]
             for m in self.measurand
         ]
 
@@ -85,10 +93,11 @@ class RequiredData(BaseModel):
         wrong_units: List[Tuple[str, Any, Any]] = []
         if hasattr(dsd, "variable"):
             wrong_units.extend(
-                (m.variable, m.unit, dsd.variable[m.variable].unit)
+                (m.variable, unit, dsd.variable[m.variable].unit)
                 for m in self.measurand
+                for unit in m.unit
                 if m.variable in dsd.variable  # check if the variable exists
-                and m.unit not in dsd.variable[m.variable].units
+                and unit not in dsd.variable[m.variable].units
             )
 
         return wrong_units
@@ -124,13 +133,15 @@ class RequiredDataValidator(Processor):
         per_model_data = df.filter(model=model)
         error = False
         for data in self.required_data:
-            for requirement in data.pyam_required_data_list:
-                if (
-                    missing_index := per_model_data.require_data(**requirement)
-                ) is not None:
+            for requirements in data.pyam_required_data_list:
+                if all(
+                    (missing_index := per_model_data.require_data(**requirement))
+                    is not None
+                    for requirement in requirements
+                ):
                     error = True
                     logger.error(
-                        f"Required data {requirement} from file "
+                        f"Required data {requirements} from file "
                         f"{get_relative_path(self.file)} missing for:\n"
                         f"{missing_index}"
                     )

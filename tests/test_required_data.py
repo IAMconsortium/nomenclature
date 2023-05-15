@@ -74,10 +74,18 @@ def test_RequiredDataValidator_validate_with_definition_raises(requiredDataFile,
         required_data_validator.validate_with_definition(dsd)
 
 
-def test_RequiredData_apply(simple_df):
+@pytest.mark.parametrize(
+    "required_data_file",
+    [
+        "requiredData_apply_working.yaml",
+        "requiredData_any_unit.yaml",
+        "requiredData_multiple_units_allowed.yaml",
+    ],
+)
+def test_RequiredData_apply(simple_df, required_data_file):
     # all good no warnings
     required_data_validator = RequiredDataValidator.from_file(
-        REQUIRED_DATA_TEST_DIR / "requiredData_apply_working.yaml"
+        REQUIRED_DATA_TEST_DIR / required_data_file
     )
     assert_iamframe_equal(required_data_validator.apply(simple_df), simple_df)
 
