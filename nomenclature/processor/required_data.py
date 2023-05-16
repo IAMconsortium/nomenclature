@@ -6,7 +6,7 @@ import pydantic
 import yaml
 import pyam
 from pyam import IamDataFrame
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, root_validator, Field
 from pydantic.error_wrappers import ErrorWrapper
 
 from nomenclature.definition import DataStructureDefinition
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class RequiredMeasurand(BaseModel):
     variable: str
-    unit: List[Optional[str]]
+    unit: List[Union[str, None]] = Field(...)
 
     @validator("unit", pre=True)
     def single_input_to_list(cls, v):
@@ -27,32 +27,47 @@ class RequiredMeasurand(BaseModel):
 
 
 class RequiredData(BaseModel):
-    measurand: List[RequiredMeasurand]
+    measurand: Optional[List[RequiredMeasurand]]
+    variable: Optional[List[str]]
     region: Optional[List[str]]
     year: Optional[List[int]]
 
-    @validator("measurand", "region", "year", pre=True)
+    @validator("measurand", "region", "year", "variable", pre=True)
     def single_input_to_list(cls, v):
         return v if isinstance(v, list) else [v]
+
+    @root_validator(pre=True)
+    def check_variable_measurand_collision(cls, values):
+        if values.get("measurand") and values.get("variable"):
+            raise ValueError("'measurand' and 'variable' cannot be used together.")
+        return values
+
+    @root_validator(pre=True)
+    def check_variable_measurand_neither(cls, values):
+        if values.get("measurand") is None and values.get("variable") is None:
+            raise ValueError("Either 'measurand' or 'variable' must be given.")
+        return values
 
     @validator("measurand", pre=True, each_item=True)
     def cast_to_RequiredMeasurand(cls, v):
         if len(v) != 1:
             raise ValueError("Measurand must be a single value dictionary")
         variable = next(iter(v))
-        unit = v[variable] if v[variable] is None else v[variable]["unit"]
-        return RequiredMeasurand(variable=variable, unit=unit)
+        return RequiredMeasurand(variable=variable, **v[variable])
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         error_msg = ""
 
         # check for undefined regions and variables
-        for dim in ("region", "variable"):
-            if invalid := dsd.__getattribute__(dim).validate_items(
-                self.__getattribute__(dim) or []
+        for dimension, attribute_name in (
+            ("region", "region"),
+            ("variable", "variables"),
+        ):
+            if invalid := dsd.__getattribute__(dimension).validate_items(
+                self.__getattribute__(attribute_name) or []
             ):
                 error_msg += (
-                    f"The following {dim}(s) were not found in the "
+                    f"The following {dimension}(s) were not found in the "
                     f"DataStructureDefinition:\n{invalid}\n"
                 )
 
@@ -69,29 +84,42 @@ class RequiredData(BaseModel):
             raise ValueError(error_msg)
 
     @property
-    def variable(self) -> List[str]:
-        return [m.variable for m in self.measurand]
+    def variables(self) -> List[str]:
+        if self.measurand is not None:
+            return [m.variable for m in self.measurand]
+        return self.variable
 
     @property
     def pyam_required_data_list(self) -> List[List[dict]]:
+        if self.measurand is not None:
+            return [
+                [
+                    {
+                        "region": self.region,
+                        "year": self.year,
+                        "variable": measurand.variable,
+                        "unit": unit,
+                    }
+                    for unit in measurand.unit
+                ]
+                for measurand in self.measurand
+            ]
         return [
             [
                 {
                     "region": self.region,
                     "year": self.year,
-                    "variable": m.variable,
-                    "unit": unit,
+                    "variable": variable,
                 }
-                for unit in m.unit
             ]
-            for m in self.measurand
+            for variable in self.variable
         ]
 
     def _wrong_unit_variables(
         self, dsd: DataStructureDefinition
     ) -> List[Tuple[str, str, str]]:
         wrong_units: List[Tuple[str, Any, Any]] = []
-        if hasattr(dsd, "variable"):
+        if hasattr(dsd, "variable") and self.measurand is not None:
             wrong_units.extend(
                 (m.variable, unit, dsd.variable[m.variable].unit)
                 for m in self.measurand
@@ -104,7 +132,8 @@ class RequiredData(BaseModel):
 
 
 class RequiredDataValidator(Processor):
-    model: List[str]
+    description: Optional[str]
+    model: Optional[List[str]]
     required_data: List[RequiredData]
     file: Path
 
@@ -119,7 +148,10 @@ class RequiredDataValidator(Processor):
         return cls(file=file, **content)
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
-        models_to_check = [model for model in df.model if model in self.model]
+        if self.model is not None:
+            models_to_check = [model for model in df.model if model in self.model]
+        else:
+            models_to_check = df.model
         error = any(
             self.check_required_data_per_model(df, model) for model in models_to_check
         )
