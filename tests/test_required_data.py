@@ -13,6 +13,7 @@ REQUIRED_DATA_TEST_DIR = TEST_DATA_DIR / "required_data" / "required_data"
 
 def test_RequiredDataValidator_from_file():
     exp = {
+        "description": "Required variables for running MAGICC",
         "model": ["model_a"],
         "required_data": [
             {
@@ -28,7 +29,7 @@ def test_RequiredDataValidator_from_file():
 
     obs = RequiredDataValidator.from_file(REQUIRED_DATA_TEST_DIR / "requiredData.yaml")
 
-    assert obs.dict() == exp
+    assert obs.dict(exclude_unset=True) == exp
 
 
 def test_RequiredDataValidator_validate_with_definition():

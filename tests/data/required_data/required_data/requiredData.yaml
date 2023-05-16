@@ -1,3 +1,4 @@
+description: Required variables for running MAGICC
 model: model_a
 required_data:
   - measurand:
