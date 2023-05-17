@@ -1,5 +1,6 @@
 import json
 import re
+import pycountry
 from keyword import iskeyword
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union
@@ -219,6 +220,21 @@ class RegionCode(Code):
     """
 
     hierarchy: str = None
+    countries: List[str] = None
+
+    @validator("countries")
+    def check_iso3_codes(cls, v, values) -> List[str]:
+        """Verifies that each ISO3 code is valid according to pycountry library."""
+        invalid_iso3_codes: List[str] = []
+        for country in v:
+            if pycountry.countries.get(alpha_3=country) is None:
+                invalid_iso3_codes.append(country)
+        if invalid_iso3_codes:
+            raise ValueError(
+                f"Region {values['name']} has invalid"
+                f" ISO3 country codes: {invalid_iso3_codes}"
+            )
+        return v
 
 
 class MetaCode(Code):

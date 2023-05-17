@@ -57,6 +57,108 @@ def test_RegionCode_hierarchy_attribute():
     assert reg.hierarchy == "R5"
 
 
+def test_RegionCode_iso3_code():
+    reg = RegionCode(
+        name="Western Europe",
+        hierarchy="R5OECD",
+        countries=[
+            "DNK",
+            "IRL",
+            "AUT",
+            "FIN",
+            "FRA",
+            "DEU",
+            "GRC",
+            "ISL",
+            "ITA",
+            "LIE",
+            "MLT",
+            "BEL",
+            "FRO",
+            "AND",
+            "GIB",
+            "LUX",
+            "MCO",
+            "NLD",
+            "NOR",
+            "PRT",
+            "ESP",
+            "SWE",
+            "CHE",
+            "GBR",
+            "SMR",
+        ],
+    )
+
+    assert reg.countries == [
+        "DNK",
+        "IRL",
+        "AUT",
+        "FIN",
+        "FRA",
+        "DEU",
+        "GRC",
+        "ISL",
+        "ITA",
+        "LIE",
+        "MLT",
+        "BEL",
+        "FRO",
+        "AND",
+        "GIB",
+        "LUX",
+        "MCO",
+        "NLD",
+        "NOR",
+        "PRT",
+        "ESP",
+        "SWE",
+        "CHE",
+        "GBR",
+        "SMR",
+    ]
+
+
+def test_RegionCode_iso3_code_fail():
+    countries = [
+        "DMK",
+        "IPL",
+        "ATZ",
+        "FNL",
+        "FRE",
+        "DEX",
+        "GRE",
+        "IBL",
+        "ITL",
+        "LIC",
+        "MLA",
+        "BEG",
+        "FRT",
+        "ANB",
+        "GDR",
+        "LXB",
+        "MNO",
+        "NTD",
+        "NRW",
+        "PRE",
+        "EPA",
+        "SWD",
+        "CEW",
+        "GTR",
+        "SOR",
+    ]
+
+    error_pattern = (
+        "1 validation error for RegionCode\ncountries\n  Reg"
+        "ion Western Europe has invalid ISO3 country codes"
+        ": \['DMK', 'IPL', 'ATZ', 'FNL', 'FRE', 'DEX', 'GRE',"  # noqa
+        " 'IBL', 'ITL', 'LIC', 'MLA', 'BEG', 'FRT', 'ANB', "  # noqa
+        "'GDR', 'LXB', 'MNO', 'NTD', 'NRW', 'PRE', 'EPA', "  # noqa
+        "'SWD', 'CEW', 'GTR', 'SOR'\] \(type=value_error\)"  # noqa
+    )
+    with pytest.raises(ValueError, match=error_pattern):
+        RegionCode(name="Western Europe", hierarchy="R5OECD", countries=countries)
+
 def test_MetaCode_allowed_values_attribute():
     meta = MetaCode(
         name="MetaCode test",
