@@ -63,8 +63,8 @@ class RequiredData(BaseModel):
             ("region", "region"),
             ("variable", "variables"),
         ):
-            if invalid := dsd.__getattribute__(dimension).validate_items(
-                self.__getattribute__(attribute_name) or []
+            if invalid := getattr(dsd, dimension).validate_items(
+                getattr(self, attribute_name) or []
             ):
                 error_msg += (
                     f"The following {dimension}(s) were not found in the "

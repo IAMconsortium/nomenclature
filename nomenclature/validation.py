@@ -25,9 +25,7 @@ def validate(dsd, df, dimensions):
     error = False
 
     for dim in dimensions:
-        if invalid := dsd.__getattribute__(dim).validate_items(
-            df.__getattribute__(dim)
-        ):
+        if invalid := getattr(dsd, dim).validate_items(getattr(df, dim)):
             log_error(dim, invalid)
             error = True
 

@@ -2,8 +2,8 @@
     description: Total primary energy consumption
     unit: EJ/yr
     region-aggregation:
-      - Primary Energy (mean):
-          method: mean
+    - Primary Energy (mean):
+        method: mean
 - Primary Energy (mean):
     description: Mean primary energy consumption
     unit: EJ/yr
