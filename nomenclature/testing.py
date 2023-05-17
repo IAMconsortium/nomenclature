@@ -83,7 +83,6 @@ def _check_requiredData(
     dimensions: Optional[List[str]] = None,
     required_data: Optional[str] = None,
 ) -> None:
-
     dsd = DataStructureDefinition(path / definitions, dimensions)
     if required_data is None:
         if (path / "requiredData").is_dir():

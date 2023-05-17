@@ -159,6 +159,7 @@ def test_RegionCode_iso3_code_fail():
     with pytest.raises(ValueError, match=error_pattern):
         RegionCode(name="Western Europe", hierarchy="R5OECD", countries=countries)
 
+
 def test_MetaCode_allowed_values_attribute():
     meta = MetaCode(
         name="MetaCode test",
