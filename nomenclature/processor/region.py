@@ -232,10 +232,10 @@ class RegionAggregationMapping(BaseModel):
         # Validate the input data using jsonschema
         try:
             jsonschema.validate(mapping_input, schema)
-        except jsonschema.ValidationError as e:
+        except jsonschema.ValidationError as error:
             # Add file information in case of error
             raise jsonschema.ValidationError(
-                f"{e.message} in {get_relative_path(file)}"
+                f"{error.message} in {get_relative_path(file)}"
             )
 
         # Add the file name to mapping_input
@@ -365,8 +365,8 @@ class RegionProcessor(Processor):
                                 "__root__",
                             )
                         )
-            except (pydantic.ValidationError, jsonschema.ValidationError) as e:
-                errors.append(ErrorWrapper(e, "__root__"))
+            except (pydantic.ValidationError, jsonschema.ValidationError) as error:
+                errors.append(ErrorWrapper(error, "__root__"))
 
         if errors:
             raise pydantic.ValidationError(errors, model=RegionProcessor)
@@ -542,13 +542,13 @@ def _aggregate_region(df, var, *regions, **kwargs):
     """Perform region aggregation with kwargs catching inconsistent-index errors"""
     try:
         return df.aggregate_region(var, *regions, **kwargs)
-    except ValueError as e:
-        if str(e) == "Inconsistent index between variable and weight!":
+    except ValueError as error:
+        if str(error) == "Inconsistent index between variable and weight!":
             logger.info(
                 f"Could not aggregate '{var}' for region '{regions[0]}' ({kwargs})"
             )
         else:
-            raise e
+            raise error
 
 
 def _compare_and_merge(original: pd.Series, aggregated: pd.Series) -> IamDataFrame:
