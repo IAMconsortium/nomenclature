@@ -50,6 +50,9 @@ class CodeList(BaseModel):
     validation_schema: ClassVar[str] = "generic"
     code_basis: ClassVar = Code
 
+    def __eq__(self, other):
+        return self.name == other.name and self.mapping == other.mapping
+
     @validator("mapping")
     def check_stray_tag(cls, v):
         """Check that no '{' are left in codes after tag replacement"""
@@ -379,13 +382,7 @@ class CodeList(BaseModel):
                 if json_serialized
                 else code.flattened_dict
             )
-            code_dict = {
-                k: v
-                for k, v in code_dict.items()
-                if (v is not None and k != "name") or k == "unit"
-            }
-
-            nice_dict[name] = code_dict
+            nice_dict[name] = {k: v for k, v in code_dict.items() if k != "name"}
 
         return nice_dict
 

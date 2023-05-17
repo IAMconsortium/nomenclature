@@ -47,10 +47,3 @@ def add_meta(df):
     if len(df.index) == 2:
         df.set_meta([1.0, 2.0], "number")
         df.set_meta(["foo", np.nan], "string")
-
-
-def remove_file_from_mapping(mapping: Dict[str, Code]) -> List[Dict]:
-    return [
-        {key: value for key, value in code.flattened_dict.items() if key != "file"}
-        for code in mapping.values()
-    ]
