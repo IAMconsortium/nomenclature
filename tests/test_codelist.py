@@ -298,10 +298,12 @@ def test_codelist_general_filter_No_Elements(caplog):
 
 
 def test_MetaCodeList_from_directory():
-    obs = MetaCodeList.from_directory(name="Meta", path=TEST_DATA_DIR / "meta")
+    obs = MetaCodeList.from_directory(
+        name="Meta", path=TEST_DATA_DIR / "definitions/meta"
+    )
     mapping = {
-        "Meta category with boolean values": MetaCode(
-            name="Meta category with boolean values",
+        "exclude": MetaCode(
+            name="exclude",
             description=None,
             extra_attributes={"file": "meta/meta_indicators_allowed_values.yaml"},
             allowed_values=[True, False],
