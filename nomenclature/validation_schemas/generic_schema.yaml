@@ -17,8 +17,18 @@ definitions:
             type: object
             # The lower-level dictionary are the attributes
             additionalProperties:
-              type: [ string, number, boolean, "null" ]
+              oneOf:
+                - type: string
+                - type: number
+                - type: boolean
+                - type: "null"
+                - type: array
+                  items:
+                    oneOf:
+                      - type: string
+                      - type: number
+                      - type: boolean
+                      - type: "null"
         additionalProperties: false
         minProperties: 1
-        maxProperties: 1
       - type: string
