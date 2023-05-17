@@ -23,6 +23,7 @@ from nomenclature.error.region import (
     RegionNameCollisionError,
     RegionNotDefinedError,
 )
+from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 
 logger = logging.getLogger(__name__)
@@ -313,7 +314,7 @@ class RegionAggregationMapping(BaseModel):
             )
 
 
-class RegionProcessor(BaseModel):
+class RegionProcessor(Processor):
     """Region aggregation mappings for scenario processing"""
 
     region_codelist: RegionCodeList
@@ -408,7 +409,6 @@ class RegionProcessor(BaseModel):
         """
         processed_dfs: List[IamDataFrame] = []
         for model in df.model:
-
             model_df = df.filter(model=model)
 
             # if no mapping is defined the data frame is returned unchanged
@@ -423,8 +423,9 @@ class RegionProcessor(BaseModel):
                     f"Applying region-processing for model '{model}' from '{file}'"
                 )
                 processed_dfs.append(self._apply_region_processing(model_df))
-
-        return pyam.concat(processed_dfs)
+        res = pyam.concat(processed_dfs)
+        self.region_codelist.validate_items(res.region)
+        return res
 
     def _apply_region_processing(self, model_df: IamDataFrame) -> IamDataFrame:
         """Apply the region processing for a single model"""
@@ -456,7 +457,6 @@ class RegionProcessor(BaseModel):
 
             # aggregate common regions
             if self.mappings[model].common_regions is not None:
-
                 for cr in self.mappings[model].common_regions:
                     # if a common region is consists of a single native region, rename
                     if cr.is_single_constituent_region:

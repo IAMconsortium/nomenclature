@@ -1,0 +1,8 @@
+model: model_a
+required_data:
+  - measurand:
+      Primary Energy:
+        unit: [EJ/yr, PWh/yr, Mtoe/yr]
+    region: World
+    year: [2005, 2010]
+
