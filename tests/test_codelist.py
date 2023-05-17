@@ -207,9 +207,7 @@ def test_RegionCodeList_filter():
         "Region", TEST_DATA_DIR / "region_to_filter_codelist"
     )
     obs = rcl.filter(hierarchy="countries")
-    extra_attributes = {
-        "file": "region_to_filter_codelist/region_filtering.yaml",
-    }
+
     mapping = {
         "Some Country": RegionCode(
             name="Some Country", description="some small country", hierarchy="countries"
@@ -285,13 +283,11 @@ def test_MetaCodeList_from_directory():
         "Meta category with boolean values": MetaCode(
             name="Meta category with boolean values",
             description=None,
-            extra_attributes={"file": "meta/meta_indicators_allowed_values.yaml"},
             allowed_values=[True, False],
         ),
         "Meta cat with int values": MetaCode(
             name="Meta cat with int values",
             description=None,
-            extra_attributes={"file": "meta/meta_indicators_allowed_values.yaml"},
             allowed_values=[1, 2, 3],
         ),
     }
