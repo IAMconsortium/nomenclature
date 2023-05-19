@@ -1,0 +1,4 @@
+- exclude:
+    allowed_values: [True, False]
+- Meta cat with int values:
+    allowed_values: [1, 2, 3]
