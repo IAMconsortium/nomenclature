@@ -64,7 +64,7 @@ Table of Contents
 Integration with the **pyam** package
 -------------------------------------
 
-.. image:: https://raw.githubusercontent.com/IAMconsortium/pyam/main/doc/logos/pyam-header.png
+.. image:: https://raw.githubusercontent.com/IAMconsortium/pyam/main/docs/logos/pyam-header.png
    :width: 320px
    :align: right
    :target: https://pyam-iamc.readthedocs.io

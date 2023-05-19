@@ -1,6 +1,6 @@
 # nomenclature - Working with IAMC-format project definitions
 
-Copyright 2021-2022 IIASA
+Copyright 2021-2023 IIASA
 
 This repository is licensed under the Apache License, Version 2.0 (the "License"); see
 the [LICENSE](LICENSE) for details.
@@ -38,7 +38,7 @@ The documentation is hosted on [Read the Docs](https://nomenclature-iamc.readthe
 
 ## Integration with the pyam package
 
-<img src="https://github.com/IAMconsortium/pyam/blob/main/doc/logos/pyam-logo.png"
+<img src="https://github.com/IAMconsortium/pyam/blob/main/docs/logos/pyam-logo.png"
 width="133" height="100" align="right" alt="pyam logo" />
 
 The **nomenclature** package is designed to complement the Python package **pyam**,
