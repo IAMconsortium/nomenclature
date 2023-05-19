@@ -1,4 +1,5 @@
-name: Unknown unit
+model: model_a
 required_data:
-  - variable: Final Energy
-    unit: Mtoe/yr
+  - measurand:
+      Final Energy:
+        unit: Mtoe/yr

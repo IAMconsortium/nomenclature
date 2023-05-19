@@ -30,7 +30,7 @@ except LookupError:
     __version__ = version("nomenclature-iamc")
 
 
-def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=[]):
+def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=None):
     """Parses an xlsx file with a codelist and writes a yaml file
 
     Parameters
@@ -46,6 +46,8 @@ def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=[]):
     attrs : list, optional
         Columns from `sheet_name` to use as attributes.
     """
+    if attrs is None:
+        attrs = []
     SPECIAL_CODELIST.get(col.lower(), CodeList).read_excel(
         name="", source=source, sheet_name=sheet_name, col=col, attrs=attrs
     ).to_yaml(target)

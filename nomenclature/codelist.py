@@ -1,10 +1,10 @@
+import logging
 from pathlib import Path
 from typing import ClassVar, Dict, List
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import yaml
-import logging
 from jsonschema import validate
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
@@ -17,18 +17,17 @@ from nomenclature.error.variable import (
     VariableRenameTargetError,
 )
 
-
 here = Path(__file__).parent.absolute()
 
 
-def read_validation_schema(i):
-    with open(here / "validation_schemas" / f"{i}_schema.yaml", "r") as f:
+def read_validation_schema(schema):
+    with open(here / "validation_schemas" / f"{schema}_schema.yaml", "r") as f:
         schema = yaml.safe_load(f)
     return schema
 
 
 SCHEMA_TYPES = ("variable", "tag", "region", "generic")
-SCHEMA_MAPPING = dict([(i, read_validation_schema(i)) for i in SCHEMA_TYPES])
+SCHEMA_MAPPING = {schema: read_validation_schema(schema) for schema in SCHEMA_TYPES}
 
 
 class CodeList(BaseModel):
@@ -49,6 +48,9 @@ class CodeList(BaseModel):
     # class variable
     validation_schema: ClassVar[str] = "generic"
     code_basis: ClassVar = Code
+
+    def __eq__(self, other):
+        return self.name == other.name and self.mapping == other.mapping
 
     @validator("mapping")
     def check_stray_tag(cls, v):
@@ -220,7 +222,7 @@ class CodeList(BaseModel):
         return cls(name=name, mapping=mapping)
 
     @classmethod
-    def read_excel(cls, name, source, sheet_name, col, attrs=[]):
+    def read_excel(cls, name, source, sheet_name, col, attrs=None):
         """Parses an xlsx file with a codelist
 
         Parameters
@@ -236,6 +238,8 @@ class CodeList(BaseModel):
         attrs : list, optional
             Columns from `sheet_name` to use as attributes.
         """
+        if attrs is None:
+            attrs = []
         codelist = pd.read_excel(source, sheet_name=sheet_name, usecols=[col] + attrs)
 
         # replace nan with None
@@ -271,8 +275,8 @@ class CodeList(BaseModel):
         """
 
         class Dumper(yaml.Dumper):
-            def increase_indent(self, flow=False, *args, **kwargs):
-                return super().increase_indent(flow=flow, indentless=False)
+            def increase_indent(self, flow: bool = False, indentless: bool = False):
+                return super().increase_indent(flow=flow, indentless=indentless)
 
         # translate to list of nested dicts, replace None by empty field, write to file
         stream = (
@@ -285,11 +289,10 @@ class CodeList(BaseModel):
             .replace(": nan\n", ":\n")
         )
 
-        if path is not None:
-            with open(path, "w") as file:
-                file.write(stream)
-        else:
+        if path is None:
             return stream
+        with open(path, "w") as file:
+            file.write(stream)
 
     def to_pandas(self, sort_by_code: bool = False) -> pd.DataFrame:
         """Export the CodeList to a :class:`pandas.DataFrame`
@@ -379,13 +382,7 @@ class CodeList(BaseModel):
                 if json_serialized
                 else code.flattened_dict
             )
-            code_dict = {
-                k: v
-                for k, v in code_dict.items()
-                if (v is not None and k != "name") or k == "unit"
-            }
-
-            nice_dict[name] = code_dict
+            nice_dict[name] = {k: v for k, v in code_dict.items() if k != "name"}
 
         return nice_dict
 
@@ -588,7 +585,7 @@ class RegionCodeList(CodeList):
         List[str]
 
         """
-        return sorted(list(set(v.hierarchy for v in self.mapping.values())))
+        return sorted(list({v.hierarchy for v in self.mapping.values()}))
 
 
 class MetaCodeList(CodeList):

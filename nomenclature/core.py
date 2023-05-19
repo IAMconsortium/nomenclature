@@ -1,22 +1,21 @@
-import copy
 import logging
-from typing import List, Optional
+from typing import Optional, Union, List
 
 import pyam
 from pydantic import validate_arguments
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.processor import RegionProcessor
+from nomenclature.processor import Processor, RegionProcessor
 
 logger = logging.getLogger(__name__)
 
 
-@validate_arguments(config=dict(arbitrary_types_allowed=True))
+@validate_arguments(config={"arbitrary_types_allowed": True})
 def process(
     df: pyam.IamDataFrame,
     dsd: DataStructureDefinition,
     dimensions: Optional[List[str]] = None,
-    processor: Optional[RegionProcessor] = None,
+    processor: Optional[Union[Processor, List[Processor]]] = None,
 ) -> pyam.IamDataFrame:
     """Function for validation and region aggregation in one step
 
@@ -52,21 +51,22 @@ def process(
     ValueError
         If the :class:`pyam.IamDataFrame` fails the validation.
     """
-    # The deep copy is needed so we don't alter dsd in dimensions.remove("region")
-    dimensions = copy.deepcopy(dimensions or dsd.dimensions)
 
-    # perform validation and region-processing (optional)
-    if processor is None:
-        dsd.validate(df, dimensions=dimensions)
-    else:
-        if "region" in dimensions:
-            dimensions.remove("region")
-            dsd.validate(df, dimensions=dimensions)
-            df = processor.apply(df)
-            dsd.validate(df, dimensions=["region"])
-        else:
-            dsd.validate(df, dimensions=dimensions)
-            df = processor.apply(df)
+    processor = processor or []
+    processor = processor if isinstance(processor, list) else [processor]
+
+    dimensions = dimensions or dsd.dimensions
+
+    if (
+        any(isinstance(p, RegionProcessor) for p in processor)
+        and "region" in dimensions
+    ):
+        dimensions.remove("region")
+
+    dsd.validate(df, dimensions=dimensions)
+
+    for p in processor:
+        df = p.apply(df)
 
     # check consistency across the variable hierarchy
     error = dsd.check_aggregate(df)

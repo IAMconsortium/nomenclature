@@ -1,0 +1,6 @@
+required_data:
+  - variable:
+    - Primary Energy
+    region: World
+    year: [2005, 2010]
+

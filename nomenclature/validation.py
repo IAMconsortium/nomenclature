@@ -24,13 +24,16 @@ def validate(dsd, df, dimensions):
 
     error = False
 
+    for dim in dimensions:
+        if invalid := getattr(dsd, dim).validate_items(getattr(df, dim)):
+            log_error(dim, invalid)
+            error = True
+
     if "variable" in dimensions:
-        # combined validation of variables and units
-        invalid_vars, invalid_units = [], []
+        # validation of variable, unit combinations
+        invalid_units = []
         for variable, unit in df.unit_mapping.items():
-            if variable not in dsd.variable:
-                invalid_vars.append(variable)
-            else:
+            if variable in dsd.variable:
                 dsd_unit = dsd.variable[variable].unit
                 # fast-pass for unique units in df and the DataStructureDefinition
                 if dsd_unit == unit:
@@ -40,10 +43,6 @@ def validate(dsd, df, dimensions):
                     continue
                 invalid_units.append((variable, unit, dsd_unit))
 
-        if invalid_vars:
-            log_error("variable", invalid_vars)
-            error = True
-
         if invalid_units:
             lst = [
                 f"'{v}' - expected: {'one of ' if isinstance(e, list) else ''}"
@@ -52,13 +51,6 @@ def validate(dsd, df, dimensions):
             ]
             msg = "The following variable(s) are reported with the wrong unit:"
             logger.error("\n - ".join([msg] + lst))
-            error = True
-
-    # validation of all other dimensions
-    for dim in [d for d in dimensions if d != "variable"]:
-        invalid = dsd.__getattribute__(dim).validate_items(df.__getattribute__(dim))
-        if invalid:
-            log_error(dim, invalid)
             error = True
 
     if error:

@@ -63,11 +63,11 @@ def _check_mappings(
         raise FileNotFoundError(f"Mappings directory not found: {path / mappings}")
 
 
-def _collect_requiredData_errors(
-    requiredDatadir: Path, dsd: DataStructureDefinition
+def _collect_RequiredData_errors(
+    required_data_dir: Path, dsd: DataStructureDefinition
 ) -> None:
     errors: List[str] = []
-    for file in (requiredDatadir).iterdir():
+    for file in required_data_dir.iterdir():
         try:
             RequiredDataValidator.from_file(file).validate_with_definition(dsd)
         except pydantic.ValidationError as pve:
@@ -77,20 +77,19 @@ def _collect_requiredData_errors(
         raise ValueError(f"Found error(s) in required data files: {all_errors}")
 
 
-def _check_requiredData(
+def _check_RequiredData(
     path: Path,
     definitions: str = "definitions",
     dimensions: Optional[List[str]] = None,
     required_data: Optional[str] = None,
 ) -> None:
-
     dsd = DataStructureDefinition(path / definitions, dimensions)
     if required_data is None:
         if (path / "requiredData").is_dir():
-            _collect_requiredData_errors(path / "required_data", dsd)
+            _collect_RequiredData_errors(path / "required_data", dsd)
 
     elif (path / required_data).is_dir():
-        _collect_requiredData_errors(path / required_data, dsd)
+        _collect_RequiredData_errors(path / required_data, dsd)
     else:
         raise FileNotFoundError(
             f"Directory for required data not found at: {path / required_data}"
@@ -144,7 +143,7 @@ def assert_valid_structure(
                 f"`definitions` directory is empty: {path / definitions}"
             )
     _check_mappings(path, definitions, dimensions, mappings)
-    _check_requiredData(path, definitions, dimensions, required_data)
+    _check_RequiredData(path, definitions, dimensions, required_data)
 
 
 # Todo: add function which runs `DataStructureDefinition(path).validate(scenario)`

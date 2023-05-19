@@ -109,7 +109,6 @@ def test_illegal_mappings(file, error_type, error_msg_pattern):
     ],
 )
 def test_region_processor_working(region_processor_path, simple_definition):
-
     obs = RegionProcessor.from_directory(region_processor_path, simple_definition)
     exp_data = [
         {
@@ -210,7 +209,6 @@ def test_region_processor_exclude_model_native_overlap_raises(simple_definition)
 
 
 def test_region_processor_unexpected_region_raises():
-
     test_df = IamDataFrame(
         pd.DataFrame(
             [

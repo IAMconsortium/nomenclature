@@ -25,7 +25,7 @@ SPECIAL_CODELIST = {
 class DataStructureDefinition:
     """Definition of datastructure codelists for dimensions used in the IAMC format"""
 
-    def __init__(self, path, dimensions=["region", "variable"]):
+    def __init__(self, path, dimensions=None):
         """
 
         Parameters
@@ -36,6 +36,10 @@ class DataStructureDefinition:
             List of :meth:`CodeList` names. Each CodeList is initialized
             from a sub-folder of `path` of that name.
         """
+
+        if dimensions is None:
+            dimensions = ["region", "variable"]
+
         if not isinstance(path, Path):
             path = Path(path)
 

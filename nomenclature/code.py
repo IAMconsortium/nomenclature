@@ -2,6 +2,7 @@ import json
 import re
 import pycountry
 from keyword import iskeyword
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union
 
 from pydantic import BaseModel, Field, validator
@@ -12,7 +13,13 @@ class Code(BaseModel):
 
     name: str
     description: Optional[str]
+    file: Optional[Union[str, Path]] = None
     extra_attributes: Dict[str, Any] = {}
+
+    def __eq__(self, other) -> bool:
+        return {key: value for key, value in self.dict().items() if key != "file"} == {
+            key: value for key, value in other.dict().items() if key != "file"
+        }
 
     @validator("extra_attributes")
     def check_attribute_names(cls, v, values):
@@ -72,11 +79,14 @@ class Code(BaseModel):
 
     @property
     def flattened_dict(self):
+        fields_set_alias = {
+            self.__fields__[field].alias for field in self.__fields_set__
+        }
         return {
             **{
                 k: v
                 for k, v in self.dict(by_alias=True).items()
-                if k != "extra_attributes"
+                if k != "extra_attributes" and k in fields_set_alias
             },
             **self.extra_attributes,
         }

@@ -1,4 +1,6 @@
-name: Unknown region
+model: model_a
 required_data:
-  - variable: Final Energy
+  - measurand:
+      Final Energy:
+        unit: EJ/yr
     region: Asia
