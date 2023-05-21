@@ -278,9 +278,7 @@ def test_codelist_general_filter_No_Elements(caplog):
 
 
 def test_MetaCodeList_from_directory():
-    obs = MetaCodeList.from_directory(
-        name="Meta", path=TEST_DATA_DIR / "definitions/meta"
-    )
+    obs = MetaCodeList.from_directory("Meta", TEST_DATA_DIR / "meta")
     mapping = {
         "exclude": MetaCode(
             name="exclude",

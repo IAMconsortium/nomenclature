@@ -1,4 +1,4 @@
-from processor import Processor
+from nomenclature.processor import Processor
 import pyam
 from nomenclature.codelist import MetaCodeList
 from pathlib import Path
@@ -21,7 +21,7 @@ class MetaValidator(Processor):
         return df
 
     def validate_meta_indicators(
-        self, df: pyam.IamDataFrame, path: Path("**/*")
+        self, df: pyam.IamDataFrame, path: Path
     ) -> pyam.IamDataFrame:
         meta_code_list = MetaCodeList.from_directory(name="Meta", path=path)
         unrecognized_meta_indicators = []
@@ -37,4 +37,7 @@ class MetaValidator(Processor):
                 f"{unrecognized_meta_indicators} is/are not recognized in the "
                 f"meta definitions file at {path}"
             )
+        return df
+
+    def apply(self, df: pyam.IamDataFrame) -> pyam.IamDataFrame:
         return df
