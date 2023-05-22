@@ -4,7 +4,8 @@ import pyam
 from nomenclature.processor.meta import MetaValidator
 from pathlib import Path
 from conftest import TEST_DATA_DIR
-import re
+
+# import re
 
 
 def test_MetaValidator():
@@ -37,13 +38,12 @@ def test_MetaValidator_Meta_Indicator_Error():
     df = pyam.IamDataFrame(DF)
     mv = MetaValidator()
     match = (
-        "['exclude'] is/are not recognized in the meta "
-        "definitions file at h:\\nomenclature\\tests\\data\\definitions2\\meta"  # noqa
+        r"\['exclude'\] is/are not recognized in the meta "
+        r"definitions file at h:\\nomenclature\\tests\\data\\definitions2\\meta"  # noqa
     )
-    with pytest.raises(ValueError) as exc:
-        mv.validate_meta_indicators(df=df, path=path)
 
-    assert str(exc.value) == match
+    with pytest.raises(ValueError, match=match):
+        mv.validate_meta_indicators(df=df, path=path)
 
 
 def test_MetaValidator_Meta_Indicator_Value_Error():
@@ -60,9 +60,9 @@ def test_MetaValidator_Meta_Indicator_Value_Error():
     df = pyam.IamDataFrame(DF)
     mv = MetaValidator()
     match = (
-        "[False, False] meta indicator value(s) in the "
-        "exclude column are not allowed. Allowed values are ['A', 'B']"
+        "\[False, False\] meta indicator value\(s\) in the "  # noqa
+        "exclude column are not allowed. Allowed values are \['A', 'B'\]"  # noqa
     )
 
-    with pytest.raises(ValueError, match=re.escape(match)):
+    with pytest.raises(ValueError, match=match):
         mv.validate_meta_indicators(df=df, path=path)
