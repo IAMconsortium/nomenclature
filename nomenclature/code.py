@@ -248,3 +248,6 @@ class MetaCode(Code):
     """
 
     allowed_values: Optional[List[Any]]
+    default: Optional(any)
+    data_type: Optional(type)
+    required: Optional(bool)

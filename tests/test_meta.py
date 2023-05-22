@@ -5,8 +5,6 @@ from nomenclature.processor.meta import MetaValidator
 from pathlib import Path
 from conftest import TEST_DATA_DIR
 
-# import re
-
 
 def test_MetaValidator():
     TEST_YEARS = [2005, 2010]
@@ -39,7 +37,7 @@ def test_MetaValidator_Meta_Indicator_Error():
     mv = MetaValidator()
     match = (
         r"\['exclude'\] is/are not recognized in the meta "
-        r"definitions file at h:\\nomenclature\\tests\\data\\definitions2\\meta"  # noqa
+        r"definitions file at .*\\definitions2\\meta"  # noqa
     )
 
     with pytest.raises(ValueError, match=match):
