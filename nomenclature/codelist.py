@@ -5,11 +5,10 @@ from typing import ClassVar, Dict, List
 import numpy as np
 import pandas as pd
 import yaml
-from jsonschema import validate
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
 
-from nomenclature.code import Code, VariableCode, RegionCode, MetaCode
+from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
     MissingWeightError,
@@ -18,16 +17,6 @@ from nomenclature.error.variable import (
 )
 
 here = Path(__file__).parent.absolute()
-
-
-def read_validation_schema(schema):
-    with open(here / "validation_schemas" / f"{schema}_schema.yaml", "r") as f:
-        schema = yaml.safe_load(f)
-    return schema
-
-
-SCHEMA_TYPES = ("variable", "tag", "region", "generic")
-SCHEMA_MAPPING = {schema: read_validation_schema(schema) for schema in SCHEMA_TYPES}
 
 
 class CodeList(BaseModel):
@@ -158,9 +147,6 @@ class CodeList(BaseModel):
             with open(yaml_file, "r", encoding="utf-8") as stream:
                 _tag_list = yaml.safe_load(stream)
 
-            # validate against the tag schema
-            validate(_tag_list, SCHEMA_MAPPING["tag"])
-
             for tag in _tag_list:
                 tag_name = next(iter(tag))
                 if tag_name in tag_dict:
@@ -204,9 +190,6 @@ class CodeList(BaseModel):
         ):
             with open(yaml_file, "r", encoding="utf-8") as stream:
                 _code_list = yaml.safe_load(stream)
-
-            # validate the schema of this codelist domain (default `generic`)
-            validate(_code_list, SCHEMA_MAPPING[cls.validation_schema])
 
             for code_dict in _code_list:
                 code = cls.code_basis.from_dict(code_dict)
