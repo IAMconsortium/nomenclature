@@ -39,14 +39,6 @@ def simple_df():
     yield df
 
 
-@pytest.fixture(scope="function")
-def cleanup_diff_file():
-    difference_file = Path("difference.xlsx")
-    difference_file.unlink(missing_ok=True)
-    yield
-    difference_file.unlink(missing_ok=True)
-
-
 def add_meta(df):
     """Add simple meta indicators"""
     if len(df.index) == 1:
