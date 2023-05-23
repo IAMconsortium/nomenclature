@@ -5,7 +5,6 @@ from typing import List, Optional
 import click
 
 from pyam import IamDataFrame
-from nomenclature.core import process
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor import RegionProcessor
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
