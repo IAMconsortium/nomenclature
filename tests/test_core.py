@@ -43,7 +43,7 @@ def test_region_processing_rename(model_name):
     region_processor = RegionProcessor.from_directory(
         TEST_DATA_DIR / "region_processing/rename_only", dsd
     )
-    obs, _ = process(test_df, dsd, processor=region_processor)
+    obs = process(test_df, dsd, processor=region_processor)
 
     assert_iamframe_equal(obs, exp)
 
@@ -77,7 +77,7 @@ def test_region_processing_no_mapping(simple_df):
 
     exp = copy.deepcopy(simple_df)
 
-    obs, _ = process(
+    obs = process(
         simple_df,
         dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
         processor=RegionProcessor.from_directory(
@@ -114,7 +114,7 @@ def test_region_processing_aggregate():
     )
     add_meta(exp)
 
-    obs, _ = process(
+    obs = process(
         test_df,
         dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
         processor=RegionProcessor.from_directory(
@@ -165,7 +165,7 @@ def test_region_processing_complete(directory):
     )
     add_meta(exp)
 
-    obs, _ = process(
+    obs = process(
         test_df,
         dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
         processor=RegionProcessor.from_directory(
@@ -233,7 +233,7 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
     exp = IamDataFrame(pd.DataFrame(exp_df, columns=IAMC_IDX + [2005, 2010]))
     add_meta(exp)
 
-    obs, _ = process(
+    obs = process(
         test_df,
         dsd := DataStructureDefinition(
             TEST_DATA_DIR / "region_processing" / folder / "dsd"
@@ -283,7 +283,7 @@ def test_region_processing_skip_aggregation(model_name, region_names):
     )
     add_meta(exp)
 
-    obs, _ = process(
+    obs = process(
         test_df,
         dsd := DataStructureDefinition(
             TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
@@ -395,7 +395,7 @@ def test_partial_aggregation(input_data, exp_data, warning, caplog):
     test_df = IamDataFrame(pd.DataFrame(input_data, columns=IAMC_IDX + [2005, 2010]))
     add_meta(test_df)
 
-    obs, _ = process(
+    obs = process(
         test_df,
         dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
         processor=RegionProcessor.from_directory(
@@ -417,7 +417,7 @@ def test_partial_aggregation(input_data, exp_data, warning, caplog):
 
 
 @pytest.mark.parametrize(
-    "input_data, difference",
+    "input_data, expected_difference",
     [
         (  # Variable is available in provided and aggregated data but different
             [
@@ -442,18 +442,16 @@ def test_partial_aggregation(input_data, exp_data, warning, caplog):
         ),
     ],
 )
-def test_aggregation_differences_export_to_file(
-    input_data, difference, cleanup_diff_file
-):
-
+def test_aggregation_differences_export_to_file(input_data, expected_diffrence):
     test_df = IamDataFrame(pd.DataFrame(input_data, columns=IAMC_IDX + [2005, 2010]))
     dsd = DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd")
     processor = RegionProcessor.from_directory(
         TEST_DATA_DIR / "region_processing/partial_aggregation", dsd
     )
+    processor.return_aggregation_difference = True
     _, obs = processor.apply(test_df)
     index = ["model", "scenario", "region", "variable", "unit", "year"]
     columns = ["original", "aggregated", "difference (%)"]
-    exp = pd.DataFrame(difference, columns=index + columns).set_index(index)
+    exp = pd.DataFrame(expected_diffrence, columns=index + columns).set_index(index)
 
     assert_frame_equal(exp, obs)
