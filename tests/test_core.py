@@ -442,7 +442,7 @@ def test_partial_aggregation(input_data, exp_data, warning, caplog):
         ),
     ],
 )
-def test_aggregation_differences_export_to_file(input_data, expected_diffrence):
+def test_aggregation_differences_export_to_file(input_data, expected_difference):
     test_df = IamDataFrame(pd.DataFrame(input_data, columns=IAMC_IDX + [2005, 2010]))
     dsd = DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd")
     processor = RegionProcessor.from_directory(
@@ -452,6 +452,6 @@ def test_aggregation_differences_export_to_file(input_data, expected_diffrence):
     _, obs = processor.apply(test_df)
     index = ["model", "scenario", "region", "variable", "unit", "year"]
     columns = ["original", "aggregated", "difference (%)"]
-    exp = pd.DataFrame(expected_diffrence, columns=index + columns).set_index(index)
+    exp = pd.DataFrame(expected_difference, columns=index + columns).set_index(index)
 
     assert_frame_equal(exp, obs)
