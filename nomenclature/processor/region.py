@@ -532,7 +532,10 @@ class RegionProcessor(Processor):
                 _data = pd.concat(_processed_data)
                 if not common_region_df.empty:
                     _data, difference = _compare_and_merge(
-                        common_region_df._data, _data, self.rtol_difference
+                        common_region_df._data,
+                        _data,
+                        self.rtol_difference,
+                        self.return_aggregation_difference,
                     )
 
             # if data exists only at the common-region level
@@ -563,7 +566,10 @@ def _aggregate_region(df, var, *regions, **kwargs):
 
 
 def _compare_and_merge(
-    original: pd.Series, aggregated: pd.Series, rtol: float = 0.01
+    original: pd.Series,
+    aggregated: pd.Series,
+    rtol: float = 0.01,
+    return_aggregation_difference: bool = False,
 ) -> Tuple[IamDataFrame, pd.DataFrame]:
     """Compare and merge original and aggregated results"""
 
@@ -587,13 +593,14 @@ def _compare_and_merge(
     difference = difference.sort_values("difference (%)", ascending=False)
     if difference is not None and len(difference):
         logging.warning(
-            (
-                f"Difference between original and aggregated data:\n{difference}\n"
-                "If you want to get the differences, run the following command on your "
-                "local machine `nomenclature run-region-processing your_data.xlsx "
-                "--export-differences difference.xlsx` from the processing workflow "
-                "directory. The differences will be exported to `difference.xlsx`."
-            )
+            f"Difference between original and aggregated data:\n{difference}"
+        )
+    if not return_aggregation_difference:
+        logging.info(
+            "If you want to get the differences, run the following command on your "
+            "local machine\n`nomenclature run-region-processing your_data.xlsx "
+            "--export-differences difference.xlsx`\nfrom the processing workflow "
+            "directory.\nThe differences will be exported to `difference.xlsx`."
         )
     # merge aggregated data onto original common-region data
     index = aggregated.index.difference(original.index)
