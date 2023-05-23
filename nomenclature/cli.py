@@ -111,15 +111,17 @@ def run_region_processing(
     path: Path,
     definitions: str,
     mappings: str,
-    output: Optional[bool],
-    export_differences: Optional[bool],
+    output: Optional[Path],
+    export_differences: Optional[Path],
 ):
-    result, difference = process(
-        IamDataFrame(input_data_file),
-        dsd := DataStructureDefinition(path / definitions),
-        ["variable"],
-        RegionProcessor.from_directory(path / mappings, dsd),
+    data_structure_definition = DataStructureDefinition(path / definitions)
+    region_processor = RegionProcessor.from_directory(
+        path / mappings, data_structure_definition
     )
+    region_processor.return_aggregation_difference = True
+
+    result, difference = region_processor.apply(IamDataFrame(input_data_file))
+
     if output:
         result.to_excel(output)
     if export_differences:
