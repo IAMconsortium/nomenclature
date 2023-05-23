@@ -322,6 +322,7 @@ class RegionProcessor(Processor):
     region_codelist: RegionCodeList
     variable_codelist: VariableCodeList
     mappings: Dict[str, RegionAggregationMapping]
+    return_aggregation_difference: bool = False
     rtol_difference: float = 0.01
 
     @classmethod
@@ -410,7 +411,7 @@ class RegionProcessor(Processor):
             * If the region-processing results in an empty **IamDataFrame**.
         """
         processed_dfs: List[IamDataFrame] = []
-        difference_dfs: List[pd.DataFrame] = []
+        difference_dfs: List[pd.DataFrame] = [pd.DataFrame()]
         for model in df.model:
             model_df = df.filter(model=model)
 
@@ -425,9 +426,13 @@ class RegionProcessor(Processor):
                 logger.info(
                     f"Applying region-processing for model '{model}' from '{file}'"
                 )
-                processed_dfs.append(self._apply_region_processing(model_df))
+                processing_result = self._apply_region_processing(model_df)
+                processed_dfs.append(processing_result[0])
+                difference_dfs.append(processing_result[1])
         res = pyam.concat(processed_dfs)
         self.region_codelist.validate_items(res.region)
+        if self.return_aggregation_difference:
+            return res, pd.concat(difference_dfs)
         return res
 
     def _apply_region_processing(
@@ -586,8 +591,8 @@ def _compare_and_merge(
                 f"Difference between original and aggregated data:\n{difference}\n"
                 "If you want to get the differences, run the following command on your "
                 "local machine `nomenclature run-region-processing your_data.xlsx "
-                "--export-differences` from the processing workflow directory. The "
-                "differences will be exported to `difference.xlsx`."
+                "--export-differences difference.xlsx` from the processing workflow "
+                "directory. The differences will be exported to `difference.xlsx`."
             )
         )
     # merge aggregated data onto original common-region data
