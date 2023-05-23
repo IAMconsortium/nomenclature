@@ -1,7 +1,6 @@
 import logging
 from typing import Optional, Union, List
 
-import pandas as pd
 import pyam
 from pydantic import validate_arguments
 
@@ -44,8 +43,8 @@ def process(
 
     Returns
     -------
-    Tuple [:class:`pyam.IamDataFrame`, :class:`pandas.DataFrame`]
-        Processed scenario data and differences between original and aggregated data
+    :class:`pyam.IamDataFrame`
+        Processed scenario data
 
     Raises
     ------
@@ -75,4 +74,4 @@ def process(
         logger.error(f"These variables are not the sum of their components:\n{error}")
         raise ValueError("The validation failed. Please check the log for details.")
 
-    return df, difference
+    return df
