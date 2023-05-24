@@ -231,9 +231,9 @@ class RegionCode(Code):
             if pycountry.countries.get(alpha_3=iso3_code) is None:
                 invalid_iso3_codes.append(iso3_code)
         if invalid_iso3_codes:
+            invalid = ", ".join(invalid_iso3_codes)
             raise ValueError(
-                f"Region {values['name']} has invalid"
-                f" ISO3 country codes: {invalid_iso3_codes}"
+                f"Region {values['name']} has invalid ISO3 country codes: {invalid}"
             )
         return v
 
