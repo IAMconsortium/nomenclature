@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import jsonschema
 import pandas as pd
 import pydantic
 import pytest
@@ -10,6 +9,7 @@ from nomenclature import (
     RegionProcessor,
     process,
 )
+from nomenclature.error.region import RegionAggregationMappingParsingError
 from pyam import IAMC_IDX, IamDataFrame
 
 from conftest import TEST_DATA_DIR
@@ -45,60 +45,56 @@ def test_mapping():
 
 
 @pytest.mark.parametrize(
-    "file, error_type, error_msg_pattern",
+    "file, error_msg_pattern",
     [
         (
-            "illegal_mapping_invalid_format_dict.yaml",
-            jsonschema.ValidationError,
-            ".*common_region_1.*not.*'array'.*",
-        ),
-        (
             "illegal_mapping_illegal_attribute.yaml",
-            jsonschema.ValidationError,
-            "Additional properties are not allowed.*",
+            "Illegal attributes in 'RegionAggregationMapping'",
         ),
         (
             "illegal_mapping_conflict_regions.yaml",
-            pydantic.ValidationError,
-            ".*Name collision in native and common regions.*common_region_1.*",
+            "Name collision in native and common regions.*common_region_1",
         ),
         (
             "illegal_mapping_native_duplicate_key.yaml",
-            pydantic.ValidationError,
-            ".*Name collision in native regions .names.*region_a.*",
+            "Name collision in native regions .names.*region_a",
         ),
         (
             "illegal_mapping_native_rename_key_conflict.yaml",
-            pydantic.ValidationError,
-            ".*Name collision in native regions .names.*region_a.*",
+            "Name collision in native regions .names.*region_a",
         ),
         (
             "illegal_mapping_native_rename_target_conflict_1.yaml",
-            pydantic.ValidationError,
-            ".*Name collision in native regions .rename-target.*alternative_name_a.*",
+            "Name collision in native regions .rename-target.*alternative_name_a",
         ),
         (
             "illegal_mapping_native_rename_target_conflict_2.yaml",
-            pydantic.ValidationError,
-            ".*Name collision in native regions .rename-target.*alternative_name_a.*",
+            "Name collision in native regions .rename-target.*alternative_name_a",
         ),
         (
             "illegal_mapping_duplicate_common.yaml",
-            pydantic.ValidationError,
-            ".*Name collision in common regions.*common_region_1.*",
+            "Name collision in common regions.*common_region_1",
         ),
         (
             "illegal_mapping_model_only.yaml",
-            pydantic.ValidationError,
-            ".*one of the two: 'native_regions', 'common_regions'.*",
+            "one of 'native_regions' and 'common_regions'",
         ),
     ],
 )
-def test_illegal_mappings(file, error_type, error_msg_pattern):
+def test_illegal_mappings(file, error_msg_pattern):
     # This is to test a few different failure conditions
 
-    with pytest.raises(error_type, match=f"{error_msg_pattern}{file}.*"):
+    with pytest.raises(pydantic.ValidationError, match=f"{error_msg_pattern}.*{file}"):
         RegionAggregationMapping.from_file(TEST_FOLDER_REGION_MAPPING / file)
+
+
+def test_mapping_parsing_error():
+    with pytest.raises(
+        RegionAggregationMappingParsingError, match="string indices must be integers"
+    ):
+        RegionAggregationMapping.from_file(
+            TEST_FOLDER_REGION_MAPPING / "illegal_mapping_invalid_format_dict.yaml"
+        )
 
 
 @pytest.mark.parametrize(

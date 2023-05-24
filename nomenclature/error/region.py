@@ -26,3 +26,8 @@ class ExcludeRegionOverlapError(PydanticValueError):
         "Region(s) {region} can only be present in 'exclude_regions' or "
         "'{region_type}' in {file}."
     )
+
+
+class RegionAggregationMappingParsingError(PydanticValueError):
+    code = "model_mapping_parsing"
+    msg_template = "{error} in {file}"
