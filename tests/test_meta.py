@@ -1,19 +1,19 @@
 import pytest
 from nomenclature.processor.meta import MetaValidator
 from pathlib import Path
-from conftest import TEST_DATA_DIR, simple_df
+from conftest import TEST_DATA_DIR
 import pyam
 
 
-def test_MetaValidator():
+def test_MetaValidator(simple_df):
     path = Path(TEST_DATA_DIR / "definitions1/meta")
     exp = simple_df.copy()
     pyam.testing.assert_iamframe_equal(
-        exp, MetaValidator.apply(df=simple_df, path=path)
+        exp, MetaValidator.apply(df=simple_df.copy(), path=path)
     )
 
 
-def test_MetaValidator_Meta_Indicator_Error():
+def test_MetaValidator_Meta_Indicator_Error(simple_df):
     path = Path(TEST_DATA_DIR / "definitions2/meta")
     match = (
         r"\['exclude'\] is/are not recognized in the meta "
@@ -24,7 +24,7 @@ def test_MetaValidator_Meta_Indicator_Error():
         MetaValidator.apply(df=simple_df, path=path)
 
 
-def test_MetaValidator_Meta_Indicator_Value_Error():
+def test_MetaValidator_Meta_Indicator_Value_Error(simple_df):
     path = Path(TEST_DATA_DIR / "definitions3/meta")
     match = (
         "\[False, False\] meta indicator value\(s\) in the "  # noqa

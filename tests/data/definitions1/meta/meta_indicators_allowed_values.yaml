@@ -1,4 +1,8 @@
 - exclude:
     allowed_values: [True, False]
+- number:
+    allowed_values: [float64]
+- string:
+    allowed_values: ['foo', 'nan']
 - Meta cat with int values:
     allowed_values: [1, 2, 3]
