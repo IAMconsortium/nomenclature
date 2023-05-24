@@ -1,5 +1,6 @@
 import json
 import re
+import pyam
 import pycountry
 from keyword import iskeyword
 from pathlib import Path
@@ -220,13 +221,13 @@ class RegionCode(Code):
     """
 
     hierarchy: str = None
-    iso3_codes: List[str] = None
+    iso3_codes: Union[List[str], str] = None
 
     @validator("iso3_codes")
     def check_iso3_codes(cls, v, values) -> List[str]:
         """Verifies that each ISO3 code is valid according to pycountry library."""
         invalid_iso3_codes: List[str] = []
-        for iso3_code in v:
+        for iso3_code in pyam.to_list(v):
             if pycountry.countries.get(alpha_3=iso3_code) is None:
                 invalid_iso3_codes.append(iso3_code)
         if invalid_iso3_codes:

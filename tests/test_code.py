@@ -57,7 +57,7 @@ def test_RegionCode_hierarchy_attribute():
     assert reg.hierarchy == "R5"
 
 
-def test_RegionCode_iso3_code():
+def test_RegionCode_iso3_code_list():
     reg = RegionCode(
         name="Western Europe",
         hierarchy="R5OECD",
@@ -119,7 +119,12 @@ def test_RegionCode_iso3_code():
     ]
 
 
-def test_RegionCode_iso3_code_fail():
+def test_RegionCode_iso3_code_str():
+    reg = RegionCode(name="Austria", hierarchy="country", iso3_codes="AUT")
+    assert reg.iso3_codes == "AUT"
+
+
+def test_RegionCode_iso3_code_list_fail():
     iso3_codes = [
         "DMK",
         "IPL",
@@ -158,6 +163,15 @@ def test_RegionCode_iso3_code_fail():
     )
     with pytest.raises(ValueError, match=error_pattern):
         RegionCode(name="Western Europe", hierarchy="R5OECD", iso3_codes=iso3_codes)
+
+
+def test_RegionCode_iso3_code_str_fail():
+    error_pattern = (
+        "1 validation error for RegionCode\niso3_codes\n  Region Austria"
+        " has invalid ISO3 country codes: \['AUTT'\] \(type=value_error\)"
+    )
+    with pytest.raises(ValueError, match=error_pattern):
+        RegionCode(name="Austria", hierarchy="country", iso3_codes="AUTT")
 
 
 def test_MetaCode_allowed_values_attribute():
