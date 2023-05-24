@@ -3,7 +3,6 @@ from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
-import jsonschema
 import numpy as np
 import pandas as pd
 import pyam
@@ -22,6 +21,7 @@ from nomenclature.error.region import (
     ModelMappingCollisionError,
     RegionNameCollisionError,
     RegionNotDefinedError,
+    RegionAggregationMappingParsingError,
 )
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
@@ -112,6 +112,19 @@ class RegionAggregationMapping(BaseModel):
     common_regions: Optional[List[CommonRegion]]
     exclude_regions: Optional[List[str]]
 
+    @root_validator(pre=True)
+    def check_no_additional_attributes(cls, v):
+        if illegal_additional_attributes := [
+            input_attribute
+            for input_attribute in v.keys()
+            if input_attribute not in cls.__dict__["__fields__"]
+        ]:
+            raise ValueError(
+                "Illegal attributes in 'RegionAggregationMapping': "
+                f"{illegal_additional_attributes} (file {v['file']})"
+            )
+        return v
+
     @validator("model", pre=True)
     def convert_to_list(cls, v):
         return pyam.utils.to_list(v)
@@ -164,8 +177,8 @@ class RegionAggregationMapping(BaseModel):
             and values.get("common_regions") is None
         ):
             raise ValueError(
-                "At least one of the two: 'native_regions', 'common_regions' must be"
-                f"given in {values['file']}"
+                "At least one of 'native_regions' and 'common_regions' must be "
+                f"provided in {values['file']}"
             )
         return values
 
@@ -211,63 +224,51 @@ class RegionAggregationMapping(BaseModel):
         RegionAggregationMapping
             The resulting region aggregation mapping.
 
-        Raises
-        ------
-        jsonschema.ValidationError
-            Raised in case there are any errors in the provided yaml mapping file.
-
         Notes
         -----
 
         This function is used to convert a model mapping yaml file into a dictionary
         which is used to initialize a RegionAggregationMapping.
         """
-        schema_file = here / "../validation_schemas" / "region_mapping_schema.yaml"
-        file = Path(file) if isinstance(file, str) else file
-        with open(file, "r") as f:
-            mapping_input = yaml.safe_load(f)
-        with open(schema_file, "r") as f:
-            schema = yaml.safe_load(f)
-
-        # Validate the input data using jsonschema
         try:
-            jsonschema.validate(mapping_input, schema)
-        except jsonschema.ValidationError as error:
-            # Add file information in case of error
-            raise jsonschema.ValidationError(
-                f"{error.message} in {get_relative_path(file)}"
-            )
+            file = Path(file) if isinstance(file, str) else file
+            with open(file, "r") as f:
+                mapping_input = yaml.safe_load(f)
 
-        # Add the file name to mapping_input
-        mapping_input["file"] = get_relative_path(file)
+            # Add the file name to mapping_input
+            mapping_input["file"] = get_relative_path(file)
 
-        # Reformat the "native_regions"
-        if "native_regions" in mapping_input:
-            native_region_list: List[Dict] = []
-            for native_region in mapping_input["native_regions"]:
-                if isinstance(native_region, str):
-                    native_region_list.append({"name": native_region})
-                elif isinstance(native_region, dict):
-                    native_region_list.append(
+            # Reformat the "native_regions"
+            if "native_regions" in mapping_input:
+                native_region_list: List[Dict] = []
+                for native_region in mapping_input["native_regions"]:
+                    if isinstance(native_region, str):
+                        native_region_list.append({"name": native_region})
+                    elif isinstance(native_region, dict):
+                        native_region_list.append(
+                            {
+                                "name": list(native_region)[0],
+                                "rename": list(native_region.values())[0],
+                            }
+                        )
+                mapping_input["native_regions"] = native_region_list
+
+            # Reformat the "common_regions"
+            if "common_regions" in mapping_input:
+                common_region_list: List[Dict[str, List[Dict[str, str]]]] = []
+                for common_region in mapping_input["common_regions"]:
+                    common_region_name = list(common_region)[0]
+                    common_region_list.append(
                         {
-                            "name": list(native_region)[0],
-                            "rename": list(native_region.values())[0],
+                            "name": common_region_name,
+                            "constituent_regions": common_region[common_region_name],
                         }
                     )
-            mapping_input["native_regions"] = native_region_list
-
-        # Reformat the "common_regions"
-        if "common_regions" in mapping_input:
-            common_region_list: List[Dict[str, List[Dict[str, str]]]] = []
-            for common_region in mapping_input["common_regions"]:
-                common_region_name = list(common_region)[0]
-                common_region_list.append(
-                    {
-                        "name": common_region_name,
-                        "constituent_regions": common_region[common_region_name],
-                    }
-                )
-            mapping_input["common_regions"] = common_region_list
+                mapping_input["common_regions"] = common_region_list
+        except Exception as error:
+            raise RegionAggregationMappingParsingError(
+                file=get_relative_path(file), error=str(error)
+            ) from error
         return cls(**mapping_input)
 
     @property
@@ -365,7 +366,10 @@ class RegionProcessor(Processor):
                                 "__root__",
                             )
                         )
-            except (pydantic.ValidationError, jsonschema.ValidationError) as error:
+            except (
+                pydantic.ValidationError,
+                RegionAggregationMappingParsingError,
+            ) as error:
                 errors.append(ErrorWrapper(error, "__root__"))
 
         if errors:
