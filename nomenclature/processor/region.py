@@ -177,8 +177,8 @@ class RegionAggregationMapping(BaseModel):
             and values.get("common_regions") is None
         ):
             raise ValueError(
-                "At least one of the two: 'native_regions', 'common_regions' must be"
-                f" given in {values['file']}"
+                "At least one of 'native_regions' and 'common_regions' must be "
+                f"provided in {values['file']}"
             )
         return values
 

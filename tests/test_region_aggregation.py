@@ -49,7 +49,7 @@ def test_mapping():
     [
         (
             "illegal_mapping_illegal_attribute.yaml",
-            "No additional attributes allowed",
+            "Illegal attributes in 'RegionAggregationMapping'",
         ),
         (
             "illegal_mapping_conflict_regions.yaml",
@@ -77,7 +77,7 @@ def test_mapping():
         ),
         (
             "illegal_mapping_model_only.yaml",
-            "one of the two: 'native_regions', 'common_regions'",
+            "one of 'native_regions' and 'common_regions'",
         ),
     ],
 )
