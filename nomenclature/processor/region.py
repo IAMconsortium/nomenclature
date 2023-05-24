@@ -120,8 +120,8 @@ class RegionAggregationMapping(BaseModel):
             if input_attribute not in cls.__dict__["__fields__"]
         ]:
             raise ValueError(
-                "No additional attributes allowed, found: "
-                f"{illegal_additional_attributes} file {v['file']}"
+                "Illegal attributes in 'RegionAggregationMapping': "
+                f"{illegal_additional_attributes} (file {v['file']})"
             )
         return v
 
