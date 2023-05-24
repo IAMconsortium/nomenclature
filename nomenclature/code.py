@@ -220,15 +220,15 @@ class RegionCode(Code):
     """
 
     hierarchy: str = None
-    countries: List[str] = None
+    iso3_codes: List[str] = None
 
-    @validator("countries")
+    @validator("iso3_codes")
     def check_iso3_codes(cls, v, values) -> List[str]:
         """Verifies that each ISO3 code is valid according to pycountry library."""
         invalid_iso3_codes: List[str] = []
-        for country in v:
-            if pycountry.countries.get(alpha_3=country) is None:
-                invalid_iso3_codes.append(country)
+        for iso3_code in v:
+            if pycountry.countries.get(alpha_3=iso3_code) is None:
+                invalid_iso3_codes.append(iso3_code)
         if invalid_iso3_codes:
             raise ValueError(
                 f"Region {values['name']} has invalid"
