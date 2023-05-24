@@ -61,7 +61,7 @@ def test_RegionCode_iso3_code():
     reg = RegionCode(
         name="Western Europe",
         hierarchy="R5OECD",
-        countries=[
+        iso3_codes=[
             "DNK",
             "IRL",
             "AUT",
@@ -90,7 +90,7 @@ def test_RegionCode_iso3_code():
         ],
     )
 
-    assert reg.countries == [
+    assert reg.iso3_codes == [
         "DNK",
         "IRL",
         "AUT",
@@ -120,7 +120,7 @@ def test_RegionCode_iso3_code():
 
 
 def test_RegionCode_iso3_code_fail():
-    countries = [
+    iso3_codes = [
         "DMK",
         "IPL",
         "ATZ",
@@ -149,7 +149,7 @@ def test_RegionCode_iso3_code_fail():
     ]
 
     error_pattern = (
-        "1 validation error for RegionCode\ncountries\n  Reg"
+        "1 validation error for RegionCode\niso3_codes\n  Reg"
         "ion Western Europe has invalid ISO3 country codes"
         ": \['DMK', 'IPL', 'ATZ', 'FNL', 'FRE', 'DEX', 'GRE',"  # noqa
         " 'IBL', 'ITL', 'LIC', 'MLA', 'BEG', 'FRT', 'ANB', "  # noqa
@@ -157,7 +157,7 @@ def test_RegionCode_iso3_code_fail():
         "'SWD', 'CEW', 'GTR', 'SOR'\] \(type=value_error\)"  # noqa
     )
     with pytest.raises(ValueError, match=error_pattern):
-        RegionCode(name="Western Europe", hierarchy="R5OECD", countries=countries)
+        RegionCode(name="Western Europe", hierarchy="R5OECD", iso3_codes=iso3_codes)
 
 
 def test_MetaCode_allowed_values_attribute():
