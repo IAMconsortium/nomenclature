@@ -5,6 +5,8 @@ from nomenclature.codelist import MetaCodeList
 
 
 class MetaValidator(Processor):
+    """Meta indicator validation and processing class"""
+
     meta_code_list: MetaCodeList = None
 
     def __init__(self, path_to_meta_code_list_files: Path):
@@ -81,6 +83,7 @@ class MetaValidator(Processor):
         if unrecognized_meta_indicators:
             raise ValueError(
                 f"{unrecognized_meta_indicators} is/are not recognized in the "
-                f"meta definitions file."
+                f"meta definitions file. Allowed meta indicators are: "
+                f"{list(self.meta_code_list.mapping.keys())}"
             )
         return df

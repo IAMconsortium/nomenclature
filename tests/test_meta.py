@@ -15,7 +15,10 @@ def test_MetaValidator(simple_df):
 def test_MetaValidator_Meta_Indicator_Error(simple_df):
     path = Path(TEST_DATA_DIR / "definitions2/meta")
     meta_validator = MetaValidator(path_to_meta_code_list_files=path)
-    match = r"\['Not exclude'\] is/are not recognized in the meta definitions file."
+    match = (
+        "\['exclude'\] is/are not recognized in the meta definitions file. "  # noqa
+        "Allowed meta indicators are: \['Not exclude', 'number', 'string'\]"  # noqa
+    )
 
     with pytest.raises(ValueError, match=match):
         meta_validator.apply(df=simple_df)

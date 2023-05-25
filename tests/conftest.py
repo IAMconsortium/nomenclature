@@ -1,11 +1,14 @@
 from pathlib import Path
-from typing import Dict, List
+
+# from typing import Dict, List
 import pytest
-import numpy as np
+
+# import numpy as np
 import pandas as pd
 from pyam import IamDataFrame, IAMC_IDX
 from nomenclature import DataStructureDefinition
-from nomenclature.code import Code
+
+# from nomenclature.code import Code
 
 
 here = Path(__file__).parent
@@ -46,4 +49,5 @@ def add_meta(df):
         df.set_meta(["foo"], "string")
     if len(df.index) == 2:
         df.set_meta([1.0, 2.0], "number")
-        df.set_meta(["foo", np.nan], "string")
+        # df.set_meta(["foo", np.nan], "string")
+        df.set_meta(["foo", "bar"], "string")
