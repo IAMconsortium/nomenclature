@@ -626,7 +626,8 @@ def _compare_and_merge(
     if not return_aggregation_difference:
         logging.info(
             "Please refer to the user guide of the nomenclature package "
-            "(https://nomenclature-iamc.readthedocs.io/en/stable/user_guide/model-mapping.html#how-to-get-aggregation-differences-locally)"
+            "(https://nomenclature-iamc.readthedocs.io/en/stable/user_guide/"
+            "model-mapping.html#how-to-get-aggregation-differences-locally)"
             " for obtaining the differences as dataframe or file."
         )
     # merge aggregated data onto original common-region data
