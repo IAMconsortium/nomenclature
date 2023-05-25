@@ -322,8 +322,6 @@ class RegionProcessor(Processor):
     region_codelist: RegionCodeList
     variable_codelist: VariableCodeList
     mappings: Dict[str, RegionAggregationMapping]
-    return_aggregation_difference: bool = False
-    rtol_difference: float = 0.01
 
     @classmethod
     @validate_arguments(config={"arbitrary_types_allowed": True})
@@ -411,7 +409,7 @@ class RegionProcessor(Processor):
             * If the region-processing results in an empty **IamDataFrame**.
         """
         processed_dfs: List[IamDataFrame] = []
-        difference_dfs: List[pd.DataFrame] = [pd.DataFrame()]
+
         for model in df.model:
             model_df = df.filter(model=model)
 
@@ -426,17 +424,32 @@ class RegionProcessor(Processor):
                 logger.info(
                     f"Applying region-processing for model '{model}' from '{file}'"
                 )
-                processing_result = self._apply_region_processing(model_df)
-                processed_dfs.append(processing_result[0])
-                difference_dfs.append(processing_result[1])
+                processed_dfs.append(self._apply_region_processing(model_df)[0])
+
         res = pyam.concat(processed_dfs)
         self.region_codelist.validate_items(res.region)
-        if self.return_aggregation_difference:
-            return res, pd.concat(difference_dfs)
         return res
 
+    def check_region_aggregation(
+        self, df: IamDataFrame, rtol_difference: float = 0.01
+    ) -> pd.DataFrame:
+        difference_dfs: List[pd.DataFrame] = [pd.DataFrame()]
+
+        difference_dfs.extend(
+            self._apply_region_processing(
+                df.filter(model=model),
+                rtol_difference=rtol_difference,
+                return_aggregation_difference=True,
+            )[1]
+            for model in set(df.model) & set(self.mappings)
+        )
+        return pd.concat(difference_dfs)
+
     def _apply_region_processing(
-        self, model_df: IamDataFrame
+        self,
+        model_df: IamDataFrame,
+        return_aggregation_difference: bool = False,
+        rtol_difference: float = 0.01,
     ) -> Tuple[IamDataFrame, pd.DataFrame]:
         """Apply the region processing for a single model"""
         if len(model_df.model) != 1:
@@ -534,8 +547,8 @@ class RegionProcessor(Processor):
                     _data, difference = _compare_and_merge(
                         common_region_df._data,
                         _data,
-                        self.rtol_difference,
-                        self.return_aggregation_difference,
+                        rtol_difference,
+                        return_aggregation_difference,
                     )
 
             # if data exists only at the common-region level
