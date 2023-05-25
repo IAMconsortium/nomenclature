@@ -120,9 +120,39 @@ are compared and combined according to the following logic:
    *region_b*. The **provided results** take **precedence** over the aggregated ones.
    Additionally, the aggregation is computed and compared to the provided results. If
    there are discrepancies, a warning is written to the logs.
-   
+
    .. note::
 
       Please note that in case of differences no error is raised. Therefore it is
       necessary to check the logs to find out if there were any differences. This is
       intentional since some differences might be expected.
+
+
+How to get aggregation differences locally
+------------------------------------------
+
+In order to get the full differences perform the following steps:
+
+1. Make sure you have `pyam-iamc >= 1.7.0`, `nomenclature-iamc>=0.9.2` and
+`pandas >= 1.5.2` installed.
+2. Clone the workflow directory of your project
+3. Navigate to the workflow directory
+4. Using a jupyter notebook or python script run the following:
+
+.. code:: python
+
+  from pyam import IamDataFrame
+  from nomenclature import DataStructureDefinition, RegionProcessor
+
+  data = IamDataFrame("/path/to/your/input/data.xlsx")
+
+  dsd = DataStructureDefinition("definitions")
+  processor = RegionProcessor.from_directory("mappings", dsd)
+
+  # get the differences as a pandas dataframe
+  # the value for the relative tolerances can be adjusted, defaults to 0.01
+  differences = processor.check_region_aggregation(data, rtol_difference=0.01)
+  differences.to_excel("differences.xlsx")
+
+For details on the check_region_aggregation function please refer to
+:func:`RegionProcessor.check_region_aggregation`.
