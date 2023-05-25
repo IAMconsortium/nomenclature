@@ -7,29 +7,26 @@ import pyam
 
 def test_MetaValidator(simple_df):
     path = Path(TEST_DATA_DIR / "definitions1/meta")
+    meta_validator = MetaValidator(path_to_meta_code_list_files=path)
     exp = simple_df.copy()
-    pyam.testing.assert_iamframe_equal(
-        exp, MetaValidator.apply(df=simple_df.copy(), path=path)
-    )
+    pyam.testing.assert_iamframe_equal(exp, meta_validator.apply(df=simple_df))
 
 
 def test_MetaValidator_Meta_Indicator_Error(simple_df):
     path = Path(TEST_DATA_DIR / "definitions2/meta")
-    match = (
-        r"\['exclude'\] is/are not recognized in the meta "
-        r"definitions file at .*\\definitions2\\meta"  # noqa
-    )
+    meta_validator = MetaValidator(path_to_meta_code_list_files=path)
+    match = r"\['Not exclude'\] is/are not recognized in the meta definitions file."
 
     with pytest.raises(ValueError, match=match):
-        MetaValidator.apply(df=simple_df, path=path)
+        meta_validator.apply(df=simple_df)
 
 
 def test_MetaValidator_Meta_Indicator_Value_Error(simple_df):
     path = Path(TEST_DATA_DIR / "definitions3/meta")
+    meta_validator = MetaValidator(path_to_meta_code_list_files=path)
     match = (
         "\[False, False\] meta indicator value\(s\) in the "  # noqa
         "exclude column are not allowed. Allowed values are \['A', 'B'\]"  # noqa
     )
-
     with pytest.raises(ValueError, match=match):
-        MetaValidator.apply(df=simple_df, path=path)
+        meta_validator.apply(df=simple_df)

@@ -1,24 +1,42 @@
-from nomenclature.processor import Processor
-import pyam
-from nomenclature.codelist import MetaCodeList
 from pathlib import Path
+import pyam
+from nomenclature.processor import Processor
+from nomenclature.codelist import MetaCodeList
 
 
 class MetaValidator(Processor):
-    def __init__(self, name_of_meta_code_list: str, path_to_meta_code_list: Path):
+    meta_code_list: MetaCodeList = None
+
+    def __init__(self, path_to_meta_code_list_files: Path):
+        super().__init__()
         self.meta_code_list = MetaCodeList.from_directory(
-            name_of_meta_code_list, path_to_meta_code_list
+            name="meta_code_list", path=path_to_meta_code_list_files
         )
 
-    def _check_if_values_allowed(self, values, allowed_values, meta_indicator) -> bool:
-        """_summary_
+    def _values_allowed(self, values, allowed_values, meta_indicator) -> bool:
+        """Checks if the values within a meta indicator column are
+        listed in model mapping
 
-        Args:
-            df (pyam.IamDataFrame): _description_
-            path (Path): _description_
+        Parameters
+        ----------
+        values :
+            List of values in the meta_indicator column of the df: IamDataFrame.
+        allowed_values :
+            List of allowed values for the meta_indicator column
+        meta_indicator :
+            The name of the meta_indicator/column whose values are being checked.
 
-        Returns:
-            pyam.IamDataFrame: _description_
+        Returns
+        -------
+        True : boolean
+            If all column elements are listed in model mapping
+
+        Raises
+        ------
+        ValueError
+            *If any of the values in the meta indicator column are not
+            listed in model mapping
+
 
         """
         not_allowed = [value for value in values if value not in allowed_values]
@@ -30,15 +48,25 @@ class MetaValidator(Processor):
             )
         return True
 
-    def apply(self, df: pyam.IamDataFrame, path: Path) -> pyam.IamDataFrame:
-        """_summary_
+    def apply(self, df: pyam.IamDataFrame) -> pyam.IamDataFrame:
+        """Apply meta indicator validation processing
 
-        Args:
-            df (pyam.IamDataFrame): _description_
-            path (Path): _description_
+        Parameters
+        ----------
+        df (pyam.IamDataFrame)
+            Input data whose meta indicators will be validated
 
-        Returns:
-            pyam.IamDataFrame: _description_
+        Returns
+        -------
+        df (pyam.IamDataFrame)
+            If all meta indicators and their values are listed in the
+            model mapping, the same df is returned.
+
+        Raises
+        ------
+        ValueError
+            *If a meta indicator in the 'df' is not listed in the .yaml
+            definition file
         """
         unrecognized_meta_indicators = []
         for meta_indicator in df.meta.columns:
@@ -49,10 +77,10 @@ class MetaValidator(Processor):
                 allowed_values = self.meta_code_list.mapping[
                     meta_indicator
                 ].allowed_values
-                self._check_if_values_allowed(values, allowed_values, meta_indicator)
+                self._values_allowed(values, allowed_values, meta_indicator)
         if unrecognized_meta_indicators:
             raise ValueError(
                 f"{unrecognized_meta_indicators} is/are not recognized in the "
-                f"meta definitions file at {path}"
+                f"meta definitions file."
             )
         return df
