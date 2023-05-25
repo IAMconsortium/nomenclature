@@ -448,8 +448,7 @@ def test_aggregation_differences_export_to_file(input_data, expected_difference)
     processor = RegionProcessor.from_directory(
         TEST_DATA_DIR / "region_processing/partial_aggregation", dsd
     )
-    processor.return_aggregation_difference = True
-    _, obs = processor.apply(test_df)
+    obs = processor.check_region_aggregation(test_df)
     index = ["model", "scenario", "region", "variable", "unit", "year"]
     columns = ["original", "aggregated", "difference (%)"]
     exp = pd.DataFrame(expected_difference, columns=index + columns).set_index(index)
