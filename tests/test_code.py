@@ -154,10 +154,10 @@ def test_RegionCode_iso3_code_list_fail():
     ]
 
     error_pattern = (
-        "1 validation error for RegionCode\niso3_codes\n  Region Western Europe has "
-        "invalid ISO3 country codes: DMK, IPL, ATZ, FNL, FRE, DEX, GRE, IBL, "  # noqa
-        "ITL, LIC, MLA, BEG, FRT, ANB, GDR, LXB, MNO, NTD, NRW, PRE, EPA, SWD, "  # noqa
-        "CEW, GTR, SOR \(type=value_error\)"  # noqa
+        "1 validation error for RegionCode\niso3_codes\n  Region 'Western Europe' has "
+        "invalid ISO3 country code\(s\): DMK, IPL, ATZ, FNL, FRE, DEX, GRE, "  # noqa
+        "IBL, ITL, LIC, MLA, BEG, FRT, ANB, GDR, LXB, MNO, NTD, NRW, PRE, EPA, "  # noqa
+        "SWD, CEW, GTR, SOR \(type=value_error\)"  # noqa
     )
     with pytest.raises(ValueError, match=error_pattern):
         RegionCode(name="Western Europe", hierarchy="R5OECD", iso3_codes=iso3_codes)
@@ -165,8 +165,8 @@ def test_RegionCode_iso3_code_list_fail():
 
 def test_RegionCode_iso3_code_str_fail():
     error_pattern = (
-        "1 validation error for RegionCode\niso3_codes\n  Region Austria has invalid "
-        "ISO3 country codes: AUTT \(type=value_error\)"
+        "1 validation error for RegionCode\niso3_codes\n  Region 'Austria' has invalid "
+        "ISO3 country code\(s\): AUTT \(type=value_error\)"
     )
     with pytest.raises(ValueError, match=error_pattern):
         RegionCode(name="Austria", hierarchy="country", iso3_codes="AUTT")

@@ -226,14 +226,14 @@ class RegionCode(Code):
     @validator("iso3_codes")
     def check_iso3_codes(cls, v, values) -> List[str]:
         """Verifies that each ISO3 code is valid according to pycountry library."""
-        invalid_iso3_codes: List[str] = []
-        for iso3_code in pyam.to_list(v):
-            if pycountry.countries.get(alpha_3=iso3_code) is None:
-                invalid_iso3_codes.append(iso3_code)
-        if invalid_iso3_codes:
-            invalid = ", ".join(invalid_iso3_codes)
+        if invalid_iso3_codes := [
+            iso3_code
+            for iso3_code in pyam.to_list(v)
+            if pycountry.countries.get(alpha_3=iso3_code) is None
+        ]:
             raise ValueError(
-                f"Region {values['name']} has invalid ISO3 country codes: {invalid}"
+                f"Region '{values['name']}' has invalid ISO3 country code(s): "
+                + ", ".join(invalid_iso3_codes)
             )
         return v
 
