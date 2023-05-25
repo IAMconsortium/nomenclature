@@ -434,6 +434,20 @@ class RegionProcessor(Processor):
     def check_region_aggregation(
         self, df: IamDataFrame, rtol_difference: float = 0.01
     ) -> pd.DataFrame:
+        """Return differences between aggregated and model native data
+
+        Parameters
+        ----------
+        df : IamDataFrame
+            Input data
+        rtol_difference : float, optional
+            limit on the relative tolerance for differences, by default 0.01
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing the differences
+        """
         difference_dfs: List[pd.DataFrame] = [pd.DataFrame()]
 
         difference_dfs.extend(
