@@ -611,10 +611,9 @@ def _compare_and_merge(
         )
     if not return_aggregation_difference:
         logging.info(
-            "If you want to get the differences, run the following command on your "
-            "local machine\n`nomenclature run-region-processing your_data.xlsx "
-            "--export-differences difference.xlsx`\nfrom the processing workflow "
-            "directory.\nThe differences will be exported to `difference.xlsx`."
+            "Please refer to the user guide of the nomenclature package "
+            "(https://nomenclature-iamc.readthedocs.io/en/stable/user_guide/model-mapping.html#how-to-get-aggregation-differences-locally)"
+            " for obtaining the differences as dataframe or file."
         )
     # merge aggregated data onto original common-region data
     index = aggregated.index.difference(original.index)
