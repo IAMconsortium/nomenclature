@@ -390,17 +390,18 @@ class RegionProcessor(Processor):
         v.validate_regions(values["region_codelist"])
         return v
 
-    def apply(self, df: IamDataFrame) -> Tuple[IamDataFrame, pd.DataFrame]:
+    def apply(self, df: IamDataFrame) -> IamDataFrame:
         """Apply region processing
 
         Parameters
         ----------
         df : IamDataFrame
             Input data that the region processing is applied to
+
         Returns
         -------
-        Tuple[IamDataFrame, pd.DataFrame]:
-            Processed data and differences between aggregated and original data
+        IamDataFrame:
+            Processed data
 
         Raises
         ------
