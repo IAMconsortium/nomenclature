@@ -103,8 +103,8 @@ def cli_valid_project(
 @click.option("-p", "path", type=click.Path(exists=True, path_type=Path), default=".")
 @click.option("-d", "--definitions", type=str, default="definitions")
 @click.option("-m", "--mappings", type=str, default="mappings")
-@click.option("--output", type=click.Path(path_type=Path), default="results.xlsx")
-@click.option("--export-differences", type=click.Path(path_type=Path), default=None)
+@click.option("--processed-data", type=click.Path(path_type=Path), default="results.xlsx")
+@click.option("--differences", type=click.Path(path_type=Path), default=None)
 def run_region_processing(
     input_data_file: Path,
     path: Path,

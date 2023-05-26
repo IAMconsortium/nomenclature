@@ -133,7 +133,7 @@ How to get aggregation differences locally
 
 In order to get the full differences perform the following steps:
 
-1. Make sure you have `pyam-iamc >= 1.7.0`, `nomenclature-iamc>=0.9.2` and
+1. Make sure you have `pyam-iamc >= 1.7.0`, `nomenclature-iamc>=0.10.0` and
 `pandas >= 1.5.2` installed.
 2. Clone the workflow directory of your project
 3. Navigate to the workflow directory
@@ -154,5 +154,5 @@ In order to get the full differences perform the following steps:
   differences = processor.check_region_aggregation(data, rtol_difference=0.01)
   differences.to_excel("differences.xlsx")
 
-For details on the check_region_aggregation function please refer to
+For details on this feature please refer to
 :func:`RegionProcessor.check_region_aggregation`.
