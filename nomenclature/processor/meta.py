@@ -70,20 +70,22 @@ class MetaValidator(Processor):
             *If a meta indicator in the 'df' is not listed in the .yaml
             definition file
         """
-        unrecognized_meta_indicators = []
-        for meta_indicator in df.meta.columns:
-            if meta_indicator not in self.meta_code_list.mapping:
-                unrecognized_meta_indicators.append(meta_indicator)
-            else:
-                values = df.meta[meta_indicator].values
-                allowed_values = self.meta_code_list.mapping[
-                    meta_indicator
-                ].allowed_values
-                self._values_allowed(values, allowed_values, meta_indicator)
-        if unrecognized_meta_indicators:
+
+        if unrecognized_meta_indicators := [
+            meta_indicator
+            for meta_indicator in df.meta.columns
+            if meta_indicator not in self.meta_code_list.mapping
+        ]:
             raise ValueError(
                 f"{unrecognized_meta_indicators} is/are not recognized in the "
                 f"meta definitions file. Allowed meta indicators are: "
                 f"{list(self.meta_code_list.mapping.keys())}"
+            )
+
+        for meta_indicator in df.meta.columns:
+            self._values_allowed(
+                list(set(df.meta[meta_indicator].values)),
+                self.meta_code_list.mapping[meta_indicator].allowed_values,
+                meta_indicator,
             )
         return df

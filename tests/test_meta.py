@@ -28,7 +28,7 @@ def test_MetaValidator_Meta_Indicator_Value_Error(simple_df):
     path = Path(TEST_DATA_DIR / "definitions3/meta")
     meta_validator = MetaValidator(path_to_meta_code_list_files=path)
     match = (
-        "\[False, False\] meta indicator value\(s\) in the "  # noqa
+        "\[False\] meta indicator value\(s\) in the "  # noqa
         "exclude column are not allowed. Allowed values are \['A', 'B'\]"  # noqa
     )
     with pytest.raises(ValueError, match=match):
