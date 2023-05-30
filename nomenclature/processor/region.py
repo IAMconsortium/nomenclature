@@ -433,8 +433,9 @@ class RegionProcessor(Processor):
 
     def check_region_aggregation(
         self, df: IamDataFrame, rtol_difference: float = 0.01
-    ) -> pd.DataFrame:
-        """Return differences between aggregated and model native data
+    ) -> Tuple[IamDataFrame, pd.DataFrame]:
+        """Return region aggregation results and differences between aggregated and
+        model native data
 
         Parameters
         ----------
@@ -445,20 +446,21 @@ class RegionProcessor(Processor):
 
         Returns
         -------
-        pd.DataFrame
-            Dataframe containing the differences
+        Tuple[IamDataFrame, pd.DataFrame]
+            IamDataFrame containing aggregation results and pandas dataframe containing
+            the differences
         """
-        difference_dfs: List[pd.DataFrame] = [pd.DataFrame()]
-
-        difference_dfs.extend(
+        region_processing_results = [
             self._apply_region_processing(
                 df.filter(model=model),
                 rtol_difference=rtol_difference,
                 return_aggregation_difference=True,
-            )[1]
+            )
             for model in set(df.model) & set(self.mappings)
+        ]
+        return pyam.concat(res[0] for res in region_processing_results), pd.concat(
+            res[1] for res in region_processing_results
         )
-        return pd.concat(difference_dfs)
 
     def _apply_region_processing(
         self,
@@ -620,9 +622,10 @@ def _compare_and_merge(
     )
     difference = difference.sort_values("difference (%)", ascending=False)
     if difference is not None and len(difference):
-        logging.warning(
-            f"Difference between original and aggregated data:\n{difference}"
-        )
+        with pd.option_context("display.max_columns", None):
+            logging.warning(
+                f"Difference between original and aggregated data:\n{difference}"
+            )
     if not return_aggregation_difference:
         logging.info(
             "Please refer to the user guide of the nomenclature package "
