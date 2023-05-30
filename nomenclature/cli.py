@@ -153,14 +153,11 @@ def run_region_processing(
                         --processed_data results.xlsx --differences differences.xlsx
 
     """
-    region_processor = RegionProcessor.from_directory(
+    results_df, differences_df = RegionProcessor.from_directory(
         workflow_directory / mappings,
         DataStructureDefinition(workflow_directory / definitions),
-    )
-    data = IamDataFrame(input_data_file)
+    ).check_region_aggregation(IamDataFrame(input_data_file))
     if processed_data:
-        region_processor.apply(data).to_excel(processed_data)
+        results_df.to_excel(processed_data)
     if differences:
-        region_processor.check_region_aggregation(data).reset_index().to_excel(
-            differences, index=False
-        )
+        differences_df.reset_index().to_excel(differences, index=False)
