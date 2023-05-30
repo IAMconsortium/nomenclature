@@ -7,12 +7,13 @@ from nomenclature.codelist import MetaCodeList
 class MetaValidator(Processor):
     """Meta indicator validation and processing class"""
 
-    meta_code_list: MetaCodeList = None
+    meta_code_list: MetaCodeList
 
     def __init__(self, path_to_meta_code_list_files: Path):
-        super().__init__()
-        self.meta_code_list = MetaCodeList.from_directory(
-            name="meta_code_list", path=path_to_meta_code_list_files
+        super().__init__(
+            meta_code_list=MetaCodeList.from_directory(
+                name="meta_code_list", path=path_to_meta_code_list_files
+            )
         )
 
     def _values_allowed(self, values, allowed_values, meta_indicator) -> bool:
