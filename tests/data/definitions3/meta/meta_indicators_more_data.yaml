@@ -1,0 +1,6 @@
+- exclude:
+    allowed_values: ['A', 'B']
+- number:
+    allowed_values: [1.0, 2.0, 3.0, 4.0]
+- string:
+    allowed_values: ['foo', 'bar']
