@@ -1,5 +1,7 @@
 .. _model_mapping:
 
+.. currentmodule:: nomenclature
+
 Region processing using model mappings
 ======================================
 
@@ -120,9 +122,51 @@ are compared and combined according to the following logic:
    *region_b*. The **provided results** take **precedence** over the aggregated ones.
    Additionally, the aggregation is computed and compared to the provided results. If
    there are discrepancies, a warning is written to the logs.
-   
+
    .. note::
 
       Please note that in case of differences no error is raised. Therefore it is
       necessary to check the logs to find out if there were any differences. This is
       intentional since some differences might be expected.
+
+
+Computing differences between original and aggregated data
+----------------------------------------------------------
+
+In order to get the differences between the original data (e.g., results reported by the model)
+and the data aggregated according to the region mapping, perform the following steps:
+
+1. Make sure you have ``pyam-iamc >= 1.7.0`` and ``nomenclature-iamc>=0.10.0`` installed.
+2. Clone the workflow directory of your project
+3. Navigate to the workflow directory
+4. Using a jupyter notebook or python script run the following:
+
+.. code:: python
+
+  from pyam import IamDataFrame
+  from nomenclature import DataStructureDefinition, RegionProcessor
+
+  data = IamDataFrame("/path/to/your/input/data.xlsx")
+
+  dsd = DataStructureDefinition("definitions")
+  processor = RegionProcessor.from_directory("mappings", dsd)
+
+  # get the differences as a pandas dataframe
+  # the value for the relative tolerances can be adjusted, defaults to 0.01
+  processed_data, differences = processor.check_region_aggregation(data, rtol_difference=0.01)
+  # save the result of the region processing
+  processed_data.to_excel("results.xlsx")
+  # and the differences
+  differences.to_excel("differences.xlsx")
+
+For details on this feature, please refer to
+:py:meth:`RegionProcessor.check_region_aggregation`.
+
+Alternatively you can also use the nomenclature cli:
+
+.. code-block:: bash
+
+  $ nomenclature check-region-aggregation /path/to/your/input/data.xlsx
+  -w workflow_directory --processed_data results.xlsx --differences differences.xlsx
+
+For cli details please refer to :ref:`cli`.

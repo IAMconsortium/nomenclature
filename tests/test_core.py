@@ -3,6 +3,7 @@ import pytest
 
 import numpy as np
 import pandas as pd
+from pandas.testing import assert_frame_equal
 from nomenclature.core import process
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor.region import RegionProcessor
@@ -363,7 +364,7 @@ def test_region_processing_skip_aggregation(model_name, region_names):
             [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 5, 6]],
             [
                 "Difference between original and aggregated data:",
-                "m_a   s_a      World  Primary Energy EJ/yr 2005         5           4",
+                "m_a   s_a      World  Primary Energy EJ/yr 2005         5",
             ],
         ),
         (  # Conflict between overlapping renamed variable and provided data
@@ -375,7 +376,7 @@ def test_region_processing_skip_aggregation(model_name, region_names):
             [["m_a", "s_a", "World", "Variable B", "EJ/yr", 4, 6]],
             [
                 "Difference between original and aggregated data:",
-                "m_a   s_a      World  Variable B EJ/yr 2005         4           3",
+                "m_a   s_a      World  Variable B EJ/yr 2010         6",
             ],
         ),
     ],
@@ -413,3 +414,43 @@ def test_partial_aggregation(input_data, exp_data, warning, caplog):
         assert "WARNING" not in caplog.text
     else:
         assert all(c in caplog.text for c in warning)
+
+
+@pytest.mark.parametrize(
+    "input_data, expected_difference",
+    [
+        (  # Variable is available in provided and aggregated data but different
+            [
+                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 5, 6],
+            ],
+            [
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 2005, 5, 4, 20.0],
+            ],
+        ),
+        (  # Conflict between overlapping renamed variable and provided data
+            [
+                ["m_a", "s_a", "region_A", "Variable B", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Variable B", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "World", "Variable B", "EJ/yr", 4, 6],
+            ],
+            [
+                ["m_a", "s_a", "World", "Variable B", "EJ/yr", 2010, 6, 4, 100.0 / 3.0],
+                ["m_a", "s_a", "World", "Variable B", "EJ/yr", 2005, 4, 3, 25],
+            ],
+        ),
+    ],
+)
+def test_aggregation_differences_export(input_data, expected_difference):
+    test_df = IamDataFrame(pd.DataFrame(input_data, columns=IAMC_IDX + [2005, 2010]))
+    dsd = DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd")
+    processor = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/partial_aggregation", dsd
+    )
+    _, obs = processor.check_region_aggregation(test_df)
+    index = ["model", "scenario", "region", "variable", "unit", "year"]
+    columns = ["original", "aggregated", "difference (%)"]
+    exp = pd.DataFrame(expected_difference, columns=index + columns).set_index(index)
+
+    assert_frame_equal(exp, obs)

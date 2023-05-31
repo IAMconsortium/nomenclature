@@ -1,7 +1,7 @@
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Tuple
 
 import numpy as np
 import pandas as pd
@@ -404,7 +404,7 @@ class RegionProcessor(Processor):
 
         Returns
         -------
-        IamDataFrame
+        IamDataFrame:
             Processed data
 
         Raises
@@ -414,6 +414,7 @@ class RegionProcessor(Processor):
             * If the region-processing results in an empty **IamDataFrame**.
         """
         processed_dfs: List[IamDataFrame] = []
+
         for model in df.model:
             model_df = df.filter(model=model)
 
@@ -428,12 +429,49 @@ class RegionProcessor(Processor):
                 logger.info(
                     f"Applying region-processing for model '{model}' from '{file}'"
                 )
-                processed_dfs.append(self._apply_region_processing(model_df))
+                processed_dfs.append(self._apply_region_processing(model_df)[0])
+
         res = pyam.concat(processed_dfs)
         self.region_codelist.validate_items(res.region)
         return res
 
-    def _apply_region_processing(self, model_df: IamDataFrame) -> IamDataFrame:
+    def check_region_aggregation(
+        self, df: IamDataFrame, rtol_difference: float = 0.01
+    ) -> Tuple[IamDataFrame, pd.DataFrame]:
+        """Return region aggregation results and differences between aggregated and
+        model native data
+
+        Parameters
+        ----------
+        df : IamDataFrame
+            Input data
+        rtol_difference : float, optional
+            limit on the relative tolerance for differences, by default 0.01
+
+        Returns
+        -------
+        Tuple[IamDataFrame, pd.DataFrame]
+            IamDataFrame containing aggregation results and pandas dataframe containing
+            the differences
+        """
+        region_processing_results = [
+            self._apply_region_processing(
+                df.filter(model=model),
+                rtol_difference=rtol_difference,
+                return_aggregation_difference=True,
+            )
+            for model in set(df.model) & set(self.mappings)
+        ]
+        return pyam.concat(res[0] for res in region_processing_results), pd.concat(
+            res[1] for res in region_processing_results
+        )
+
+    def _apply_region_processing(
+        self,
+        model_df: IamDataFrame,
+        return_aggregation_difference: bool = False,
+        rtol_difference: float = 0.01,
+    ) -> Tuple[IamDataFrame, pd.DataFrame]:
         """Apply the region processing for a single model"""
         if len(model_df.model) != 1:
             raise ValueError(
@@ -523,10 +561,16 @@ class RegionProcessor(Processor):
             )
 
             # concatenate and merge with data provided at common-region level
+            difference = pd.DataFrame()
             if _processed_data:
                 _data = pd.concat(_processed_data)
                 if not common_region_df.empty:
-                    _data = _compare_and_merge(common_region_df._data, _data)
+                    _data, difference = _compare_and_merge(
+                        common_region_df._data,
+                        _data,
+                        rtol_difference,
+                        return_aggregation_difference,
+                    )
 
             # if data exists only at the common-region level
             elif not common_region_df.empty:
@@ -539,7 +583,7 @@ class RegionProcessor(Processor):
                 )
 
         # cast processed timeseries data and meta indicators to IamDataFrame
-        return IamDataFrame(_data, meta=model_df.meta)
+        return IamDataFrame(_data, meta=model_df.meta), difference
 
 
 def _aggregate_region(df, var, *regions, **kwargs):
@@ -555,7 +599,12 @@ def _aggregate_region(df, var, *regions, **kwargs):
             raise error
 
 
-def _compare_and_merge(original: pd.Series, aggregated: pd.Series) -> IamDataFrame:
+def _compare_and_merge(
+    original: pd.Series,
+    aggregated: pd.Series,
+    rtol: float = 0.01,
+    return_aggregation_difference: bool = False,
+) -> Tuple[IamDataFrame, pd.DataFrame]:
     """Compare and merge original and aggregated results"""
 
     # compare processed (aggregated) data and data provided at the common-region level
@@ -569,14 +618,29 @@ def _compare_and_merge(original: pd.Series, aggregated: pd.Series) -> IamDataFra
 
     # drop rows that are not in conflict
     compare = compare.dropna()
-    compare = compare[~np.isclose(compare["original"], compare["aggregated"])]
-
-    if compare is not None and len(compare):
-        logging.warning(f"Difference between original and aggregated data:\n{compare}")
-
+    difference = compare[
+        ~np.isclose(compare["original"], compare["aggregated"], rtol=rtol)
+    ]
+    difference["difference (%)"] = 100 * np.abs(
+        (difference["original"] - difference["aggregated"]) / difference["original"]
+    )
+    difference = difference.sort_values("difference (%)", ascending=False)
+    if difference is not None and len(difference):
+        with pd.option_context("display.max_columns", None):
+            logger.warning(
+                f"Difference between original and aggregated data:\n{difference}"
+            )
+    if not return_aggregation_difference:
+        logger.info(
+            "Please refer to the user guide of the nomenclature package "
+            "(file:///home/hackstock/Documents/code/nomenclature/doc/build/html/"
+            "user_guide/model-mapping.html#computing-differences-between"
+            "-original-and-aggregated-data) for obtaining the differences as "
+            "dataframe or file."
+        )
     # merge aggregated data onto original common-region data
     index = aggregated.index.difference(original.index)
-    return pd.concat([original, aggregated[index]])
+    return pd.concat([original, aggregated[index]]), difference
 
 
 def _check_exclude_region_overlap(values: Dict, region_type: str) -> Dict:
