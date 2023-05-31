@@ -1,5 +1,7 @@
 .. _model_mapping:
 
+.. currentmodule:: nomenclature
+
 Region processing using model mappings
 ======================================
 
@@ -134,8 +136,7 @@ Computing differences between original and aggregated data
 In order to get the differences between the original data (e.g., results reported by the model)
 and the data aggregated according to the region mapping, perform the following steps:
 
-1. Make sure you have `pyam-iamc >= 1.7.0`, `nomenclature-iamc>=0.10.0` and
-`pandas >= 1.5.2` installed.
+1. Make sure you have ``pyam-iamc >= 1.7.0`` and ``nomenclature-iamc>=0.10.0`` installed.
 2. Clone the workflow directory of your project
 3. Navigate to the workflow directory
 4. Using a jupyter notebook or python script run the following:
@@ -153,7 +154,19 @@ and the data aggregated according to the region mapping, perform the following s
   # get the differences as a pandas dataframe
   # the value for the relative tolerances can be adjusted, defaults to 0.01
   processed_data, differences = processor.check_region_aggregation(data, rtol_difference=0.01)
+  # save the result of the region processing
+  processed_data.to_excel("results.xlsx")
+  # and the differences
   differences.to_excel("differences.xlsx")
 
 For details on this feature, please refer to
-:func:`RegionProcessor.check_region_aggregation`.
+:py:meth:`RegionProcessor.check_region_aggregation`.
+
+Alternatively you can also use the nomenclature cli:
+
+.. code-block:: bash
+
+  $ nomenclature check-region-aggregation /path/to/your/input/data.xlsx
+  -w workflow_directory --processed_data results.xlsx --differences differences.xlsx
+
+For cli details please refer to :ref:`cli`.
