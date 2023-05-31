@@ -623,15 +623,16 @@ def _compare_and_merge(
     difference = difference.sort_values("difference (%)", ascending=False)
     if difference is not None and len(difference):
         with pd.option_context("display.max_columns", None):
-            logging.warning(
+            logger.warning(
                 f"Difference between original and aggregated data:\n{difference}"
             )
     if not return_aggregation_difference:
-        logging.info(
+        logger.info(
             "Please refer to the user guide of the nomenclature package "
-            "(https://nomenclature-iamc.readthedocs.io/en/stable/user_guide/"
-            "model-mapping.html#how-to-get-aggregation-differences-locally)"
-            " for obtaining the differences as dataframe or file."
+            "(file:///home/hackstock/Documents/code/nomenclature/doc/build/html/"
+            "user_guide/model-mapping.html#computing-differences-between"
+            "-original-and-aggregated-data) for obtaining the differences as "
+            "dataframe or file."
         )
     # merge aggregated data onto original common-region data
     index = aggregated.index.difference(original.index)
