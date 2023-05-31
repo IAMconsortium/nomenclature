@@ -155,3 +155,9 @@ sum up to the value of the category. The feature uses the **pyam** method
 * The method :meth:`DataStructureDefinition.check_aggregate` returns a
   :class:`pandas.DataFrame` with a comparison of the original value and the computed
   aggregate for all variables that fail the validation.
+ 
+ Editing a CodeList
+ ------------------
+ A codelist can be edited directly as the `yaml` file, although this may not always be convenient.  
+ 
+ Another alternative is to generate an `Excel` version of the codelist, make the necessary edits in Excel, and then process this back into the correctly formatted `yaml` file. to do this, see this tutorial :ref:`tutorial_edit_existing_variable_codelist`.
