@@ -98,7 +98,7 @@ def cli_valid_project(
     assert_valid_structure(path, definitions, mappings, required_data, dimensions)
 
 
-@cli.command("run-region-processing")
+@cli.command("check-region-aggregation")
 @click.argument("input_data_file", type=click.Path(exists=True, path_type=Path))
 @click.option(
     "-w",
@@ -112,7 +112,7 @@ def cli_valid_project(
     "--processed-data", type=click.Path(path_type=Path), default="results.xlsx"
 )
 @click.option("--differences", type=click.Path(path_type=Path), default=None)
-def run_region_processing(
+def check_region_aggregation(
     input_data_file: Path,
     workflow_directory: Path,
     definitions: str,
@@ -148,7 +148,7 @@ def run_region_processing(
     results of the aggregation will be exported to results.xlsx and the differences to
     differences.xlsx.
 
-    $ nomenclature run-region-processing input_data.xlsx -w workflow_directory
+    $ nomenclature check-region-processing input_data.xlsx -w workflow_directory
                         --processed_data results.xlsx --differences differences.xlsx
 
     """
