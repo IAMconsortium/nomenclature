@@ -120,8 +120,7 @@ def run_region_processing(
     processed_data: Optional[Path],
     differences: Optional[Path],
 ):
-    """Perform region processing an optionally return differences between aggregated
-    and model native data
+    """Perform region processing and compare aggregated and original data
 
     Parameters
     ----------

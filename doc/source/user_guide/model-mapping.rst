@@ -128,10 +128,11 @@ are compared and combined according to the following logic:
       intentional since some differences might be expected.
 
 
-How to get aggregation differences locally
-------------------------------------------
+Computing differences between original and aggregated data
+----------------------------------------------------------
 
-In order to get the full differences perform the following steps:
+In order to get the differences between the original data (e.g., results reported by the model)
+and the data aggregated according to the region mapping, perform the following steps:
 
 1. Make sure you have `pyam-iamc >= 1.7.0`, `nomenclature-iamc>=0.10.0` and
 `pandas >= 1.5.2` installed.
@@ -151,8 +152,8 @@ In order to get the full differences perform the following steps:
 
   # get the differences as a pandas dataframe
   # the value for the relative tolerances can be adjusted, defaults to 0.01
-  differences = processor.check_region_aggregation(data, rtol_difference=0.01)
+  processed_data, differences = processor.check_region_aggregation(data, rtol_difference=0.01)
   differences.to_excel("differences.xlsx")
 
-For details on this feature please refer to
+For details on this feature, please refer to
 :func:`RegionProcessor.check_region_aggregation`.
