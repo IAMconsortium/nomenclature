@@ -1,6 +1,6 @@
 # nomenclature - Working with IAMC-format project definitions
 
-Copyright 2021-2022 IIASA
+Copyright 2021-2023 IIASA
 
 This repository is licensed under the Apache License, Version 2.0 (the "License"); see
 the [LICENSE](LICENSE) for details.
@@ -16,7 +16,7 @@ black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://gith
 ## Overview
 
 The **nomenclature** package facilitates validation and processing of scenario data.
-It allows to manage definitions of data structures for model comparison projects and
+It allows managing definitions of data structures for model comparison projects and
 scenario analysis studies using the data format developed by the
 [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
 
@@ -31,14 +31,14 @@ The **nomenclature** package supports three main use cases:
 
 - Management of codelists and mappings for model comparison projects
 - Validation of scenario data against the codelists of a specific project
-- Region-processing (aggregation and renaming) from "native regions" of a model to
-  "common regions" (i.e., regions that are used for scenario comparison in a project).
+- Processing of scenario results, e.g. aggregation and renaming from "native regions" of
+  a model to "common regions" (i.e., regions that are used for scenario comparison in a project).
   
 The documentation is hosted on [Read the Docs](https://nomenclature-iamc.readthedocs.io/).
 
 ## Integration with the pyam package
 
-<img src="https://github.com/IAMconsortium/pyam/blob/main/doc/logos/pyam-logo.png"
+<img src="https://github.com/IAMconsortium/pyam/blob/main/docs/logos/pyam-logo.png"
 width="133" height="100" align="right" alt="pyam logo" />
 
 The **nomenclature** package is designed to complement the Python package **pyam**,
