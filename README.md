@@ -16,7 +16,7 @@ black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://gith
 ## Overview
 
 The **nomenclature** package facilitates validation and processing of scenario data.
-It allows to manage definitions of data structures for model comparison projects and
+It allows managing definitions of data structures for model comparison projects and
 scenario analysis studies using the data format developed by the
 [Integrated Assessment Modeling Consortium (IAMC)](https://www.iamconsortium.org).
 
@@ -31,8 +31,8 @@ The **nomenclature** package supports three main use cases:
 
 - Management of codelists and mappings for model comparison projects
 - Validation of scenario data against the codelists of a specific project
-- Region-processing (aggregation and renaming) from "native regions" of a model to
-  "common regions" (i.e., regions that are used for scenario comparison in a project).
+- Processing of scenario results, e.g. aggregation and renaming from "native regions" of
+  a model to "common regions" (i.e., regions that are used for scenario comparison in a project).
   
 The documentation is hosted on [Read the Docs](https://nomenclature-iamc.readthedocs.io/).
 

@@ -5,10 +5,9 @@
 User Guide
 ==========
 
-Typically, nomenclature is used as part of the data upload process for integrated
+The **nomenclature** package is used as part of the data upload process for integrated
 assessment model comparison studies that use the IIASA Scenario Explorer infrastructure.
-
-As part of the data processing workflow, nomenclature is used to perform two tasks,
+As part of the data processing workflow, **nomenclature** is used to perform two tasks,
 input data validation against codelists and region aggregation based on information
 given in model mappings.
 
