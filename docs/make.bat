@@ -1,3 +1,5 @@
+REM This file was generated with sphinx-quickstart version 3.5.0
+
 @ECHO OFF
 
 pushd %~dp0
@@ -7,8 +9,8 @@ REM Command file for Sphinx documentation
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
 )
-set SOURCEDIR=source
-set BUILDDIR=build
+REM set SOURCEDIR=
+set BUILDDIR=_build
 
 if "%1" == "" goto help
 
@@ -21,7 +23,7 @@ if errorlevel 9009 (
 	echo.may add the Sphinx directory to PATH.
 	echo.
 	echo.If you don't have Sphinx installed, grab it from
-	echo.https://www.sphinx-doc.org/
+	echo.http://sphinx-doc.org/
 	exit /b 1
 )
 
