@@ -10,20 +10,21 @@ on:
     branches: [ '**' ]
 
 jobs:
-  build:
-
+  docs:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
 
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.8'
+        python-version: '3.10'
+
+    - name: Install Pandoc
+      uses: r-lib/actions/setup-pandoc@v1
 
     - name: Install dependencies and package for building the docs
-      run: pip install .[tests,docs]
+      run: pip install -e .[docs]
 
     - name: Build the docs
-      run: make --directory=doc html
+      run: make --directory=docs html
