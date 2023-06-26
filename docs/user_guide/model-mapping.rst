@@ -5,13 +5,15 @@
 Region processing using model mappings
 ======================================
 
-Model mappings, defined on a per-model basis for region processing serve three different
-purposes:
+Model mappings for region processing are defined on a per-model basis. They serve three
+different purposes:
 
 1. Defining a list of model native regions under the key *native_regions* that are to be
    selected (and usually uploaded) from an IAM result. This also serves as an implicit
    exclusion list for model native regions, since only explicitly mentioned regions are
-   selected. Any region not mentioned in *native_regions* will cause an error unless explicitly named in the *exclude_regions* section. This to avoid accidentally forgetting a region.
+   selected. Any region not mentioned in *native_regions* will cause an error unless
+   explicitly named in the *exclude_regions* section. This to avoid accidentally
+   "forgetting" a region.
 2. Allowing for renaming of model native regions.
 3. Defining how model native regions should be aggregated to common regions.
 

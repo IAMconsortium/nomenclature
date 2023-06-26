@@ -22,14 +22,14 @@ Region processing
 "Registering a model" for a **nomenclature**-based project workflow requires two
 specifications: 
 
+* a list of region names as they should appear in the processed scenario data
 * a model mapping to perform region aggregation from *native_regions* to
   *common_regions* and renaming of model native regions (optional)
-* a list of region names as they should appear in the processed scenario data
 
 Model mapping
 ^^^^^^^^^^^^^
 
-For this guide we will consider a model mapping as an example:
+For this guide, we will consider a model mapping as an example:
 
 .. code-block:: yaml
 
@@ -88,7 +88,10 @@ the processing output constitutes a complete model registration.
 Continuous Integration
 ----------------------
 
-In most cases, a model registration is submitted as a pull request to a project repository hosted on GitHub. As part
-of this, :func:`assert_valid_structure` (details can be found here: :ref:`cli`) is run
-automatically to ensure that the model registration is valid. Any regions that are, for
-example mentioned in a mapping but not defined will raise an error.
+When registering a model using a pull request to a project repository hosted on GitHub,
+a continuous-integration process for ensuring that the registration is consistent.
+
+The function :func:`assert_valid_structure` (details can be found here: :ref:`cli`) is
+executed automatically using a GitHub Actions workflow to ensure that the model
+registration is valid. For example, only regions defined in the *region* codelist can be
+used as targets for renaming or aggregation.

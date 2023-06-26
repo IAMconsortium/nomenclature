@@ -15,7 +15,7 @@ structure is required:
      - region 2
          description: Some short explanation
          iso3_codes: GHI
-   - Hierachy 2:
+   - Hierarchy 2:
      - ...
 
 Regions can have attributes, for example a description or ISO3-codes. If an attribute
