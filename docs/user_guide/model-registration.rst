@@ -5,10 +5,16 @@
 Model registration
 ==================
 
-This guide presents a quick instruction for "registering a model" in a project workflow.
+This guide presents instructions for "registering a model" for a project.
+Please read the detailed explanations of :ref:`region` and :ref:`model_mapping` before
+proceeding with model registration.
 
-It is still recommended to read the detailed instructions under :ref:`model_mapping` and
-:ref:`region` in particular.
+There are two options for model registration:
+
+- Using this `xlsx template file`_ and sending it to the project administrators
+- Using a GitHub pull request in the project repository (see below)
+
+.. _`xlsx template file`: https://raw.githubusercontent.com/IAMconsortium/nomenclature/main/templates/model-registration-template.xlsx
 
 Region processing
 -----------------
