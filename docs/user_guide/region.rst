@@ -43,8 +43,8 @@ when comparing results to other models with similar-but-different regions.
 
 .. code:: yaml
 
-   - Model A:
-     - Model A|Region 1:
+   - Model A v1.0:
+     - Model A v1.0|Region 1:
          description: Some short explanation
 
 The renaming from (short) region-names as reported by a modelling framework to such
