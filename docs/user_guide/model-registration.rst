@@ -41,6 +41,7 @@ national countries), add a file ``<your-model_vX.X>.yaml`` in the folder
 ``definitions/region/model_native_regions/``.
 
 This file should follow the region-naming conventions of :ref:`region`.
+The *hierarchy* property should be the model name inluding the version number.
 
 Region-processing mapping
 ^^^^^^^^^^^^^^^^^^^^^^^^^
