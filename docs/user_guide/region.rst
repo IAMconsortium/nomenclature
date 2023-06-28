@@ -9,10 +9,10 @@ structure is required:
 .. code:: yaml
 
    - Hierarchy 1:
-     - region 1:
+     - Region 1:
          description: Some short explanation
          iso3_codes: [ABC, DEF, ...]
-     - region 2:
+     - Region 2:
          description: Some short explanation
          iso3_codes: GHI
    - Hierarchy 2:
