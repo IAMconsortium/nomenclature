@@ -18,7 +18,7 @@ structure is required:
    - Hierarchy 2:
      - ...
 
-Regions can have attributes, for example a description or ISO3-codes. If an attribute
+Regions can have attributes, for example a description or ISO3-codes. If the attribute
 `iso3_codes` is provided, the item(s) are validated against a list of valid codes taken
 from the `pycountry <https://github.com/flyingcircusio/pycountry>`_ package.
 
