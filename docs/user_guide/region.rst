@@ -12,7 +12,7 @@ structure is required:
      - region 1:
          description: Some short explanation
          iso3_codes: [ABC, DEF, ...]
-     - region 2
+     - region 2:
          description: Some short explanation
          iso3_codes: GHI
    - Hierarchy 2:
@@ -22,8 +22,20 @@ Regions can have attributes, for example a description or ISO3-codes. If the att
 `iso3_codes` is provided, the item(s) are validated against a list of valid codes taken
 from the `pycountry <https://github.com/flyingcircusio/pycountry>`_ package.
 
+Common regions
+--------------
+
+In model-comparison projects, it is useful to define *common regions* that can be
+computed consistently from original model results. Widely used examples are the
+R5, R9 and R10 regions, see here_.
+
+.. _here: https://github.com/IAMconsortium/common-definitions/blob/main/definitions/region/common.yaml
+
 Naming conventions for native model regions
 -------------------------------------------
+
+In contrast to common regions used for comparison or scenario analysis across models,
+each model has a "native region" resolution.
 
 Models with a coarse spatial resolution should add a model-specific identifier to the
 native model regions (e.g., `MESSAGEix-GLOBIOM 1.1|North America`) to avoid confusion
