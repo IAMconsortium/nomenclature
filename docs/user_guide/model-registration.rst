@@ -43,10 +43,10 @@ national countries), add a file ``<your-model_vX.X>.yaml`` in the folder
 This file should follow the region-naming conventions of :ref:`region`.
 The *hierarchy* property should be the model name inluding the version number.
 
-Region-processing mapping
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Model mapping for region processing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If the scenario-processing workflow should execute a region-aggregation step,
+If the scenario-processing workflow should execute a region-processing step,
 add a file ``<your-model_vX.X>.yaml`` in the folder ``mappings/``.
 
 This file should follow the region-naming conventions of :ref:`model_mapping`.

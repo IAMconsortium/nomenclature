@@ -49,7 +49,7 @@ required in a valid model mapping. See :ref:`region` for more information.
    These constituent regions must be model native regions.
 
    The names of the constituent regions **must** refer to the **original** model native
-   region names, i.e., *region_a* and *region_b* and **not** *alternative_name_a*
+   region names, i.e., *region_a* and *region_b*, **not** *alternative_name_a*
    in the example shown above.
 
 * *exclude_regions* optional (list of str): If input data for region processing contains
