@@ -5,84 +5,60 @@
 Model registration
 ==================
 
-This guide presents a quick instruction for "registering a model" in a project workflow.
+This guide presents instructions for "registering a model" for a project.
 
-It is still recommended to read the detailed instructions under :ref:`model_mapping` and
-:ref:`region` in particular.
+Model registration for a **nomenclature**-based project requires two specifications:
 
-Region processing
------------------
-
-"Registering a model" for a **nomenclature**-based project workflow requires two
-specifications: 
-
+* | a list of region names as they should appear in the processed scenario data
+  | (e.g., after processing as part of the upload to a *Scenario Explorer* instance)
 * a model mapping to perform region aggregation from *native_regions* to
   *common_regions* and renaming of model native regions (optional)
-* a list of region names as they should appear in the processed scenario data
 
-Model mapping
-^^^^^^^^^^^^^
+Please read the detailed explanations of :ref:`region` and :ref:`model_mapping` before
+proceeding with model registration.
 
-For this guide we will consider a model mapping as an example:
+Option 1) Registration using an Excel template
+----------------------------------------------
 
-.. code-block:: yaml
+Please use the `Excel template`_ and send it to the project managers by email.
 
-    model: model_a
-    native_regions:
-      - region_1: model_a|Region 1
-      - region_2: model_a|Region 2
-      - region_3: model_a|Region 3
-    common_regions:
-      - World:
-        - region_1
-        - region_2
-        - region_3
-      - Common region 1:
-        - region_1
-        - region_2
+.. _`Excel template`: https://raw.githubusercontent.com/IAMconsortium/nomenclature/main/templates/model-registration-template.xlsx
 
-``model_a`` reports three regions natively, ``region_1``, ``region_2`` and ``region_3``.
-These three are to be renamed to the ``{model}|{region}`` pattern as is common place in
-many projects. For the ``common_regions``, there are ``World`` and ``Common region 1``.
+Option 2) Registration using a GitHub pull request
+--------------------------------------------------
 
-*For more details on the model-native and common regions refer to*
-:ref:`native-vs-common-region`.
+The preferred approach for model registration is starting a GitHub pull request.
+Please contact the administrators if permissions for the project repository
+are required.
 
-Region definitions
-^^^^^^^^^^^^^^^^^^
+A model-registration pull request adds the following files (if required).
 
-In order to constitute a valid "model registration", regions ``model_a|Region 1``,
-``model_a|Region 2``, ``model_a|Region 3``, ``World`` and ``Common region 1`` **must**
-be part of the region definitions. 
+Native-region definitions
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``region_1``, ``region_2`` and ``region_3`` are **not required** since they refer to the
-input names of ``model_a``'s regions and will be renamed in the processing.
+If the model reports results at a model-specific regional resolution (e.g., other than
+national countries), add a file ``<your-model_vX.X>.yaml`` in the folder
+``definitions/region/model_native_regions/``.
 
-In most cases, the common regions (in the above example ``World`` and ``Common region
-1``) will already be defined in a file called ``definitions/region/regions.yaml``.
+This file should follow the region-naming conventions of :ref:`region`.
+The *hierarchy* property should be the model name inluding the version number.
 
-The model native regions, however, most likely need to be added. For this, a new yaml
-file should be created, usually in ``definitions/region/model_native_regions/``. The
-file does not need to have any special name but it is recommended to use the model name.
+Model mapping for region processing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In order to complete the model registration for the example above, we would therefore
-add a file called ``model_a.yaml`` to ``definitions/region/model_native_regions/`` with
-the following content:
+If the scenario-processing workflow should execute a region-processing step,
+add a file ``<your-model_vX.X>.yaml`` in the folder ``mappings/``.
 
-.. code-block:: yaml
+This file should follow the region-naming conventions of :ref:`model_mapping`.
 
-    model_a:
-      - model_a|Region 1
-      - model_a|Region 2
-      - model_a|Region 3
+Continuous integration
+^^^^^^^^^^^^^^^^^^^^^^
 
-This combination of a model mapping and the definition of all regions that are part of
-the processing output constitutes a complete model registration.
+When registering a model via a pull request to a GitHub project repository, a
+GitHub Actions workflow is executed for ensuring that the model mapping is valid.
+This serves to ensure that there are no typos or inconsistencies in the mapping or
+region names. For example, only regions defined in the *region* codelist can be
+used as targets for renaming or aggregation in the region-aggregation.
 
-Continuous Integration
-----------------------
-
-In most cases, a model registration is submitted as a pull request to a project repository hosted on GitHub. As part
-of this, :func:`assert_valid_structure` (details can be found here: :ref:`cli`) is run
-automatically to ensure that the model registration is valid. Any regions that are, for
-example mentioned in a mapping but not defined will raise an error.
+You can run the validation locally using the function :func:`assert_valid_structure`
+of the :ref:`cli`.

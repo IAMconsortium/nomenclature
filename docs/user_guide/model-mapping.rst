@@ -5,46 +5,22 @@
 Region processing using model mappings
 ======================================
 
-Model mappings, defined on a per-model basis for region processing serve three different
-purposes:
-
-1. Defining a list of model native regions under the key *native_regions* that are to be
-   selected (and usually uploaded) from an IAM result. This also serves as an implicit
-   exclusion list for model native regions, since only explicitly mentioned regions are
-   selected. Any region not mentioned in *native_regions* will cause an error unless explicitly named in the *exclude_regions* section. This to avoid accidentally forgetting a region.
-2. Allowing for renaming of model native regions.
-3. Defining how model native regions should be aggregated to common regions.
-
-.. _native-vs-common-region:
-
-Difference between model-native and common regions
----------------------------------------------------
-
-Model native regions are regions that are reported *directly* from an integrated
-assessment or energy system model.
-
-Common regions, on the other hand, are calculated by *aggregating* a model's *native*
-regions. Common regions are used to compare results from models with different native
-regional resolution. 
-
-As an example, let's say we have two models *model_a* and *model_b*. model_a reports
-native regions *Western Europe* and *Eastern Europe* while *model_b* reports *Northern* and
-*Southern Europe*. In order to compare the results of the two models we might introduce
-a common region called *Europe*. 
-
+The **nomenclature** package supports automated region aggregation as part of a
+scenario processing workflow. The instructions for region aggregation are provided
+as a *model mapping*.
 
 Model mapping format specification
 ----------------------------------
 
-This example illustrates how such a model mapping looks like:
+This example illustrates a model mapping:
 
 .. code:: yaml
 
-  model: model_a
+  model: Model A v1.0
   native_regions:
     - region_a: alternative_name_a
     - region_b
-   common_regions:
+  common_regions:
     - common_region_1:
       - region_a
       - region_b
@@ -54,20 +30,8 @@ This example illustrates how such a model mapping looks like:
     - region_c
     - ... 
 
-* The names of the four top level keywords are fixed:
-
-  * *model*
-  * *native_regions*
-  * *common_regions*
-  * *exclude_regions*
-
-* Required properties are:
-  
-  * *model* and 
-  * at least one of *native_regions* and *common_regions*
-
-* Optional properties are:
-  * *exclude_regions*
+The properties *model* and (at least) one of *native_regions* and *common_regions* are
+required in a valid model mapping. See :ref:`region` for more information.
 
 *  *model* (str or list of str): the model name(s) for which the mapping applies.
 *  *native_regions* (list): a list of model native regions serves as
@@ -85,8 +49,8 @@ This example illustrates how such a model mapping looks like:
    These constituent regions must be model native regions.
 
    The names of the constituent regions **must** refer to the **original** model native
-   region names. In the above example *region_a* and *region_b* and **not**
-   *alternative_name_a*.
+   region names, i.e., *region_a* and *region_b*, **not** *alternative_name_a*
+   in the example shown above.
 
 * *exclude_regions* optional (list of str): If input data for region processing contains
   regions which are not mentioned in *native_regions*, in *common_regions* (as the name
@@ -96,7 +60,6 @@ This example illustrates how such a model mapping looks like:
   
   If regions are to be excluded, they can be explicitly named in the *exclude_regions*
   section which causes their presence to no longer raise an error.
-
 
 Region aggregation
 ------------------
@@ -129,7 +92,6 @@ are compared and combined according to the following logic:
       necessary to check the logs to find out if there were any differences. This is
       intentional since some differences might be expected.
 
-
 Computing differences between original and aggregated data
 ----------------------------------------------------------
 
@@ -139,7 +101,7 @@ and the data aggregated according to the region mapping, perform the following s
 1. Make sure you have ``pyam-iamc >= 1.7.0`` and ``nomenclature-iamc>=0.10.0`` installed.
 2. Clone the workflow directory of your project
 3. Navigate to the workflow directory
-4. Using a jupyter notebook or python script run the following:
+4. Using a Jupyter notebook or Python script run the following:
 
 .. code:: python
 
@@ -159,8 +121,7 @@ and the data aggregated according to the region mapping, perform the following s
   # and the differences
   differences.to_excel("differences.xlsx")
 
-For details on this feature, please refer to
-:py:meth:`RegionProcessor.check_region_aggregation`.
+Please refer to :py:meth:`RegionProcessor.check_region_aggregation` for details.
 
 Alternatively you can also use the nomenclature cli:
 
