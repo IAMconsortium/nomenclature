@@ -164,7 +164,9 @@ class CodeList(BaseModel):
         return codes_without_tags + codes_with_tags
 
     @classmethod
-    def from_directory(cls, name: str, path: Path, file_glob_pattern: str = "**/*"):
+    def from_directory(
+        cls, name: str, path: Path, config: Dict = None, file_glob_pattern: str = "**/*"
+    ):
         """Initialize a CodeList from a directory with codelist files
 
         Parameters
@@ -173,6 +175,8 @@ class CodeList(BaseModel):
             Name of the CodeList
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
+        config : dict
+            Attributes for configuring the CodeList
         file_glob_pattern : str, optional
             Pattern to downselect codelist files by name
 
@@ -182,6 +186,9 @@ class CodeList(BaseModel):
 
         """
         code_list: List[Code] = []
+
+        if config is not None:
+            raise ValueError(f"Config must be `None` for {cls.name} found: {config}")
 
         for yaml_file in (
             f
@@ -511,7 +518,9 @@ class RegionCodeList(CodeList):
     validation_schema: ClassVar[str] = "region"
 
     @classmethod
-    def from_directory(cls, name: str, path: Path, file_glob_pattern: str = "**/*"):
+    def from_directory(
+        cls, name: str, path: Path, config: dict = None, file_glob_pattern: str = "**/*"
+    ):
         """Initialize a RegionCodeList from a directory with codelist files
 
         Parameters
@@ -520,6 +529,8 @@ class RegionCodeList(CodeList):
             Name of the CodeList
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
+        config : dict
+            Attributes for configuring the CodeList
         file_glob_pattern : str, optional
             Pattern to downselect codelist files by name, default: "**/*" (i.e. all
             files in all sub-folders)
