@@ -37,16 +37,13 @@ class DataStructureDefinition:
             from a sub-folder of `path` of that name.
         """
 
-        if dimensions is None:
-            dimensions = ["region", "variable"]
-
         if not isinstance(path, Path):
             path = Path(path)
 
         if not path.is_dir():
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
-        self.dimensions = dimensions
+        self.dimensions = dimensions or ["region", "variable"]
         for dim in self.dimensions:
             self.__setattr__(
                 dim, SPECIAL_CODELIST.get(dim, CodeList).from_directory(dim, path / dim)
