@@ -40,6 +40,18 @@ def test_empty_codelist_raises():
         DataStructureDefinition(TEST_DATA_DIR / "simple_codelist")
 
 
+def test_definition_from_general_config():
+    obs = DataStructureDefinition(
+        TEST_DATA_DIR / "general-config-definitions",
+        dimensions=["region"],
+    )
+
+    # explicitly defined in `general-config-definitions/region/regions.yaml`
+    assert "World" in obs.region
+    # added via general-config definitions
+    assert "Austria" in obs.region
+
+
 def test_to_excel(simple_definition, tmpdir):
     """Check writing a DataStructureDefinition to file"""
     file = tmpdir / "testing_export.xlsx"
