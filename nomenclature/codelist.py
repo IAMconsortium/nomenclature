@@ -8,6 +8,8 @@ import yaml
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
 
+from pycountry import countries
+
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
@@ -540,8 +542,19 @@ class RegionCodeList(CodeList):
         RegionCodeList
 
         """
-        mapping: Dict[str, RegionCode] = {}
+
         code_list: List[RegionCode] = []
+
+        if config is not None:
+            if "country" in config and config["country"] is True:
+                for i in countries:
+                    code_list.append(
+                        RegionCode(
+                            name=i.name, iso3_codes=i.alpha_3, hierarchy="Country"
+                        )
+                    )
+            else:
+                raise ValueError(f"Invalid configuration for a {cls.name}: {config}")
 
         for yaml_file in (
             f
