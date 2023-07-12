@@ -27,7 +27,7 @@ PYCOUNTRY_NAME_OVERRIDE = {
     "Bolivia, Plurinational State of": "Bolivia",
     "Holy See (Vatican City State)": "Vatican",
     "Micronesia, Federated States of": "Micronesia",
-    "Congo, The Democratic Republic of the": "The Democratic Republic of the Congo",
+    "Congo, The Democratic Republic of the": "Democratic Republic of the Congo",
     "Iran, Islamic Republic of": "Iran",
     "Korea, Republic of": "South Korea",
     "Korea, Democratic People's Republic of": "North Korea",
