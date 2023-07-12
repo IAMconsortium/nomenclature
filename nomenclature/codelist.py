@@ -19,7 +19,7 @@ from nomenclature.error.variable import (
 )
 
 
-# The RegionCodeList uses pycountry to (optionally) add register all countries
+# The RegionCodeList uses pycountry to (optionally) add all countries and ISO3 codes
 # For readability and in line with conventions of the IAMC community,
 # several "standard" country names are shortened
 # Please keep this list in sync with `templates/model-registration-template.xlsx`
@@ -200,7 +200,7 @@ class CodeList(BaseModel):
             Name of the CodeList
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
-        config : dict
+        config : dict, optional
             Attributes for configuring the CodeList
         file_glob_pattern : str, optional
             Pattern to downselect codelist files by name
@@ -213,7 +213,7 @@ class CodeList(BaseModel):
         code_list: List[Code] = []
 
         if config is not None:
-            raise ValueError(f"Config must be `None` for {cls.name} found: {config}")
+            raise ValueError(f"Config must be `None` for {cls.name}, found: {config}")
 
         for yaml_file in (
             f
