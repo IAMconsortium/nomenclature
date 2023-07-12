@@ -39,6 +39,9 @@ PYCOUNTRY_NAME_OVERRIDE = {
     "Palestine, State of": "Palestine",
     "Taiwan, Province of China": "Taiwan",
 }
+PYCOUNTRY_NAME_ADD = [
+    "Kosovo",
+]
 
 
 here = Path(__file__).parent.absolute()
@@ -578,6 +581,8 @@ class RegionCodeList(CodeList):
                             hierarchy="Country",
                         )
                     )
+                for c in PYCOUNTRY_NAME_ADD:
+                    code_list.append(RegionCode(name=c, hierarchy="Country"))
             else:
                 raise ValueError(f"Invalid configuration for a {cls.name}: {config}")
 
