@@ -18,6 +18,29 @@ from nomenclature.error.variable import (
     VariableRenameTargetError,
 )
 
+
+# The RegionCodeList uses pycountry to (optionally) add register all countries
+# For readability and in line with conventions of the IAMC community,
+# several "standard" country names are shortened
+# Please keep this list in sync with `templates/model-registration-template.xlsx`
+PYCOUNTRY_NAME_OVERRIDE = {
+    "Bolivia, Plurinational State of": "Bolivia",
+    "Holy See (Vatican City State)": "Vatican",
+    "Micronesia, Federated States of": "Micronesia",
+    "Congo, The Democratic Republic of the": "The Democratic Republic of the Congo",
+    "Iran, Islamic Republic of": "Iran",
+    "Korea, Republic of": "South Korea",
+    "Korea, Democratic People's Republic of": "North Korea",
+    "Lao People's Democratic Republic": "Laos",
+    "Syrian Arab Republic": "Syria",
+    "Moldova, Republic of": "Moldova",
+    "Tanzania, United Republic of": "Tanzania",
+    "Venezuela, Bolivarian Republic of": "Venezuela",
+    "Palestine, State of": "Palestine",
+    "Taiwan, Province of China": "Taiwan",
+}
+
+
 here = Path(__file__).parent.absolute()
 
 
@@ -550,7 +573,9 @@ class RegionCodeList(CodeList):
                 for i in countries:
                     code_list.append(
                         RegionCode(
-                            name=i.name, iso3_codes=i.alpha_3, hierarchy="Country"
+                            name=PYCOUNTRY_NAME_OVERRIDE.get(i.name, i.name),
+                            iso3_codes=i.alpha_3,
+                            hierarchy="Country",
                         )
                     )
             else:

@@ -50,6 +50,8 @@ def test_definition_from_general_config():
     assert "World" in obs.region
     # added via general-config definitions
     assert "Austria" in obs.region
+    # added via general-config definitions renamed from pycountry name
+    assert "Bolivia" in obs.region
 
 
 def test_to_excel(simple_definition, tmpdir):
