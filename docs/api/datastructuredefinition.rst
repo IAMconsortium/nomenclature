@@ -4,4 +4,4 @@
 ===========================
 
 .. autoclass:: DataStructureDefinition
-   :members:
+   :members: validate, check_aggregate, to_excel

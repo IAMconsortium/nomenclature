@@ -11,6 +11,7 @@ This is the directory structure for validation and region processing:
 
    .
    ├── definitions
+   │   ├── config.yaml
    │   ├── region
    │   │   ├── regions.yaml
    │   │   └── ...
@@ -31,6 +32,9 @@ The :class:`DataStructureDefinition` reads the codelists from the *definitions* 
   dimension folder, including any subfolders. When the :class:`DataStructureDefinition`
   object is initialized, all files in a dimension folder are combined into a single
   :class:`CodeList` object for that dimension.
+
+* General configurations of the :class:`DataStructureDefinition` can be specified
+  via the *config.yaml*  file.
 
 The :class:`RegionProcessor` reads model-specific region-mappings from the *mappings*
 folder. If the project has no model specific mappings, this folder can also be omitted.
