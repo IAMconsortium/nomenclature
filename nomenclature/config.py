@@ -1,8 +1,12 @@
 from pathlib import Path
-from typing import Dict
-from pydantic import BaseModel, validator
+from typing import Dict, Optional
+from pydantic import BaseModel
 
 import yaml
+
+
+class RegionCodeListConfig(BaseModel):
+    country: Optional[bool]
 
 
 class DataStructureConfig(BaseModel):
@@ -10,18 +14,15 @@ class DataStructureConfig(BaseModel):
 
     Attributes
     ----------
-    config : dict
-        Attributes for configuring the DataStructureDefinition
+    region : RegionCodeListConfig
+        Attributes for configuring the RegionCodeList
 
     """
 
-    config: Dict[str, Dict] = {}
-
-    def get(self, key):
-        return self.config.get(key)
+    region: Optional[RegionCodeListConfig]
 
     @classmethod
-    def from_file(cls, path: Path, file: str, dimensions: list):
+    def from_file(cls, path: Path, file: str):
         """Read a DataStructureConfig from a file
 
         Parameters
@@ -30,14 +31,11 @@ class DataStructureConfig(BaseModel):
             `definitions` directory
         file : str
             File name
-        dimensions : list
-            List of valid dimensions
 
         """
         with open(path / file, "r", encoding="utf-8") as stream:
             config = yaml.safe_load(stream)
 
-            if invalid_config := [i for i in config if i not in dimensions]:
-                raise ValueError(f"Invalid entries in configuration: {invalid_config}")
-
-        return cls(config=config)
+        return cls(
+            region=RegionCodeListConfig(**config["region"])
+        )

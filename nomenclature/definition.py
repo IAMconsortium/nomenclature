@@ -44,18 +44,18 @@ class DataStructureDefinition:
         if not path.is_dir():
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
-        self.dimensions = dimensions or ["region", "variable"]
         if (path / "config.yaml").exists():
             self.config = DataStructureConfig.from_file(
-                path=path, file="config.yaml", dimensions=dimensions
+                path=path, file="config.yaml",
             )
         else:
-            self.config = {}
+            self.config = DataStructureConfig()
 
+        self.dimensions = dimensions or ["region", "variable"]
         for dim in self.dimensions:
             codelist_cls = SPECIAL_CODELIST.get(dim, CodeList)
             self.__setattr__(
-                dim, codelist_cls.from_directory(dim, path / dim, self.config.get(dim))
+                dim, codelist_cls.from_directory(dim, path / dim, self.config)
             )
 
         empty = [d for d in self.dimensions if not self.__getattribute__(d)]

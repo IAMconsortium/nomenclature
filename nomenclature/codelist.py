@@ -11,6 +11,7 @@ from pydantic import BaseModel, validator
 from pycountry import countries
 
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
+from nomenclature.config import DataStructureConfig
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
     MissingWeightError,
@@ -193,7 +194,11 @@ class CodeList(BaseModel):
 
     @classmethod
     def from_directory(
-        cls, name: str, path: Path, config: Dict = None, file_glob_pattern: str = "**/*"
+        cls,
+        name: str,
+        path: Path,
+        config: DataStructureConfig = None,
+        file_glob_pattern: str = "**/*",
     ):
         """Initialize a CodeList from a directory with codelist files
 
@@ -203,20 +208,17 @@ class CodeList(BaseModel):
             Name of the CodeList
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
-        config : dict, optional
+        config: :class:`DataStructureConfig`, optional
             Attributes for configuring the CodeList
         file_glob_pattern : str, optional
             Pattern to downselect codelist files by name
 
         Returns
         -------
-        instance of cls (CodeList if not inherited)
+        instance of cls (:class:`CodeList` if not inherited)
 
         """
         code_list: List[Code] = []
-
-        if config is not None:
-            raise ValueError(f"Config must be `None` for {cls.name}, found: {config}")
 
         for yaml_file in (
             f
@@ -547,7 +549,11 @@ class RegionCodeList(CodeList):
 
     @classmethod
     def from_directory(
-        cls, name: str, path: Path, config: dict = None, file_glob_pattern: str = "**/*"
+        cls,
+        name: str,
+        path: Path,
+        config: DataStructureConfig = None,
+        file_glob_pattern: str = "**/*",
     ):
         """Initialize a RegionCodeList from a directory with codelist files
 
@@ -557,7 +563,7 @@ class RegionCodeList(CodeList):
             Name of the CodeList
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
-        config : dict
+        config : :class:`DataStructureConfig`, optional
             Attributes for configuring the CodeList
         file_glob_pattern : str, optional
             Pattern to downselect codelist files by name, default: "**/*" (i.e. all
@@ -571,8 +577,8 @@ class RegionCodeList(CodeList):
 
         code_list: List[RegionCode] = []
 
-        if config is not None:
-            if "country" in config and config["country"] is True:
+        if config is not None and config.region is not None:
+            if config.region.country is True:
                 for i in countries:
                     code_list.append(
                         RegionCode(
@@ -583,8 +589,6 @@ class RegionCodeList(CodeList):
                     )
                 for c in PYCOUNTRY_NAME_ADD:
                     code_list.append(RegionCode(name=c, hierarchy="Country"))
-            else:
-                raise ValueError(f"Invalid configuration for a {cls.name}: {config}")
 
         for yaml_file in (
             f
