@@ -46,7 +46,8 @@ class DataStructureDefinition:
 
         if (path / "config.yaml").exists():
             self.config = DataStructureConfig.from_file(
-                path=path, file="config.yaml",
+                path=path,
+                file="config.yaml",
             )
         else:
             self.config = DataStructureConfig()

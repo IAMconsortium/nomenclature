@@ -36,6 +36,4 @@ class DataStructureConfig(BaseModel):
         with open(path / file, "r", encoding="utf-8") as stream:
             config = yaml.safe_load(stream)
 
-        return cls(
-            region=RegionCodeListConfig(**config["region"])
-        )
+        return cls(region=RegionCodeListConfig(**config["region"]))
