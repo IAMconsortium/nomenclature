@@ -12,6 +12,7 @@ from nomenclature.codelist import (
     VariableCodeList,
     MetaCodeList,
 )
+from nomenclature.config import DataStructureConfig
 from nomenclature.validation import validate
 
 logger = logging.getLogger(__name__)
@@ -37,19 +38,25 @@ class DataStructureDefinition:
             from a sub-folder of `path` of that name.
         """
 
-        if dimensions is None:
-            dimensions = ["region", "variable"]
-
         if not isinstance(path, Path):
             path = Path(path)
 
         if not path.is_dir():
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
-        self.dimensions = dimensions
+        if (path / "config.yaml").exists():
+            self.config = DataStructureConfig.from_file(
+                path=path,
+                file="config.yaml",
+            )
+        else:
+            self.config = DataStructureConfig()
+
+        self.dimensions = dimensions or ["region", "variable"]
         for dim in self.dimensions:
+            codelist_cls = SPECIAL_CODELIST.get(dim, CodeList)
             self.__setattr__(
-                dim, SPECIAL_CODELIST.get(dim, CodeList).from_directory(dim, path / dim)
+                dim, codelist_cls.from_directory(dim, path / dim, self.config)
             )
 
         empty = [d for d in self.dimensions if not self.__getattribute__(d)]

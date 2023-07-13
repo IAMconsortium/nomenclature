@@ -8,13 +8,42 @@ import yaml
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
 
+from pycountry import countries
+
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
+from nomenclature.config import DataStructureConfig
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
     MissingWeightError,
     VariableRenameArgError,
     VariableRenameTargetError,
 )
+
+
+# The RegionCodeList uses pycountry to (optionally) add all countries and ISO3 codes
+# For readability and in line with conventions of the IAMC community,
+# several "standard" country names are shortened
+# Please keep this list in sync with `templates/model-registration-template.xlsx`
+PYCOUNTRY_NAME_OVERRIDE = {
+    "Bolivia, Plurinational State of": "Bolivia",
+    "Holy See (Vatican City State)": "Vatican",
+    "Micronesia, Federated States of": "Micronesia",
+    "Congo, The Democratic Republic of the": "Democratic Republic of the Congo",
+    "Iran, Islamic Republic of": "Iran",
+    "Korea, Republic of": "South Korea",
+    "Korea, Democratic People's Republic of": "North Korea",
+    "Lao People's Democratic Republic": "Laos",
+    "Syrian Arab Republic": "Syria",
+    "Moldova, Republic of": "Moldova",
+    "Tanzania, United Republic of": "Tanzania",
+    "Venezuela, Bolivarian Republic of": "Venezuela",
+    "Palestine, State of": "Palestine",
+    "Taiwan, Province of China": "Taiwan",
+}
+PYCOUNTRY_NAME_ADD = [
+    "Kosovo",
+]
+
 
 here = Path(__file__).parent.absolute()
 
@@ -164,7 +193,13 @@ class CodeList(BaseModel):
         return codes_without_tags + codes_with_tags
 
     @classmethod
-    def from_directory(cls, name: str, path: Path, file_glob_pattern: str = "**/*"):
+    def from_directory(
+        cls,
+        name: str,
+        path: Path,
+        config: DataStructureConfig = None,
+        file_glob_pattern: str = "**/*",
+    ):
         """Initialize a CodeList from a directory with codelist files
 
         Parameters
@@ -173,12 +208,14 @@ class CodeList(BaseModel):
             Name of the CodeList
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
+        config: :class:`DataStructureConfig`, optional
+            Attributes for configuring the CodeList
         file_glob_pattern : str, optional
             Pattern to downselect codelist files by name
 
         Returns
         -------
-        instance of cls (CodeList if not inherited)
+        instance of cls (:class:`CodeList` if not inherited)
 
         """
         code_list: List[Code] = []
@@ -511,7 +548,13 @@ class RegionCodeList(CodeList):
     validation_schema: ClassVar[str] = "region"
 
     @classmethod
-    def from_directory(cls, name: str, path: Path, file_glob_pattern: str = "**/*"):
+    def from_directory(
+        cls,
+        name: str,
+        path: Path,
+        config: DataStructureConfig = None,
+        file_glob_pattern: str = "**/*",
+    ):
         """Initialize a RegionCodeList from a directory with codelist files
 
         Parameters
@@ -520,6 +563,8 @@ class RegionCodeList(CodeList):
             Name of the CodeList
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
+        config : :class:`DataStructureConfig`, optional
+            Attributes for configuring the CodeList
         file_glob_pattern : str, optional
             Pattern to downselect codelist files by name, default: "**/*" (i.e. all
             files in all sub-folders)
@@ -529,8 +574,21 @@ class RegionCodeList(CodeList):
         RegionCodeList
 
         """
-        mapping: Dict[str, RegionCode] = {}
+
         code_list: List[RegionCode] = []
+
+        if config is not None and config.region is not None:
+            if config.region.country is True:
+                for i in countries:
+                    code_list.append(
+                        RegionCode(
+                            name=PYCOUNTRY_NAME_OVERRIDE.get(i.name, i.name),
+                            iso3_codes=i.alpha_3,
+                            hierarchy="Country",
+                        )
+                    )
+                for c in PYCOUNTRY_NAME_ADD:
+                    code_list.append(RegionCode(name=c, hierarchy="Country"))
 
         for yaml_file in (
             f

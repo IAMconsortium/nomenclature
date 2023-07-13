@@ -217,6 +217,8 @@ class RegionCode(Code):
         Name of the RegionCode
     hierarchy : str
         Hierarchy of the RegionCode
+    iso3_codes : str or list of str
+        ISO3 codes of countries in that region
 
     """
 

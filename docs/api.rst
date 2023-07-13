@@ -10,6 +10,7 @@ API documentation
 
    api/nomenclature
    api/datastructuredefinition
+   api/datastructureconfig
    api/codelist
    api/regionprocessor
    api/testing
