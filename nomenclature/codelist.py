@@ -554,9 +554,11 @@ class RegionCodeList(CodeList):
             if config.region.country is True:
                 for i in countries:
                     try:
-                        code_list.append(RegionCode(
-                            name=i.name, iso3_codes=i.alpha_3, hierarchy="Country"
-                        ))
+                        code_list.append(
+                            RegionCode(
+                                name=i.name, iso3_codes=i.alpha_3, hierarchy="Country"
+                            )
+                        )
                     # special handling for countries that do not have an alpha_3 code
                     except AttributeError:
                         code_list.append(RegionCode(name=i.name, hierarchy="Country"))
