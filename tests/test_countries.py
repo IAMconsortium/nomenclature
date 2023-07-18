@@ -23,9 +23,7 @@ def test_countries_add():
         countries.get(name="Kosovo").alpha_3
 
 
-@pytest.mark.parametrize(
-    "alpha_2_eu, alpha_2", [("EL", "GR"), ("UK", "GB")]
-)
+@pytest.mark.parametrize("alpha_2_eu, alpha_2", [("EL", "GR"), ("UK", "GB")])
 def test_alternative_alpha2(alpha_2_eu, alpha_2):
     """Check that the handling of alternative alpha-2 codes works"""
     assert countries.get(alpha_2=alpha_2_eu).alpha_2 == alpha_2
