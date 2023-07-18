@@ -13,6 +13,7 @@ from nomenclature.processor import (  # noqa
     RegionProcessor,
     RequiredDataValidator,
 )
+from nomenclature.countries import countries
 
 # set up logging
 logging.basicConfig(

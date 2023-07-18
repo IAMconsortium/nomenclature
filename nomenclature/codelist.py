@@ -8,42 +8,15 @@ import yaml
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
 
-from pycountry import countries
-
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import DataStructureConfig
+from nomenclature.countries import countries
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
     MissingWeightError,
     VariableRenameArgError,
     VariableRenameTargetError,
 )
-
-
-# The RegionCodeList uses pycountry to (optionally) add all countries and ISO3 codes
-# For readability and in line with conventions of the IAMC community,
-# several "standard" country names are shortened
-# Please keep this list in sync with `templates/model-registration-template.xlsx`
-PYCOUNTRY_NAME_OVERRIDE = {
-    "Bolivia, Plurinational State of": "Bolivia",
-    "Holy See (Vatican City State)": "Vatican",
-    "Micronesia, Federated States of": "Micronesia",
-    "Congo, The Democratic Republic of the": "Democratic Republic of the Congo",
-    "Iran, Islamic Republic of": "Iran",
-    "Korea, Republic of": "South Korea",
-    "Korea, Democratic People's Republic of": "North Korea",
-    "Lao People's Democratic Republic": "Laos",
-    "Syrian Arab Republic": "Syria",
-    "Moldova, Republic of": "Moldova",
-    "Tanzania, United Republic of": "Tanzania",
-    "Venezuela, Bolivarian Republic of": "Venezuela",
-    "Palestine, State of": "Palestine",
-    "Taiwan, Province of China": "Taiwan",
-}
-PYCOUNTRY_NAME_ADD = [
-    "Kosovo",
-]
-
 
 here = Path(__file__).parent.absolute()
 
@@ -580,15 +553,13 @@ class RegionCodeList(CodeList):
         if config is not None and config.region is not None:
             if config.region.country is True:
                 for i in countries:
-                    code_list.append(
-                        RegionCode(
-                            name=PYCOUNTRY_NAME_OVERRIDE.get(i.name, i.name),
-                            iso3_codes=i.alpha_3,
-                            hierarchy="Country",
-                        )
-                    )
-                for c in PYCOUNTRY_NAME_ADD:
-                    code_list.append(RegionCode(name=c, hierarchy="Country"))
+                    try:
+                        code_list.append(RegionCode(
+                            name=i.name, iso3_codes=i.alpha_3, hierarchy="Country"
+                        ))
+                    # special handling for countries that do not have an alpha_3 code
+                    except AttributeError:
+                        code_list.append(RegionCode(name=i.name, hierarchy="Country"))
 
         for yaml_file in (
             f
