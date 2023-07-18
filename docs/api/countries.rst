@@ -1,3 +1,5 @@
+.. _countries:
+
 .. currentmodule:: nomenclature.countries
 
 A common list of countries

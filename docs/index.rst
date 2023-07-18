@@ -50,6 +50,10 @@ The **nomenclature** package supports three main use cases:
 The codelists and mappings are stored as yaml files.
 Refer to the :ref:`user_guide` for more information.
 
+The **nomenclature** package also provides a utility for translating between country
+names (as commonly used in the modelling community) and alpha-3/alpha-2 codes (also
+known as *ISO3/ISO2 codes*). Read the docs on :ref:`countries` for more information.
+
 Table of Contents
 -----------------
 
