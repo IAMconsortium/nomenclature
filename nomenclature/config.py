@@ -5,11 +5,15 @@ from pydantic import BaseModel
 import yaml
 
 
-class RegionCodeListConfig(BaseModel):
+class CodeListConfig(BaseModel):
+    repository: Optional[Path]
+
+
+class RegionCodeListConfig(CodeListConfig):
     country: Optional[bool]
 
 
-class DataStructureConfig(BaseModel):
+class DataStructureConfig(CodeListConfig):
     """A class for configuration of a DataStructureDefinition
 
     Attributes
