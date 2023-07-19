@@ -13,7 +13,7 @@ class RegionCodeListConfig(CodeListConfig):
     country: Optional[bool]
 
 
-class DataStructureConfig(CodeListConfig):
+class DataStructureConfig(BaseModel):
     """A class for configuration of a DataStructureDefinition
 
     Attributes
