@@ -47,6 +47,8 @@ def test_definition_from_general_config():
     )
 
     # explicitly defined in `general-config-definitions/region/regions.yaml`
+    assert "Region A" in obs.region
+    # imported from `validation_nc` repo
     assert "World" in obs.region
     # added via general-config definitions
     assert "Austria" in obs.region
