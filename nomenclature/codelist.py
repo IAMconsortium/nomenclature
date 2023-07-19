@@ -589,24 +589,18 @@ class RegionCodeList(CodeList):
                     )
                 for c in PYCOUNTRY_NAME_ADD:
                     code_list.append(RegionCode(name=c, hierarchy="Country"))
+            if repo := config.region.repository:
+                repo_path = path.parents[1] / repo
+                if not repo_path.exists():
+                    raise FileNotFoundError(f"Repository not found: {repo}")
+                code_list = cls._parse_region_code_dir(
+                    code_list, repo_path, file_glob_pattern, repository=repo
+                )
+                code_list = cls._parse_and_replace_tags(
+                    code_list, repo_path, file_glob_pattern
+                )
 
         code_list = cls._parse_region_code_dir(code_list, path, file_glob_pattern)
-            f
-            for f in path.glob(file_glob_pattern)
-            if f.suffix in {".yaml", ".yml"} and not f.name.startswith("tag_")
-        ):
-            with open(yaml_file, "r", encoding="utf-8") as stream:
-                _code_list = yaml.safe_load(stream)
-
-            # a "region" codelist assumes a top-level category to be used as attribute
-            for top_level_cat in _code_list:
-                for top_key, _codes in top_level_cat.items():
-                    for item in _codes:
-                        code = RegionCode.from_dict(item)
-                        code.hierarchy = top_key
-                        code.file = yaml_file.relative_to(path.parent).as_posix()
-                        code_list.append(code)
-
         code_list = cls._parse_and_replace_tags(code_list, path, file_glob_pattern)
 
         mapping: Dict[str, RegionCode] = {}
