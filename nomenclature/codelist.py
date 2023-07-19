@@ -590,7 +590,7 @@ class RegionCodeList(CodeList):
                 for c in PYCOUNTRY_NAME_ADD:
                     code_list.append(RegionCode(name=c, hierarchy="Country"))
 
-        for yaml_file in (
+        code_list = cls._parse_region_code_dir(code_list, path, file_glob_pattern)
             f
             for f in path.glob(file_glob_pattern)
             if f.suffix in {".yaml", ".yml"} and not f.name.startswith("tag_")
@@ -627,6 +627,37 @@ class RegionCodeList(CodeList):
 
         """
         return sorted(list({v.hierarchy for v in self.mapping.values()}))
+
+    @classmethod
+    def _parse_region_code_dir(
+        cls,
+        code_list: List[Code],
+        path: Path,
+        file_glob_pattern: str = "**/*",
+        repository: Path = None,
+    ) -> List[RegionCode]:
+        """"""
+
+        for yaml_file in (
+            f
+            for f in path.glob(file_glob_pattern)
+            if f.suffix in {".yaml", ".yml"} and not f.name.startswith("tag_")
+        ):
+            with open(yaml_file, "r", encoding="utf-8") as stream:
+                _code_list = yaml.safe_load(stream)
+
+            # a "region" codelist assumes a top-level category to be used as attribute
+            for top_level_cat in _code_list:
+                for top_key, _codes in top_level_cat.items():
+                    for item in _codes:
+                        code = RegionCode.from_dict(item)
+                        code.hierarchy = top_key
+                        if repository:
+                            code.repository = repository
+                        code.file = yaml_file.relative_to(path.parent).as_posix()
+                        code_list.append(code)
+
+        return code_list
 
 
 class MetaCodeList(CodeList):
