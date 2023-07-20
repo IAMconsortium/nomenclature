@@ -5,7 +5,11 @@ from pydantic import BaseModel
 import yaml
 
 
-class RegionCodeListConfig(BaseModel):
+class CodeListConfig(BaseModel):
+    repository: Optional[Path]
+
+
+class RegionCodeListConfig(CodeListConfig):
     country: Optional[bool]
 
 
