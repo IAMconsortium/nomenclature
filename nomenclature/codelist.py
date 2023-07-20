@@ -566,15 +566,18 @@ class RegionCodeList(CodeList):
                         code_list.append(RegionCode(name=c.name, hierarchy="Country"))
 
             # importing from an external repository
-            if repo := config.region.repository:
-                repo_path = path.parents[1] / repo
-                if not repo_path.exists():
-                    raise FileNotFoundError(f"Repository not found: {repo}")
+            if config.repository:
+                repo_path = path.parent / config.repository_name
+                config.fetch_repo(repo_path)
+
                 code_list = cls._parse_region_code_dir(
-                    code_list, repo_path, file_glob_pattern, repository=repo
+                    code_list,
+                    repo_path / "definitions" / "region",
+                    file_glob_pattern,
+                    repository=config.repository,
                 )
                 code_list = cls._parse_and_replace_tags(
-                    code_list, repo_path, file_glob_pattern
+                    code_list, repo_path / "definitions" / "region", file_glob_pattern
                 )
 
         # parse from current repository
