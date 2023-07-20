@@ -1,3 +1,4 @@
+import shutil
 import pytest
 import pandas as pd
 from nomenclature import DataStructureDefinition, create_yaml_from_xlsx
@@ -45,17 +46,26 @@ def test_definition_from_general_config():
         TEST_DATA_DIR / "general-config-definitions",
         dimensions=["region"],
     )
-
-    # explicitly defined in `general-config-definitions/region/regions.yaml`
-    assert "Region A" in obs.region
-    # imported from `validation_nc` repo
-    assert "World" in obs.region
-    # added via general-config definitions
-    assert "Austria" in obs.region
-    # added via general-config definitions renamed from pycountry name
-    assert "Bolivia" in obs.region
-    # added via general-config definitions in addition to pycountry.countries
-    assert "Kosovo" in obs.region
+    try:
+        # explicitly defined in `general-config-definitions/region/regions.yaml`
+        assert "Region A" in obs.region
+        # imported from https://github.com/IAMconsortium/common-definitions repo
+        assert "World" in obs.region
+        # added via general-config definitions
+        assert "Austria" in obs.region
+        # added via general-config definitions renamed from pycountry name
+        assert "Bolivia" in obs.region
+        # added via general-config definitions in addition to pycountry.countries
+        assert "Kosovo" in obs.region
+    finally:
+        # clean up the external repo
+        repo_dir = (
+            TEST_DATA_DIR
+            / "general-config-definitions"
+            / obs.config.region.repository_name
+        )
+        if repo_dir.exists():
+            shutil.rmtree(repo_dir)
 
 
 def test_to_excel(simple_definition, tmpdir):
