@@ -13,4 +13,5 @@ API documentation
    api/datastructureconfig
    api/codelist
    api/regionprocessor
+   api/countries
    api/testing
