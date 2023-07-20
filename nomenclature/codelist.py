@@ -552,7 +552,6 @@ class RegionCodeList(CodeList):
 
         # initializing from general configuration
         if config is not None and config.region is not None:
-
             # adding all countries
             if config.region.country is True:
                 for c in countries:
