@@ -552,11 +552,11 @@ class RegionCodeList(CodeList):
 
         if config is not None and config.region is not None:
             if config.region.country is True:
-                for i in countries:
+                for c in countries:
                     try:
                         code_list.append(
                             RegionCode(
-                                name=i.name, iso3_codes=i.alpha_3, hierarchy="Country"
+                                name=c.name, iso3_codes=c.alpha_3, hierarchy="Country"
                             )
                         )
                     # special handling for countries that do not have an alpha_3 code
