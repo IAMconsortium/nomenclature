@@ -23,7 +23,7 @@ class CodeListConfig(BaseModel):
 
     @property
     def repository_name(self):
-        return self.repository.split("/")[-1].split(".")[0]
+        return self.repository.split("/")[-2].split(".")[0]
 
     def fetch_repo(self, to_path="./common-definitions"):
         to_path = to_path if isinstance(to_path, Path) else Path(to_path)
