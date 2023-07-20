@@ -550,7 +550,10 @@ class RegionCodeList(CodeList):
 
         code_list: List[RegionCode] = []
 
+        # initializing from general configuration
         if config is not None and config.region is not None:
+
+            # adding all countries
             if config.region.country is True:
                 for c in countries:
                     try:
@@ -561,7 +564,9 @@ class RegionCodeList(CodeList):
                         )
                     # special handling for countries that do not have an alpha_3 code
                     except AttributeError:
-                        code_list.append(RegionCode(name=i.name, hierarchy="Country"))
+                        code_list.append(RegionCode(name=c.name, hierarchy="Country"))
+
+            # importing from an external repository
             if repo := config.region.repository:
                 repo_path = path.parents[1] / repo
                 if not repo_path.exists():
@@ -573,9 +578,11 @@ class RegionCodeList(CodeList):
                     code_list, repo_path, file_glob_pattern
                 )
 
+        # parse from current repository
         code_list = cls._parse_region_code_dir(code_list, path, file_glob_pattern)
         code_list = cls._parse_and_replace_tags(code_list, path, file_glob_pattern)
 
+        # translate to mapping
         mapping: Dict[str, RegionCode] = {}
         for code in code_list:
             if code.name in mapping:
