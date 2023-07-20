@@ -56,7 +56,10 @@ class DataStructureDefinition:
         for dim in self.dimensions:
             codelist_cls = SPECIAL_CODELIST.get(dim, CodeList)
             self.__setattr__(
-                dim, codelist_cls.from_directory(dim, path / dim, self.config)
+                dim,
+                codelist_cls.from_directory(
+                    dim, path / dim, getattr(self.config, dim, None)
+                ),
             )
 
         empty = [d for d in self.dimensions if not self.__getattribute__(d)]

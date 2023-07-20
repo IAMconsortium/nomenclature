@@ -9,7 +9,7 @@ from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
 
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
-from nomenclature.config import DataStructureConfig
+from nomenclature.config import CodeListConfig, RegionCodeListConfig
 from nomenclature.countries import countries
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
@@ -170,7 +170,7 @@ class CodeList(BaseModel):
         cls,
         name: str,
         path: Path,
-        config: DataStructureConfig = None,
+        config: CodeListConfig = None,
         file_glob_pattern: str = "**/*",
     ):
         """Initialize a CodeList from a directory with codelist files
@@ -181,7 +181,7 @@ class CodeList(BaseModel):
             Name of the CodeList
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
-        config: :class:`DataStructureConfig`, optional
+        config: :class:`CodeListConfig`, optional
             Attributes for configuring the CodeList
         file_glob_pattern : str, optional
             Pattern to downselect codelist files by name
@@ -525,7 +525,7 @@ class RegionCodeList(CodeList):
         cls,
         name: str,
         path: Path,
-        config: DataStructureConfig = None,
+        config: RegionCodeListConfig = None,
         file_glob_pattern: str = "**/*",
     ):
         """Initialize a RegionCodeList from a directory with codelist files
@@ -536,7 +536,7 @@ class RegionCodeList(CodeList):
             Name of the CodeList
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
-        config : :class:`DataStructureConfig`, optional
+        config : :class:`RegionCodeListConfig`, optional
             Attributes for configuring the CodeList
         file_glob_pattern : str, optional
             Pattern to downselect codelist files by name, default: "**/*" (i.e. all
@@ -551,9 +551,9 @@ class RegionCodeList(CodeList):
         code_list: List[RegionCode] = []
 
         # initializing from general configuration
-        if config is not None and config.region is not None:
+        if config is not None:
             # adding all countries
-            if config.region.country is True:
+            if config.country is True:
                 for c in countries:
                     try:
                         code_list.append(
