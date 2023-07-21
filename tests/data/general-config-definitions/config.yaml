@@ -1,3 +1,9 @@
+repository:
+  common-definitions:
+    url: https://github.com/IAMconsortium/common-definitions.git/
 region:
-  repository: https://github.com/IAMconsortium/common-definitions.git/
+  repository: common-definitions
   country: true
+variable:
+  repository: common-definitions
+  path: definitions / variable
