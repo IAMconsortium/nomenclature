@@ -44,7 +44,7 @@ def test_empty_codelist_raises():
 def test_definition_from_general_config():
     obs = DataStructureDefinition(
         TEST_DATA_DIR / "general-config-definitions",
-        dimensions=["region"],
+        dimensions=["region", "variable"],
     )
     try:
         # explicitly defined in `general-config-definitions/region/regions.yaml`
@@ -57,15 +57,13 @@ def test_definition_from_general_config():
         assert "Bolivia" in obs.region
         # added via general-config definitions in addition to pycountry.countries
         assert "Kosovo" in obs.region
+
+        assert "Primary Energy" in obs.variable
     finally:
         # clean up the external repo
-        repo_dir = (
-            TEST_DATA_DIR
-            / "general-config-definitions"
-            / obs.config.region.repository_name
-        )
-        if repo_dir.exists():
-            shutil.rmtree(repo_dir)
+        for repository in obs.config.repository.values():
+            if repository.path.exists():
+                shutil.rmtree(repository.path, ignore_errors=True)
 
 
 def test_to_excel(simple_definition, tmpdir):
