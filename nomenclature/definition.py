@@ -50,16 +50,13 @@ class DataStructureDefinition:
                 file="config.yaml",
             )
         else:
-            self.config = DataStructureConfig()
-
+            self.config = None
         self.dimensions = dimensions or ["region", "variable"]
         for dim in self.dimensions:
             codelist_cls = SPECIAL_CODELIST.get(dim, CodeList)
             self.__setattr__(
                 dim,
-                codelist_cls.from_directory(
-                    dim, path / dim, getattr(self.config, dim, None)
-                ),
+                codelist_cls.from_directory(dim, path / dim, self.config),
             )
 
         empty = [d for d in self.dimensions if not self.__getattribute__(d)]
