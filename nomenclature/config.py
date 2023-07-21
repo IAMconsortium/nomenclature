@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict
 from pydantic import BaseModel, root_validator, validator
 
 import yaml
@@ -74,7 +74,7 @@ class DataStructureConfig(BaseModel):
 
     """
 
-    repository: dict[str, Repository] = {}
+    repository: Dict[str, Repository] = {}
     region: Optional[RegionCodeListConfig]
     variable: Optional[CodeListConfig]
 
