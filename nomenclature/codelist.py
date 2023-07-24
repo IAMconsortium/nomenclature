@@ -8,9 +8,9 @@ import yaml
 from pyam.utils import write_sheet
 from pydantic import BaseModel, validator
 
+import nomenclature
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import DataStructureConfig
-from nomenclature.countries import countries
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
     MissingWeightError,
@@ -191,8 +191,33 @@ class CodeList(BaseModel):
         instance of cls (:class:`CodeList` if not inherited)
 
         """
-        code_list: List[Code] = []
+        code_list = cls._parse_codelist_dir(path, file_glob_pattern)
 
+        if config is not None:
+            dimension = path.name
+            codelistconfig = getattr(config, dimension, None)
+            if codelistconfig is not None and codelistconfig.repository is not None:
+                repo_path = (
+                    config.repository[codelistconfig.repository].local_path
+                    / codelistconfig.repository_dimension_path
+                )
+                code_list.extend(
+                    cls._parse_codelist_dir(
+                        repo_path,
+                        file_glob_pattern,
+                    )
+                )
+
+        mapping: Dict[str, Code] = {}
+        for code in code_list:
+            if code.name in mapping:
+                raise DuplicateCodeError(name=name, code=code.name)
+            mapping[code.name] = code
+        return cls(name=name, mapping=mapping)
+
+    @classmethod
+    def _parse_codelist_dir(cls, path: Path, file_glob_pattern: str = "**/*"):
+        code_list: List[Code] = []
         for yaml_file in (
             f
             for f in path.glob(file_glob_pattern)
@@ -200,19 +225,13 @@ class CodeList(BaseModel):
         ):
             with open(yaml_file, "r", encoding="utf-8") as stream:
                 _code_list = yaml.safe_load(stream)
-
             for code_dict in _code_list:
                 code = cls.code_basis.from_dict(code_dict)
-                # add `file` attribute
                 code.file = yaml_file.relative_to(path.parent).as_posix()
                 code_list.append(code)
+
         code_list = cls._parse_and_replace_tags(code_list, path, file_glob_pattern)
-        mapping: Dict[str, Code] = {}
-        for code in code_list:
-            if code.name in mapping:
-                raise DuplicateCodeError(name=name, code=code.name)
-            mapping[code.name] = code
-        return cls(name=name, mapping=mapping)
+        return code_list
 
     @classmethod
     def read_excel(cls, name, source, sheet_name, col, attrs=None):
@@ -536,7 +555,7 @@ class RegionCodeList(CodeList):
             Name of the CodeList
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
-        config : :class:`DataStructureConfig`, optional
+        config : :class:`RegionCodeListConfig`, optional
             Attributes for configuring the CodeList
         file_glob_pattern : str, optional
             Pattern to downselect codelist files by name, default: "**/*" (i.e. all
@@ -554,7 +573,7 @@ class RegionCodeList(CodeList):
         if config is not None and config.region is not None:
             # adding all countries
             if config.region.country is True:
-                for c in countries:
+                for c in nomenclature.countries:
                     try:
                         code_list.append(
                             RegionCode(
@@ -566,12 +585,17 @@ class RegionCodeList(CodeList):
                         code_list.append(RegionCode(name=c.name, hierarchy="Country"))
 
             # importing from an external repository
-            if repo := config.region.repository:
-                repo_path = path.parents[1] / repo
-                if not repo_path.exists():
-                    raise FileNotFoundError(f"Repository not found: {repo}")
+            if config.region.repository:
+                repo_path = (
+                    config.repository[config.region.repository].local_path
+                    / config.region.repository_dimension_path
+                )
+
                 code_list = cls._parse_region_code_dir(
-                    code_list, repo_path, file_glob_pattern, repository=repo
+                    code_list,
+                    repo_path,
+                    file_glob_pattern,
+                    repository=config.repository,
                 )
                 code_list = cls._parse_and_replace_tags(
                     code_list, repo_path, file_glob_pattern
