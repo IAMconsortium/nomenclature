@@ -63,8 +63,8 @@ def test_definition_from_general_config():
     finally:
         # clean up the external repo
         for repository in obs.config.repository.values():
-            if repository.path.exists():
-                shutil.rmtree(repository.path, ignore_errors=True)
+            if repository.local_path.exists():
+                shutil.rmtree(repository.local_path, ignore_errors=True)
 
 
 def test_to_excel(simple_definition, tmpdir):

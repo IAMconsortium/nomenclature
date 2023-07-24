@@ -37,10 +37,10 @@ class Repository(BaseModel):
             raise ValueError("Either 'hash' or 'release' can be provided, not both.")
         return v
 
-    @validator("path")
+    @validator("local_path")
     def check_path_empty(cls, v):
         if v is not None:
-            raise ValueError("The `path` must not be set as part of the config.")
+            raise ValueError("The `local_path` must not be set as part of the config.")
         return v
 
     @property
@@ -55,7 +55,7 @@ class Repository(BaseModel):
         else:
             repo = Repo(to_path)
             repo.remotes.origin.fetch()
-        self.path = to_path
+        self.local_path = to_path
         repo.git.reset("--hard")
         repo.git.checkout(self.revision)
         repo.git.reset("--hard")
