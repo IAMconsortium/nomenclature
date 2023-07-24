@@ -198,8 +198,8 @@ class CodeList(BaseModel):
             codelistconfig = getattr(config, dimension, None)
             if codelistconfig is not None and codelistconfig.repository is not None:
                 repo_path = (
-                    config.repository[codelistconfig.repository].path
-                    / codelistconfig.repository_definition_path
+                    config.repository[codelistconfig.repository].local_path
+                    / codelistconfig.repository_dimension_path
                 )
                 code_list.extend(
                     cls._parse_codelist_dir(
@@ -587,8 +587,8 @@ class RegionCodeList(CodeList):
             # importing from an external repository
             if config.region.repository:
                 repo_path = (
-                    config.repository[config.region.repository].path
-                    / config.region.repository_definition_path
+                    config.repository[config.region.repository].local_path
+                    / config.region.repository_dimension_path
                 )
 
                 code_list = cls._parse_region_code_dir(
