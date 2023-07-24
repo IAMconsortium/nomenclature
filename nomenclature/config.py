@@ -12,12 +12,12 @@ class CodeListConfig(BaseModel):
     repository_dimension_path: Optional[Path]
 
     @root_validator()
-    def set_repository_definition_path(cls, v):
+    def set_repository_dimension_path(cls, v):
         if (
             v.get("repository") is not None
-            and v.get("repository_definition_path") is None
+            and v.get("repository_dimension_path") is None
         ):
-            v["repository_definition_path"] = f"definitions/{v['dimension']}"
+            v["repository_dimension_path"] = f"definitions/{v['dimension']}"
         return v
 
 

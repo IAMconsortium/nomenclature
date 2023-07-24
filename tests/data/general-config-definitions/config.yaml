@@ -6,4 +6,4 @@ region:
   country: true
 variable:
   repository: common-definitions
-  path: definitions / variable
+  repository_dimension_path: definitions/variable
