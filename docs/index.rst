@@ -40,6 +40,9 @@ for example, a "variable" has to have an expected unit and usually has a descrip
 Read the `SDMX Guidelines <https://sdmx.org/?page_id=4345>`_ for more information on
 the concept of codelists.
 
+Validation and region-processing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 The **nomenclature** package supports three main use cases:
 
 - Management of codelists and mappings for model comparison projects
@@ -49,6 +52,9 @@ The **nomenclature** package supports three main use cases:
 
 The codelists and mappings are stored as yaml files.
 Refer to the :ref:`user_guide` for more information.
+
+Utility for country names and abbreviations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The **nomenclature** package also provides a utility for translating between country
 names (as commonly used in the modelling community) and alpha-3/alpha-2 codes (also
