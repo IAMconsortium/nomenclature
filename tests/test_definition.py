@@ -58,6 +58,7 @@ def test_definition_from_general_config():
         # added via general-config definitions in addition to pycountry.countries
         assert "Kosovo" in obs.region
 
+        # imported from https://github.com/IAMconsortium/common-definitions repo
         assert "Primary Energy" in obs.variable
     finally:
         # clean up the external repo

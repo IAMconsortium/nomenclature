@@ -9,7 +9,7 @@ from git import Repo
 class CodeListConfig(BaseModel):
     dimension: str
     repository: Optional[str]
-    repository_definition_path: Optional[str]
+    repository_dimension_path: Optional[Path]
 
     @root_validator()
     def set_repository_definition_path(cls, v):
@@ -29,7 +29,7 @@ class Repository(BaseModel):
     url: str
     hash: Optional[str]
     release: Optional[str]
-    path: Optional[Path]
+    local_path: Optional[Path]  # defined via the `repository` name in the configuration
 
     @root_validator()
     def check_hash_and_release(cls, v):
@@ -40,7 +40,7 @@ class Repository(BaseModel):
     @validator("path")
     def check_path_empty(cls, v):
         if v is not None:
-            raise ValueError("path must not be set as part of the config")
+            raise ValueError("The `path` must not be set as part of the config.")
         return v
 
     @property
@@ -95,8 +95,8 @@ class DataStructureConfig(BaseModel):
             ):
                 raise ValueError(
                     (
-                        f"Unknown repository {values.get(dimension).repository} in"
-                        " region.repository."
+                        f"Unknown repository '{values.get(dimension).repository}' in"
+                        f" {dimension}.repository."
                     )
                 )
         return values
