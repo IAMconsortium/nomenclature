@@ -1,9 +1,0 @@
-repository:
-  common-definitions:
-    url: https://github.com/IAMconsortium/common-definitions.git/
-region:
-  repository: common-definitions
-  country: true
-variable:
-  repository: common-definitions
-  repository_dimension_path: definitions/variable
