@@ -43,7 +43,7 @@ def test_empty_codelist_raises():
 
 def test_definition_from_general_config():
     obs = DataStructureDefinition(
-        TEST_DATA_DIR / "general-config-definitions",
+        TEST_DATA_DIR / "general-config" / "definitions",
         dimensions=["region", "variable"],
     )
     try:
@@ -62,7 +62,7 @@ def test_definition_from_general_config():
         assert "Primary Energy" in obs.variable
     finally:
         # clean up the external repo
-        for repository in obs.config.repository.values():
+        for repository in obs.config.repositories.values():
             if repository.local_path.exists():
                 shutil.rmtree(repository.local_path, ignore_errors=True)
 
