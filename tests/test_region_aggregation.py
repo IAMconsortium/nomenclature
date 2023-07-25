@@ -222,3 +222,18 @@ def test_region_processor_unexpected_region_raises():
                 TEST_DATA_DIR / "regionprocessor_unexpected_region", dsd
             ),
         )
+
+
+def test_mapping_from_external_repository():
+    # This test reads both mappings and definitions from an external repository only
+    processor = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing" / "external_repo_test" / "mappings",
+        DataStructureDefinition(
+            TEST_DATA_DIR / "region_processing" / "external_repo_test" / "definitions"
+        ),
+    )
+
+    assert all(
+        model in processor.mappings.keys()
+        for model in ("REMIND 3.1", "REMIND-MAgPIE 3.1-4.6")
+    )
