@@ -10,7 +10,7 @@ from pydantic import BaseModel, validator
 
 import nomenclature
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
-from nomenclature.config import DataStructureConfig
+from nomenclature.config import NomenclatureConfig
 from nomenclature.error.codelist import DuplicateCodeError
 from nomenclature.error.variable import (
     MissingWeightError,
@@ -170,7 +170,7 @@ class CodeList(BaseModel):
         cls,
         name: str,
         path: Path,
-        config: DataStructureConfig = None,
+        config: NomenclatureConfig = None,
         file_glob_pattern: str = "**/*",
     ):
         """Initialize a CodeList from a directory with codelist files
@@ -181,7 +181,7 @@ class CodeList(BaseModel):
             Name of the CodeList
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
-        config: :class:`DataStructureConfig`, optional
+        config: :class:`NomenclatureConfig`, optional
             Attributes for configuring the CodeList
         file_glob_pattern : str, optional
             Pattern to downselect codelist files by name
@@ -191,22 +191,26 @@ class CodeList(BaseModel):
         instance of cls (:class:`CodeList` if not inherited)
 
         """
-        code_list = cls._parse_codelist_dir(path, file_glob_pattern)
 
-        if config is not None:
+        if (
+            config is not None
+            and config.definitions is not None
+            and getattr(config.definitions, path.name) is not None
+            and getattr(getattr(config.definitions, path.name), "repository")
+            is not None
+        ):
             dimension = path.name
-            codelistconfig = getattr(config, dimension, None)
-            if codelistconfig is not None and codelistconfig.repository is not None:
-                repo_path = (
-                    config.repository[codelistconfig.repository].local_path
-                    / codelistconfig.repository_dimension_path
-                )
-                code_list.extend(
-                    cls._parse_codelist_dir(
-                        repo_path,
-                        file_glob_pattern,
-                    )
-                )
+            codelistconfig = getattr(config.definitions, dimension)
+            repo_path = (
+                config.repositories[codelistconfig.repository].local_path
+                / codelistconfig.repository_dimension_path
+            )
+            code_list = cls._parse_codelist_dir(
+                repo_path,
+                file_glob_pattern,
+            ) + cls._parse_codelist_dir(path, file_glob_pattern)
+        else:
+            code_list = cls._parse_codelist_dir(path, file_glob_pattern)
 
         mapping: Dict[str, Code] = {}
         for code in code_list:
@@ -544,7 +548,7 @@ class RegionCodeList(CodeList):
         cls,
         name: str,
         path: Path,
-        config: DataStructureConfig = None,
+        config: NomenclatureConfig = None,
         file_glob_pattern: str = "**/*",
     ):
         """Initialize a RegionCodeList from a directory with codelist files
@@ -570,9 +574,13 @@ class RegionCodeList(CodeList):
         code_list: List[RegionCode] = []
 
         # initializing from general configuration
-        if config is not None and config.region is not None:
+        if (
+            config is not None
+            and config.definitions is not None
+            and config.definitions.region is not None
+        ):
             # adding all countries
-            if config.region.country is True:
+            if config.definitions.region.country is True:
                 for c in nomenclature.countries:
                     try:
                         code_list.append(
@@ -585,17 +593,17 @@ class RegionCodeList(CodeList):
                         code_list.append(RegionCode(name=c.name, hierarchy="Country"))
 
             # importing from an external repository
-            if config.region.repository:
+            if config.definitions.region.repository:
                 repo_path = (
-                    config.repository[config.region.repository].local_path
-                    / config.region.repository_dimension_path
+                    config.repositories[config.definitions.region.repository].local_path
+                    / config.definitions.region.repository_dimension_path
                 )
 
                 code_list = cls._parse_region_code_dir(
                     code_list,
                     repo_path,
                     file_glob_pattern,
-                    repository=config.repository,
+                    repository=config.definitions.region.repository,
                 )
                 code_list = cls._parse_and_replace_tags(
                     code_list, repo_path, file_glob_pattern
