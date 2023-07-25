@@ -77,9 +77,14 @@ class Countries(pycountry.ExistingCountries):
         name : str
             Country name
         alpha_3 : str
-            Alpha-2 code (ISO3)
+            Alpha-3 code (ISO3)
         alpha_2 : str
             Alpha-2 code (ISO2)
+
+        Returns
+        -------
+        :class:`pycountry.Country`
+
         """
         country = super().get(**kwargs)
 
