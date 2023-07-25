@@ -24,6 +24,8 @@ PYCOUNTRY_NAME_OVERRIDE = {
     "Venezuela, Bolivarian Republic of": "Venezuela",
     "Palestine, State of": "Palestine",
     "Taiwan, Province of China": "Taiwan",
+    "Virgin Islands, British": "British Virgin Islands",
+    "Virgin Islands, U.S.": "United States Virgin Islands",
 }
 PYCOUNTRY_NAME_ADD = [
     dict(
