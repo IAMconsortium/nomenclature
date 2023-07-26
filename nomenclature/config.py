@@ -22,7 +22,7 @@ class CodeListConfig(BaseModel):
 
 
 class RegionCodeListConfig(CodeListConfig):
-    country: Optional[bool]
+    country: bool = False
 
 
 class Repository(BaseModel):
@@ -34,7 +34,7 @@ class Repository(BaseModel):
     @root_validator()
     def check_hash_and_release(cls, v):
         if v.get("hash") and v.get("release"):
-            raise ValueError("Either 'hash' or 'release' can be provided, not both.")
+            raise ValueError("Either `hash` or `release` can be provided, not both.")
         return v
 
     @validator("local_path")
@@ -74,11 +74,8 @@ class DataStructureConfig(BaseModel):
 
     """
 
-    repository: Dict[str, Repository] = {}
     region: Optional[RegionCodeListConfig]
     variable: Optional[CodeListConfig]
-
-    file: Path
 
     @validator("region", "variable", pre=True)
     def add_dimension(cls, v, field):
@@ -101,24 +98,60 @@ class DataStructureConfig(BaseModel):
                 )
         return values
 
+    @property
+    def repos(self) -> Dict[str, str]:
+        return {
+            dimension: getattr(self, dimension).repository
+            for dimension in ("region", "variable")
+            if getattr(self, dimension) and getattr(self, dimension).repository
+        }
+
+
+class RegionMappingConfig(BaseModel):
+    repository: str
+
+
+class NomenclatureConfig(BaseModel):
+    repositories: Dict[str, Repository] = {}
+    definitions: Optional[DataStructureConfig]
+    mappings: Optional[RegionMappingConfig]
+
+    @root_validator
+    def check_definitions_repository(cls, v):
+        definitions_repos = v.get("definitions").repos if v.get("definitions") else {}
+        mapping_repos = (
+            {"mappings": v.get("mappings").repository} if v.get("mappings") else {}
+        )
+        repos = {**definitions_repos, **mapping_repos}
+        if repos and not v.get("repositories"):
+            raise ValueError(
+                (
+                    "If repositories are used for definitions or mappings, they need "
+                    "to be defined under `repositories`"
+                )
+            )
+
+        for use, repository in repos.items():
+            if repository not in v.get("repositories"):
+                raise ValueError((f"Unknown repository '{repository}' in {use}."))
+        return v
+
+    def fetch_repos(self, target_folder: Path):
+        for repo_name, repo in self.repositories.items():
+            repo.fetch_repo(target_folder / repo_name)
+
     @classmethod
-    def from_file(cls, path: Path, file: str):
+    def from_file(cls, file: Path):
         """Read a DataStructureConfig from a file
 
         Parameters
         ----------
-        path : :class:`pathlib.Path` or path-like
-            `definitions` directory
-        file : str
-            File name
+        file : :class:`pathlib.Path` or path-like
+            Path to config file
 
         """
-        with open(path / file, "r", encoding="utf-8") as stream:
+        with open(file, "r", encoding="utf-8") as stream:
             config = yaml.safe_load(stream)
-        instance = cls(**config, file=path / file)
-        instance.fetch_repos()
+        instance = cls(**config)
+        instance.fetch_repos(file.parent)
         return instance
-
-    def fetch_repos(self):
-        for repo_name, repo in self.repository.items():
-            repo.fetch_repo(self.file.parent / repo_name)

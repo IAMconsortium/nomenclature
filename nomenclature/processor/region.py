@@ -1,7 +1,7 @@
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import Dict, List, Optional, Union, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -15,13 +15,14 @@ from pydantic.error_wrappers import ErrorWrapper
 from pydantic.types import DirectoryPath, FilePath
 
 from nomenclature.codelist import RegionCodeList, VariableCodeList
+from nomenclature.config import NomenclatureConfig
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error.region import (
     ExcludeRegionOverlapError,
     ModelMappingCollisionError,
+    RegionAggregationMappingParsingError,
     RegionNameCollisionError,
     RegionNotDefinedError,
-    RegionAggregationMappingParsingError,
 )
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
@@ -349,7 +350,20 @@ class RegionProcessor(Processor):
         """
         mapping_dict: Dict[str, RegionAggregationMapping] = {}
         errors: List[ErrorWrapper] = []
-        for file in (f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}):
+
+        mapping_files = [f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}]
+
+        if dsd.config and dsd.config.mappings:
+            mapping_files = [
+                f
+                for f in (
+                    dsd.config.repositories[dsd.config.mappings.repository].local_path
+                    / "mappings"
+                ).glob("**/*")
+                if f.suffix in {".yaml", ".yml"}
+            ] + mapping_files
+
+        for file in mapping_files:
             try:
                 mapping = RegionAggregationMapping.from_file(file)
                 for model in mapping.model:
