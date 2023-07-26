@@ -192,13 +192,7 @@ class CodeList(BaseModel):
 
         """
 
-        if (
-            config is not None
-            and config.definitions is not None
-            and getattr(config.definitions, path.name) is not None
-            and getattr(getattr(config.definitions, path.name), "repository")
-            is not None
-        ):
+        try:
             dimension = path.name
             codelistconfig = getattr(config.definitions, dimension)
             repo_path = (
@@ -209,7 +203,7 @@ class CodeList(BaseModel):
                 repo_path,
                 file_glob_pattern,
             ) + cls._parse_codelist_dir(path, file_glob_pattern)
-        else:
+        except AttributeError:
             code_list = cls._parse_codelist_dir(path, file_glob_pattern)
 
         mapping: Dict[str, Code] = {}
@@ -574,11 +568,7 @@ class RegionCodeList(CodeList):
         code_list: List[RegionCode] = []
 
         # initializing from general configuration
-        if (
-            config is not None
-            and config.definitions is not None
-            and config.definitions.region is not None
-        ):
+        try:
             # adding all countries
             if config.definitions.region.country is True:
                 for c in nomenclature.countries:
@@ -608,6 +598,8 @@ class RegionCodeList(CodeList):
                 code_list = cls._parse_and_replace_tags(
                     code_list, repo_path, file_glob_pattern
                 )
+        except AttributeError:
+            pass
 
         # parse from current repository
         code_list = cls._parse_region_code_dir(code_list, path, file_glob_pattern)

@@ -22,7 +22,7 @@ class CodeListConfig(BaseModel):
 
 
 class RegionCodeListConfig(CodeListConfig):
-    country: Optional[bool]
+    country: bool = False
 
 
 class Repository(BaseModel):

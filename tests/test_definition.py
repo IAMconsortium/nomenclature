@@ -4,7 +4,7 @@ import pandas as pd
 from nomenclature import DataStructureDefinition, create_yaml_from_xlsx
 from nomenclature.code import Code
 
-from conftest import TEST_DATA_DIR
+from conftest import TEST_DATA_DIR, clean_up_external_repos
 
 
 def test_definition_with_custom_dimension(simple_definition):
@@ -61,10 +61,7 @@ def test_definition_from_general_config():
         # imported from https://github.com/IAMconsortium/common-definitions repo
         assert "Primary Energy" in obs.variable
     finally:
-        # clean up the external repo
-        for repository in obs.config.repositories.values():
-            if repository.local_path.exists():
-                shutil.rmtree(repository.local_path, ignore_errors=True)
+        clean_up_external_repos(obs.config.repositories)
 
 
 def test_to_excel(simple_definition, tmpdir):

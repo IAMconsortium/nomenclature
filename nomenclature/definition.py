@@ -44,7 +44,7 @@ class DataStructureDefinition:
         if not path.is_dir():
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
-        if (file := path.parent / ".nomenclature.yaml").exists():
+        if (file := path.parent / "nomenclature.yaml").exists():
             self.config = NomenclatureConfig.from_file(file=file)
         else:
             self.config = None

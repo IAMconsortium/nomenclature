@@ -353,17 +353,15 @@ class RegionProcessor(Processor):
 
         mapping_files = [f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}]
 
-        if (file := path.parent / ".nomenclature.yaml").exists():
-            config = NomenclatureConfig.from_file(file=file)
-            if config.mappings:
-                mapping_files = [
-                    f
-                    for f in (
-                        config.repositories[config.mappings.repository].local_path
-                        / "mappings"
-                    ).glob("**/*")
-                    if f.suffix in {".yaml", ".yml"}
-                ] + mapping_files
+        if dsd.config and dsd.config.mappings:
+            mapping_files = [
+                f
+                for f in (
+                    dsd.config.repositories[dsd.config.mappings.repository].local_path
+                    / "mappings"
+                ).glob("**/*")
+                if f.suffix in {".yaml", ".yml"}
+            ] + mapping_files
 
         for file in mapping_files:
             try:

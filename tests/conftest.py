@@ -1,5 +1,6 @@
 from pathlib import Path
 import pytest
+import shutil
 import pandas as pd
 from pyam import IamDataFrame, IAMC_IDX
 from nomenclature import DataStructureDefinition
@@ -44,3 +45,10 @@ def add_meta(df):
     if len(df.index) == 2:
         df.set_meta([1.0, 2.0], "number")
         df.set_meta(["foo", "bar"], "string")
+
+
+def clean_up_external_repos(repos):
+    # clean up the external repo
+    for repository in repos.values():
+        if repository.local_path.exists():
+            shutil.rmtree(repository.local_path, ignore_errors=True)
