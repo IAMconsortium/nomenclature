@@ -1,3 +1,4 @@
+from contextlib import suppress
 import logging
 from pathlib import Path
 from typing import ClassVar, Dict, List
@@ -191,20 +192,22 @@ class CodeList(BaseModel):
         instance of cls (:class:`CodeList` if not inherited)
 
         """
+        code_list = cls._parse_codelist_dir(path, file_glob_pattern)
 
-        try:
+        with suppress(AttributeError):
             dimension = path.name
             codelistconfig = getattr(config.definitions, dimension)
             repo_path = (
                 config.repositories[codelistconfig.repository].local_path
                 / codelistconfig.repository_dimension_path
             )
-            code_list = cls._parse_codelist_dir(
-                repo_path,
-                file_glob_pattern,
-            ) + cls._parse_codelist_dir(path, file_glob_pattern)
-        except AttributeError:
-            code_list = cls._parse_codelist_dir(path, file_glob_pattern)
+            code_list = (
+                cls._parse_codelist_dir(
+                    repo_path,
+                    file_glob_pattern,
+                )
+                + code_list
+            )
 
         mapping: Dict[str, Code] = {}
         for code in code_list:
@@ -568,7 +571,7 @@ class RegionCodeList(CodeList):
         code_list: List[RegionCode] = []
 
         # initializing from general configuration
-        try:
+        with suppress(AttributeError):
             # adding all countries
             if config.definitions.region.country is True:
                 for c in nomenclature.countries:
@@ -598,8 +601,6 @@ class RegionCodeList(CodeList):
                 code_list = cls._parse_and_replace_tags(
                     code_list, repo_path, file_glob_pattern
                 )
-        except AttributeError:
-            pass
 
         # parse from current repository
         code_list = cls._parse_region_code_dir(code_list, path, file_glob_pattern)
