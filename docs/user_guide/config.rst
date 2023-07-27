@@ -3,13 +3,12 @@
 .. currentmodule:: nomenclature
 
 General project configuration
-==========================
+=============================
 
-The nomenclature package features a configuration file that is used to enable the
-following features:
+The following features can be accessed via a general project configuration file:
 
-* Import codelists from public GitHub repositories
-* Add a list of common countries (details: :ref:`countries`) to the region codelist
+* Import codelists and mappings from public GitHub repositories
+* Add all countries to the region codelist (details: :ref:`countries`) 
 
 Configuration file format
 -------------------------
@@ -59,7 +58,7 @@ For model mappings the process is analogous using *mappings.repository*.
 
 
 Adding countries to the region codelist
---------------------------------------------------------
+---------------------------------------
 
 By setting *definitions.region.country* as *true* in the configuration file:
 
