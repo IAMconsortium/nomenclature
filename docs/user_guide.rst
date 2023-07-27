@@ -47,5 +47,5 @@ the RegionProcessor and validated using DataStructureDefinition.
   user_guide/region
   user_guide/model-mapping
   user_guide/model-registration
-  user_guide/local-usage
   user_guide/config
+  user_guide/local-usage
