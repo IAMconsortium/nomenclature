@@ -36,8 +36,8 @@ The repository has a **name** (in the example below *common-definitions*) and a 
 In order for the import to work the url must be given in the above format, i.e. with the
 leading *https://* and the trailing *.git/*.
 
-Information from an external repository can either be used for codelists ("definitions") or model
-mappings, or both.
+Information from an external repository can either be used for codelists ("definitions")
+or model mappings, or both.
 
 .. code:: yaml
 
@@ -49,9 +49,14 @@ mappings, or both.
       repository: common-definitions
     variable:
       repository: common-definitions
+  mappings:
+    repository: common-definitions
 
 The value in *definitions.region.repository* needs to reference the repository in the
 *repositories* section.
+
+For model mappings the process is analogous using *mappings.repository*.
+
 
 Adding countries to the region codelist
 --------------------------------------------------------
