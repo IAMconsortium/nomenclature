@@ -10,17 +10,18 @@ This is the directory structure for validation and region processing:
 .. code-block:: bash
 
    .
+   │
    ├── definitions
-   │   ├── config.yaml
    │   ├── region
    │   │   ├── regions.yaml
    │   │   └── ...
    │   └── variable
    │       ├── variable.yaml
    │       └── ...
-   └── mappings [optional]
-       ├── model_a.yaml
-       └── ...
+   ├── mappings [optional]
+   │   ├── model_a.yaml
+   │   └── ...
+   └── nomenclature.yaml [optional]
 
 The :class:`DataStructureDefinition` reads the codelists from the *definitions* folder.
 
@@ -33,8 +34,8 @@ The :class:`DataStructureDefinition` reads the codelists from the *definitions* 
   object is initialized, all files in a dimension folder are combined into a single
   :class:`CodeList` object for that dimension.
 
-* General configurations of the :class:`DataStructureDefinition` can be specified
-  via the *config.yaml*  file.
-
 The :class:`RegionProcessor` reads model-specific region-mappings from the *mappings*
 folder. If the project has no model specific mappings, this folder can also be omitted.
+
+Optionally, a file called *nomenclature.yaml* can be added which is used to enable
+certain features. Details can be found here :ref:`config`.
