@@ -2,7 +2,7 @@
 
 .. currentmodule:: nomenclature
 
-Nomenclature configuration
+General project configuration
 ==========================
 
 The nomenclature package features a configuration file that is used to enable the
@@ -22,11 +22,10 @@ The file **must be** in yaml format and named *nomenclature.yaml*.
 Importing from an external repository
 -------------------------------------
 
-In order to import form an external repository the configuration file must define the
-repository und the repositories key.
+In order to import from an external repository, the configuration file must define the
+repository and the repositories key.
 
-The repository needs a name, in the example below *common-definitions* and a *url*, for
-example:
+The repository has a **name** (in the example below *common-definitions*) and a **url**:
 
 .. code:: yaml
 
@@ -37,11 +36,8 @@ example:
 In order for the import to work the url must be given in the above format, i.e. with the
 leading *https://* and the trailing *.git/*.
 
-Information from an external repository can either be used for codelists or model
+Information from an external repository can either be used for codelists ("definitions") or model
 mappings, or both.
-
-For use in, for example, the *region* and *variable* codelists, the following is
-required:
 
 .. code:: yaml
 
@@ -57,7 +53,7 @@ required:
 The value in *definitions.region.repository* needs to reference the repository in the
 *repositories* section.
 
-Adding a common list of countries to the region codelist
+Adding countries to the region codelist
 --------------------------------------------------------
 
 By setting *definitions.region.country* as *true* in the configuration file:
@@ -68,6 +64,6 @@ By setting *definitions.region.country* as *true* in the configuration file:
     region:
       country: true
 
-the nomenclature package will add a common list of countries to a region codelist.
+the nomenclature package will add all countries to the *region* codelist.
 
 More details on the list of countries can be found here: :ref:`countries`.
