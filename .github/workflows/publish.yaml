@@ -11,6 +11,8 @@ jobs:
   build-n-publish:
     name: Build and publish Python distributions to PyPI and TestPyPI
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.10
@@ -30,16 +32,13 @@ jobs:
         --sdist
         --wheel
         --outdir dist/
-    - name: Publish distribution to Test PyPI
+    - if: github.event_name != 'release'
+      name: Publish distribution to Test PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       # Only run for testing
-      if: github.event_name != 'release'
       with:
-        password: ${{ secrets.TESTPYPI_TOKEN }}
         repository-url: https://test.pypi.org/legacy/
-    - name: Publish distribution to PyPI
+    - if: github.event_name == 'release'
+      name: Publish distribution to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       # Only run for actual release
-      if: github.event_name == 'release'
-      with:
-        password: ${{ secrets.PYPI_TOKEN }}
