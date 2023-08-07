@@ -45,9 +45,8 @@ class MetaValidator(Processor):
         not_allowed = [value for value in values if value not in allowed_values]
         if not_allowed:
             raise ValueError(
-                f"{not_allowed} meta indicator value(s) in the {meta_indicator} "
-                "column are not allowed. Allowed values are "
-                f"{allowed_values}"
+                f"Invalid value for meta indicator '{meta_indicator}': {repr_list(not_allowed)}\n"
+                f"Allowed values: {repr_list(allowed_values)}"
             )
         return True
 
@@ -72,15 +71,14 @@ class MetaValidator(Processor):
             definition file
         """
 
-        if unrecognized_meta_indicators := [
+        if invalid_meta_indicators := [
             meta_indicator
             for meta_indicator in df.meta.columns
             if meta_indicator not in self.meta_code_list.mapping
         ]:
             raise ValueError(
-                f"{unrecognized_meta_indicators} is/are not recognized in the "
-                f"meta definitions file. Allowed meta indicators are: "
-                f"{list(self.meta_code_list.mapping.keys())}"
+                f"Invalid meta indicator: {repr_list(invalid_meta_indicators)}\n"
+                f"Valid meta indicators: {repr_list(self.meta_code_list.mapping.keys())}"
             )
 
         for meta_indicator in df.meta.columns:
@@ -90,3 +88,7 @@ class MetaValidator(Processor):
                 meta_indicator,
             )
         return df
+
+
+def repr_list(x):
+    return "'" + "', '".join(map(str, x)) + "'"
