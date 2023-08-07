@@ -6,8 +6,9 @@ name: nightly
 
 on:
   schedule:
-    # runs once per week on Sunday at 3am UCT
-    - cron: '0 3 * * 0'
+    # see https://docs.github.com/en/free-pro-team@latest/actions/reference/events-that-trigger-workflows#scheduled-events
+    # 05:00 UTC = 06:00 CET = 07:00 CEST
+    - cron: "0 5 * * TUE"
 jobs:
   pytest:
 

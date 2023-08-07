@@ -13,11 +13,12 @@ def test_MetaValidator(simple_df):
 
 
 def test_MetaValidator_Meta_Indicator_Error(simple_df):
-    path = Path(TEST_DATA_DIR / "definitions2/meta")
+    path = Path(TEST_DATA_DIR / "definitions2" / "meta")
+    simple_df.set_meta(name="not allowed", meta=False)
     meta_validator = MetaValidator(path_to_meta_code_list_files=path)
     match = (
-        "\['exclude'\] is/are not recognized in the meta definitions file. "  # noqa
-        "Allowed meta indicators are: \['Not exclude', 'number', 'string'\]"  # noqa
+        "Invalid meta indicator: 'not allowed'\n"  # noqa
+        "Valid meta indicators: 'boolean', 'number', 'string'"  # noqa
     )
 
     with pytest.raises(ValueError, match=match):
@@ -25,11 +26,12 @@ def test_MetaValidator_Meta_Indicator_Error(simple_df):
 
 
 def test_MetaValidator_Meta_Indicator_Value_Error(simple_df):
-    path = Path(TEST_DATA_DIR / "definitions3/meta")
+    path = Path(TEST_DATA_DIR / "definitions3" / "meta")
+    simple_df.set_meta(name="meta_string", meta=3)
     meta_validator = MetaValidator(path_to_meta_code_list_files=path)
     match = (
-        "\[False\] meta indicator value\(s\) in the "  # noqa
-        "exclude column are not allowed. Allowed values are \['A', 'B'\]"  # noqa
+        "Invalid value for meta indicator 'meta_string': '3'\n"  # noqa
+        "Allowed values: 'A', 'B'"  # noqa
     )
     with pytest.raises(ValueError, match=match):
         meta_validator.apply(df=simple_df)
