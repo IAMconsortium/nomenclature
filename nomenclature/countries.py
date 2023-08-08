@@ -49,6 +49,7 @@ class Countries(pycountry.ExistingCountries):
     country names using ISO 3166-1, but it simplifies several country names
     for readability and in line with conventions of the IAMC community.
     """
+
     def __init__(self):
         super().__init__(os.path.join(pycountry.DATABASE_DIR, "iso3166-1.json"))
 
