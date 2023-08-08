@@ -42,7 +42,6 @@ ALTERNATIVE_ALPHA2_CODES = {
 
 
 class Countries(pycountry.ExistingCountries):
-
     """List of countries based on simplified ISO 3166 database
 
     This list follows the :class:`nomenclature.countries` module based on
