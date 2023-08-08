@@ -42,8 +42,13 @@ ALTERNATIVE_ALPHA2_CODES = {
 
 
 class Countries(pycountry.ExistingCountries):
-    """List of countries based on ISO 3166 database with simplications"""
 
+    """List of countries based on simplified ISO 3166 database
+
+    This list follows the :class:`nomenclature.countries` module based on
+    country names using ISO 3166-1, but it simplifies several country names
+    for readability and in line with conventions of the IAMC community.
+    """
     def __init__(self):
         super().__init__(os.path.join(pycountry.DATABASE_DIR, "iso3166-1.json"))
 
