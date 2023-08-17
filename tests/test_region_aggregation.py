@@ -10,7 +10,8 @@ from nomenclature import (
     process,
 )
 from nomenclature.error.region import RegionAggregationMappingParsingError
-from pyam import IAMC_IDX, IamDataFrame
+from pyam import IamDataFrame
+from pyam.utils import IAMC_IDX
 
 from conftest import TEST_DATA_DIR, clean_up_external_repos
 

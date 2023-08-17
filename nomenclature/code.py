@@ -1,13 +1,12 @@
 import json
 import re
-import pyam
 import pycountry
 from keyword import iskeyword
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union
-
 from pydantic import BaseModel, Field, validator
 
+from pyam.utils import to_list
 
 class Code(BaseModel):
     """A simple class for a mapping of a "code" to its attributes"""
@@ -230,7 +229,7 @@ class RegionCode(Code):
         """Verifies that each ISO3 code is valid according to pycountry library."""
         if invalid_iso3_codes := [
             iso3_code
-            for iso3_code in pyam.to_list(v)
+            for iso3_code in to_list(v)
             if pycountry.countries.get(alpha_3=iso3_code) is None
         ]:
             raise ValueError(
