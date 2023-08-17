@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, validator
 
 from pyam.utils import to_list
 
+
 class Code(BaseModel):
     """A simple class for a mapping of a "code" to its attributes"""
 
