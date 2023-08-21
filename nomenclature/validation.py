@@ -1,5 +1,6 @@
 import logging
-from pyam import IamDataFrame, to_list
+from pyam import IamDataFrame
+from pyam.utils import to_list
 
 # define logger for this script at logging level INFO
 logger = logging.getLogger(__name__)

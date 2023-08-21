@@ -7,7 +7,8 @@ from pandas.testing import assert_frame_equal
 from nomenclature.core import process
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor.region import RegionProcessor
-from pyam import IAMC_IDX, IamDataFrame, assert_iamframe_equal
+from pyam import IamDataFrame, assert_iamframe_equal
+from pyam.utils import IAMC_IDX
 
 from conftest import TEST_DATA_DIR, add_meta
 
