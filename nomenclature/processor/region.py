@@ -292,6 +292,10 @@ class RegionAggregationMapping(BaseModel):
     def rename_mapping(self) -> Dict[str, str]:
         return {r.name: r.target_native_region for r in self.native_regions or []}
 
+    @property
+    def reverse_rename_mapping(self) -> Dict[str, str]:
+        return {renamed: original for original, renamed in self.rename_mapping.items()}
+
     def validate_regions(self, region_codelist: RegionCodeList) -> None:
         if invalid := region_codelist.validate_items(self.all_regions):
             raise RegionNotDefinedError(region=invalid, file=self.file)
@@ -667,3 +671,17 @@ def _check_exclude_region_overlap(values: Dict, region_type: str) -> Dict:
             region=overlap, region_type=region_type, file=values["file"]
         )
     return values
+
+
+class ReverseRegionProcessor(RegionProcessor):
+    def apply(self, df: pyam.IamDataFrame) -> pyam.IamDataFrame:
+        model_dfs = []
+        for model in df.model:
+            model_df = df.filter(model=model)
+            if mapping := self.mappings.get(model):
+                # remove common regions
+                model_df = model_df.filter(
+                    region=mapping.common_region_names, keep=False
+                ).rename(region=mapping.reverse_rename_mapping)
+            model_dfs.append(model_df)
+        return pyam.concat(model_dfs)
