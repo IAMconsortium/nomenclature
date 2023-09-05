@@ -161,7 +161,7 @@ class RequiredDataValidator(Processor):
             logger.error(
                 "Missing required data.\nFile: %s\nMissing rows:\n\n%s",
                 get_relative_path(self.file),
-                "\n\n".join(str(m.reset_index()) for m in missing_data),
+                "\n\n".join(str(m) for m in missing_data),
             )
             raise RequiredDataMissingError(
                 "Required data missing. Please check the log for details."
