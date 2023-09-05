@@ -12,7 +12,6 @@ from nomenclature.processor import (  # noqa
     RegionAggregationMapping,
     RegionProcessor,
     RequiredDataValidator,
-    ReverseRegionProcessor,
 )
 from nomenclature.countries import countries  # noqa
 

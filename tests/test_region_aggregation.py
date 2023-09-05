@@ -7,7 +7,6 @@ from nomenclature import (
     DataStructureDefinition,
     RegionAggregationMapping,
     RegionProcessor,
-    ReverseRegionProcessor,
     process,
 )
 from nomenclature.error.region import RegionAggregationMappingParsingError
@@ -248,12 +247,12 @@ def test_mapping_from_external_repository():
 
 
 def test_reverse_region_aggregation():
-    processor = ReverseRegionProcessor.from_directory(
+    processor = RegionProcessor.from_directory(
         TEST_DATA_DIR / "region_processing" / "complete_processing_list",
         DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
     )
 
-    obs = processor.apply(
+    obs = processor.revert(
         IamDataFrame(
             pd.DataFrame(
                 [
