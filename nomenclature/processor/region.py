@@ -680,8 +680,10 @@ class ReverseRegionProcessor(RegionProcessor):
             model_df = df.filter(model=model)
             if mapping := self.mappings.get(model):
                 # remove common regions
-                model_df = model_df.filter(
-                    region=mapping.common_region_names, keep=False
-                ).rename(region=mapping.reverse_rename_mapping)
+                model_df = (
+                    model_df
+                    .filter(region=mapping.common_region_names, keep=False)
+                    .rename(region=mapping.reverse_rename_mapping)
+                )
             model_dfs.append(model_df)
         return pyam.concat(model_dfs)
