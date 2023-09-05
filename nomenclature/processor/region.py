@@ -608,7 +608,7 @@ class RegionProcessor(Processor):
         for model in df.model:
             model_df = df.filter(model=model)
             if mapping := self.mappings.get(model):
-                # remove common regions
+                # remove common regions, then apply inverse-renaming of native-regions
                 model_df = model_df.filter(
                     region=mapping.common_region_names, keep=False
                 ).rename(region=mapping.reverse_rename_mapping)
