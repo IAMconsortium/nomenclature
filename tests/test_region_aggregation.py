@@ -10,7 +10,7 @@ from nomenclature import (
     process,
 )
 from nomenclature.error.region import RegionAggregationMappingParsingError
-from pyam import IamDataFrame
+from pyam import IamDataFrame, assert_iamframe_equal
 from pyam.utils import IAMC_IDX
 
 from conftest import TEST_DATA_DIR, clean_up_external_repos
@@ -244,3 +244,34 @@ def test_mapping_from_external_repository():
         )
     finally:
         clean_up_external_repos(dsd.config.repositories)
+
+
+def test_reverse_region_aggregation():
+    processor = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing" / "complete_processing_list",
+        DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+    )
+
+    obs = processor.revert(
+        IamDataFrame(
+            pd.DataFrame(
+                [
+                    ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 1, 6.0],
+                    ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 0.5, 3],
+                    ["m_a", "s_b", "region_B", "Primary Energy", "EJ/yr", 2, 7],
+                    ["m_c", "s_a", "World", "Primary Energy", "EJ/yr", 1, 2],
+                ],
+                columns=IAMC_IDX + [2005, 2010],
+            )
+        )
+    )
+    exp = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["m_a", "s_a", "region_a", "Primary Energy", "EJ/yr", 0.5, 3],
+                ["m_a", "s_b", "region_B", "Primary Energy", "EJ/yr", 2, 7],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        ),
+    )
+    assert_iamframe_equal(obs, exp)
