@@ -153,18 +153,26 @@ class RequiredDataValidator(Processor):
             models_to_check = [model for model in df.model if model in self.model]
         else:
             models_to_check = df.model
-        error = any(
-            self.check_required_data_per_model(df, model) for model in models_to_check
-        )
-        if error:
+        if missing_data := [
+            data
+            for model in models_to_check
+            for data in self.check_required_data_per_model(df, model)
+        ]:
+            logger.error(
+                "Missing required data.\nFile: %s\nMissing rows:\n\n%s",
+                get_relative_path(self.file),
+                "\n\n".join(str(m.reset_index()) for m in missing_data),
+            )
             raise RequiredDataMissingError(
                 "Required data missing. Please check the log for details."
             )
         return df
 
-    def check_required_data_per_model(self, df: IamDataFrame, model: str) -> bool:
+    def check_required_data_per_model(
+        self, df: IamDataFrame, model: str
+    ) -> List[pyam.IamDataFrame]:
         model_df = df.filter(model=model)
-        error = False
+        missing_data = []
         for requirement in self.required_data:
             for variable_requirement in requirement.pyam_required_data_list:
                 missing_data_per_unit = [
@@ -177,22 +185,15 @@ class RequiredDataValidator(Processor):
                     )
                     missing_data_columns = missing_data_per_variable.columns.to_list()
                     # flatten out the last dimension for presentation
-                    missing_data_per_variable = (
+                    missing_data.append(
                         missing_data_per_variable.groupby(missing_data_columns[:-1])[
                             missing_data_columns[-1]
                         ]
                         .apply(",".join)
                         .to_frame()
+                        .reset_index()
                     )
-
-                    if not error:
-                        logger.error(
-                            "Required data from: %s missing: ",
-                            get_relative_path(self.file),
-                        )
-                    logger.warn("\n%s", missing_data_per_variable)
-                    error = True
-        return error
+        return missing_data
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         errors = []
