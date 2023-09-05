@@ -101,23 +101,23 @@ def test_RequiredData_apply_raises(simple_df, caplog):
 
     missing_data = [
         """
-   index    model scenario        variable    unit            year
-0      0  model_a   scen_a  Primary Energy  GWh/yr  2005,2010,2015
-1      1  model_a   scen_a  Primary Energy    Mtoe  2005,2010,2015
-2      2  model_a   scen_b  Primary Energy  GWh/yr  2005,2010,2015
-3      3  model_a   scen_b  Primary Energy    Mtoe  2005,2010,2015""",
+     model scenario        variable    unit            year
+0  model_a   scen_a  Primary Energy  GWh/yr  2005,2010,2015
+1  model_a   scen_a  Primary Energy    Mtoe  2005,2010,2015
+2  model_a   scen_b  Primary Energy  GWh/yr  2005,2010,2015
+3  model_a   scen_b  Primary Energy    Mtoe  2005,2010,2015""",
         """
-   index    model scenario      variable
-0      0  model_a   scen_a  Final Energy
-1      1  model_a   scen_b  Final Energy""",
+     model scenario      variable
+0  model_a   scen_a  Final Energy
+1  model_a   scen_b  Final Energy""",
         """
-   index    model scenario       variable       unit
-0      0  model_a   scen_a  Emissions|CO2  Mt CO2/yr
-1      1  model_a   scen_b  Emissions|CO2  Mt CO2/yr""",
+     model scenario       variable       unit
+0  model_a   scen_a  Emissions|CO2  Mt CO2/yr
+1  model_a   scen_b  Emissions|CO2  Mt CO2/yr""",
         """
-   index    model scenario region      variable
-0      0  model_a   scen_a  World  Final Energy
-1      1  model_a   scen_b  World  Final Energy""",
+     model scenario region      variable
+0  model_a   scen_a  World  Final Energy
+1  model_a   scen_b  World  Final Energy""",
     ]
     # check if the log message contains the correct information
     assert all(
