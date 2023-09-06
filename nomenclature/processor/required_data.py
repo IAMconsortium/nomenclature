@@ -153,15 +153,20 @@ class RequiredDataValidator(Processor):
             models_to_check = [model for model in df.model if model in self.model]
         else:
             models_to_check = df.model
-        if missing_data := [
-            data
+
+        if missing_data := {
+            model: list(self.check_required_data_per_model(df, model))
             for model in models_to_check
-            for data in self.check_required_data_per_model(df, model)
-        ]:
+        }:
+            missing_data_log_info = ""
+            for model, data_list in missing_data.items():
+                missing_data_log_info += f"Missing for {model}:\n"
+                for data in data_list:
+                    missing_data_log_info += f"{data}\n\n"
             logger.error(
-                "Missing required data.\nFile: %s\nMissing rows:\n\n%s",
+                "Missing required data.\nFile: %s\n\n%s",
                 get_relative_path(self.file),
-                "\n\n".join(str(m) for m in missing_data),
+                missing_data_log_info,
             )
             raise RequiredDataMissingError(
                 "Required data missing. Please check the log for details."
@@ -192,6 +197,7 @@ class RequiredDataValidator(Processor):
                         .apply(",".join)
                         .to_frame()
                         .reset_index()
+                        .drop(columns=["model"])
                     )
         return missing_data
 
