@@ -161,7 +161,7 @@ class RequiredDataValidator(Processor):
         }:
             missing_data_log_info = ""
             for model, data_list in missing_data.items():
-                missing_data_log_info += f"Missing for {model}:\n"
+                missing_data_log_info += f"Missing for '{model}':\n"
                 for data in data_list:
                     missing_data_log_info += f"{data}\n\n"
             logger.error(
