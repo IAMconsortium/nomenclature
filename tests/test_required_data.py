@@ -99,13 +99,30 @@ def test_RequiredData_apply_raises(simple_df, caplog):
     with pytest.raises(RequiredDataMissingError, match="Required data missing"):
         required_data_validator.apply(simple_df)
 
-    missing_index = pd.DataFrame(
-        [["model_a", "scen_a"], ["model_a", "scen_b"]], columns=["model", "scenario"]
-    )
+    missing_data = [
+        """
+  scenario        variable    unit            year
+0   scen_a  Primary Energy  GWh/yr  2005,2010,2015
+1   scen_a  Primary Energy    Mtoe  2005,2010,2015
+2   scen_b  Primary Energy  GWh/yr  2005,2010,2015
+3   scen_b  Primary Energy    Mtoe  2005,2010,2015""",
+        """
+  scenario      variable
+0   scen_a  Final Energy
+1   scen_b  Final Energy""",
+        """
+  scenario       variable       unit
+0   scen_a  Emissions|CO2  Mt CO2/yr
+1   scen_b  Emissions|CO2  Mt CO2/yr""",
+        """
+  scenario region      variable
+0   scen_a  World  Final Energy
+1   scen_b  World  Final Energy""",
+    ]
     # check if the log message contains the correct information
     assert all(
         x in caplog.text
-        for x in ("ERROR", "Required data", "missing", str(missing_index))
+        for x in ["ERROR", "Missing required data", "File"] + missing_data
     )
 
 

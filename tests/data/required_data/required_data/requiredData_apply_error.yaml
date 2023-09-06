@@ -4,4 +4,10 @@ required_data:
     - Primary Energy:
         unit: [GWh/yr, Mtoe]
     year: [2005, 2010, 2015] # 2015 is missing from simple_df for all models
+  - variable: Final Energy
+  - measurand:
+    - Emissions|CO2:
+        unit: Mt CO2/yr
+  - variable: Final Energy
+    region: World
 
