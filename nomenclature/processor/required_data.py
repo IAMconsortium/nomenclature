@@ -157,6 +157,7 @@ class RequiredDataValidator(Processor):
         if missing_data := {
             model: list(self.check_required_data_per_model(df, model))
             for model in models_to_check
+            if list(self.check_required_data_per_model(df, model))
         }:
             missing_data_log_info = ""
             for model, data_list in missing_data.items():
