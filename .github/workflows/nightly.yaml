@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         # keep consistent with py-version badge in README.md and docs/index.rst
-        python-version: ['3.10']
+        python-version: ['3.11']
       fail-fast: false
 
     runs-on: ubuntu-latest
