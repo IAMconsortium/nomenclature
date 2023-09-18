@@ -10,8 +10,8 @@ the [LICENSE](LICENSE) for details.
 [![python](https://img.shields.io/badge/python-3.10_|_3.11-blue?logo=python&logoColor=white)](https://github.com/IAMconsortium/nomenclature)
 [![Code style:
 black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![pytest](https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml/badge.svg)](https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml)
-[![ReadTheDocs](https://readthedocs.org/projects/docs/badge)](https://nomenclature-iamc.readthedocs.io)
+[![pytest](https://img.shields.io/github/actions/workflow/status/iamconsortium/nomenclature/pytest.yml?logo=GitHub&label=pytest)](https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml)
+[![ReadTheDocs](https://readthedocs.org/projects/nomenclature-iamc/badge)](https://nomenclature-iamc.readthedocs.io)
 
 ## Overview
 

@@ -19,10 +19,10 @@ Release v\ |version|.
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
 
-.. |pytest| image:: https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml/badge.svg
+.. |pytest| image:: https://img.shields.io/github/actions/workflow/status/iamconsortium/nomenclature/pytest.yml
    :target: https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml
 
-.. |rtd| image:: https://readthedocs.org/projects/nomenclature-iamc/badge/?version=latest
+.. |rtd| image:: https://readthedocs.org/projects/nomenclature-iamc/badge
    :target: https://nomenclature-iamc.readthedocs.io
 
 Overview
