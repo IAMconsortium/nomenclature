@@ -14,9 +14,9 @@ jobs:
     strategy:
       matrix:
         os:
-        - macos-latest
-        - ubuntu-latest
-        - windows-latest
+        - macos
+        - ubuntu
+        - windows
         python-version:
         # keep consistent with py-version badge in README.md and docs/index.rst
         - '3.10'
