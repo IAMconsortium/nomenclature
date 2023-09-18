@@ -14,12 +14,13 @@ jobs:
 
     strategy:
       matrix:
-        # keep consistent with py-version badge in README.md and doc/source/index.rst
-        # update setup.cfg and doc/source/installation.rst when deprecating python 3.8
+        # keep consistent with py-version badge in README.md and docs/index.rst
         python-version: ['3.10']
       fail-fast: false
+
     runs-on: ubuntu-latest
-    name: py${{ matrix.python-version }}
+    name: ${{ matrix.os }} py${{ matrix.python-version }}
+
     steps:
     - uses: actions/checkout@v3
 
