@@ -26,6 +26,7 @@ from nomenclature.error.region import (
 )
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
+from nomenclature.validation import log_error
 
 logger = logging.getLogger(__name__)
 
@@ -450,7 +451,9 @@ class RegionProcessor(Processor):
                 processed_dfs.append(self._apply_region_processing(model_df)[0])
 
         res = pyam.concat(processed_dfs)
-        self.region_codelist.validate_items(res.region)
+        if not_defined_regions := self.region_codelist.validate_items(res.region):
+            log_error("region", not_defined_regions)
+            raise ValueError("The validation failed. Please check the log for details.")
         return res
 
     def check_region_aggregation(
