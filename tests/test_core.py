@@ -455,3 +455,31 @@ def test_aggregation_differences_export(input_data, expected_difference):
     exp = pd.DataFrame(expected_difference, columns=index + columns).set_index(index)
 
     assert_frame_equal(exp, obs)
+
+
+def test_region_aggregation_unknown_region(simple_df, simple_definition, caplog):
+    # add an unknown region
+    df_with_unknown_region = simple_df.append(
+        pd.DataFrame(
+            [
+                [
+                    "model_a",
+                    "scen_a",
+                    "unknown region",
+                    "Primary Energy",
+                    "EJ/yr",
+                    1,
+                    6.0,
+                ],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    with pytest.raises(ValueError):
+        RegionProcessor.from_directory(
+            TEST_DATA_DIR / "region_processing" / "no_mapping", simple_definition
+        ).apply(df_with_unknown_region)
+    assert all(
+        text in caplog.text
+        for text in ["not defined in the 'region' codelist", "unknown region"]
+    )
