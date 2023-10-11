@@ -49,7 +49,7 @@ def test_definition_from_general_config(workflow_folder):
     )
     try:
         # explicitly defined in `general-config-definitions/region/regions.yaml`
-        if workflow == "general-config":
+        if workflow_folder == "general-config":
             assert "Region A" in obs.region
         # imported from https://github.com/IAMconsortium/common-definitions repo
         assert "World" in obs.region
