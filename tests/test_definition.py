@@ -41,35 +41,17 @@ def test_empty_codelist_raises():
         DataStructureDefinition(TEST_DATA_DIR / "simple_codelist")
 
 
-def test_definition_from_general_config():
+@pytest.mark.parametrize("external_only", [True, False])
+def test_definition_from_general_config(external_only):
+    workflow_folder = "general-config-only" if external_only else "general-config"
     obs = DataStructureDefinition(
-        TEST_DATA_DIR / "general-config" / "definitions",
+        TEST_DATA_DIR / workflow_folder / "definitions",
         dimensions=["region", "variable"],
     )
     try:
         # explicitly defined in `general-config-definitions/region/regions.yaml`
-        assert "Region A" in obs.region
-        # imported from https://github.com/IAMconsortium/common-definitions repo
-        assert "World" in obs.region
-        # added via general-config definitions
-        assert "Austria" in obs.region
-        # added via general-config definitions renamed from pycountry name
-        assert "Bolivia" in obs.region
-        # added via general-config definitions in addition to pycountry.countries
-        assert "Kosovo" in obs.region
-
-        # imported from https://github.com/IAMconsortium/common-definitions repo
-        assert "Primary Energy" in obs.variable
-    finally:
-        clean_up_external_repos(obs.config.repositories)
-
-
-def test_only_definition_from_general_config():
-    obs = DataStructureDefinition(
-        TEST_DATA_DIR / "general-config-only" / "definitions",
-        dimensions=["region", "variable"],
-    )
-    try:
+        if not external_only:
+            assert "Region A" in obs.region
         # imported from https://github.com/IAMconsortium/common-definitions repo
         assert "World" in obs.region
         # added via general-config definitions
