@@ -46,7 +46,7 @@ class DataStructureDefinition:
         else:
             self.config = None
 
-        if not path.is_dir() and not self.config.repositories:
+        if not path.is_dir() and (self.config is None or not self.config.repositories):
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
         self.dimensions = dimensions or ["region", "variable"]
