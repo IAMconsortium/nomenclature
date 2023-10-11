@@ -41,13 +41,14 @@ class DataStructureDefinition:
         if not isinstance(path, Path):
             path = Path(path)
 
-        if not path.is_dir():
-            raise NotADirectoryError(f"Definitions directory not found: {path}")
-
         if (file := path.parent / "nomenclature.yaml").exists():
             self.config = NomenclatureConfig.from_file(file=file)
         else:
             self.config = None
+
+        if not path.is_dir() and not self.config.repositories:
+            raise NotADirectoryError(f"Definitions directory not found: {path}")
+
         self.dimensions = dimensions or ["region", "variable"]
         for dim in self.dimensions:
             codelist_cls = SPECIAL_CODELIST.get(dim, CodeList)
