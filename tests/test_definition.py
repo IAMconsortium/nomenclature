@@ -64,6 +64,27 @@ def test_definition_from_general_config():
         clean_up_external_repos(obs.config.repositories)
 
 
+def test_only_definition_from_general_config():
+    obs = DataStructureDefinition(
+        TEST_DATA_DIR / "general-config-only" / "definitions",
+        dimensions=["region", "variable"],
+    )
+    try:
+        # imported from https://github.com/IAMconsortium/common-definitions repo
+        assert "World" in obs.region
+        # added via general-config definitions
+        assert "Austria" in obs.region
+        # added via general-config definitions renamed from pycountry name
+        assert "Bolivia" in obs.region
+        # added via general-config definitions in addition to pycountry.countries
+        assert "Kosovo" in obs.region
+
+        # imported from https://github.com/IAMconsortium/common-definitions repo
+        assert "Primary Energy" in obs.variable
+    finally:
+        clean_up_external_repos(obs.config.repositories)
+
+
 def test_to_excel(simple_definition, tmpdir):
     """Check writing a DataStructureDefinition to file"""
     file = tmpdir / "testing_export.xlsx"
