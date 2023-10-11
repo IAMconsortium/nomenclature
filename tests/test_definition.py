@@ -41,16 +41,15 @@ def test_empty_codelist_raises():
         DataStructureDefinition(TEST_DATA_DIR / "simple_codelist")
 
 
-@pytest.mark.parametrize("external_only", [True, False])
-def test_definition_from_general_config(external_only):
-    workflow_folder = "general-config-only" if external_only else "general-config"
+@pytest.mark.parametrize("workflow_folder", ["general-config-only", "general-config"])
+def test_definition_from_general_config(workflow_folder):
     obs = DataStructureDefinition(
         TEST_DATA_DIR / workflow_folder / "definitions",
         dimensions=["region", "variable"],
     )
     try:
         # explicitly defined in `general-config-definitions/region/regions.yaml`
-        if not external_only:
+        if workflow == "general-config":
             assert "Region A" in obs.region
         # imported from https://github.com/IAMconsortium/common-definitions repo
         assert "World" in obs.region
