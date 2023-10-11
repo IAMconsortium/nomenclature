@@ -41,14 +41,16 @@ def test_empty_codelist_raises():
         DataStructureDefinition(TEST_DATA_DIR / "simple_codelist")
 
 
-def test_definition_from_general_config():
+@pytest.mark.parametrize("workflow_folder", ["general-config-only", "general-config"])
+def test_definition_from_general_config(workflow_folder):
     obs = DataStructureDefinition(
-        TEST_DATA_DIR / "general-config" / "definitions",
+        TEST_DATA_DIR / workflow_folder / "definitions",
         dimensions=["region", "variable"],
     )
     try:
         # explicitly defined in `general-config-definitions/region/regions.yaml`
-        assert "Region A" in obs.region
+        if workflow_folder == "general-config":
+            assert "Region A" in obs.region
         # imported from https://github.com/IAMconsortium/common-definitions repo
         assert "World" in obs.region
         # added via general-config definitions
