@@ -18,6 +18,7 @@ from nomenclature.error.variable import (
     VariableRenameArgError,
     VariableRenameTargetError,
 )
+from pyam.utils import is_list_like
 
 here = Path(__file__).parent.absolute()
 
@@ -449,6 +450,19 @@ class VariableCodeList(CodeList):
     # class variables
     code_basis: ClassVar = VariableCode
     validation_schema: ClassVar[str] = "variable"
+
+    @property
+    def units(self):
+        """Get the list of all units"""
+        unit_set = set()
+        for variable in self.mapping.values():
+            if is_list_like(variable.unit):
+                for u in variable.unit:
+                    unit_set.add(u)
+            else:
+                unit_set.add(variable.unit)
+
+        return list(unit_set)
 
     @validator("mapping")
     def check_variable_region_aggregation_args(cls, v):
