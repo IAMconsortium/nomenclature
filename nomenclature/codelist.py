@@ -454,15 +454,18 @@ class VariableCodeList(CodeList):
     @property
     def units(self):
         """Get the list of all units"""
-        unit_set = set()
+        units = set()
+
+        def to_dimensionless(u):
+            return u or ""
+
         for variable in self.mapping.values():
             if is_list_like(variable.unit):
-                for u in variable.unit:
-                    unit_set.add(u)
+                units.update([to_dimensionless(u) for u in variable.unit])
             else:
-                unit_set.add(variable.unit)
+                units.add(to_dimensionless(variable.unit))
 
-        return list(unit_set)
+        return sorted(list(units))
 
     @validator("mapping")
     def check_variable_region_aggregation_args(cls, v):

@@ -160,8 +160,7 @@ def test_variable_codelist_units():
     codelist = VariableCodeList.from_directory(
         "variable", TEST_DATA_DIR / "validation_nc" / "variable"
     )
-    assert "EJ/yr" in codelist.units
-    assert None in codelist.units
+    assert codelist.units == ["", "EJ/yr"]
 
 
 def test_variable_codelist_multiple_units():
@@ -170,7 +169,7 @@ def test_variable_codelist_multiple_units():
         "variable", TEST_DATA_DIR / "multiple_unit_codelist"
     )
     assert codelist["Var1"].unit == ["unit1", "unit2"]
-    assert sorted(codelist.units) == ["unit1", "unit2"]
+    assert codelist.units == ["unit1", "unit2"]
 
 
 def test_to_excel_read_excel_roundtrip(tmpdir):
