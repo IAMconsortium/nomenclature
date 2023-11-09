@@ -17,13 +17,13 @@ from conftest import TEST_DATA_DIR
 
 def test_simple_codelist():
     """Import a simple codelist"""
-    code = VariableCodeList.from_directory(
+    codelist = VariableCodeList.from_directory(
         "variable", TEST_DATA_DIR / "simple_codelist"
     )
 
-    assert "Some Variable" in code
-    assert code["Some Variable"].unit is None  # this is a dimensionless variable
-    assert type(code["Some Variable"].bool) == bool  # this is a boolean
+    assert "Some Variable" in codelist
+    assert codelist["Some Variable"].unit is None  # this is a dimensionless variable
+    assert type(codelist["Some Variable"].bool) == bool  # this is a boolean
 
 
 def test_codelist_to_yaml():
@@ -155,12 +155,21 @@ def test_end_whitespace_fails():
         )
 
 
+def test_variable_codelist_units():
+    """Check that the units-attribute works as expected"""
+    codelist = VariableCodeList.from_directory(
+        "variable", TEST_DATA_DIR / "validation_nc" / "variable"
+    )
+    assert codelist.units == ["", "EJ/yr"]
+
+
 def test_variable_codelist_multiple_units():
     """Check that multiple units work in a VariableCodeList"""
     codelist = VariableCodeList.from_directory(
         "variable", TEST_DATA_DIR / "multiple_unit_codelist"
     )
     assert codelist["Var1"].unit == ["unit1", "unit2"]
+    assert codelist.units == ["unit1", "unit2"]
 
 
 def test_to_excel_read_excel_roundtrip(tmpdir):
