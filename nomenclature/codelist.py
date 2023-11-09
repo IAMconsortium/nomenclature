@@ -456,6 +456,8 @@ class VariableCodeList(CodeList):
         """Get the list of all units"""
         units = set()
 
+        # replace "dimensionless" variables (unit: `None`) with empty string
+        # for consistency with the yaml file format
         def to_dimensionless(u):
             return u or ""
 
