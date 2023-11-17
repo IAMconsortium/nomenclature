@@ -382,6 +382,28 @@ class RegionAggregationMapping(BaseModel):
                 "mapping to silence this error."
             )
 
+    def __eq__(self, other: "RegionAggregationMapping") -> bool:
+        return self.dict(exclude={"file"}) == other.dict(exclude={"file"})
+
+    def to_yaml(self, file) -> None:
+        dict_representation = {"model": self.model}
+        if self.native_regions:
+            dict_representation["native_regions"] = [
+                {native_region.name: native_region.rename}
+                if native_region.rename
+                else native_region.name
+                for native_region in self.native_regions
+            ]
+        if self.common_regions:
+            dict_representation["common_regions"] = [
+                {common_region.name: common_region.constituent_regions}
+                for common_region in self.common_regions
+            ]
+        if self.exclude_regions:
+            dict_representation["exclude_regions"] = self.exclude_regions
+        with open(file, "w") as f:
+            yaml.dump(dict_representation, f, sort_keys=False)
+
 
 class RegionProcessor(Processor):
     """Region aggregation mappings for scenario processing"""
