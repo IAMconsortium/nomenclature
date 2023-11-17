@@ -56,7 +56,7 @@ def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=None):
     ).to_yaml(target)
 
 
-def parse_model_registration(source, file_name):
+def parse_model_registration(model_registration_file, output_file_name):
     """Parses a model registration file and writes the definitions & mapping yaml files
 
     Parameters
@@ -66,32 +66,6 @@ def parse_model_registration(source, file_name):
     file_name : str
         Model-identifier part of the yaml file names.
     """
-    model = pd.read_excel(source, sheet_name="Model", usecols="B", nrows=1).iloc[0, 0]
-    regions = pd.read_excel(source, sheet_name="Regions", header=2)
-
-    native = "Native region (as submitted)"
-    rename = "Native region (as shown in the Explorer)"
-    sep = "\n  - "
-
-    common_region_groups = [r for r in regions.columns if r not in [native, rename]]
-
-    # write region definitions file
-    with open(f"definitions/region/model_native_regions/{file_name}.yaml", "w") as file:
-        file.write(f"- {model}:{sep}" + sep.join(regions[rename].values))
-
-    # write mappings file
-    with open(f"mappings/{file_name}.yaml", "w") as file:
-        file.write(f"model:{sep}{model}\n")
-
-        # TODO this implementation assumes that a rename-target exists
-        rename_mapping = [
-            f"{row[native]}: {row[rename]}" for i, row in regions.iterrows()
-        ]
-        file.write(f"native_regions:{sep}" + sep.join(rename_mapping) + "\n")
-
-        file.write(f"common_regions:\n")
-        for group in common_region_groups:
-            file.write(f"# {group}\n")
-            for common, _regions in regions[[group, native]].groupby(group):
-                file.write(f"  - {common}:\n    - ")
-                file.write("\n    - ".join(_regions[native].values) + "\n")
+    RegionAggregationMapping.from_file(model_registration_file).to_yaml(
+        output_file_name
+    )
