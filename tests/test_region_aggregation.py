@@ -10,6 +10,7 @@ from nomenclature import (
     process,
 )
 from nomenclature.error.region import RegionAggregationMappingParsingError
+from nomenclature.processor.region import NativeRegion, CommonRegion
 from pyam import IamDataFrame, assert_iamframe_equal
 from pyam.utils import IAMC_IDX
 
@@ -275,3 +276,41 @@ def test_reverse_region_aggregation():
         ),
     )
     assert_iamframe_equal(obs, exp)
+
+
+def test_model_mapping_from_excel():
+    excel_file = TEST_DATA_DIR / "region_aggregation" / "excel_model_registration.xlsx"
+    obs = RegionAggregationMapping.from_file(excel_file)
+    model = "Model 1.1"
+    exp = RegionAggregationMapping(
+        model=model,
+        file=excel_file,
+        native_regions=[
+            NativeRegion(name="Region 1", rename=f"{model}|Region 1"),
+            NativeRegion(name="Region 2"),
+            NativeRegion(name="Region 3", rename=f"{model}|Region 3"),
+        ],
+        common_regions=[
+            CommonRegion(
+                name="Common Region 1", constituent_regions=["Region 1", "Region 2"]
+            ),
+            CommonRegion(name="Common Region 2", constituent_regions=["Region 3"]),
+            CommonRegion(
+                name="World", constituent_regions=["Region 1", "Region 2", "Region 3"]
+            ),
+        ],
+    )
+    assert obs == exp
+
+
+def test_model_mapping_from_excel_to_yaml(tmp_path):
+    excel_file = TEST_DATA_DIR / "region_aggregation" / "excel_model_registration.xlsx"
+    # create a yaml mapping from an excel mapping
+    RegionAggregationMapping.from_file(excel_file).to_yaml(tmp_path / "mapping.yaml")
+
+    obs = RegionAggregationMapping.from_file(tmp_path / "mapping.yaml")
+
+    exp = RegionAggregationMapping.from_file(
+        TEST_DATA_DIR / "region_aggregation" / "excel_mapping_reference.yaml"
+    )
+    assert obs == exp
