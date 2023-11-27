@@ -9,6 +9,10 @@ The **nomenclature** package supports automated region aggregation as part of a
 scenario processing workflow. The instructions for region aggregation are provided
 as a *model mapping*.
 
+The region-processing supports multiple methods for aggregation of data, including
+summation and (weighted) average across regions. The method can be specified
+for each variable via the codelist, see :ref:`region_aggregation_attributes`.
+
 Model mapping format specification
 ----------------------------------
 
