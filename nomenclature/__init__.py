@@ -3,7 +3,6 @@ from importlib.metadata import version
 from pathlib import Path
 
 import yaml
-from setuptools_scm import get_version
 
 from nomenclature.cli import cli  # noqa
 from nomenclature.codelist import CodeList  # noqa
@@ -22,11 +21,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# get version number either from git (preferred) or metadata
-try:
-    __version__ = get_version(Path(__file__).parents[1])
-except LookupError:
-    __version__ = version("nomenclature-iamc")
+__version__ = version("nomenclature-iamc")
 
 
 def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=None):
