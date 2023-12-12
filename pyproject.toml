@@ -5,6 +5,8 @@ version = "0.0.0"
 description = "Package for managing codelists & attributes for IAMC-format datasets"
 license = "APACHE-2.0"
 readme = "README.md"
+url = "https://github.com/IAMconsortium/nomenclature"
+packages = [{include = "nomenclature"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10, <3.12"
@@ -22,6 +24,7 @@ numpy = "^1.23.0"
 black = "^23.12.0"
 mypy = "^1.7.1"
 flake8 = "^6.1.0"
+pytest = "^7.4.3"
 
 
 [tool.poetry.group.docs.dependencies]
@@ -30,14 +33,14 @@ sphinx-click = "^5.1.0"
 numpydoc = "^1.6.0"
 
 
-[tool.poetry.group.tests.dependencies]
-pytest = "^7.4.3"
-
 [tool.poetry-dynamic-versioning]
 bump = true
 enable = true
 style = "pep440"
 vcs = "git"
+
+[tool.flake8]
+max_line_length = 88
 
 [build-system]
 build-backend = "poetry_dynamic_versioning.backend"
