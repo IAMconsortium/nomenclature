@@ -10,18 +10,14 @@ on:
     branches: [ '**' ]
 jobs:
   pytest:
-
+    defaults:
+      run:
+        shell: bash
     strategy:
       matrix:
-        os:
-        - macos
-        - ubuntu
-        - windows
-        python-version:
+        os: ["macos", "ubuntu", "windows"]
         # keep consistent with py-version badge in README.md and docs/index.rst
-        - '3.10'
-        - '3.11'
-
+        python-version: ["3.10", "3.11"]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}-latest
