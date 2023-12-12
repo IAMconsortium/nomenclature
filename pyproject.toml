@@ -5,7 +5,6 @@ version = "0.0.0"
 description = "Package for managing codelists & attributes for IAMC-format datasets"
 license = "APACHE-2.0"
 readme = "README.md"
-url = "https://github.com/IAMconsortium/nomenclature"
 packages = [{include = "nomenclature"}]
 
 [tool.poetry.dependencies]
