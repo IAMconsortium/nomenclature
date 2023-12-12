@@ -60,6 +60,9 @@ class NativeRegion(BaseModel):
         """
         return self.rename if self.rename is not None else self.name
 
+    def __eq__(self, other: "NativeRegion") -> bool:
+        return super().__eq__(other)
+
 
 class CommonRegion(BaseModel):
     """Common region used for model intercomparison.
@@ -87,6 +90,9 @@ class CommonRegion(BaseModel):
         raise AttributeError(
             "rename_dict is only available for single constituent regions"
         )
+
+    def __eq__(self, other: "CommonRegion") -> bool:
+        return super().__eq__(other)
 
 
 class RegionAggregationMapping(BaseModel):
@@ -232,8 +238,20 @@ class RegionAggregationMapping(BaseModel):
         This function is used to convert a model mapping yaml file into a dictionary
         which is used to initialize a RegionAggregationMapping.
         """
+
+        file = Path(file) if isinstance(file, str) else file
+        FILE_PARSERS = {
+            ".yaml": cls.from_yaml,
+            ".yml": cls.from_yaml,
+            ".xlsx": cls.from_excel,
+        }
+        if file.suffix in FILE_PARSERS:
+            return FILE_PARSERS[file.suffix](file)
+        raise ValueError(f"No parser implemented for {file.suffix}")
+
+    @classmethod
+    def from_yaml(cls, file: Path) -> "RegionAggregationMapping":
         try:
-            file = Path(file) if isinstance(file, str) else file
             with open(file, "r") as f:
                 mapping_input = yaml.safe_load(f)
 
@@ -273,6 +291,54 @@ class RegionAggregationMapping(BaseModel):
             ) from error
         return cls(**mapping_input)
 
+    @classmethod
+    def from_excel(cls, file) -> "RegionAggregationMapping":
+        try:
+            model = pd.read_excel(file, sheet_name="Model", usecols="B", nrows=1).iloc[
+                0, 0
+            ]
+
+            regions = pd.read_excel(file, sheet_name="Common-Region-Mapping", header=3)
+            regions = regions.drop(
+                columns=(c for c in regions.columns if c.startswith("Unnamed: "))
+            ).drop(index=0)
+            # replace nan with None
+            regions = regions.where(pd.notnull(regions), None)
+            native = "Native region (as reported by the model)"
+            rename = "Native region (after renaming)"
+            native_regions = [
+                NativeRegion(name=row[native], rename=row[rename])
+                for row in regions[[native, rename]].to_dict(orient="records")
+            ]
+            common_region_groups = [
+                r for r in regions.columns if r not in (native, rename)
+            ]
+            common_regions = [
+                CommonRegion(
+                    name=common_region,
+                    constituent_regions=constituent_regions.split(","),
+                )
+                for common_region_group in common_region_groups
+                for common_region, constituent_regions in regions[
+                    [native, common_region_group]
+                ]
+                .groupby(common_region_group)[native]
+                .apply(lambda x: ",".join(x))
+                .to_dict()
+                .items()
+            ]
+            # common_regions = [for common_region_group in common_region_groups for ]
+        except Exception as error:
+            raise RegionAggregationMappingParsingError(
+                file=get_relative_path(file), error=str(error)
+            ) from error
+        return cls(
+            model=model,
+            file=file,
+            native_regions=native_regions,
+            common_regions=common_regions,
+        )
+
     @property
     def all_regions(self) -> List[str]:
         # For the native regions we take the **renamed** (if given) names
@@ -292,6 +358,13 @@ class RegionAggregationMapping(BaseModel):
     @property
     def rename_mapping(self) -> Dict[str, str]:
         return {r.name: r.target_native_region for r in self.native_regions or []}
+
+    @property
+    def upload_native_regions(self) -> List[str]:
+        return [
+            native_region.target_native_region
+            for native_region in self.native_regions or []
+        ]
 
     @property
     def reverse_rename_mapping(self) -> Dict[str, str]:
@@ -321,6 +394,28 @@ class RegionAggregationMapping(BaseModel):
                 "in the results add to the 'exclude_regions' section in the model "
                 "mapping to silence this error."
             )
+
+    def __eq__(self, other: "RegionAggregationMapping") -> bool:
+        return self.dict(exclude={"file"}) == other.dict(exclude={"file"})
+
+    def to_yaml(self, file) -> None:
+        dict_representation = {"model": self.model}
+        if self.native_regions:
+            dict_representation["native_regions"] = [
+                {native_region.name: native_region.rename}
+                if native_region.rename
+                else native_region.name
+                for native_region in self.native_regions
+            ]
+        if self.common_regions:
+            dict_representation["common_regions"] = [
+                {common_region.name: common_region.constituent_regions}
+                for common_region in self.common_regions
+            ]
+        if self.exclude_regions:
+            dict_representation["exclude_regions"] = self.exclude_regions
+        with open(file, "w") as f:
+            yaml.dump(dict_representation, f, sort_keys=False)
 
 
 class RegionProcessor(Processor):
