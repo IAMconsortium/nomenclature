@@ -2,20 +2,16 @@ import logging
 from importlib.metadata import version
 from pathlib import Path
 
+import yaml
 from setuptools_scm import get_version
-
-import pandas as pd
 
 from nomenclature.cli import cli  # noqa
 from nomenclature.codelist import CodeList  # noqa
 from nomenclature.core import process  # noqa
-from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition  # noqa
-from nomenclature.processor import (  # noqa
-    RegionAggregationMapping,
-    RegionProcessor,
-    RequiredDataValidator,
-)
 from nomenclature.countries import countries  # noqa
+from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition  # noqa
+from nomenclature.processor import RegionAggregationMapping  # noqa
+from nomenclature.processor import RegionProcessor, RequiredDataValidator
 
 # set up logging
 logging.basicConfig(
