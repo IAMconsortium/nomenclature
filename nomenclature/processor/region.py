@@ -360,6 +360,13 @@ class RegionAggregationMapping(BaseModel):
         return {r.name: r.target_native_region for r in self.native_regions or []}
 
     @property
+    def upload_native_regions(self) -> List[str]:
+        return [
+            native_region.target_native_region
+            for native_region in self.native_regions or []
+        ]
+
+    @property
     def reverse_rename_mapping(self) -> Dict[str, str]:
         return {renamed: original for original, renamed in self.rename_mapping.items()}
 

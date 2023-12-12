@@ -52,7 +52,7 @@ def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=None):
     ).to_yaml(target)
 
 
-def parse_model_registration(model_registration_file, output_file_name):
+def parse_model_registration(model_registration_file):
     """Parses a model registration file and writes the definitions & mapping yaml files
 
     Parameters
@@ -62,6 +62,20 @@ def parse_model_registration(model_registration_file, output_file_name):
     file_name : str
         Model-identifier part of the yaml file names.
     """
-    RegionAggregationMapping.from_file(model_registration_file).to_yaml(
-        output_file_name
+    region_aggregregation_mapping = RegionAggregationMapping.from_file(
+        model_registration_file
     )
+    file_model_name = "".join(
+        x if (x.isalnum() or x in "._- ") else "_"
+        for x in region_aggregregation_mapping.model[0]
+    )
+    region_aggregregation_mapping.to_yaml(f"{file_model_name}_mapping.yaml")
+    if native_regions := [
+        {
+            region_aggregregation_mapping.model[
+                0
+            ]: region_aggregregation_mapping.upload_native_regions
+        }
+    ]:
+        with open(f"{file_model_name}_regions.yaml", "w") as f:
+            yaml.dump(native_regions, f)
