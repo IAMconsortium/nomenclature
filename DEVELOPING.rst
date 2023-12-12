@@ -1,3 +1,43 @@
+Local development
+*****************
+
+Nomenclature uses poetry for local development. Follow these steps to get setup:
+
+
+```bash
+# clone the nomenclature repository
+git clone git@github.com:IAMconsortium/nomenclature.git
+cd nomenclature
+
+# Install Poetry, minimum version >=1.2 required
+curl -sSL https://install.python-poetry.org | python -
+
+# You may have to reinitialize your shell at this point.
+source ~/.bashrc
+
+# Activate in-project virtualenvs
+poetry config virtualenvs.in-project true
+
+# Add dynamic versioning plugin
+poetry self add "poetry-dynamic-versioning[plugin]"
+
+# Install dependencies
+# (using "--with dev,docs,server" if dev and docs dependencies should be installed as well)
+poetry install --with dev,docs
+
+# Activate virtual environment
+poetry shell
+
+# Copy the template environment configuration
+cp template.env .env
+
+# Add a test platform
+ixmp4 platforms add test
+
+# Start the asgi server
+ixmp4 server start
+```
+
 Release procedure
 *****************
 
@@ -20,12 +60,12 @@ Release procedure
 
 4. (Optional) Create a fresh virtual environment, download the release from TestPyPi and
    check that the install of package has worked correctly::
-   
+
    $ pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple nomenclature-iamc==v<release version>rc<N>
 
 5. Visit https://github.com/IAMconsortium/nomenclature/releases and mark the new release
    by creating the tag and release simultaneously. The name of the tag is v<release
-   version> (without the rc<N>). 
+   version> (without the rc<N>).
 
 6. Check that the "Publish to PyPI and TestPyPI" GitHub action passed and that the
    distributions are published on https://pypi.org/project/nomenclature-iamc/ .
