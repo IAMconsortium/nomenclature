@@ -1,6 +1,12 @@
 from pathlib import Path
 from typing import Optional, Dict
-from pydantic import BaseModel, root_validator, validator
+from pydantic import (
+    field_validator,
+    model_validator,
+    BaseModel,
+    root_validator,
+    validator,
+)
 
 import yaml
 from git import Repo
@@ -8,10 +14,11 @@ from git import Repo
 
 class CodeListConfig(BaseModel):
     dimension: str
-    repository: Optional[str]
-    repository_dimension_path: Optional[Path]
+    repository: Optional[str] = None
+    repository_dimension_path: Optional[Path] = None
 
-    @root_validator()
+    @model_validator(mode="after")
+    @classmethod
     def set_repository_dimension_path(cls, v):
         if (
             v.get("repository") is not None
@@ -27,17 +34,21 @@ class RegionCodeListConfig(CodeListConfig):
 
 class Repository(BaseModel):
     url: str
-    hash: Optional[str]
-    release: Optional[str]
-    local_path: Optional[Path]  # defined via the `repository` name in the configuration
+    hash: Optional[str] = None
+    release: Optional[str] = None
+    local_path: Optional[
+        Path
+    ] = None  # defined via the `repository` name in the configuration
 
-    @root_validator()
+    @model_validator(mode="after")
+    @classmethod
     def check_hash_and_release(cls, v):
         if v.get("hash") and v.get("release"):
             raise ValueError("Either `hash` or `release` can be provided, not both.")
         return v
 
-    @validator("local_path")
+    @field_validator("local_path")
+    @classmethod
     def check_path_empty(cls, v):
         if v is not None:
             raise ValueError("The `local_path` must not be set as part of the config.")
@@ -74,14 +85,18 @@ class DataStructureConfig(BaseModel):
 
     """
 
-    region: Optional[RegionCodeListConfig]
-    variable: Optional[CodeListConfig]
+    region: Optional[RegionCodeListConfig] = None
+    variable: Optional[CodeListConfig] = None
 
-    @validator("region", "variable", pre=True)
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
+    @field_validator("region", "variable", mode="before")
+    @classmethod
     def add_dimension(cls, v, field):
         return {"dimension": field.name, **v}
 
-    @root_validator
+    @model_validator(mode="after")
+    @classmethod
     def check_repository_consistency(cls, values):
         for dimension in ("region", "variable"):
             if (
@@ -113,10 +128,11 @@ class RegionMappingConfig(BaseModel):
 
 class NomenclatureConfig(BaseModel):
     repositories: Dict[str, Repository] = {}
-    definitions: Optional[DataStructureConfig]
-    mappings: Optional[RegionMappingConfig]
+    definitions: Optional[DataStructureConfig] = None
+    mappings: Optional[RegionMappingConfig] = None
 
-    @root_validator
+    @model_validator(mode="after")
+    @classmethod
     def check_definitions_repository(cls, v):
         definitions_repos = v.get("definitions").repos if v.get("definitions") else {}
         mapping_repos = (

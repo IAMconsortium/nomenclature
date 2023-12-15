@@ -3,8 +3,8 @@ import re
 import pycountry
 from keyword import iskeyword
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
-from pydantic import BaseModel, Field, validator
+from typing import Any, Dict, List, Set, Union
+from pydantic import field_validator, ConfigDict, BaseModel, Field
 
 from pyam.utils import to_list
 
@@ -13,8 +13,8 @@ class Code(BaseModel):
     """A simple class for a mapping of a "code" to its attributes"""
 
     name: str
-    description: Optional[str]
-    file: Optional[Union[str, Path]] = None
+    description: str | None = None
+    file: Union[str, Path] | None = None
     extra_attributes: Dict[str, Any] = {}
 
     def __eq__(self, other) -> bool:
@@ -22,7 +22,8 @@ class Code(BaseModel):
             key: value for key, value in other.dict().items() if key != "file"
         }
 
-    @validator("extra_attributes")
+    @field_validator("extra_attributes")
+    @classmethod
     def check_attribute_names(cls, v, values):
         # Check that attributes only contains keys which are valid identifiers
         if illegal_keys := [
@@ -81,12 +82,12 @@ class Code(BaseModel):
     @property
     def flattened_dict(self):
         fields_set_alias = {
-            self.__fields__[field].alias for field in self.__fields_set__
+            self.model_fields[field].alias for field in self.model_fields_set
         }
         return {
             **{
                 k: v
-                for k, v in self.dict(by_alias=True).items()
+                for k, v in self.model_dump(by_alias=True).items()
                 if k != "extra_attributes" and k in fields_set_alias
             },
             **self.extra_attributes,
@@ -148,25 +149,20 @@ class Code(BaseModel):
 
 
 class VariableCode(Code):
-    unit: Optional[Union[str, List[str]]] = Field(...)
-    weight: Optional[str] = None
-    region_aggregation: Optional[List[Dict[str, Dict]]] = Field(
+    unit: Union[str, List[str]] | None = Field(...)
+    weight: str | None = None
+    region_aggregation: List[Dict[str, Dict]] | None = Field(
         None, alias="region-aggregation"
     )
-    skip_region_aggregation: Optional[bool] = Field(
-        False, alias="skip-region-aggregation"
-    )
-    method: Optional[str] = None
-    check_aggregate: Optional[bool] = Field(False, alias="check-aggregate")
-    components: Optional[Union[List[str], List[Dict[str, List[str]]]]] = None
-    drop_negative_weights: Optional[bool] = None
+    skip_region_aggregation: bool | None = Field(False, alias="skip-region-aggregation")
+    method: str | None = None
+    check_aggregate: bool | None = Field(False, alias="check-aggregate")
+    components: Union[List[str], List[Dict[str, List[str]]]] | None = None
+    drop_negative_weights: bool | None = None
+    model_config = ConfigDict(populate_by_name=True)
 
-    class Config:
-        # this allows using both "check_aggregate" and "check-aggregate" for attribute
-        # setting
-        allow_population_by_field_name = True
-
-    @validator("region_aggregation", "components", "unit", pre=True)
+    @field_validator("region_aggregation", "components", "unit", mode="before")
+    @classmethod
     def deserialize_json(cls, v):
         try:
             return json.loads(v) if isinstance(v, str) else v
@@ -225,7 +221,7 @@ class RegionCode(Code):
     hierarchy: str = None
     iso3_codes: Union[List[str], str] = None
 
-    @validator("iso3_codes")
+    @field_validator("iso3_codes")
     def check_iso3_codes(cls, v, values) -> List[str]:
         """Verifies that each ISO3 code is valid according to pycountry library."""
         if invalid_iso3_codes := [
@@ -250,4 +246,4 @@ class MetaCode(Code):
 
     """
 
-    allowed_values: Optional[List[Any]]
+    allowed_values: List[Any] | None = None

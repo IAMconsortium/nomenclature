@@ -2,7 +2,7 @@ import logging
 from typing import Optional, Union, List
 
 import pyam
-from pydantic import validate_arguments
+from pydantic import validate_call
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor import Processor, RegionProcessor
@@ -10,7 +10,7 @@ from nomenclature.processor import Processor, RegionProcessor
 logger = logging.getLogger(__name__)
 
 
-@validate_arguments(config={"arbitrary_types_allowed": True})
+@validate_call(config={"arbitrary_types_allowed": True})
 def process(
     df: pyam.IamDataFrame,
     dsd: DataStructureDefinition,

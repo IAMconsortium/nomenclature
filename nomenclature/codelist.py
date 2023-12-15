@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from pyam.utils import write_sheet
-from pydantic import BaseModel, validator
+from pydantic import field_validator, BaseModel, validator
 
 import nomenclature
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
@@ -45,7 +45,8 @@ class CodeList(BaseModel):
     def __eq__(self, other):
         return self.name == other.name and self.mapping == other.mapping
 
-    @validator("mapping")
+    @field_validator("mapping")
+    @classmethod
     def check_stray_tag(cls, v):
         """Check that no '{' are left in codes after tag replacement"""
         for code in v:
@@ -56,6 +57,8 @@ class CodeList(BaseModel):
                 )
         return v
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("mapping")
     def check_end_whitespace(cls, v, values):
         """Check that no code ends with a whitespace"""
@@ -469,7 +472,8 @@ class VariableCodeList(CodeList):
 
         return sorted(list(units))
 
-    @validator("mapping")
+    @field_validator("mapping")
+    @classmethod
     def check_variable_region_aggregation_args(cls, v):
         """Check that any variable "region-aggregation" mappings are valid"""
 
@@ -494,7 +498,8 @@ class VariableCodeList(CodeList):
                     )
         return v
 
-    @validator("mapping")
+    @field_validator("mapping")
+    @classmethod
     def check_weight_in_vars(cls, v):
         """Check that all variables specified in 'weight' are present in the codelist"""
         if missing_weights := [
@@ -510,7 +515,8 @@ class VariableCodeList(CodeList):
             )
         return v
 
-    @validator("mapping")
+    @field_validator("mapping")
+    @classmethod
     def cast_variable_components_args(cls, v):
         """Cast "components" list of dicts to a codelist"""
 

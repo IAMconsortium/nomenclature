@@ -7,8 +7,7 @@ import pydantic
 import yaml
 import pyam
 from pyam import IamDataFrame
-from pydantic import BaseModel, validator, root_validator, Field
-from pydantic.error_wrappers import ErrorWrapper
+from pydantic import field_validator, model_validator, BaseModel, validator, Field
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error.required_data import RequiredDataMissingError
@@ -22,33 +21,39 @@ class RequiredMeasurand(BaseModel):
     variable: str
     unit: List[Union[str, None]] = Field(...)
 
-    @validator("unit", pre=True)
+    @field_validator("unit", mode="before")
+    @classmethod
     def single_input_to_list(cls, v):
         return v if isinstance(v, list) else [v]
 
 
 class RequiredData(BaseModel):
-    measurand: Optional[List[RequiredMeasurand]]
-    variable: Optional[List[str]]
-    region: Optional[List[str]]
-    year: Optional[List[int]]
+    measurand: Optional[List[RequiredMeasurand]] = None
+    variable: Optional[List[str]] = None
+    region: Optional[List[str]] = None
+    year: Optional[List[int]] = None
 
-    @validator("measurand", "region", "year", "variable", pre=True)
+    @field_validator("measurand", "region", "year", "variable", mode="before")
+    @classmethod
     def single_input_to_list(cls, v):
         return v if isinstance(v, list) else [v]
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def check_variable_measurand_collision(cls, values):
         if values.get("measurand") and values.get("variable"):
             raise ValueError("'measurand' and 'variable' cannot be used together.")
         return values
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def check_variable_measurand_neither(cls, values):
         if values.get("measurand") is None and values.get("variable") is None:
             raise ValueError("Either 'measurand' or 'variable' must be given.")
         return values
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("measurand", pre=True, each_item=True)
     def cast_to_RequiredMeasurand(cls, v):
         if len(v) != 1:
@@ -138,7 +143,8 @@ class RequiredDataValidator(Processor):
     required_data: List[RequiredData]
     file: Path
 
-    @validator("model", pre=True)
+    @field_validator("model", mode="before")
+    @classmethod
     def convert_to_list(cls, v):
         return pyam.utils.to_list(v)
 
