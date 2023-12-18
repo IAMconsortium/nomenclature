@@ -69,7 +69,7 @@ class Code(BaseModel):
 
     @classmethod
     def named_attributes(cls) -> Set[str]:
-        return {a for a in cls.__dict__["__fields__"].keys() if a != "extra_attributes"}
+        return {a for a in cls.model_fields if a != "extra_attributes"}
 
     @property
     def contains_tags(self) -> bool:
@@ -176,9 +176,7 @@ class VariableCode(Code):
     @classmethod
     def named_attributes(cls) -> Set[str]:
         return (
-            super()
-            .named_attributes()
-            .union(f.alias for f in cls.__dict__["__fields__"].values())
+            super().named_attributes().union(f.alias for f in cls.model_fields.values())
         )
 
     @property
