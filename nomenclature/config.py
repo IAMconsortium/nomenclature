@@ -8,8 +8,8 @@ from pydantic import BaseModel, ValidationInfo, field_validator, model_validator
 
 class CodeListConfig(BaseModel):
     dimension: str
-    repository: Optional[str] = None
-    repository_dimension_path: Optional[Path] = None
+    repository: str | None = None
+    repository_dimension_path: Path | None = None
 
     @model_validator(mode="after")
     @classmethod
@@ -25,11 +25,11 @@ class RegionCodeListConfig(CodeListConfig):
 
 class Repository(BaseModel):
     url: str
-    hash: Optional[str] = None
-    release: Optional[str] = None
-    local_path: Optional[
-        Path
-    ] = None  # defined via the `repository` name in the configuration
+    hash: str | None = None
+    release: str | None = None
+    local_path: Path | None = (
+        None  # defined via the `repository` name in the configuration
+    )
 
     @model_validator(mode="after")
     @classmethod

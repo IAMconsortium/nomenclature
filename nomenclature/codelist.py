@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from pyam.utils import write_sheet
-from pydantic import field_validator, BaseModel, validator
+from pydantic import field_validator, BaseModel, ValidationInfo
 
 import nomenclature
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
@@ -47,7 +47,7 @@ class CodeList(BaseModel):
 
     @field_validator("mapping")
     @classmethod
-    def check_stray_tag(cls, v):
+    def check_stray_tag(cls, v: Dict[str, Code]) -> Dict[str, Code]:
         """Check that no '{' are left in codes after tag replacement"""
         for code in v:
             if "{" in code:
@@ -57,15 +57,15 @@ class CodeList(BaseModel):
                 )
         return v
 
-    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
-    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
-    @validator("mapping")
-    def check_end_whitespace(cls, v, values):
+    @field_validator("mapping")
+    def check_end_whitespace(
+        cls, v: Dict[str, Code], info: ValidationInfo
+    ) -> Dict[str, Code]:
         """Check that no code ends with a whitespace"""
         for code in v:
             if code.endswith(" "):
                 raise ValueError(
-                    f"Unexpected whitespace at the end of a {values['name']}"
+                    f"Unexpected whitespace at the end of a {info.data['name']}"
                     f" code: '{code}'."
                 )
         return v
