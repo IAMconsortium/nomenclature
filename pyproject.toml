@@ -1,0 +1,46 @@
+[tool.poetry]
+name = "nomenclature-iamc"
+authors = ["Scenario Services team, ECE program, IIASA"]
+version = "0.0.0"
+description = "Package for managing codelists & attributes for IAMC-format datasets"
+license = "APACHE-2.0"
+readme = "README.md"
+packages = [{include = "nomenclature"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10, <3.12"
+click = ">= 8"
+pyam-iamc = ">=2.0.0"
+openpyxl = "^3.1.2"
+pydantic = "<2"
+PyYAML = "^6.0.1"
+pandas = ">=1.5.2"
+pycountry = "^23.12.11"
+gitpython = "^3.1.40"
+numpy = "^1.23.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.12.0"
+mypy = "^1.7.1"
+flake8 = "^6.1.0"
+pytest = "^7.4.3"
+
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^7.2.6"
+sphinx-click = "^5.1.0"
+numpydoc = "^1.6.0"
+
+
+[tool.poetry-dynamic-versioning]
+bump = true
+enable = true
+style = "pep440"
+vcs = "git"
+
+[tool.flake8]
+max_line_length = 88
+
+[build-system]
+build-backend = "poetry_dynamic_versioning.backend"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
