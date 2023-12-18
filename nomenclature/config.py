@@ -1,15 +1,9 @@
 from pathlib import Path
-from typing import Optional, Dict
-from pydantic import (
-    field_validator,
-    model_validator,
-    BaseModel,
-    root_validator,
-    validator,
-)
+from typing import Dict, Optional
 
 import yaml
 from git import Repo
+from pydantic import BaseModel, ValidationInfo, field_validator, model_validator
 
 
 class CodeListConfig(BaseModel):
@@ -19,12 +13,9 @@ class CodeListConfig(BaseModel):
 
     @model_validator(mode="after")
     @classmethod
-    def set_repository_dimension_path(cls, v):
-        if (
-            v.get("repository") is not None
-            and v.get("repository_dimension_path") is None
-        ):
-            v["repository_dimension_path"] = f"definitions/{v['dimension']}"
+    def set_repository_dimension_path(cls, v: "CodeListConfig") -> "CodeListConfig":
+        if v.repository is not None and v.repository_dimension_path is None:
+            v.repository_dimension_path = f"definitions/{v.dimension}"
         return v
 
 
@@ -42,8 +33,8 @@ class Repository(BaseModel):
 
     @model_validator(mode="after")
     @classmethod
-    def check_hash_and_release(cls, v):
-        if v.get("hash") and v.get("release"):
+    def check_hash_and_release(cls, v: "Repository") -> "Repository":
+        if v.hash and v.release:
             raise ValueError("Either `hash` or `release` can be provided, not both.")
         return v
 
@@ -88,30 +79,10 @@ class DataStructureConfig(BaseModel):
     region: Optional[RegionCodeListConfig] = None
     variable: Optional[CodeListConfig] = None
 
-    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
-    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @field_validator("region", "variable", mode="before")
     @classmethod
-    def add_dimension(cls, v, field):
-        return {"dimension": field.name, **v}
-
-    @model_validator(mode="after")
-    @classmethod
-    def check_repository_consistency(cls, values):
-        for dimension in ("region", "variable"):
-            if (
-                values.get("repository")
-                and values.get(dimension)
-                and values.get(dimension).repository
-                and values.get(dimension).repository not in values.get("repository")
-            ):
-                raise ValueError(
-                    (
-                        f"Unknown repository '{values.get(dimension).repository}' in"
-                        f" {dimension}.repository."
-                    )
-                )
-        return values
+    def add_dimension(cls, v, info: ValidationInfo):
+        return {"dimension": info.field_name, **v}
 
     @property
     def repos(self) -> Dict[str, str]:
@@ -133,13 +104,13 @@ class NomenclatureConfig(BaseModel):
 
     @model_validator(mode="after")
     @classmethod
-    def check_definitions_repository(cls, v):
-        definitions_repos = v.get("definitions").repos if v.get("definitions") else {}
-        mapping_repos = (
-            {"mappings": v.get("mappings").repository} if v.get("mappings") else {}
-        )
+    def check_definitions_repository(
+        cls, v: "NomenclatureConfig"
+    ) -> "NomenclatureConfig":
+        definitions_repos = v.definitions.repos if v.definitions else {}
+        mapping_repos = {"mappings": v.mappings.repository} if v.mappings else {}
         repos = {**definitions_repos, **mapping_repos}
-        if repos and not v.get("repositories"):
+        if repos and not v.repositories:
             raise ValueError(
                 (
                     "If repositories are used for definitions or mappings, they need "
@@ -148,7 +119,7 @@ class NomenclatureConfig(BaseModel):
             )
 
         for use, repository in repos.items():
-            if repository not in v.get("repositories"):
+            if repository not in v.repositories:
                 raise ValueError((f"Unknown repository '{repository}' in {use}."))
         return v
 
