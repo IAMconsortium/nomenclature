@@ -222,7 +222,7 @@ class RegionCode(Code):
     iso3_codes: Union[List[str], str] = None
 
     @field_validator("iso3_codes")
-    def check_iso3_codes(cls, v, values) -> List[str]:
+    def check_iso3_codes(cls, v: List[str], info: ValidationInfo) -> List[str]:
         """Verifies that each ISO3 code is valid according to pycountry library."""
         if invalid_iso3_codes := [
             iso3_code
