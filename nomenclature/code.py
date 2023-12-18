@@ -18,8 +18,8 @@ class Code(BaseModel):
     extra_attributes: Dict[str, Any] = {}
 
     def __eq__(self, other) -> bool:
-        return {key: value for key, value in self.dict().items() if key != "file"} == {
-            key: value for key, value in other.dict().items() if key != "file"
+        return {key: value for key, value in dict(self).items() if key != "file"} == {
+            key: value for key, value in dict(other).items() if key != "file"
         }
 
     @field_validator("extra_attributes")
@@ -83,14 +83,11 @@ class Code(BaseModel):
 
     @property
     def flattened_dict(self):
-        fields_set_alias = {
-            self.model_fields[field].alias for field in self.model_fields_set
-        }
         return {
             **{
                 k: v
-                for k, v in self.model_dump(by_alias=True).items()
-                if k != "extra_attributes" and k in fields_set_alias
+                for k, v in self.model_dump(by_alias=True, exclude_unset=True).items()
+                if k != "extra_attributes"
             },
             **self.extra_attributes,
         }

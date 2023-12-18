@@ -130,7 +130,7 @@ class RegionAggregationMapping(BaseModel):
         if illegal_additional_attributes := [
             input_attribute
             for input_attribute in v.keys()
-            if input_attribute not in cls.__dict__["__fields__"]
+            if input_attribute not in cls.model_fields
         ]:
             raise ValueError(
                 "Illegal attributes in 'RegionAggregationMapping': "
@@ -184,47 +184,50 @@ class RegionAggregationMapping(BaseModel):
 
     @model_validator(mode="after")
     @classmethod
-    def check_native_or_common_regions(cls, values):
+    def check_native_or_common_regions(
+        cls, v: "RegionAggregationMapping"
+    ) -> "RegionAggregationMapping":
         # Check that we have at least one of the two: native and common regions
-        if (
-            values.get("native_regions") is None
-            and values.get("common_regions") is None
-        ):
+        if v.native_regions is None and v.common_regions is None:
             raise ValueError(
                 "At least one of 'native_regions' and 'common_regions' must be "
-                f"provided in {values['file']}"
+                f"provided in {v.file}"
             )
-        return values
+        return v
 
     @model_validator(mode="after")
     @classmethod
-    def check_illegal_renaming(cls, values):
+    def check_illegal_renaming(
+        cls, v: "RegionAggregationMapping"
+    ) -> "RegionAggregationMapping":
         """Check if any renaming overlaps with common regions"""
         # Skip if only either native-regions or common-regions are specified
-        if values.get("native_regions") is None or values.get("common_regions") is None:
-            return values
-        native_region_names = {
-            nr.target_native_region for nr in values["native_regions"]
-        }
-        common_region_names = {cr.name for cr in values["common_regions"]}
+        if v.native_regions is None or v.common_regions is None:
+            return v
+        native_region_names = {nr.target_native_region for nr in v.native_regions}
+        common_region_names = {cr.name for cr in v.common_regions}
         overlap = list(native_region_names & common_region_names)
         if overlap:
             raise RegionNameCollisionError(
                 location="native and common regions",
                 duplicates=overlap,
-                file=values["file"],
+                file=v.file,
             )
-        return values
+        return v
 
     @model_validator(mode="after")
     @classmethod
-    def check_exclude_native_region_overlap(cls, values):
-        return _check_exclude_region_overlap(values, "native_regions")
+    def check_exclude_native_region_overlap(
+        cls, v: "RegionAggregationMapping"
+    ) -> "RegionAggregationMapping":
+        return _check_exclude_region_overlap(v, "native_regions")
 
     @model_validator(mode="after")
     @classmethod
-    def check_exclude_common_region_overlap(cls, values):
-        return _check_exclude_region_overlap(values, "common_regions")
+    def check_exclude_common_region_overlap(
+        cls, v: "RegionAggregationMapping"
+    ) -> "RegionAggregationMapping":
+        return _check_exclude_region_overlap(v, "common_regions")
 
     @classmethod
     def from_file(cls, file: Union[Path, str]):
@@ -782,13 +785,20 @@ def _compare_and_merge(
     return pd.concat([original, aggregated[index]]), difference
 
 
-def _check_exclude_region_overlap(values: Dict, region_type: str) -> Dict:
-    if values.get("exclude_regions") is None or values.get(region_type) is None:
-        return values
-    if overlap := set(values["exclude_regions"]) & {
-        r.name for r in values[region_type]
+def _check_exclude_region_overlap(
+    region_aggregation_mapping: RegionAggregationMapping, region_type: str
+) -> RegionAggregationMapping:
+    if (
+        region_aggregation_mapping.exclude_regions is None
+        or getattr(region_aggregation_mapping, region_type) is None
+    ):
+        return region_aggregation_mapping
+    if overlap := set(region_aggregation_mapping.exclude_regions) & {
+        r.name for r in getattr(region_aggregation_mapping, region_type)
     }:
         raise ExcludeRegionOverlapError(
-            region=overlap, region_type=region_type, file=values["file"]
+            region=overlap,
+            region_type=region_type,
+            file=region_aggregation_mapping["file"],
         )
-    return values
+    return region_aggregation_mapping
