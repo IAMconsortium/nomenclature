@@ -4,7 +4,7 @@ import pycountry
 from keyword import iskeyword
 from pathlib import Path
 from typing import Any, Dict, List, Set, Union
-from pydantic import field_validator, ConfigDict, BaseModel, Field
+from pydantic import field_validator, ConfigDict, BaseModel, Field, ValidationInfo
 
 from pyam.utils import to_list
 
@@ -24,14 +24,16 @@ class Code(BaseModel):
 
     @field_validator("extra_attributes")
     @classmethod
-    def check_attribute_names(cls, v, values):
+    def check_attribute_names(
+        cls, v: Dict[str, Any], info: ValidationInfo
+    ) -> Dict[str, Any]:
         # Check that attributes only contains keys which are valid identifiers
         if illegal_keys := [
             key for key in v.keys() if not key.isidentifier() or iskeyword(key)
         ]:
             raise ValueError(
                 "Only valid identifiers are allowed as attribute keys. Found "
-                f"'{illegal_keys}' in '{values['name']}' which are not allowed."
+                f"'{illegal_keys}' in '{info.data['name']}' which are not allowed."
             )
         return v
 
