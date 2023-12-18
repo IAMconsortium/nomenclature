@@ -230,7 +230,7 @@ class RegionCode(Code):
             if pycountry.countries.get(alpha_3=iso3_code) is None
         ]:
             raise ValueError(
-                f"Region '{values['name']}' has invalid ISO3 country code(s): "
+                f"Region '{info.data['name']}' has invalid ISO3 country code(s): "
                 + ", ".join(invalid_iso3_codes)
             )
         return v
