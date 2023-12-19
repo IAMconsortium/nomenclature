@@ -8,16 +8,12 @@ import pandas as pd
 import yaml
 from pyam.utils import write_sheet
 from pydantic import field_validator, BaseModel, ValidationInfo
+from pydantic_core import PydanticCustomError
 
 import nomenclature
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import NomenclatureConfig
-from nomenclature.error.codelist import DuplicateCodeError
-from nomenclature.error.variable import (
-    MissingWeightError,
-    VariableRenameArgError,
-    VariableRenameTargetError,
-)
+from nomenclature.error import pydantic_custom_errors
 from pyam.utils import is_list_like
 
 here = Path(__file__).parent.absolute()
@@ -72,7 +68,7 @@ class CodeList(BaseModel):
 
     def __setitem__(self, key, value):
         if key in self.mapping:
-            raise DuplicateCodeError(name=self.name, code=key)
+            raise ValueError(f"Duplicate item in {self.name} codelist: {key}")
         self.mapping[key] = value
 
     def __getitem__(self, k):
@@ -157,7 +153,7 @@ class CodeList(BaseModel):
             for tag in _tag_list:
                 tag_name = next(iter(tag))
                 if tag_name in tag_dict:
-                    raise DuplicateCodeError(name="tag", code=tag_name)
+                    raise ValueError(f"Duplicate item in tag codelist: {tag_name}")
                 tag_dict[tag_name] = [Code.from_dict(t) for t in tag[tag_name]]
 
         # start with all non tag codes
@@ -216,7 +212,7 @@ class CodeList(BaseModel):
         mapping: Dict[str, Code] = {}
         for code in code_list:
             if code.name in mapping:
-                raise DuplicateCodeError(name=name, code=code.name)
+                raise ValueError(f"Duplicate item in {name} codelist: {code.name}")
             mapping[code.name] = code
         return cls(name=name, mapping=mapping)
 
@@ -482,10 +478,9 @@ class VariableCodeList(CodeList):
             # pyam-aggregation-kwargs and a 'region-aggregation' attribute
             if var.region_aggregation is not None:
                 if conflict_args := list(var.pyam_agg_kwargs.keys()):
-                    raise VariableRenameArgError(
-                        variable=var.name,
-                        file=var.file,
-                        args=conflict_args,
+                    raise PydanticCustomError(
+                        *pydantic_custom_errors.VariableRenameArgError,
+                        {"variable": var.name, "file": var.file, "args": conflict_args},
                     )
 
                 # ensure that mapped variables are defined in the nomenclature
@@ -493,8 +488,9 @@ class VariableCodeList(CodeList):
                 for inst in var.region_aggregation:
                     invalid.extend(var for var in inst if var not in v)
                 if invalid:
-                    raise VariableRenameTargetError(
-                        variable=var.name, file=var.file, target=invalid
+                    raise PydanticCustomError(
+                        *pydantic_custom_errors.VariableRenameTargetError,
+                        {"variable": var.name, "file": var.file, "target": invalid},
                     )
         return v
 
@@ -507,11 +503,14 @@ class VariableCodeList(CodeList):
             for var in v.values()
             if var.weight is not None and var.weight not in v
         ]:
-            raise MissingWeightError(
-                missing_weights="".join(
-                    f"'{weight}' used for '{var}' in: {file}\n"
-                    for var, weight, file in missing_weights
-                )
+            raise PydanticCustomError(
+                *pydantic_custom_errors.MissingWeightError,
+                {
+                    "missing_weights": "".join(
+                        f"'{weight}' used for '{var}' in: {file}\n"
+                        for var, weight, file in missing_weights
+                    )
+                },
             )
         return v
 

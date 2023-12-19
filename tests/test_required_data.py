@@ -6,7 +6,7 @@ from conftest import TEST_DATA_DIR
 from pyam import assert_iamframe_equal
 from nomenclature import DataStructureDefinition, RequiredDataValidator
 from nomenclature.processor.required_data import RequiredMeasurand
-from nomenclature.error.required_data import RequiredDataMissingError
+from nomenclature.error import pydantic_custom_errors
 
 REQUIRED_DATA_TEST_DIR = TEST_DATA_DIR / "required_data" / "required_data"
 

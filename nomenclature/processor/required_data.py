@@ -10,7 +10,7 @@ from pyam import IamDataFrame
 from pydantic import field_validator, model_validator, BaseModel, validator, Field
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.error.required_data import RequiredDataMissingError
+from nomenclature.error import pydantic_custom_errors
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 

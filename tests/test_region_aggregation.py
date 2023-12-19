@@ -9,7 +9,7 @@ from nomenclature import (
     RegionProcessor,
     process,
 )
-from nomenclature.error.region import RegionAggregationMappingParsingError
+from nomenclature.error import pydantic_custom_errors
 from nomenclature.processor.region import NativeRegion, CommonRegion
 from pyam import IamDataFrame, assert_iamframe_equal
 from pyam.utils import IAMC_IDX
@@ -91,9 +91,7 @@ def test_illegal_mappings(file, error_msg_pattern):
 
 
 def test_mapping_parsing_error():
-    with pytest.raises(
-        RegionAggregationMappingParsingError, match="string indices must be integers"
-    ):
+    with pytest.raises(ValueError, match="string indices must be integers"):
         RegionAggregationMapping.from_file(
             TEST_FOLDER_REGION_MAPPING / "illegal_mapping_invalid_format_dict.yaml"
         )
@@ -146,11 +144,19 @@ def test_region_processor_not_defined(simple_definition):
     # Test a RegionProcessor with regions that are not defined in the data structure
     # definition
     error_msg = (
-        "model_(a|b).*\n.*region_a.*mapping_(1|2).yaml.*value_error.region_not_defined"
-        ".*\n.*model_(a|b).*\n.*region_a.*mapping_(1|2).yaml.*value_error."
-        "region_not_defined"
+        "mappings.model_(a|b).*\n"
+        ".*region_a.*mapping_(1|2).yaml.*value_error.*\n"
+        ".*\n"
+        "mappings.model_(a|b).*\n"
+        ".*region_a.*mapping_(1|2).yaml.*value_error"
     )
-    with pytest.raises(pydantic.ValidationError, match=error_msg):
+    try:
+        RegionProcessor.from_directory(
+            TEST_DATA_DIR / "regionprocessor_not_defined", simple_definition
+        )
+    except pydantic.ValidationError as error:
+        pass
+    with pytest.raises(ValueError, match=error_msg):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "regionprocessor_not_defined", simple_definition
         )
@@ -158,7 +164,7 @@ def test_region_processor_not_defined(simple_definition):
 
 def test_region_processor_duplicate_model_mapping(simple_definition):
     error_msg = ".*model_a.*mapping_(1|2).yaml.*mapping_(1|2).yaml"
-    with pytest.raises(pydantic.ValidationError, match=error_msg):
+    with pytest.raises(ValueError, match=error_msg):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "regionprocessor_duplicate", simple_definition
         )
