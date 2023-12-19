@@ -138,8 +138,8 @@ class RequiredData(BaseModel):
 
 
 class RequiredDataValidator(Processor):
-    description: Optional[str]
-    model: Optional[List[str]]
+    description: str | None = None
+    model: List[str] | None = None
     required_data: List[RequiredData]
     file: Path
 

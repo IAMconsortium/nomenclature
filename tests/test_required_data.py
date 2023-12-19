@@ -29,7 +29,7 @@ def test_RequiredDataValidator_from_file():
 
     obs = RequiredDataValidator.from_file(REQUIRED_DATA_TEST_DIR / "requiredData.yaml")
 
-    assert obs.dict(exclude_unset=True) == exp
+    assert obs.model_dump(exclude_unset=True) == exp
 
 
 def test_RequiredDataValidator_validate_with_definition():
