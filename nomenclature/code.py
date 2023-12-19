@@ -84,11 +84,9 @@ class Code(BaseModel):
     @property
     def flattened_dict(self):
         return {
-            **{
-                k: v
-                for k, v in self.model_dump(by_alias=True, exclude_unset=True).items()
-                if k != "extra_attributes"
-            },
+            **self.model_dump(
+                by_alias=True, exclude_unset=True, exclude="extra_attributes"
+            ),
             **self.extra_attributes,
         }
 
