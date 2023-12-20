@@ -183,15 +183,15 @@ def test_region_processor_wrong_args():
         match=".*path\n.*does not point to a directory.*",
     ):
         RegionProcessor.from_directory(
-            TEST_DATA_DIR / "regionprocessor_working/mapping_1.yml"
+            path=TEST_DATA_DIR / "regionprocessor_working/mapping_1.yml"
         )
 
 
 def test_region_processor_multiple_wrong_mappings(simple_definition):
     # Read in the entire region_aggregation directory and return **all** errors
-    msg = "9 validation errors for RegionProcessor"
+    msg = "Collected 9 errors"
 
-    with pytest.raises(pydantic.ValidationError, match=msg):
+    with pytest.raises(ValueError, match=msg):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "region_aggregation", simple_definition
         )
@@ -201,7 +201,7 @@ def test_region_processor_exclude_model_native_overlap_raises(simple_definition)
     # Test that exclude regions in either native or common regions raise errors
 
     with pytest.raises(
-        pydantic.ValidationError,
+        ValueError,
         match=(
             "'region_a'.* ['native_regions'|'common_regions'].*\n.*\n.*'region_a'.*"
             "['native_regions'|'common_regions']"

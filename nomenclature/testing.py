@@ -7,6 +7,7 @@ import yaml
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor import RegionProcessor, RequiredDataValidator
+from nomenclature.error import ErrorCollector
 
 logger = logging.getLogger(__name__)
 
@@ -66,15 +67,14 @@ def _check_mappings(
 def _collect_RequiredData_errors(
     required_data_dir: Path, dsd: DataStructureDefinition
 ) -> None:
-    errors: List[str] = []
+    errors = ErrorCollector()
     for file in required_data_dir.iterdir():
         try:
             RequiredDataValidator.from_file(file).validate_with_definition(dsd)
-        except pydantic.ValidationError as pve:
-            errors.append(str(pve))
+        except ValueError as error:
+            errors.append(error)
     if errors:
-        all_errors = "\n".join(errors)
-        raise ValueError(f"Found error(s) in required data files: {all_errors}")
+        raise ValueError(f"Found error(s) in required data files:\n{errors}")
 
 
 def _check_RequiredData(

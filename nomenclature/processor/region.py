@@ -484,7 +484,7 @@ class RegionProcessor(Processor):
 
         """
         mapping_dict: Dict[str, RegionAggregationMapping] = {}
-        errors: List[ValueError] = []
+        errors = ErrorCollector()
 
         mapping_files = [f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}]
 
@@ -516,7 +516,7 @@ class RegionProcessor(Processor):
                 errors.append(error)
 
         if errors:
-            raise ValueError(f"Encountered error(s) creating RegionProcessor: {errors}")
+            raise ValueError(errors)
 
         if missing_dims := [
             dim for dim in ("region", "variable") if not hasattr(dsd, dim)

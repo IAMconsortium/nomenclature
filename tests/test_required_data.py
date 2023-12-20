@@ -96,7 +96,7 @@ def test_RequiredData_apply_raises(simple_df, caplog):
         REQUIRED_DATA_TEST_DIR / "requiredData_apply_error.yaml"
     )
     # assert that the correct error is raised
-    with pytest.raises(RequiredDataMissingError, match="Required data missing"):
+    with pytest.raises(ValueError, match="Required data missing"):
         required_data_validator.apply(simple_df)
 
     missing_data = [
