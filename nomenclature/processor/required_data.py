@@ -1,16 +1,23 @@
 import logging
 from pathlib import Path
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union, Annotated
 
 import pandas as pd
 import pydantic
 import yaml
 import pyam
 from pyam import IamDataFrame
-from pydantic import field_validator, model_validator, BaseModel, validator, Field
+from pydantic import (
+    field_validator,
+    model_validator,
+    BaseModel,
+    validator,
+    Field,
+    BeforeValidator,
+)
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.error import pydantic_custom_errors
+from nomenclature.error import custom_pydantic_errors, ErrorCollector
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 
@@ -62,15 +69,6 @@ class RequiredData(BaseModel):
         if values.get("measurand") is None and values.get("variable") is None:
             raise ValueError("Either 'measurand' or 'variable' must be given.")
         return values
-
-    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
-    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
-    @validator("measurand", pre=True, each_item=True)
-    def cast_to_RequiredMeasurand(cls, v):
-        if len(v) != 1:
-            raise ValueError("Measurand must be a single value dictionary")
-        variable = next(iter(v))
-        return RequiredMeasurand(variable=variable, **v[variable])
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         error_msg = ""
@@ -186,9 +184,7 @@ class RequiredDataValidator(Processor):
                 get_relative_path(self.file),
                 missing_data_log_info,
             )
-            raise RequiredDataMissingError(
-                "Required data missing. Please check the log for details."
-            )
+            raise ValueError("Required data missing. Please check the log for details.")
         return df
 
     def check_required_data_per_model(
@@ -220,19 +216,11 @@ class RequiredDataValidator(Processor):
         return missing_data
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
-        errors = []
-        for i, data in enumerate(self.required_data):
+        errors = ErrorCollector()
+        for data in self.required_data:
             try:
                 data.validate_with_definition(dsd)
             except ValueError as value_error:
-                errors.append(
-                    ErrorWrapper(
-                        value_error,
-                        (
-                            f"In file {get_relative_path(self.file)}\n"
-                            f"entry nr. {i+1}"
-                        ),
-                    )
-                )
+                errors.append(value_error)
         if errors:
-            raise pydantic.ValidationError(errors, model=self.__class__)
+            raise ValueError(f"In file {get_relative_path(self.file)}:\n{errors}")
