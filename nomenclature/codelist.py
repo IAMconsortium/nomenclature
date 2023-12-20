@@ -13,7 +13,7 @@ from pydantic_core import PydanticCustomError
 import nomenclature
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import NomenclatureConfig
-from nomenclature.error import pydantic_custom_errors
+from nomenclature.error import custom_pydantic_errors
 from pyam.utils import is_list_like
 
 here = Path(__file__).parent.absolute()
@@ -479,7 +479,7 @@ class VariableCodeList(CodeList):
             if var.region_aggregation is not None:
                 if conflict_args := list(var.pyam_agg_kwargs.keys()):
                     raise PydanticCustomError(
-                        *pydantic_custom_errors.VariableRenameArgError,
+                        *custom_pydantic_errors.VariableRenameArgError,
                         {"variable": var.name, "file": var.file, "args": conflict_args},
                     )
 
@@ -489,7 +489,7 @@ class VariableCodeList(CodeList):
                     invalid.extend(var for var in inst if var not in v)
                 if invalid:
                     raise PydanticCustomError(
-                        *pydantic_custom_errors.VariableRenameTargetError,
+                        *custom_pydantic_errors.VariableRenameTargetError,
                         {"variable": var.name, "file": var.file, "target": invalid},
                     )
         return v
@@ -504,7 +504,7 @@ class VariableCodeList(CodeList):
             if var.weight is not None and var.weight not in v
         ]:
             raise PydanticCustomError(
-                *pydantic_custom_errors.MissingWeightError,
+                *custom_pydantic_errors.MissingWeightError,
                 {
                     "missing_weights": "".join(
                         f"'{weight}' used for '{var}' in: {file}\n"
