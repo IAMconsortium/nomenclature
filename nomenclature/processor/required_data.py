@@ -27,11 +27,22 @@ class RequiredMeasurand(BaseModel):
         return v if isinstance(v, list) else [v]
 
 
+def cast_to_RequiredMeasurand(v) -> RequiredMeasurand:
+    if isinstance(v, RequiredMeasurand):
+        return v
+    if len(v) != 1:
+        raise ValueError("Measurand must be a single value dictionary")
+    variable = next(iter(v))
+    return RequiredMeasurand(variable=variable, **v[variable])
+
+
 class RequiredData(BaseModel):
-    measurand: Optional[List[RequiredMeasurand]] = None
-    variable: Optional[List[str]] = None
-    region: Optional[List[str]] = None
-    year: Optional[List[int]] = None
+    measurand: List[
+        Annotated[RequiredMeasurand, BeforeValidator(cast_to_RequiredMeasurand)]
+    ] | None = None
+    variable: List[str] | None = None
+    region: List[str] | None = None
+    year: List[int] | None = None
 
     @field_validator("measurand", "region", "year", "variable", mode="before")
     @classmethod
