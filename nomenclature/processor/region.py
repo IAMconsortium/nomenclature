@@ -417,7 +417,7 @@ class RegionAggregationMapping(BaseModel):
             )
 
     def __eq__(self, other: "RegionAggregationMapping") -> bool:
-        return self.dict(exclude={"file"}) == other.dict(exclude={"file"})
+        return self.model_dump(exclude={"file"}) == other.model_dump(exclude={"file"})
 
     def to_yaml(self, file) -> None:
         dict_representation = {"model": self.model}
