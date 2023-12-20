@@ -1,9 +1,8 @@
 import logging
 from pathlib import Path
-from typing import Any, List, Optional, Tuple, Union, Annotated
+from typing import Any, List, Tuple, Union, Annotated
 
 import pandas as pd
-import pydantic
 import yaml
 import pyam
 from pyam import IamDataFrame
@@ -11,13 +10,12 @@ from pydantic import (
     field_validator,
     model_validator,
     BaseModel,
-    validator,
     Field,
     BeforeValidator,
 )
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.error import custom_pydantic_errors, ErrorCollector
+from nomenclature.error import ErrorCollector
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 

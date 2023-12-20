@@ -2,7 +2,6 @@ import logging
 from pathlib import Path
 from typing import List, Optional
 
-import pydantic
 import yaml
 
 from nomenclature.definition import DataStructureDefinition

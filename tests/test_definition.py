@@ -1,4 +1,3 @@
-import shutil
 import pytest
 import pandas as pd
 from nomenclature import DataStructureDefinition, create_yaml_from_xlsx
@@ -20,7 +19,6 @@ def test_definition_with_custom_dimension(simple_definition):
     assert obs.variable == simple_definition.variable
 
     # check that "custom" dimensions are as expected
-    file = "scenario/scenarios.yaml"
     assert obs.scenario["scen_a"] == Code(
         name="scen_a", extra_attributes={"attribute": "value"}
     )

@@ -9,7 +9,6 @@ from nomenclature import (
     RegionProcessor,
     process,
 )
-from nomenclature.error import custom_pydantic_errors
 from nomenclature.processor.region import NativeRegion, CommonRegion
 from pyam import IamDataFrame, assert_iamframe_equal
 from pyam.utils import IAMC_IDX
