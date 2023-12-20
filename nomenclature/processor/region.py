@@ -25,7 +25,7 @@ from pydantic_core import PydanticCustomError
 
 from nomenclature.codelist import RegionCodeList, VariableCodeList
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.error import pydantic_custom_errors
+from nomenclature.error import custom_pydantic_errors, ErrorCollector
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 from nomenclature.validation import log_error
@@ -149,7 +149,7 @@ class RegionAggregationMapping(BaseModel):
         ]:
             # Raise a RegionNameCollisionError with parameters duplicates and file.
             raise PydanticCustomError(
-                *pydantic_custom_errors.RegionNameCollisionError,
+                *custom_pydantic_errors.RegionNameCollisionError,
                 {
                     "location": "native regions (names)",
                     "duplicates": duplicates,
@@ -167,7 +167,7 @@ class RegionAggregationMapping(BaseModel):
         if duplicates:
             # Raise a RegionNameCollisionError with parameters duplicates and file.
             raise PydanticCustomError(
-                *pydantic_custom_errors.RegionNameCollisionError,
+                *custom_pydantic_errors.RegionNameCollisionError,
                 {
                     "location": "native regions (rename-targets)",
                     "duplicates": duplicates,
@@ -182,7 +182,7 @@ class RegionAggregationMapping(BaseModel):
         duplicates = [item for item, count in Counter(names).items() if count > 1]
         if duplicates:
             raise PydanticCustomError(
-                *pydantic_custom_errors.RegionNameCollisionError,
+                *custom_pydantic_errors.RegionNameCollisionError,
                 {
                     "location": "common regions",
                     "duplicates": duplicates,
@@ -218,7 +218,7 @@ class RegionAggregationMapping(BaseModel):
         overlap = list(native_region_names & common_region_names)
         if overlap:
             raise PydanticCustomError(
-                *pydantic_custom_errors.RegionNameCollisionError,
+                *custom_pydantic_errors.RegionNameCollisionError,
                 {
                     "location": "native and common regions",
                     "duplicates": overlap,
@@ -389,12 +389,6 @@ class RegionAggregationMapping(BaseModel):
     def reverse_rename_mapping(self) -> Dict[str, str]:
         return {renamed: original for original, renamed in self.rename_mapping.items()}
 
-    def validate_regions(self, region_codelist: RegionCodeList) -> None:
-        if invalid := region_codelist.validate_items(self.all_regions):
-            raise ValueError(
-                f"Region(s) {invalid} in {self.file} not defined in the DataStructureDefinition"
-            )
-
     def check_unexpected_regions(self, df: IamDataFrame) -> None:
         # Raise error if a region in the input data is not used in the model mapping
 
@@ -441,7 +435,11 @@ class RegionAggregationMapping(BaseModel):
 
 def validate_with_definition(v: RegionAggregationMapping, info: ValidationInfo):
     """Check if mappings valid with respect to RegionCodeList."""
-    v.validate_regions(info.data["region_codelist"])
+    if invalid := info.data["region_codelist"].validate_items(v.all_regions):
+        raise PydanticCustomError(
+            *custom_pydantic_errors.RegionNotDefinedError,
+            {"regions": invalid, "file": v.file},
+        )
     return v
 
 
@@ -617,9 +615,6 @@ class RegionProcessor(Processor):
                 f"Must be called for a unique model, found: {model_df.model}"
             )
         model = model_df.model[0]
-
-        # before aggregating, check that all regions are valid
-        self.mappings[model].validate_regions(self.region_codelist)
 
         # check for regions not mentioned in the model mapping
         self.mappings[model].check_unexpected_regions(model_df)
@@ -805,9 +800,12 @@ def _check_exclude_region_overlap(
     if overlap := set(region_aggregation_mapping.exclude_regions) & {
         r.name for r in getattr(region_aggregation_mapping, region_type)
     }:
-        raise ExcludeRegionOverlapError(
-            region=overlap,
-            region_type=region_type,
-            file=region_aggregation_mapping["file"],
+        raise PydanticCustomError(
+            *custom_pydantic_errors.ExcludeRegionOverlapError,
+            {
+                "region": overlap,
+                "region_type": region_type,
+                "file": region_aggregation_mapping.file,
+            },
         )
     return region_aggregation_mapping
