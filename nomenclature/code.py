@@ -18,9 +18,7 @@ class Code(BaseModel):
     extra_attributes: Dict[str, Any] = {}
 
     def __eq__(self, other) -> bool:
-        return {key: value for key, value in dict(self).items() if key != "file"} == {
-            key: value for key, value in dict(other).items() if key != "file"
-        }
+        return self.model_dump(exclude="file") == other.model_dump(exclude="file")
 
     @field_validator("extra_attributes")
     @classmethod
