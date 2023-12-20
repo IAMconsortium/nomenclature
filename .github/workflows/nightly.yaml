@@ -60,4 +60,4 @@ jobs:
       run: poetry install --no-interaction
 
     - name: Test with pytest
-      run: poerty run pytest tests
+      run: poetry run pytest tests
