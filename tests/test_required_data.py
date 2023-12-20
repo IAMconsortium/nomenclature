@@ -6,30 +6,32 @@ from conftest import TEST_DATA_DIR
 from pyam import assert_iamframe_equal
 from nomenclature import DataStructureDefinition, RequiredDataValidator
 from nomenclature.processor.required_data import RequiredMeasurand
-from nomenclature.error import pydantic_custom_errors
+from nomenclature.error import custom_pydantic_errors
 
 REQUIRED_DATA_TEST_DIR = TEST_DATA_DIR / "required_data" / "required_data"
 
 
 def test_RequiredDataValidator_from_file():
-    exp = {
-        "description": "Required variables for running MAGICC",
-        "model": ["model_a"],
-        "required_data": [
-            {
-                "measurand": [
-                    RequiredMeasurand(variable="Emissions|CO2", unit="Mt CO2/yr")
-                ],
-                "region": ["World"],
-                "year": [2020, 2030, 2040, 2050],
-            },
-        ],
-        "file": REQUIRED_DATA_TEST_DIR / "requiredData.yaml",
-    }
+    exp = RequiredDataValidator(
+        **{
+            "description": "Required variables for running MAGICC",
+            "model": ["model_a"],
+            "required_data": [
+                {
+                    "measurand": [
+                        RequiredMeasurand(variable="Emissions|CO2", unit="Mt CO2/yr")
+                    ],
+                    "region": ["World"],
+                    "year": [2020, 2030, 2040, 2050],
+                },
+            ],
+            "file": REQUIRED_DATA_TEST_DIR / "requiredData.yaml",
+        }
+    )
 
     obs = RequiredDataValidator.from_file(REQUIRED_DATA_TEST_DIR / "requiredData.yaml")
 
-    assert obs.model_dump(exclude_unset=True) == exp
+    assert obs == exp
 
 
 def test_RequiredDataValidator_validate_with_definition():

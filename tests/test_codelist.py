@@ -10,7 +10,7 @@ from nomenclature.codelist import (
     RegionCodeList,
     MetaCodeList,
 )
-from nomenclature.error import pydantic_custom_errors
+from nomenclature.error import custom_pydantic_errors
 
 from conftest import TEST_DATA_DIR
 

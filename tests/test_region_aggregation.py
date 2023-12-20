@@ -9,7 +9,7 @@ from nomenclature import (
     RegionProcessor,
     process,
 )
-from nomenclature.error import pydantic_custom_errors
+from nomenclature.error import custom_pydantic_errors
 from nomenclature.processor.region import NativeRegion, CommonRegion
 from pyam import IamDataFrame, assert_iamframe_equal
 from pyam.utils import IAMC_IDX
@@ -145,17 +145,11 @@ def test_region_processor_not_defined(simple_definition):
     # definition
     error_msg = (
         "mappings.model_(a|b).*\n"
-        ".*region_a.*mapping_(1|2).yaml.*value_error.*\n"
-        ".*\n"
+        ".*region_a.*mapping_(1|2).yaml.*region_not_defined.*\n"
         "mappings.model_(a|b).*\n"
-        ".*region_a.*mapping_(1|2).yaml.*value_error"
+        ".*region_a.*mapping_(1|2).yaml.*region_not_defined"
     )
-    try:
-        RegionProcessor.from_directory(
-            TEST_DATA_DIR / "regionprocessor_not_defined", simple_definition
-        )
-    except pydantic.ValidationError as error:
-        pass
+
     with pytest.raises(ValueError, match=error_msg):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "regionprocessor_not_defined", simple_definition
@@ -175,7 +169,7 @@ def test_region_processor_wrong_args():
 
     # Test with an integer
     with pytest.raises(pydantic.ValidationError, match=".*path\n.*not a valid path.*"):
-        RegionProcessor.from_directory(123)
+        RegionProcessor.from_directory(path=123)
 
     # Test with a file, a path pointing to a directory is required
     with pytest.raises(
