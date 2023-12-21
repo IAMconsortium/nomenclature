@@ -10,7 +10,6 @@ from nomenclature.codelist import (
     RegionCodeList,
     MetaCodeList,
 )
-from nomenclature.error.codelist import DuplicateCodeError
 
 from conftest import TEST_DATA_DIR
 
@@ -45,7 +44,7 @@ def test_codelist_to_yaml():
 def test_duplicate_code_raises():
     """Check that code conflicts across different files raises"""
     match = "Duplicate item in variable codelist: Some Variable"
-    with pytest.raises(DuplicateCodeError, match=match):
+    with pytest.raises(ValueError, match=match):
         VariableCodeList.from_directory(
             "variable", TEST_DATA_DIR / "duplicate_code_raises"
         )
@@ -54,7 +53,7 @@ def test_duplicate_code_raises():
 def test_duplicate_tag_raises():
     """Check that code conflicts across different files raises"""
     match = "Duplicate item in tag codelist: Tag"
-    with pytest.raises(DuplicateCodeError, match=match):
+    with pytest.raises(ValueError, match=match):
         VariableCodeList.from_directory(
             "variable", TEST_DATA_DIR / "duplicate_tag_raises"
         )

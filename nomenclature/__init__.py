@@ -1,6 +1,5 @@
 import logging
 from importlib.metadata import version
-from pathlib import Path
 
 import yaml
 
@@ -10,7 +9,7 @@ from nomenclature.core import process  # noqa
 from nomenclature.countries import countries  # noqa
 from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition  # noqa
 from nomenclature.processor import RegionAggregationMapping  # noqa
-from nomenclature.processor import RegionProcessor, RequiredDataValidator
+from nomenclature.processor import RegionProcessor, RequiredDataValidator  # noqa
 
 # set up logging
 logging.basicConfig(

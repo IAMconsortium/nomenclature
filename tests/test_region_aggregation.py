@@ -9,7 +9,6 @@ from nomenclature import (
     RegionProcessor,
     process,
 )
-from nomenclature.error.region import RegionAggregationMappingParsingError
 from nomenclature.processor.region import NativeRegion, CommonRegion
 from pyam import IamDataFrame, assert_iamframe_equal
 from pyam.utils import IAMC_IDX
@@ -91,9 +90,7 @@ def test_illegal_mappings(file, error_msg_pattern):
 
 
 def test_mapping_parsing_error():
-    with pytest.raises(
-        RegionAggregationMappingParsingError, match="string indices must be integers"
-    ):
+    with pytest.raises(ValueError, match="string indices must be integers"):
         RegionAggregationMapping.from_file(
             TEST_FOLDER_REGION_MAPPING / "illegal_mapping_invalid_format_dict.yaml"
         )
@@ -146,11 +143,13 @@ def test_region_processor_not_defined(simple_definition):
     # Test a RegionProcessor with regions that are not defined in the data structure
     # definition
     error_msg = (
-        "model_(a|b).*\n.*region_a.*mapping_(1|2).yaml.*value_error.region_not_defined"
-        ".*\n.*model_(a|b).*\n.*region_a.*mapping_(1|2).yaml.*value_error."
-        "region_not_defined"
+        "mappings.model_(a|b).*\n"
+        ".*region_a.*mapping_(1|2).yaml.*region_not_defined.*\n"
+        "mappings.model_(a|b).*\n"
+        ".*region_a.*mapping_(1|2).yaml.*region_not_defined"
     )
-    with pytest.raises(pydantic.ValidationError, match=error_msg):
+
+    with pytest.raises(ValueError, match=error_msg):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "regionprocessor_not_defined", simple_definition
         )
@@ -158,7 +157,7 @@ def test_region_processor_not_defined(simple_definition):
 
 def test_region_processor_duplicate_model_mapping(simple_definition):
     error_msg = ".*model_a.*mapping_(1|2).yaml.*mapping_(1|2).yaml"
-    with pytest.raises(pydantic.ValidationError, match=error_msg):
+    with pytest.raises(ValueError, match=error_msg):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "regionprocessor_duplicate", simple_definition
         )
@@ -169,7 +168,7 @@ def test_region_processor_wrong_args():
 
     # Test with an integer
     with pytest.raises(pydantic.ValidationError, match=".*path\n.*not a valid path.*"):
-        RegionProcessor.from_directory(123)
+        RegionProcessor.from_directory(path=123)
 
     # Test with a file, a path pointing to a directory is required
     with pytest.raises(
@@ -177,15 +176,15 @@ def test_region_processor_wrong_args():
         match=".*path\n.*does not point to a directory.*",
     ):
         RegionProcessor.from_directory(
-            TEST_DATA_DIR / "regionprocessor_working/mapping_1.yml"
+            path=TEST_DATA_DIR / "regionprocessor_working/mapping_1.yml"
         )
 
 
 def test_region_processor_multiple_wrong_mappings(simple_definition):
     # Read in the entire region_aggregation directory and return **all** errors
-    msg = "9 validation errors for RegionProcessor"
+    msg = "Collected 9 errors"
 
-    with pytest.raises(pydantic.ValidationError, match=msg):
+    with pytest.raises(ValueError, match=msg):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "region_aggregation", simple_definition
         )
@@ -195,7 +194,7 @@ def test_region_processor_exclude_model_native_overlap_raises(simple_definition)
     # Test that exclude regions in either native or common regions raise errors
 
     with pytest.raises(
-        pydantic.ValidationError,
+        ValueError,
         match=(
             "'region_a'.* ['native_regions'|'common_regions'].*\n.*\n.*'region_a'.*"
             "['native_regions'|'common_regions']"

@@ -1,17 +1,21 @@
 import logging
 from pathlib import Path
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Tuple, Union, Annotated
 
 import pandas as pd
-import pydantic
 import yaml
 import pyam
 from pyam import IamDataFrame
-from pydantic import BaseModel, validator, root_validator, Field
-from pydantic.error_wrappers import ErrorWrapper
+from pydantic import (
+    field_validator,
+    model_validator,
+    BaseModel,
+    Field,
+    BeforeValidator,
+)
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.error.required_data import RequiredDataMissingError
+from nomenclature.error import ErrorCollector
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 
@@ -22,39 +26,47 @@ class RequiredMeasurand(BaseModel):
     variable: str
     unit: List[Union[str, None]] = Field(...)
 
-    @validator("unit", pre=True)
+    @field_validator("unit", mode="before")
+    @classmethod
     def single_input_to_list(cls, v):
         return v if isinstance(v, list) else [v]
+
+
+def cast_to_RequiredMeasurand(v) -> RequiredMeasurand:
+    if isinstance(v, RequiredMeasurand):
+        return v
+    if len(v) != 1:
+        raise ValueError("Measurand must be a single value dictionary")
+    variable = next(iter(v))
+    return RequiredMeasurand(variable=variable, **v[variable])
 
 
 class RequiredData(BaseModel):
-    measurand: Optional[List[RequiredMeasurand]]
-    variable: Optional[List[str]]
-    region: Optional[List[str]]
-    year: Optional[List[int]]
+    measurand: List[
+        Annotated[RequiredMeasurand, BeforeValidator(cast_to_RequiredMeasurand)]
+    ] | None = None
+    variable: List[str] | None = None
+    region: List[str] | None = None
+    year: List[int] | None = None
 
-    @validator("measurand", "region", "year", "variable", pre=True)
+    @field_validator("measurand", "region", "year", "variable", mode="before")
+    @classmethod
     def single_input_to_list(cls, v):
         return v if isinstance(v, list) else [v]
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def check_variable_measurand_collision(cls, values):
         if values.get("measurand") and values.get("variable"):
             raise ValueError("'measurand' and 'variable' cannot be used together.")
         return values
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def check_variable_measurand_neither(cls, values):
         if values.get("measurand") is None and values.get("variable") is None:
             raise ValueError("Either 'measurand' or 'variable' must be given.")
         return values
-
-    @validator("measurand", pre=True, each_item=True)
-    def cast_to_RequiredMeasurand(cls, v):
-        if len(v) != 1:
-            raise ValueError("Measurand must be a single value dictionary")
-        variable = next(iter(v))
-        return RequiredMeasurand(variable=variable, **v[variable])
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         error_msg = ""
@@ -133,12 +145,13 @@ class RequiredData(BaseModel):
 
 
 class RequiredDataValidator(Processor):
-    description: Optional[str]
-    model: Optional[List[str]]
+    description: str | None = None
+    model: List[str] | None = None
     required_data: List[RequiredData]
     file: Path
 
-    @validator("model", pre=True)
+    @field_validator("model", mode="before")
+    @classmethod
     def convert_to_list(cls, v):
         return pyam.utils.to_list(v)
 
@@ -169,9 +182,7 @@ class RequiredDataValidator(Processor):
                 get_relative_path(self.file),
                 missing_data_log_info,
             )
-            raise RequiredDataMissingError(
-                "Required data missing. Please check the log for details."
-            )
+            raise ValueError("Required data missing. Please check the log for details.")
         return df
 
     def check_required_data_per_model(
@@ -203,19 +214,11 @@ class RequiredDataValidator(Processor):
         return missing_data
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
-        errors = []
-        for i, data in enumerate(self.required_data):
+        errors = ErrorCollector()
+        for data in self.required_data:
             try:
                 data.validate_with_definition(dsd)
             except ValueError as value_error:
-                errors.append(
-                    ErrorWrapper(
-                        value_error,
-                        (
-                            f"In file {get_relative_path(self.file)}\n"
-                            f"entry nr. {i+1}"
-                        ),
-                    )
-                )
+                errors.append(value_error)
         if errors:
-            raise pydantic.ValidationError(errors, model=self.__class__)
+            raise ValueError(f"In file {get_relative_path(self.file)}:\n{errors}")

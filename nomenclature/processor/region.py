@@ -2,28 +2,29 @@ import logging
 from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
+from typing_extensions import Annotated
 
 import numpy as np
 import pandas as pd
 import pyam
-import pydantic
 import yaml
 from pyam import IamDataFrame
 from pyam.logging import adjust_log_level
-from pydantic import BaseModel, root_validator, validate_arguments, validator
-from pydantic.error_wrappers import ErrorWrapper
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+    validate_call,
+)
 from pydantic.types import DirectoryPath, FilePath
+from pydantic_core import PydanticCustomError
 
 from nomenclature.codelist import RegionCodeList, VariableCodeList
-from nomenclature.config import NomenclatureConfig
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.error.region import (
-    ExcludeRegionOverlapError,
-    ModelMappingCollisionError,
-    RegionAggregationMappingParsingError,
-    RegionNameCollisionError,
-    RegionNotDefinedError,
-)
+from nomenclature.error import custom_pydantic_errors, ErrorCollector
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 from nomenclature.validation import log_error
@@ -47,7 +48,7 @@ class NativeRegion(BaseModel):
     """
 
     name: str
-    rename: Optional[str]
+    rename: Optional[str] = None
 
     @property
     def target_native_region(self) -> str:
@@ -116,16 +117,17 @@ class RegionAggregationMapping(BaseModel):
 
     model: List[str]
     file: FilePath
-    native_regions: Optional[List[NativeRegion]]
-    common_regions: Optional[List[CommonRegion]]
-    exclude_regions: Optional[List[str]]
+    native_regions: List[NativeRegion] | None = None
+    common_regions: List[CommonRegion] | None = None
+    exclude_regions: List[str] | None = None
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def check_no_additional_attributes(cls, v):
         if illegal_additional_attributes := [
             input_attribute
             for input_attribute in v.keys()
-            if input_attribute not in cls.__dict__["__fields__"]
+            if input_attribute not in cls.model_fields
         ]:
             raise ValueError(
                 "Illegal attributes in 'RegionAggregationMapping': "
@@ -133,89 +135,110 @@ class RegionAggregationMapping(BaseModel):
             )
         return v
 
-    @validator("model", pre=True)
+    @field_validator("model", mode="before")
+    @classmethod
     def convert_to_list(cls, v):
         return pyam.utils.to_list(v)
 
-    @validator("native_regions")
-    def validate_native_regions_name(cls, v, values):
+    @field_validator("native_regions")
+    def validate_native_regions_name(cls, v, info: ValidationInfo):
         native_names = [nr.name for nr in v]
-        duplicates = [
+        if duplicates := [
             item for item, count in Counter(native_names).items() if count > 1
-        ]
-        if duplicates:
+        ]:
             # Raise a RegionNameCollisionError with parameters duplicates and file.
-            raise RegionNameCollisionError(
-                location="native regions (names)",
-                duplicates=duplicates,
-                file=values["file"],
+            raise PydanticCustomError(
+                *custom_pydantic_errors.RegionNameCollisionError,
+                {
+                    "location": "native regions (names)",
+                    "duplicates": duplicates,
+                    "file": info.data["file"],
+                },
             )
         return v
 
-    @validator("native_regions")
-    def validate_native_regions_target(cls, v, values):
+    @field_validator("native_regions")
+    def validate_native_regions_target(cls, v, info: ValidationInfo):
         target_names = [nr.target_native_region for nr in v]
         duplicates = [
             item for item, count in Counter(target_names).items() if count > 1
         ]
         if duplicates:
             # Raise a RegionNameCollisionError with parameters duplicates and file.
-            raise RegionNameCollisionError(
-                location="native regions (rename-targets)",
-                duplicates=duplicates,
-                file=values["file"],
+            raise PydanticCustomError(
+                *custom_pydantic_errors.RegionNameCollisionError,
+                {
+                    "location": "native regions (rename-targets)",
+                    "duplicates": duplicates,
+                    "file": info.data["file"],
+                },
             )
         return v
 
-    @validator("common_regions")
-    def validate_common_regions(cls, v, values):
+    @field_validator("common_regions")
+    def validate_common_regions(cls, v, info: ValidationInfo):
         names = [cr.name for cr in v]
         duplicates = [item for item, count in Counter(names).items() if count > 1]
         if duplicates:
-            raise RegionNameCollisionError(
-                location="common regions", duplicates=duplicates, file=values["file"]
+            raise PydanticCustomError(
+                *custom_pydantic_errors.RegionNameCollisionError,
+                {
+                    "location": "common regions",
+                    "duplicates": duplicates,
+                    "file": info.data["file"],
+                },
             )
         return v
 
-    @root_validator(skip_on_failure=True)
-    def check_native_or_common_regions(cls, values):
+    @model_validator(mode="after")
+    @classmethod
+    def check_native_or_common_regions(
+        cls, v: "RegionAggregationMapping"
+    ) -> "RegionAggregationMapping":
         # Check that we have at least one of the two: native and common regions
-        if (
-            values.get("native_regions") is None
-            and values.get("common_regions") is None
-        ):
+        if v.native_regions is None and v.common_regions is None:
             raise ValueError(
                 "At least one of 'native_regions' and 'common_regions' must be "
-                f"provided in {values['file']}"
+                f"provided in {v.file}"
             )
-        return values
+        return v
 
-    @root_validator(skip_on_failure=True)
-    def check_illegal_renaming(cls, values):
+    @model_validator(mode="after")
+    @classmethod
+    def check_illegal_renaming(
+        cls, v: "RegionAggregationMapping"
+    ) -> "RegionAggregationMapping":
         """Check if any renaming overlaps with common regions"""
         # Skip if only either native-regions or common-regions are specified
-        if values.get("native_regions") is None or values.get("common_regions") is None:
-            return values
-        native_region_names = {
-            nr.target_native_region for nr in values["native_regions"]
-        }
-        common_region_names = {cr.name for cr in values["common_regions"]}
+        if v.native_regions is None or v.common_regions is None:
+            return v
+        native_region_names = {nr.target_native_region for nr in v.native_regions}
+        common_region_names = {cr.name for cr in v.common_regions}
         overlap = list(native_region_names & common_region_names)
         if overlap:
-            raise RegionNameCollisionError(
-                location="native and common regions",
-                duplicates=overlap,
-                file=values["file"],
+            raise PydanticCustomError(
+                *custom_pydantic_errors.RegionNameCollisionError,
+                {
+                    "location": "native and common regions",
+                    "duplicates": overlap,
+                    "file": v.file,
+                },
             )
-        return values
+        return v
 
-    @root_validator(skip_on_failure=True)
-    def check_exclude_native_region_overlap(cls, values):
-        return _check_exclude_region_overlap(values, "native_regions")
+    @model_validator(mode="after")
+    @classmethod
+    def check_exclude_native_region_overlap(
+        cls, v: "RegionAggregationMapping"
+    ) -> "RegionAggregationMapping":
+        return _check_exclude_region_overlap(v, "native_regions")
 
-    @root_validator(skip_on_failure=True)
-    def check_exclude_common_region_overlap(cls, values):
-        return _check_exclude_region_overlap(values, "common_regions")
+    @model_validator(mode="after")
+    @classmethod
+    def check_exclude_common_region_overlap(
+        cls, v: "RegionAggregationMapping"
+    ) -> "RegionAggregationMapping":
+        return _check_exclude_region_overlap(v, "common_regions")
 
     @classmethod
     def from_file(cls, file: Union[Path, str]):
@@ -286,9 +309,7 @@ class RegionAggregationMapping(BaseModel):
                     )
                 mapping_input["common_regions"] = common_region_list
         except Exception as error:
-            raise RegionAggregationMappingParsingError(
-                file=get_relative_path(file), error=str(error)
-            ) from error
+            raise ValueError(f"{error} in {get_relative_path(file)}") from error
         return cls(**mapping_input)
 
     @classmethod
@@ -327,11 +348,8 @@ class RegionAggregationMapping(BaseModel):
                 .to_dict()
                 .items()
             ]
-            # common_regions = [for common_region_group in common_region_groups for ]
         except Exception as error:
-            raise RegionAggregationMappingParsingError(
-                file=get_relative_path(file), error=str(error)
-            ) from error
+            raise ValueError(f"{error} in {get_relative_path(file)}") from error
         return cls(
             model=model,
             file=file,
@@ -370,10 +388,6 @@ class RegionAggregationMapping(BaseModel):
     def reverse_rename_mapping(self) -> Dict[str, str]:
         return {renamed: original for original, renamed in self.rename_mapping.items()}
 
-    def validate_regions(self, region_codelist: RegionCodeList) -> None:
-        if invalid := region_codelist.validate_items(self.all_regions):
-            raise RegionNotDefinedError(region=invalid, file=self.file)
-
     def check_unexpected_regions(self, df: IamDataFrame) -> None:
         # Raise error if a region in the input data is not used in the model mapping
 
@@ -396,7 +410,7 @@ class RegionAggregationMapping(BaseModel):
             )
 
     def __eq__(self, other: "RegionAggregationMapping") -> bool:
-        return self.dict(exclude={"file"}) == other.dict(exclude={"file"})
+        return self.model_dump(exclude={"file"}) == other.model_dump(exclude={"file"})
 
     def to_yaml(self, file) -> None:
         dict_representation = {"model": self.model}
@@ -418,15 +432,29 @@ class RegionAggregationMapping(BaseModel):
             yaml.dump(dict_representation, f, sort_keys=False)
 
 
+def validate_with_definition(v: RegionAggregationMapping, info: ValidationInfo):
+    """Check if mappings valid with respect to RegionCodeList."""
+    if invalid := info.data["region_codelist"].validate_items(v.all_regions):
+        raise PydanticCustomError(
+            *custom_pydantic_errors.RegionNotDefinedError,
+            {"regions": invalid, "file": v.file},
+        )
+    return v
+
+
 class RegionProcessor(Processor):
     """Region aggregation mappings for scenario processing"""
 
     region_codelist: RegionCodeList
     variable_codelist: VariableCodeList
-    mappings: Dict[str, RegionAggregationMapping]
+    mappings: Dict[
+        str,
+        Annotated[RegionAggregationMapping, AfterValidator(validate_with_definition)],
+    ]
+    model_config = ConfigDict(hide_input_in_errors=True)
 
     @classmethod
-    @validate_arguments(config={"arbitrary_types_allowed": True})
+    @validate_call(config={"arbitrary_types_allowed": True})
     def from_directory(cls, path: DirectoryPath, dsd: DataStructureDefinition):
         """Initialize a RegionProcessor from a directory of model-aggregation mappings.
 
@@ -445,11 +473,15 @@ class RegionProcessor(Processor):
 
         Raises
         ------
-        ModelMappingCollisionError
-            Raised in case there are multiple mappings defined for the same model.
+        ValueError
+            Raised in case there are multiple mappings defined for the same model or
+            there is an issue with region the RegionAggregationMapping
+        AttributeError
+            Raised if the provided DataStructureDefinition does not contain the dimensions ``region`` and ``variable``.
+
         """
         mapping_dict: Dict[str, RegionAggregationMapping] = {}
-        errors: List[ErrorWrapper] = []
+        errors = ErrorCollector()
 
         mapping_files = [f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}]
 
@@ -471,42 +503,30 @@ class RegionProcessor(Processor):
                         mapping_dict[model] = mapping
                     else:
                         errors.append(
-                            ErrorWrapper(
-                                ModelMappingCollisionError(
-                                    model=model,
-                                    file1=mapping.file,
-                                    file2=mapping_dict[model].file,
-                                ),
-                                "__root__",
+                            ValueError(
+                                "Multiple region aggregation mappings for "
+                                f"model {model} in [{mapping.file}, "
+                                f"{mapping_dict[model].file}]"
                             )
                         )
-            except (
-                pydantic.ValidationError,
-                RegionAggregationMappingParsingError,
-            ) as error:
-                errors.append(ErrorWrapper(error, "__root__"))
+            except ValueError as error:
+                errors.append(error)
 
         if errors:
-            raise pydantic.ValidationError(errors, model=RegionProcessor)
+            raise ValueError(errors)
 
         if missing_dims := [
             dim for dim in ("region", "variable") if not hasattr(dsd, dim)
         ]:
             raise AttributeError(
-                "Provided DataStructureDefinition is missing the following attributes "
-                f"{missing_dims}"
+                "Provided DataStructureDefinition is missing the following "
+                f"attributes: {missing_dims}"
             )
         return cls(
             mappings=mapping_dict,
             region_codelist=dsd.region,
             variable_codelist=dsd.variable,
         )
-
-    @validator("mappings", each_item=True)
-    def validate_with_definition(cls, v, values):
-        """Check if all mappings are valid and collect all errors."""
-        v.validate_regions(values["region_codelist"])
-        return v
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
         """Apply region processing
@@ -594,9 +614,6 @@ class RegionProcessor(Processor):
                 f"Must be called for a unique model, found: {model_df.model}"
             )
         model = model_df.model[0]
-
-        # before aggregating, check that all regions are valid
-        self.mappings[model].validate_regions(self.region_codelist)
 
         # check for regions not mentioned in the model mapping
         self.mappings[model].check_unexpected_regions(model_df)
@@ -771,13 +788,23 @@ def _compare_and_merge(
     return pd.concat([original, aggregated[index]]), difference
 
 
-def _check_exclude_region_overlap(values: Dict, region_type: str) -> Dict:
-    if values.get("exclude_regions") is None or values.get(region_type) is None:
-        return values
-    if overlap := set(values["exclude_regions"]) & {
-        r.name for r in values[region_type]
+def _check_exclude_region_overlap(
+    region_aggregation_mapping: RegionAggregationMapping, region_type: str
+) -> RegionAggregationMapping:
+    if (
+        region_aggregation_mapping.exclude_regions is None
+        or getattr(region_aggregation_mapping, region_type) is None
+    ):
+        return region_aggregation_mapping
+    if overlap := set(region_aggregation_mapping.exclude_regions) & {
+        r.name for r in getattr(region_aggregation_mapping, region_type)
     }:
-        raise ExcludeRegionOverlapError(
-            region=overlap, region_type=region_type, file=values["file"]
+        raise PydanticCustomError(
+            *custom_pydantic_errors.ExcludeRegionOverlapError,
+            {
+                "region": overlap,
+                "region_type": region_type,
+                "file": region_aggregation_mapping.file,
+            },
         )
-    return values
+    return region_aggregation_mapping

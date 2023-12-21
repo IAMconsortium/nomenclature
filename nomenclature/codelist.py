@@ -7,17 +7,13 @@ import numpy as np
 import pandas as pd
 import yaml
 from pyam.utils import write_sheet
-from pydantic import BaseModel, validator
+from pydantic import field_validator, BaseModel, ValidationInfo
+from pydantic_core import PydanticCustomError
 
 import nomenclature
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import NomenclatureConfig
-from nomenclature.error.codelist import DuplicateCodeError
-from nomenclature.error.variable import (
-    MissingWeightError,
-    VariableRenameArgError,
-    VariableRenameTargetError,
-)
+from nomenclature.error import custom_pydantic_errors
 from pyam.utils import is_list_like
 
 here = Path(__file__).parent.absolute()
@@ -45,8 +41,9 @@ class CodeList(BaseModel):
     def __eq__(self, other):
         return self.name == other.name and self.mapping == other.mapping
 
-    @validator("mapping")
-    def check_stray_tag(cls, v):
+    @field_validator("mapping")
+    @classmethod
+    def check_stray_tag(cls, v: Dict[str, Code]) -> Dict[str, Code]:
         """Check that no '{' are left in codes after tag replacement"""
         for code in v:
             if "{" in code:
@@ -56,20 +53,22 @@ class CodeList(BaseModel):
                 )
         return v
 
-    @validator("mapping")
-    def check_end_whitespace(cls, v, values):
+    @field_validator("mapping")
+    def check_end_whitespace(
+        cls, v: Dict[str, Code], info: ValidationInfo
+    ) -> Dict[str, Code]:
         """Check that no code ends with a whitespace"""
         for code in v:
             if code.endswith(" "):
                 raise ValueError(
-                    f"Unexpected whitespace at the end of a {values['name']}"
+                    f"Unexpected whitespace at the end of a {info.data['name']}"
                     f" code: '{code}'."
                 )
         return v
 
     def __setitem__(self, key, value):
         if key in self.mapping:
-            raise DuplicateCodeError(name=self.name, code=key)
+            raise ValueError(f"Duplicate item in {self.name} codelist: {key}")
         self.mapping[key] = value
 
     def __getitem__(self, k):
@@ -154,7 +153,7 @@ class CodeList(BaseModel):
             for tag in _tag_list:
                 tag_name = next(iter(tag))
                 if tag_name in tag_dict:
-                    raise DuplicateCodeError(name="tag", code=tag_name)
+                    raise ValueError(f"Duplicate item in tag codelist: {tag_name}")
                 tag_dict[tag_name] = [Code.from_dict(t) for t in tag[tag_name]]
 
         # start with all non tag codes
@@ -213,7 +212,7 @@ class CodeList(BaseModel):
         mapping: Dict[str, Code] = {}
         for code in code_list:
             if code.name in mapping:
-                raise DuplicateCodeError(name=name, code=code.name)
+                raise ValueError(f"Duplicate item in {name} codelist: {code.name}")
             mapping[code.name] = code
         return cls(name=name, mapping=mapping)
 
@@ -469,7 +468,8 @@ class VariableCodeList(CodeList):
 
         return sorted(list(units))
 
-    @validator("mapping")
+    @field_validator("mapping")
+    @classmethod
     def check_variable_region_aggregation_args(cls, v):
         """Check that any variable "region-aggregation" mappings are valid"""
 
@@ -478,10 +478,9 @@ class VariableCodeList(CodeList):
             # pyam-aggregation-kwargs and a 'region-aggregation' attribute
             if var.region_aggregation is not None:
                 if conflict_args := list(var.pyam_agg_kwargs.keys()):
-                    raise VariableRenameArgError(
-                        variable=var.name,
-                        file=var.file,
-                        args=conflict_args,
+                    raise PydanticCustomError(
+                        *custom_pydantic_errors.VariableRenameArgError,
+                        {"variable": var.name, "file": var.file, "args": conflict_args},
                     )
 
                 # ensure that mapped variables are defined in the nomenclature
@@ -489,12 +488,14 @@ class VariableCodeList(CodeList):
                 for inst in var.region_aggregation:
                     invalid.extend(var for var in inst if var not in v)
                 if invalid:
-                    raise VariableRenameTargetError(
-                        variable=var.name, file=var.file, target=invalid
+                    raise PydanticCustomError(
+                        *custom_pydantic_errors.VariableRenameTargetError,
+                        {"variable": var.name, "file": var.file, "target": invalid},
                     )
         return v
 
-    @validator("mapping")
+    @field_validator("mapping")
+    @classmethod
     def check_weight_in_vars(cls, v):
         """Check that all variables specified in 'weight' are present in the codelist"""
         if missing_weights := [
@@ -502,15 +503,19 @@ class VariableCodeList(CodeList):
             for var in v.values()
             if var.weight is not None and var.weight not in v
         ]:
-            raise MissingWeightError(
-                missing_weights="".join(
-                    f"'{weight}' used for '{var}' in: {file}\n"
-                    for var, weight, file in missing_weights
-                )
+            raise PydanticCustomError(
+                *custom_pydantic_errors.MissingWeightError,
+                {
+                    "missing_weights": "".join(
+                        f"'{weight}' used for '{var}' in: {file}\n"
+                        for var, weight, file in missing_weights
+                    )
+                },
             )
         return v
 
-    @validator("mapping")
+    @field_validator("mapping")
+    @classmethod
     def cast_variable_components_args(cls, v):
         """Cast "components" list of dicts to a codelist"""
 
