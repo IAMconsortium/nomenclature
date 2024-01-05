@@ -12,7 +12,7 @@ from conftest import TEST_DATA_DIR
 runner = CliRunner()
 
 
-@pytest.mark.skipif(sys.platform.startswith("win"))
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="Skip on Windows")
 def test_cli_installed():
     command = "poetry run nomenclature"
     result = subprocess.run(
@@ -32,7 +32,7 @@ def test_cli_installed():
     )
 
 
-@pytest.mark.skipif(not sys.platform.startswith("win"))
+@pytest.mark.skipif(not sys.platform.startswith("win"), reason="Run only on Windows")
 def test_cli_installed_windows():
     result = subprocess.run(
         ["bash", "-c", "poetry run nomenclature"],
