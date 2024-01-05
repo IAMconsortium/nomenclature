@@ -1,4 +1,5 @@
 import subprocess
+import sys
 
 from click.testing import CliRunner
 from nomenclature import cli
@@ -12,8 +13,11 @@ runner = CliRunner()
 
 
 def test_cli_is_installed():
+    command = "poetry run nomenclature"
+    if sys.platform.startswith("win"):
+        command = f"bash -c {command}"
     result = subprocess.run(
-        "poetry run nomenclature",
+        command,
         capture_output=True,
         text=True,
         shell=True,
