@@ -32,6 +32,8 @@ sphinx = "^7.2.6"
 sphinx-click = "^5.1.0"
 numpydoc = "^1.6.0"
 
+[tool.poetry.scripts]
+nomenclature = 'nomenclature.cli:cli'
 
 [tool.poetry-dynamic-versioning]
 bump = true

@@ -1,3 +1,6 @@
+import subprocess
+import sys
+
 from click.testing import CliRunner
 from nomenclature import cli
 from nomenclature.testing import assert_valid_yaml, assert_valid_structure
@@ -7,6 +10,29 @@ import pydantic
 from conftest import TEST_DATA_DIR
 
 runner = CliRunner()
+
+
+@pytest.mark.xfail(
+    sys.platform.startswith("win"),
+    reason="Command to invoke the cli does not work on Windows",
+)
+def test_cli_installed():
+    command = "poetry run nomenclature"
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        shell=True,
+        check=True,
+    )
+    assert all(
+        command in result.stdout
+        for command in (
+            "check-region-aggregation",
+            "validate-project",
+            "validate-yaml",
+        )
+    )
 
 
 def test_cli_valid_yaml_path():
