@@ -1,3 +1,5 @@
+import subprocess
+
 from click.testing import CliRunner
 from nomenclature import cli
 from nomenclature.testing import assert_valid_yaml, assert_valid_structure
@@ -7,6 +9,24 @@ import pydantic
 from conftest import TEST_DATA_DIR
 
 runner = CliRunner()
+
+
+def test_cli_is_installed():
+    result = subprocess.run(
+        "poetry run nomenclature",
+        capture_output=True,
+        text=True,
+        shell=True,
+        check=True,
+    )
+    assert all(
+        command in result.stdout
+        for command in (
+            "check-region-aggregation",
+            "validate-project",
+            "validate-yaml",
+        )
+    )
 
 
 def test_cli_valid_yaml_path():
