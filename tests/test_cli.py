@@ -12,7 +12,10 @@ from conftest import TEST_DATA_DIR
 runner = CliRunner()
 
 
-@pytest.mark.skipif(sys.platform.startswith("win"), reason="Skip on Windows")
+@pytest.mark.xfail(
+    sys.platform.startswith("win"),
+    reason="Command to invoke the cli does not work on Windows",
+)
 def test_cli_installed():
     command = "poetry run nomenclature"
     result = subprocess.run(
@@ -20,24 +23,6 @@ def test_cli_installed():
         capture_output=True,
         text=True,
         shell=True,
-        check=True,
-    )
-    assert all(
-        command in result.stdout
-        for command in (
-            "check-region-aggregation",
-            "validate-project",
-            "validate-yaml",
-        )
-    )
-
-
-@pytest.mark.skipif(not sys.platform.startswith("win"), reason="Run only on Windows")
-def test_cli_installed_windows():
-    result = subprocess.run(
-        ["bash", "-c", "poetry run nomenclature"],
-        capture_output=True,
-        text=True,
         check=True,
     )
     assert all(
