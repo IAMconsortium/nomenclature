@@ -11,7 +11,7 @@ and model comparison.
 
 The :class:`nomenclature` package builds on the :class:`pycountry` package
 (`link <https://github.com/flyingcircusio/pycountry>`_) to provide a utility for country
-names based on the ISO 3166-1 standard.
+names based on the ISO 3166-1 standard. You can find the full list of countries here: `https://www.iso.org/obp/ui/#search`_.
 
 For consistency with established conventions in the modelling community, several country
 names are shortened compared to ISO 3166-1, e.g. from "Bolivia, Plurinational State of"
