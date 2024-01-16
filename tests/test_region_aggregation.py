@@ -42,7 +42,7 @@ def test_mapping():
         ],
         "exclude_regions": None,
     }
-    assert obs.dict() == exp
+    assert obs.model_dump() == exp
 
 
 @pytest.mark.parametrize(
@@ -136,7 +136,7 @@ def test_region_processor_working(region_processor_path, simple_definition):
     exp_dict = {value["model"][0]: value for value in exp_data}
 
     assert exp_models == set(obs.mappings.keys())
-    assert all(exp_dict[m] == obs.mappings[m].dict() for m in exp_models)
+    assert all(exp_dict[m] == obs.mappings[m].model_dump() for m in exp_models)
 
 
 def test_region_processor_not_defined(simple_definition):
