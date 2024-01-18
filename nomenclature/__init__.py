@@ -1,5 +1,6 @@
 import logging
 from importlib.metadata import version
+from pathlib import Path
 
 import yaml
 
@@ -46,16 +47,21 @@ def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=None):
     ).to_yaml(target)
 
 
-def parse_model_registration(model_registration_file):
+def parse_model_registration(
+    model_registration_file: str | Path, output_directory: str | Path = Path(".")
+) -> None:
     """Parses a model registration file and writes the definitions & mapping yaml files
 
     Parameters
     ----------
-    source : str, path, file-like object
+    model_registration_file : str, path, file-like object
         Path to xlsx model registration file.
-    file_name : str
-        Model-identifier part of the yaml file names.
+    output_directory : str, path, file-like object
+        Directory, where the model mapping and region file will be saved; default: "."
     """
+    if not isinstance(output_directory, Path):
+        output_directory = Path(output_directory)
+
     region_aggregregation_mapping = RegionAggregationMapping.from_file(
         model_registration_file
     )
@@ -63,7 +69,9 @@ def parse_model_registration(model_registration_file):
         x if (x.isalnum() or x in "._- ") else "_"
         for x in region_aggregregation_mapping.model[0]
     )
-    region_aggregregation_mapping.to_yaml(f"{file_model_name}_mapping.yaml")
+    region_aggregregation_mapping.to_yaml(
+        output_directory / f"{file_model_name}_mapping.yaml"
+    )
     if native_regions := [
         {
             region_aggregregation_mapping.model[
@@ -71,5 +79,9 @@ def parse_model_registration(model_registration_file):
             ]: region_aggregregation_mapping.upload_native_regions
         }
     ]:
-        with open(f"{file_model_name}_regions.yaml", "w") as f:
-            yaml.dump(native_regions, f)
+        with open(
+            (output_directory / f"{file_model_name}_regions.yaml"),
+            "w",
+            encoding="utf-8",
+        ) as file:
+            yaml.dump(native_regions, file)
