@@ -54,6 +54,7 @@ class CodeList(BaseModel):
         return v
 
     @field_validator("mapping")
+    @classmethod
     def check_end_whitespace(
         cls, v: Dict[str, Code], info: ValidationInfo
     ) -> Dict[str, Code]:
