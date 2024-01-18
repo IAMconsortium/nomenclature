@@ -57,8 +57,7 @@ def parse_model_registration(
     model_registration_file : str, path, file-like object
         Path to xlsx model registration file.
     output_directory : str, path, file-like object
-        Directory where the model mapping and region file will be saved;
-        defaults to current working directory
+        Directory, where the model mapping and region file will be saved; default: "."
     """
     if not isinstance(output_directory, Path):
         output_directory = Path(output_directory)
