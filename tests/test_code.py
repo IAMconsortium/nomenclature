@@ -183,3 +183,13 @@ def test_MetaCode_allowed_values_attribute():
     )
 
     assert meta.allowed_values == [True]
+
+
+def test_code_with_multi_key_dict_raises():
+    with raises(ValueError, match="Code is not a single name-attributes mapping"):
+        Code.from_dict({"name": "", "illegal second key": ""})
+
+
+def test_code_with_definition_and_description_raises():
+    with raises(ValueError, match="Found both 'definition' and 'description'"):
+        Code.from_dict({"Code": {"definition": "", "description": ""}})
