@@ -109,14 +109,6 @@ class NomenclatureConfig(BaseModel):
         definitions_repos = v.definitions.repos if v.definitions else {}
         mapping_repos = {"mappings": v.mappings.repository} if v.mappings else {}
         repos = {**definitions_repos, **mapping_repos}
-        if repos and not v.repositories:
-            raise ValueError(
-                (
-                    "If repositories are used for definitions or mappings, they need "
-                    "to be defined under `repositories`"
-                )
-            )
-
         for use, repository in repos.items():
             if repository not in v.repositories:
                 raise ValueError((f"Unknown repository '{repository}' in {use}."))
