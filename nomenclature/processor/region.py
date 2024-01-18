@@ -61,9 +61,6 @@ class NativeRegion(BaseModel):
         """
         return self.rename if self.rename is not None else self.name
 
-    def __eq__(self, other: "NativeRegion") -> bool:
-        return super().__eq__(other)
-
 
 class CommonRegion(BaseModel):
     """Common region used for model intercomparison.
@@ -91,9 +88,6 @@ class CommonRegion(BaseModel):
         raise AttributeError(
             "rename_dict is only available for single constituent regions"
         )
-
-    def __eq__(self, other: "CommonRegion") -> bool:
-        return super().__eq__(other)
 
 
 class RegionAggregationMapping(BaseModel):
