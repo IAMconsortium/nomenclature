@@ -3,7 +3,7 @@ from typing import Dict, Optional
 
 import yaml
 from git import Repo
-from pydantic import BaseModel, ValidationInfo, field_validator, model_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
 
 
 class CodeListConfig(BaseModel):
@@ -27,9 +27,8 @@ class Repository(BaseModel):
     url: str
     hash: str | None = None
     release: str | None = None
-    local_path: Path | None = (
-        None  # defined via the `repository` name in the configuration
-    )
+    local_path: Path | None = Field(default=None, validate_default=True)
+    # defined via the `repository` name in the configuration
 
     @model_validator(mode="after")
     @classmethod
