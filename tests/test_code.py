@@ -1,10 +1,11 @@
 import pytest
+from pytest import raises
 
 from nomenclature.code import Code, VariableCode, RegionCode, MetaCode
 
 
 def test_variable_without_unit_raises():
-    with pytest.raises(ValueError, match="unit\n.*required"):
+    with raises(ValueError, match="unit\n.*required"):
         VariableCode(name="No unit")
 
 
@@ -26,7 +27,7 @@ def test_variable_alias_setting():
 @pytest.mark.parametrize("illegal_key", ["contains-hyphen", "also not allowed", "True"])
 def test_illegal_additional_attribute(illegal_key):
     match = f"{illegal_key}.*'code1'.*not allowed"
-    with pytest.raises(ValueError, match=match):
+    with raises(ValueError, match=match):
         Code(name="code1", extra_attributes={illegal_key: True})
 
 
@@ -161,7 +162,7 @@ def test_RegionCode_iso3_code_list_fail():
         "IBL, ITL, LIC, MLA, BEG, FRT, ANB, GDR, LXB, MNO, NTD, NRW, PRE, EPA, "  # noqa
         "SWD, CEW, GTR, SOR"  # noqa
     )
-    with pytest.raises(ValueError, match=error_pattern):
+    with raises(ValueError, match=error_pattern):
         RegionCode(name="Western Europe", hierarchy="R5OECD", iso3_codes=iso3_codes)
 
 
@@ -171,7 +172,7 @@ def test_RegionCode_iso3_code_str_fail():
         "iso3_codes\n"
         "  Value error, Region 'Austria' has invalid ISO3 country code\(s\): AUTT"
     )
-    with pytest.raises(ValueError, match=error_pattern):
+    with raises(ValueError, match=error_pattern):
         RegionCode(name="Austria", hierarchy="country", iso3_codes="AUTT")
 
 
