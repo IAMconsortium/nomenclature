@@ -407,7 +407,9 @@ class RegionAggregationMapping(BaseModel):
         return self.model_dump(exclude={"file"}) == other.model_dump(exclude={"file"})
 
     def to_yaml(self, file) -> None:
-        dict_representation = {"model": self.model}
+        dict_representation = {
+            "model": self.model[0] if len(self.model) == 1 else self.model
+        }
         if self.native_regions:
             dict_representation["native_regions"] = [
                 {native_region.name: native_region.rename}
