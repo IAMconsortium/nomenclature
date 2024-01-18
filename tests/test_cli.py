@@ -1,13 +1,16 @@
 import subprocess
 import sys
 
-from click.testing import CliRunner
-from nomenclature import cli
-from nomenclature.testing import assert_valid_yaml, assert_valid_structure
-import pytest
+import pandas as pd
 import pydantic
-
+import pytest
+from click.testing import CliRunner
 from conftest import TEST_DATA_DIR
+from pandas.testing import assert_frame_equal
+from pyam import IAMC_IDX, IamDataFrame, assert_iamframe_equal
+
+from nomenclature import cli
+from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 
 runner = CliRunner()
 
@@ -156,7 +159,11 @@ def test_cli_custom_dimensions_runs():
             "validate-project",
             str(TEST_DATA_DIR / "non-default_dimensions"),
             "--dimensions",
-            "['variable', 'region', 'scenario']",
+            "variable",
+            "--dimensions",
+            "region",
+            "--dimensions",
+            "scenario",
         ],
     )
     assert result_valid.exit_code == 0
@@ -172,7 +179,7 @@ def test_cli_custom_dimensions_fails():
             "validate-project",
             str(TEST_DATA_DIR / "non-default_dimensions"),
             "--dimensions",
-            "['variable', 'region', 'foo']",
+            "foo",
         ],
     )
     assert result_invalid.exit_code == 1
@@ -190,7 +197,9 @@ def test_cli_empty_dimensions_run():
             "validate-project",
             str(TEST_DATA_DIR / "non-default_dimensions_one_empty"),
             "--dimensions",
-            "['variable', 'region']",
+            "variable",
+            "--dimensions",
+            "region",
         ],
     )
     assert result_valid.exit_code == 0
@@ -255,19 +264,51 @@ def test_cli_empty_definitions_dir():
     assert "`definitions` directory is empty" in str(cli_result.exception)
 
 
-def test_cli_empty_dimensions():
-    """Assert that an error is raised when an empty list is given as dimensions"""
-
-    cli_result = runner.invoke(
+def test_check_region_aggregation(tmp_path):
+    IamDataFrame(
+        pd.DataFrame(
+            [
+                ["m_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["m_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 5, 6],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    ).to_excel(tmp_path / "data.xlsx")
+    runner.invoke(
         cli,
         [
-            "validate-project",
-            str(TEST_DATA_DIR / "non-default_dimensions"),
-            "--dimensions",
-            "[]",
+            "check-region-aggregation",
+            str(tmp_path / "data.xlsx"),
+            "--workflow-directory",
+            str(TEST_DATA_DIR / "region_processing"),
+            "--definitions",
+            "dsd",
+            "--mappings",
+            "partial_aggregation",
+            "--processed-data",
+            str(tmp_path / "results.xlsx"),
+            "--differences",
+            str(tmp_path / "differences.xlsx"),
         ],
     )
 
-    assert cli_result.exit_code == 1
-    assert isinstance(cli_result.exception, ValueError)
-    assert "No dimensions to validate." in str(cli_result.exception)
+    # Check differences
+    exp_difference = pd.DataFrame(
+        [
+            ["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 2005, 5, 4, 20.0],
+        ],
+        columns=IAMC_IDX + ["year", "original", "aggregated", "difference (%)"],
+    )
+    assert_frame_equal(
+        pd.read_excel(tmp_path / "differences.xlsx"), exp_difference, check_dtype=False
+    )
+
+    # Check aggregation result
+    exp_result = IamDataFrame(
+        pd.DataFrame(
+            [["m_a", "s_a", "World", "Primary Energy", "EJ/yr", 5, 6]],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    assert_iamframe_equal(IamDataFrame(tmp_path / "results.xlsx"), exp_result)
