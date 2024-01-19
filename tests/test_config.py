@@ -19,7 +19,9 @@ def test_setting_local_path_raises():
 
 
 def test_unknown_repo_raises():
-    with raises(ValueError, match="Unknown repository 'common-definitions'"):
+    with raises(
+        ValueError, match="Unknown repository {'common-definitions'} in 'region'"
+    ):
         NomenclatureConfig.from_file(
             TEST_DATA_DIR / "nomenclature_configs" / "unknown_repo.yaml"
         )
