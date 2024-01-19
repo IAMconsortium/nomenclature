@@ -202,17 +202,17 @@ class CodeList(BaseModel):
         with suppress(AttributeError):
             dimension = path.name
             codelistconfig = getattr(config.definitions, dimension)
-            repo_path = (
-                config.repositories[codelistconfig.repository].local_path
-                / codelistconfig.repository_dimension_path
-            )
-            code_list = (
-                cls._parse_codelist_dir(
-                    repo_path,
-                    file_glob_pattern,
+            for repo in codelistconfig.repositories:
+                repo_path = (
+                    config.repositories[repo].local_path / "definitions" / dimension
                 )
-                + code_list
-            )
+                code_list = (
+                    cls._parse_codelist_dir(
+                        repo_path,
+                        file_glob_pattern,
+                    )
+                    + code_list
+                )
 
         mapping: Dict[str, Code] = {}
         for code in code_list:
@@ -615,17 +615,18 @@ class RegionCodeList(CodeList):
                         code_list.append(RegionCode(name=c.name, hierarchy="Country"))
 
             # importing from an external repository
-            if config.definitions.region.repository:
+            for repository in config.definitions.region.repositories:
                 repo_path = (
-                    config.repositories[config.definitions.region.repository].local_path
-                    / config.definitions.region.repository_dimension_path
+                    config.repositories[repository].local_path
+                    / "definitions"
+                    / "region"
                 )
 
                 code_list = cls._parse_region_code_dir(
                     code_list,
                     repo_path,
                     file_glob_pattern,
-                    repository=config.definitions.region.repository,
+                    repository=config.definitions.region.repositories,
                 )
                 code_list = cls._parse_and_replace_tags(
                     code_list, repo_path, file_glob_pattern
@@ -639,7 +640,7 @@ class RegionCodeList(CodeList):
         mapping: Dict[str, RegionCode] = {}
         for code in code_list:
             if code.name in mapping:
-                raise DuplicateCodeError(name=name, code=code.name)
+                raise ValueError(f"Trying to set a duplicate code {code.name}")
             mapping[code.name] = code
 
         return cls(name=name, mapping=mapping)
