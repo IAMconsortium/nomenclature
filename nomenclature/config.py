@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, List, Set
 
 import yaml
 from git import Repo
@@ -8,15 +8,16 @@ from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_va
 
 class CodeListConfig(BaseModel):
     dimension: str
-    repository: str | None = None
-    repository_dimension_path: Path | None = None
+    repositories: Set[str] | None = Field(None, validation_alias="repository")
 
-    @model_validator(mode="after")
+    @field_validator("repositories", mode="before")
     @classmethod
-    def set_repository_dimension_path(cls, v: "CodeListConfig") -> "CodeListConfig":
-        if v.repository is not None and v.repository_dimension_path is None:
-            v.repository_dimension_path = f"definitions/{v.dimension}"
-        return v
+    def convert_to_set(cls, v) -> Set:
+        return v if isinstance(v, set) else {v}
+
+    @property
+    def repository_dimension_path(self) -> str:
+        return f"definitions/{self.dimension}"
 
 
 class RegionCodeListConfig(CodeListConfig):
@@ -86,14 +87,19 @@ class DataStructureConfig(BaseModel):
     @property
     def repos(self) -> Dict[str, str]:
         return {
-            dimension: getattr(self, dimension).repository
+            dimension: getattr(self, dimension).repositories
             for dimension in ("region", "variable")
-            if getattr(self, dimension) and getattr(self, dimension).repository
+            if getattr(self, dimension) and getattr(self, dimension).repositories
         }
 
 
 class RegionMappingConfig(BaseModel):
-    repository: str
+    repositories: Set[str] = Field(..., validation_alias="repository")
+
+    @field_validator("repositories", mode="before")
+    @classmethod
+    def convert_to_set(cls, v) -> Set:
+        return v if isinstance(v, set) else {v}
 
 
 class NomenclatureConfig(BaseModel):
@@ -107,11 +113,11 @@ class NomenclatureConfig(BaseModel):
         cls, v: "NomenclatureConfig"
     ) -> "NomenclatureConfig":
         definitions_repos = v.definitions.repos if v.definitions else {}
-        mapping_repos = {"mappings": v.mappings.repository} if v.mappings else {}
+        mapping_repos = {"mappings": v.mappings.repositories} if v.mappings else {}
         repos = {**definitions_repos, **mapping_repos}
-        for use, repository in repos.items():
-            if repository not in v.repositories:
-                raise ValueError((f"Unknown repository '{repository}' in {use}."))
+        for use, repositories in repos.items():
+            if repositories - v.repositories.keys():
+                raise ValueError((f"Unknown repository {repositories} in '{use}'."))
         return v
 
     def fetch_repos(self, target_folder: Path):
