@@ -1,3 +1,4 @@
+import textwrap
 from collections import namedtuple
 
 pydantic_custom_error_config = {
@@ -55,8 +56,12 @@ class ErrorCollector:
 
     def __repr__(self) -> str:
         error = "error" if len(self.errors) == 1 else "errors"
-        return f"Collected {len(self.errors)} {error}:\n" + "\n\t".join(
-            str(error) for error in self.errors
+        error_list_str = "\n".join(
+            f"{i+1}. {error}" for i, error in enumerate(self.errors)
+        )
+
+        return f"Collected {len(self.errors)} {error}:\n" + textwrap.indent(
+            error_list_str, prefix="  "
         )
 
     def __bool__(self) -> bool:
