@@ -52,12 +52,15 @@ def add_meta(df):
         df.set_meta(["foo", "bar"], "string")
 
 
+def remove_readonly(func, path, excinfo):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+
 def clean_up_external_repos(repos):
     # clean up the external repo
     for repository in repos.values():
         if repository.local_path.exists():
-            if sys.platform.startswith("win") and not os.access(
-                repository.local_path, os.W_OK
-            ):
-                os.chmod(repository.local_path, stat.S_IWRITE)
-            shutil.rmtree(repository.local_path)  # , ignore_errors=True)
+            shutil.rmtree(
+                repository.local_path, onerror=remove_readonly, ignore_errors=True
+            )
