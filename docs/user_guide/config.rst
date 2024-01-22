@@ -8,7 +8,7 @@ General project configuration
 The following features can be accessed via a general project configuration file:
 
 * Import codelists and mappings from public GitHub repositories
-* Add all countries to the region codelist (details: :ref:`countries`) 
+* Add all countries to the region codelist (details: :ref:`countries`)
 
 Configuration file format
 -------------------------
@@ -24,19 +24,23 @@ Importing from an external repository
 In order to import from an external repository, the configuration file must define the
 repository and the repositories key.
 
-The repository has a **name** (in the example below *common-definitions*) and a **url**:
+The repository has a **name** (in the example below *common-definitions*) and a **url**. Multiple repositories can be used in a single configuration file:
 
 .. code:: yaml
 
   repositories:
     common-definitions:
       url: https://github.com/IAMconsortium/common-definitions.git/
+    legacy-definitions:
+      url: https://github.com/IAMconsortium/legacy-definitions.git/
 
 In order for the import to work the url must be given in the above format, i.e. with the
 leading *https://* and the trailing *.git/*.
 
 Information from an external repository can either be used for codelists ("definitions")
-or model mappings, or both.
+or model mappings, or both. For each definition dimension, i.e. *region* or *variable*
+multiple external repositories can be used as the example below illustrates for
+*variable*:
 
 .. code:: yaml
 
@@ -47,7 +51,9 @@ or model mappings, or both.
     region:
       repository: common-definitions
     variable:
-      repository: common-definitions
+      repositories:
+        - common-definitions
+        - legacy-definitions
   mappings:
     repository: common-definitions
 
