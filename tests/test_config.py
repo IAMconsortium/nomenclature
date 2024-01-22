@@ -1,9 +1,9 @@
 from pathlib import Path
 from pytest import raises
 
-from nomenclature.config import Repository, NomenclatureConfig
+from nomenclature.config import Repository, NomenclatureConfig, CodeListConfig
 
-from conftest import TEST_DATA_DIR
+from conftest import TEST_DATA_DIR, clean_up_external_repos
 
 
 def test_hash_and_release_raises():
@@ -25,3 +25,33 @@ def test_unknown_repo_raises():
         NomenclatureConfig.from_file(
             TEST_DATA_DIR / "nomenclature_configs" / "unknown_repo.yaml"
         )
+
+
+def test_multiple_definition_repos():
+    nomenclature_config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "nomenclature_configs" / "multiple_repos_per_dimension.yaml"
+    )
+    try:
+        exp_repos = {"common-definitions", "legacy-definitions"}
+        assert nomenclature_config.repositories.keys() == exp_repos
+        assert nomenclature_config.definitions.variable.repositories == exp_repos
+    finally:
+        clean_up_external_repos(nomenclature_config.repositories)
+
+
+def test_codelist_config_set_input():
+    exp_repos = {"repo1", "repo2"}
+    code_list_config = CodeListConfig(dimension="variable", repositories=exp_repos)
+    assert code_list_config.repositories == exp_repos
+
+
+def test_multiple_mapping_repos():
+    nomenclature_config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "nomenclature_configs" / "multiple_repos_for_mapping.yaml"
+    )
+    try:
+        exp_repos = {"common-definitions", "legacy-definitions"}
+        assert nomenclature_config.mappings.repositories == exp_repos
+        assert nomenclature_config.repositories.keys() == exp_repos
+    finally:
+        clean_up_external_repos(nomenclature_config.repositories)
