@@ -59,5 +59,5 @@ def clean_up_external_repos(repos):
             if sys.platform.startswith("win") and not os.access(
                 repository.local_path, os.W_OK
             ):
-                os.chmod(repository.local_path, stat.S_IWUSR)
+                os.chmod(repository.local_path, stat.S_IWRITE)
             shutil.rmtree(repository.local_path)  # , ignore_errors=True)
