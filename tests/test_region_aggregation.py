@@ -243,8 +243,7 @@ def test_mapping_from_external_repository():
             for model in ("REMIND 3.1", "REMIND-MAgPIE 3.1-4.6")
         )
     finally:
-        pass
-        # clean_up_external_repos(dsd.config.repositories)
+        clean_up_external_repos(dsd.config.repositories)
 
 
 def test_reverse_region_aggregation():

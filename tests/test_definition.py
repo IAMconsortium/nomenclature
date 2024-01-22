@@ -61,8 +61,7 @@ def test_definition_from_general_config(workflow_folder):
         # imported from https://github.com/IAMconsortium/common-definitions repo
         assert "Primary Energy" in obs.variable
     finally:
-        pass
-        # clean_up_external_repos(obs.config.repositories)
+        clean_up_external_repos(obs.config.repositories)
 
 
 def test_to_excel(simple_definition, tmpdir):
