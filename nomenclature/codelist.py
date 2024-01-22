@@ -54,6 +54,7 @@ class CodeList(BaseModel):
         return v
 
     @field_validator("mapping")
+    @classmethod
     def check_end_whitespace(
         cls, v: Dict[str, Code], info: ValidationInfo
     ) -> Dict[str, Code]:
@@ -66,9 +67,13 @@ class CodeList(BaseModel):
                 )
         return v
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Code) -> None:
         if key in self.mapping:
             raise ValueError(f"Duplicate item in {self.name} codelist: {key}")
+        if not isinstance(value, Code):
+            raise TypeError("Codelist can only contain Code items")
+        if key != value.name:
+            raise ValueError("Key has to be equal to code name")
         self.mapping[key] = value
 
     def __getitem__(self, k):

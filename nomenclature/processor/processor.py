@@ -7,4 +7,4 @@ from pydantic import BaseModel
 class Processor(BaseModel, abc.ABC):
     @abc.abstractmethod
     def apply(self, df: IamDataFrame) -> IamDataFrame:
-        return
+        raise NotImplementedError

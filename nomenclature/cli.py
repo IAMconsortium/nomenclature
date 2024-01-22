@@ -1,4 +1,3 @@
-import ast
 from pathlib import Path
 from typing import List, Optional
 
@@ -10,16 +9,6 @@ from nomenclature.processor import RegionProcessor
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 
 cli = click.Group()
-
-
-class PythonLiteralOption(click.Option):
-    def type_cast_value(self, ctx, value):
-        if value is None:
-            return None
-        try:
-            return ast.literal_eval(value)
-        except Exception:
-            raise click.BadParameter(value)
 
 
 @cli.command("validate-yaml")
@@ -49,7 +38,8 @@ def cli_valid_yaml(path: Path):
 @click.option(
     "--dimensions",
     help="Optional list of dimensions",
-    cls=PythonLiteralOption,
+    type=str,
+    multiple=True,
     default=None,
 )
 def cli_valid_project(

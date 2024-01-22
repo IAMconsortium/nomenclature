@@ -1,9 +1,9 @@
-import pytest
+from pytest import raises
 import pandas as pd
 import pandas.testing as pdt
 import logging
 
-from nomenclature.code import Code, RegionCode, MetaCode
+from nomenclature.code import Code, RegionCode, MetaCode, VariableCode
 from nomenclature.codelist import (
     CodeList,
     VariableCodeList,
@@ -25,6 +25,28 @@ def test_simple_codelist():
     assert type(codelist["Some Variable"].bool) == bool  # this is a boolean
 
 
+def test_codelist_adding_duplicate_raises():
+    codelist = VariableCodeList.from_directory(
+        "variable", TEST_DATA_DIR / "simple_codelist"
+    )
+    with raises(ValueError, match="Duplicate item in variable codelist: Some Variable"):
+        codelist["Some Variable"] = ""
+
+
+def test_codelist_adding_non_code_raises():
+    codelist = CodeList(name="test")
+
+    with raises(TypeError, match="Codelist can only contain Code items"):
+        codelist["Some Variable"] = ""
+
+
+def test_codelist_name_key_mismatch():
+    codelist = CodeList(name="test")
+
+    with raises(ValueError, match="Key has to be equal to code name"):
+        codelist["Some Variable"] = Code(name="Some other variable")
+
+
 def test_codelist_to_yaml():
     """Cast a codelist to yaml format"""
     code = VariableCodeList.from_directory(
@@ -44,7 +66,7 @@ def test_codelist_to_yaml():
 def test_duplicate_code_raises():
     """Check that code conflicts across different files raises"""
     match = "Duplicate item in variable codelist: Some Variable"
-    with pytest.raises(ValueError, match=match):
+    with raises(ValueError, match=match):
         VariableCodeList.from_directory(
             "variable", TEST_DATA_DIR / "duplicate_code_raises"
         )
@@ -53,7 +75,7 @@ def test_duplicate_code_raises():
 def test_duplicate_tag_raises():
     """Check that code conflicts across different files raises"""
     match = "Duplicate item in tag codelist: Tag"
-    with pytest.raises(ValueError, match=match):
+    with raises(ValueError, match=match):
         VariableCodeList.from_directory(
             "variable", TEST_DATA_DIR / "duplicate_tag_raises"
         )
@@ -138,7 +160,7 @@ def test_stray_tag_fails():
     """Check that typos in a tag raises expected error"""
 
     match = r"Unexpected {} in codelist: Primary Energy\|{Feul}"
-    with pytest.raises(ValueError, match=match):
+    with raises(ValueError, match=match):
         VariableCodeList.from_directory(
             "variable", TEST_DATA_DIR / "stray_tag" / "definitions" / "variable"
         )
@@ -148,7 +170,7 @@ def test_end_whitespace_fails():
     """Check that typos in a tag raises expected error"""
 
     match = "Unexpected whitespace at the end of a scenario code: 'scenario2 '"
-    with pytest.raises(ValueError, match=match):
+    with raises(ValueError, match=match):
         CodeList.from_directory(
             "scenario", TEST_DATA_DIR / "end_whitespace" / "definitions" / "scenario"
         )

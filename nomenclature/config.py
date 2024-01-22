@@ -3,7 +3,7 @@ from typing import Dict, Optional
 
 import yaml
 from git import Repo
-from pydantic import BaseModel, ValidationInfo, field_validator, model_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
 
 
 class CodeListConfig(BaseModel):
@@ -27,9 +27,8 @@ class Repository(BaseModel):
     url: str
     hash: str | None = None
     release: str | None = None
-    local_path: Path | None = (
-        None  # defined via the `repository` name in the configuration
-    )
+    local_path: Path | None = Field(default=None, validate_default=True)
+    # defined via the `repository` name in the configuration
 
     @model_validator(mode="after")
     @classmethod
@@ -110,14 +109,6 @@ class NomenclatureConfig(BaseModel):
         definitions_repos = v.definitions.repos if v.definitions else {}
         mapping_repos = {"mappings": v.mappings.repository} if v.mappings else {}
         repos = {**definitions_repos, **mapping_repos}
-        if repos and not v.repositories:
-            raise ValueError(
-                (
-                    "If repositories are used for definitions or mappings, they need "
-                    "to be defined under `repositories`"
-                )
-            )
-
         for use, repository in repos.items():
             if repository not in v.repositories:
                 raise ValueError((f"Unknown repository '{repository}' in {use}."))

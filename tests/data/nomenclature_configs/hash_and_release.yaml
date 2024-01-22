@@ -1,0 +1,12 @@
+repositories:
+  common-definitions:
+    url: https://github.com/IAMconsortium/common-definitions.git/
+    hash: asdf
+    release: "1.0"
+definitions:
+  region:
+    repository: common-definitions
+    country: true
+  variable:
+    repository: common-definitions
+    repository_dimension_path: definitions/variable
