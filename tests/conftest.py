@@ -60,4 +60,4 @@ def clean_up_external_repos(repos):
                 repository.local_path, os.W_OK
             ):
                 os.chmod(repository.local_path, stat.S_IWUSR)
-            shutil.rmtree(repository.local_path, ignore_errors=True)
+            shutil.rmtree(repository.local_path)  # , ignore_errors=True)
