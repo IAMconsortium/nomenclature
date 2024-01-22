@@ -16,12 +16,12 @@ from pydantic import (
 
 def convert_to_set(v: str | list[str] | set[str]) -> set[str]:
     match v:
-        case str(v):
-            return {v}
-        case list(v):
-            return set(v)
         case set(v):
             return v
+        case list(v):
+            return set(v)
+        case str(v):
+            return {v}
         case _:
             raise TypeError("`repositories` must be of type str, list or set.")
 
