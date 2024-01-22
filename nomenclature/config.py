@@ -1,19 +1,37 @@
 from pathlib import Path
-from typing import Dict, Optional, List, Set
+from typing import Annotated, Optional
 
 import yaml
 from git import Repo
-from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+    ConfigDict,
+    BeforeValidator,
+)
+
+
+def convert_to_set(v: str | list[str] | set[str]) -> set[str]:
+    match v:
+        case str(v):
+            return {v}
+        case list(v):
+            return set(v)
+        case set(v):
+            return v
+        case _:
+            raise TypeError("`repositories` must be of type str, list or set.")
 
 
 class CodeListConfig(BaseModel):
     dimension: str
-    repositories: Set[str] | None = Field(None, validation_alias="repository")
-
-    @field_validator("repositories", mode="before")
-    @classmethod
-    def convert_to_set(cls, v) -> Set:
-        return v if isinstance(v, set) else {v}
+    repositories: Annotated[set[str] | None, BeforeValidator(convert_to_set)] = Field(
+        None, alias="repository"
+    )
+    model_config = ConfigDict(populate_by_name=True)
 
     @property
     def repository_dimension_path(self) -> str:
@@ -85,7 +103,7 @@ class DataStructureConfig(BaseModel):
         return {"dimension": info.field_name, **v}
 
     @property
-    def repos(self) -> Dict[str, str]:
+    def repos(self) -> dict[str, str]:
         return {
             dimension: getattr(self, dimension).repositories
             for dimension in ("region", "variable")
@@ -94,16 +112,14 @@ class DataStructureConfig(BaseModel):
 
 
 class RegionMappingConfig(BaseModel):
-    repositories: Set[str] = Field(..., validation_alias="repository")
-
-    @field_validator("repositories", mode="before")
-    @classmethod
-    def convert_to_set(cls, v) -> Set:
-        return v if isinstance(v, set) else {v}
+    repositories: Annotated[set[str], BeforeValidator(convert_to_set)] = Field(
+        ..., alias="repository"
+    )
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class NomenclatureConfig(BaseModel):
-    repositories: Dict[str, Repository] = {}
+    repositories: dict[str, Repository] = {}
     definitions: Optional[DataStructureConfig] = None
     mappings: Optional[RegionMappingConfig] = None
 
