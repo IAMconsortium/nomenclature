@@ -617,9 +617,7 @@ class RegionCodeList(CodeList):
             # importing from an external repository
             for repo in config.definitions.region.repositories:
                 repo_path = (
-                    config.repositories[repository].local_path
-                    / "definitions"
-                    / "region"
+                    config.repositories[repo].local_path / "definitions" / "region"
                 )
 
                 code_list = cls._parse_region_code_dir(
