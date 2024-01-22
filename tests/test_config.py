@@ -36,7 +36,8 @@ def test_multiple_definition_repos():
         assert nomenclature_config.repositories.keys() == exp_repos
         assert nomenclature_config.definitions.variable.repositories == exp_repos
     finally:
-        clean_up_external_repos(nomenclature_config.repositories)
+        pass
+        # clean_up_external_repos(nomenclature_config.repositories)
 
 
 def test_codelist_config_set_input():
@@ -54,4 +55,5 @@ def test_multiple_mapping_repos():
         assert nomenclature_config.mappings.repositories == exp_repos
         assert nomenclature_config.repositories.keys() == exp_repos
     finally:
-        clean_up_external_repos(nomenclature_config.repositories)
+        pass
+        # clean_up_external_repos(nomenclature_config.repositories)
