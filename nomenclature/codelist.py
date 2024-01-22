@@ -615,7 +615,7 @@ class RegionCodeList(CodeList):
                         code_list.append(RegionCode(name=c.name, hierarchy="Country"))
 
             # importing from an external repository
-            for repository in config.definitions.region.repositories:
+            for repo in config.definitions.region.repositories:
                 repo_path = (
                     config.repositories[repository].local_path
                     / "definitions"
