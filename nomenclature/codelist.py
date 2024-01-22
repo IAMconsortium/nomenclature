@@ -13,7 +13,7 @@ from pydantic_core import PydanticCustomError
 import nomenclature
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import NomenclatureConfig
-from nomenclature.error import custom_pydantic_errors
+from nomenclature.error import custom_pydantic_errors, ErrorCollector
 from pyam.utils import is_list_like
 
 here = Path(__file__).parent.absolute()
@@ -213,12 +213,16 @@ class CodeList(BaseModel):
                     )
                     + code_list
                 )
-
+        errors = ErrorCollector()
         mapping: Dict[str, Code] = {}
         for code in code_list:
             if code.name in mapping:
-                raise ValueError(f"Duplicate item in {name} codelist: {code.name}")
+                errors.append(
+                    ValueError(f"Duplicate item in {name} codelist: {code.name}")
+                )
             mapping[code.name] = code
+        if errors:
+            raise ValueError(errors)
         return cls(name=name, mapping=mapping)
 
     @classmethod
@@ -636,11 +640,14 @@ class RegionCodeList(CodeList):
 
         # translate to mapping
         mapping: Dict[str, RegionCode] = {}
+
+        errors = ErrorCollector()
         for code in code_list:
             if code.name in mapping:
-                raise ValueError(f"Trying to set a duplicate code {code.name}")
+                errors.append(ValueError(f"Trying to set a duplicate code {code.name}"))
             mapping[code.name] = code
-
+        if errors:
+            raise ValueError(errors)
         return cls(name=name, mapping=mapping)
 
     @property
