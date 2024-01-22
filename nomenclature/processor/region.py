@@ -766,8 +766,13 @@ def _compare_and_merge(
     difference = compare[
         ~np.isclose(compare["original"], compare["aggregated"], rtol=rtol)
     ]
-    difference["difference (%)"] = 100 * np.abs(
-        (difference["original"] - difference["aggregated"]) / difference["original"]
+    difference.insert(
+        len(difference.columns),
+        "difference (%)",
+        100
+        * np.abs(
+            (difference["original"] - difference["aggregated"]) / difference["original"]
+        ),
     )
     difference = difference.sort_values("difference (%)", ascending=False)
     if difference is not None and len(difference):
