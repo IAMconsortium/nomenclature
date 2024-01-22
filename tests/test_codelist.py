@@ -338,4 +338,5 @@ def test_multiple_external_repos():
                 nomenclature_config,
             )
     finally:
-        clean_up_external_repos(nomenclature_config.repositories)
+        pass
+        # clean_up_external_repos(nomenclature_config.repositories)
