@@ -1,11 +1,15 @@
-from pathlib import Path
-import pytest
 import shutil
+import sys
+import os
+import stat
+from pathlib import Path
+
 import pandas as pd
+import pytest
 from pyam import IamDataFrame
 from pyam.utils import IAMC_IDX
-from nomenclature import DataStructureDefinition
 
+from nomenclature import DataStructureDefinition
 
 here = Path(__file__).parent
 TEST_DATA_DIR = here / "data"
@@ -52,4 +56,8 @@ def clean_up_external_repos(repos):
     # clean up the external repo
     for repository in repos.values():
         if repository.local_path.exists():
-            shutil.rmtree(repository.local_path)  # , ignore_errors=True)
+            if sys.platform.startswith("win") and not os.access(
+                repository.local_path, os.W_OK
+            ):
+                os.chmod(repository.local_path, stat.S_IWUSR)
+            shutil.rmtree(repository.local_path, ignore_errors=True)
