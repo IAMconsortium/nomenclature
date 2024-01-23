@@ -3,15 +3,16 @@ import pandas as pd
 import pandas.testing as pdt
 import logging
 
-from nomenclature.code import Code, RegionCode, MetaCode, VariableCode
+from nomenclature.code import Code, RegionCode, MetaCode
 from nomenclature.codelist import (
     CodeList,
     VariableCodeList,
     RegionCodeList,
     MetaCodeList,
 )
+from nomenclature.config import NomenclatureConfig
 
-from conftest import TEST_DATA_DIR
+from conftest import TEST_DATA_DIR, clean_up_external_repos
 
 
 def test_simple_codelist():
@@ -323,3 +324,18 @@ def test_MetaCodeList_from_directory():
     }
     exp = MetaCodeList(name="Meta", mapping=mapping)
     assert obs == exp
+
+
+def test_multiple_external_repos():
+    nomenclature_config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "nomenclature_configs" / "multiple_repos_per_dimension.yaml"
+    )
+    try:
+        with raises(ValueError, match="Duplicate"):
+            variable_code_list = VariableCodeList.from_directory(
+                "variable",
+                TEST_DATA_DIR / "nomenclature_configs" / "variable",
+                nomenclature_config,
+            )
+    finally:
+        clean_up_external_repos(nomenclature_config.repositories)

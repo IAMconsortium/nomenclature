@@ -9,4 +9,3 @@ definitions:
     country: true
   variable:
     repository: common-definitions
-    repository_dimension_path: definitions/variable

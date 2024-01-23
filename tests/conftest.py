@@ -1,11 +1,15 @@
-from pathlib import Path
-import pytest
 import shutil
+import sys
+import os
+import stat
+from pathlib import Path
+
 import pandas as pd
+import pytest
 from pyam import IamDataFrame
 from pyam.utils import IAMC_IDX
-from nomenclature import DataStructureDefinition
 
+from nomenclature import DataStructureDefinition
 
 here = Path(__file__).parent
 TEST_DATA_DIR = here / "data"
@@ -48,8 +52,13 @@ def add_meta(df):
         df.set_meta(["foo", "bar"], "string")
 
 
+def remove_readonly(func, path, excinfo):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+
 def clean_up_external_repos(repos):
     # clean up the external repo
     for repository in repos.values():
         if repository.local_path.exists():
-            shutil.rmtree(repository.local_path, ignore_errors=True)
+            shutil.rmtree(repository.local_path, onerror=remove_readonly)

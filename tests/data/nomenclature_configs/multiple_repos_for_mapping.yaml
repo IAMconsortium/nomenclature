@@ -1,0 +1,9 @@
+repositories:
+  common-definitions:
+    url: https://github.com/IAMconsortium/common-definitions.git/
+  legacy-definitions:
+    url: https://github.com/IAMconsortium/legacy-definitions.git/
+mappings:
+  repositories:
+    - common-definitions
+    - legacy-definitions

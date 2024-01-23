@@ -1,22 +1,41 @@
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Annotated, Optional
 
 import yaml
 from git import Repo
-from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+    ConfigDict,
+    BeforeValidator,
+)
+
+
+def convert_to_set(v: str | list[str] | set[str]) -> set[str]:
+    match v:
+        case set(v):
+            return v
+        case list(v):
+            return set(v)
+        case str(v):
+            return {v}
+        case _:
+            raise TypeError("`repositories` must be of type str, list or set.")
 
 
 class CodeListConfig(BaseModel):
     dimension: str
-    repository: str | None = None
-    repository_dimension_path: Path | None = None
+    repositories: Annotated[set[str] | None, BeforeValidator(convert_to_set)] = Field(
+        None, alias="repository"
+    )
+    model_config = ConfigDict(populate_by_name=True)
 
-    @model_validator(mode="after")
-    @classmethod
-    def set_repository_dimension_path(cls, v: "CodeListConfig") -> "CodeListConfig":
-        if v.repository is not None and v.repository_dimension_path is None:
-            v.repository_dimension_path = f"definitions/{v.dimension}"
-        return v
+    @property
+    def repository_dimension_path(self) -> str:
+        return f"definitions/{self.dimension}"
 
 
 class RegionCodeListConfig(CodeListConfig):
@@ -84,20 +103,23 @@ class DataStructureConfig(BaseModel):
         return {"dimension": info.field_name, **v}
 
     @property
-    def repos(self) -> Dict[str, str]:
+    def repos(self) -> dict[str, str]:
         return {
-            dimension: getattr(self, dimension).repository
+            dimension: getattr(self, dimension).repositories
             for dimension in ("region", "variable")
-            if getattr(self, dimension) and getattr(self, dimension).repository
+            if getattr(self, dimension) and getattr(self, dimension).repositories
         }
 
 
 class RegionMappingConfig(BaseModel):
-    repository: str
+    repositories: Annotated[set[str], BeforeValidator(convert_to_set)] = Field(
+        ..., alias="repository"
+    )
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class NomenclatureConfig(BaseModel):
-    repositories: Dict[str, Repository] = {}
+    repositories: dict[str, Repository] = {}
     definitions: Optional[DataStructureConfig] = None
     mappings: Optional[RegionMappingConfig] = None
 
@@ -107,11 +129,11 @@ class NomenclatureConfig(BaseModel):
         cls, v: "NomenclatureConfig"
     ) -> "NomenclatureConfig":
         definitions_repos = v.definitions.repos if v.definitions else {}
-        mapping_repos = {"mappings": v.mappings.repository} if v.mappings else {}
+        mapping_repos = {"mappings": v.mappings.repositories} if v.mappings else {}
         repos = {**definitions_repos, **mapping_repos}
-        for use, repository in repos.items():
-            if repository not in v.repositories:
-                raise ValueError((f"Unknown repository '{repository}' in {use}."))
+        for use, repositories in repos.items():
+            if repositories - v.repositories.keys():
+                raise ValueError((f"Unknown repository {repositories} in '{use}'."))
         return v
 
     def fetch_repos(self, target_folder: Path):
