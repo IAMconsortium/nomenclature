@@ -332,12 +332,21 @@ def test_multiple_external_repos():
         TEST_DATA_DIR / "nomenclature_configs" / "multiple_repos_per_dimension.yaml"
     )
     try:
-        with raises(ValueError, match="Collected 529 errors"):
-            VariableCodeList.from_directory(
-                "variable",
-                TEST_DATA_DIR / "nomenclature_configs" / "variable",
-                nomenclature_config,
-            )
+        variable_code_list = VariableCodeList.from_directory(
+            "variable",
+            TEST_DATA_DIR / "nomenclature_configs" / "variable",
+            nomenclature_config,
+        )
+        assert nomenclature_config.repositories.keys() == {
+            "common-definitions",
+            "legacy-definitions",
+        }
+
+        assert all(
+            repo.local_path.is_dir()
+            for repo in nomenclature_config.repositories.values()
+        )
+        assert len(variable_code_list) > 2000
     finally:
         clean_up_external_repos(nomenclature_config.repositories)
 
