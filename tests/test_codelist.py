@@ -1,6 +1,7 @@
 from pytest import raises
 import pandas as pd
 import pandas.testing as pdt
+import pytest
 import logging
 
 from nomenclature.code import Code, RegionCode, MetaCode
@@ -331,11 +332,29 @@ def test_multiple_external_repos():
         TEST_DATA_DIR / "nomenclature_configs" / "multiple_repos_per_dimension.yaml"
     )
     try:
-        with raises(ValueError, match="Duplicate"):
-            variable_code_list = VariableCodeList.from_directory(
-                "variable",
-                TEST_DATA_DIR / "nomenclature_configs" / "variable",
-                nomenclature_config,
-            )
+        variable_code_list = VariableCodeList.from_directory(
+            "variable",
+            TEST_DATA_DIR / "nomenclature_configs" / "variable",
+            nomenclature_config,
+        )
+        assert nomenclature_config.repositories.keys() == {
+            "common-definitions",
+            "legacy-definitions",
+        }
+
+        assert all(
+            repo.local_path.is_dir()
+            for repo in nomenclature_config.repositories.values()
+        )
+        assert len(variable_code_list) > 2000
     finally:
         clean_up_external_repos(nomenclature_config.repositories)
+
+
+@pytest.mark.parametrize("CodeList", [VariableCodeList, CodeList])
+def test_variable_codelist_with_duplicates_raises(CodeList):
+    error_string = "2 errors:\n.*Some Variable\n.*Some other Variable"
+    with raises(ValueError, match=error_string):
+        CodeList.from_directory(
+            "variable", TEST_DATA_DIR / "duplicate-code-list" / "variable"
+        )
