@@ -42,9 +42,10 @@ def cast_to_RequiredMeasurand(v) -> RequiredMeasurand:
 
 
 class RequiredData(BaseModel):
-    measurand: List[
-        Annotated[RequiredMeasurand, BeforeValidator(cast_to_RequiredMeasurand)]
-    ] | None = None
+    measurand: (
+        List[Annotated[RequiredMeasurand, BeforeValidator(cast_to_RequiredMeasurand)]]
+        | None
+    ) = None
     variable: List[str] | None = None
     region: List[str] | None = None
     year: List[int] | None = None

@@ -412,9 +412,11 @@ class RegionAggregationMapping(BaseModel):
         }
         if self.native_regions:
             dict_representation["native_regions"] = [
-                {native_region.name: native_region.rename}
-                if native_region.rename
-                else native_region.name
+                (
+                    {native_region.name: native_region.rename}
+                    if native_region.rename
+                    else native_region.name
+                )
                 for native_region in self.native_regions
             ]
         if self.common_regions:
