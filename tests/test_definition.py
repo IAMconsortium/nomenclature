@@ -64,6 +64,14 @@ def test_definition_from_general_config(workflow_folder):
         clean_up_external_repos(obs.config.repositories)
 
 
+def test_definition_general_config_country_only():
+    obs = DataStructureDefinition(
+        TEST_DATA_DIR / "general-config-only-country" / "definitions",
+        dimensions=["region"],
+    )
+    assert all(region in obs.region for region in ("Austria", "Bolivia", "Kosovo"))
+
+
 def test_to_excel(simple_definition, tmpdir):
     """Check writing a DataStructureDefinition to file"""
     file = tmpdir / "testing_export.xlsx"
