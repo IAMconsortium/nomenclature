@@ -44,9 +44,11 @@ class DataStructureDefinition:
         if (file := path.parent / "nomenclature.yaml").exists():
             self.config = NomenclatureConfig.from_file(file=file)
         else:
-            self.config = None
+            self.config = NomenclatureConfig()
 
-        if not path.is_dir() and (self.config is None or not self.config.repositories):
+        if not path.is_dir() and not (
+            self.config.repositories or self.config.definitions.region.country
+        ):
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
         self.dimensions = dimensions or ["region", "variable"]
