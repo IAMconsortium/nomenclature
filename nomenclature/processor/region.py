@@ -483,15 +483,14 @@ class RegionProcessor(Processor):
 
         mapping_files = [f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}]
 
-        if dsd.config and dsd.config.mappings:
-            for repository in dsd.config.mappings.repositories:
-                mapping_files.extend(
-                    f
-                    for f in (
-                        dsd.config.repositories[repository].local_path / "mappings"
-                    ).glob("**/*")
-                    if f.suffix in {".yaml", ".yml"}
-                )
+        for repository in dsd.config.mappings.repositories:
+            mapping_files.extend(
+                f
+                for f in (
+                    dsd.config.repositories[repository].local_path / "mappings"
+                ).glob("**/*")
+                if f.suffix in {".yaml", ".yml"}
+            )
 
         for file in mapping_files:
             try:
