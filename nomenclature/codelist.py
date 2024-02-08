@@ -196,21 +196,14 @@ class CodeList(BaseModel):
 
         """
         code_list = cls._parse_codelist_dir(path, file_glob_pattern)
-
-        with suppress(AttributeError):
-            dimension = path.name
-            codelistconfig = getattr(config.definitions, dimension)
-            for repo in codelistconfig.repositories:
-                repo_path = (
-                    config.repositories[repo].local_path / "definitions" / dimension
-                )
-                code_list = (
-                    cls._parse_codelist_dir(
-                        repo_path,
-                        file_glob_pattern,
-                    )
-                    + code_list
-                )
+        config = config or NomenclatureConfig()
+        for repo in getattr(
+            config.definitions, name.lower(), CodeListConfig()
+        ).repositories:
+            repo_path = config.repositories[repo].local_path / "definitions" / name
+            code_list = (
+                cls._parse_codelist_dir(repo_path, file_glob_pattern) + code_list
+            )
         errors = ErrorCollector()
         mapping: Dict[str, Code] = {}
         for code in code_list:
@@ -602,35 +595,33 @@ class RegionCodeList(CodeList):
         code_list: List[RegionCode] = []
 
         # initializing from general configuration
-        with suppress(AttributeError):
-            # adding all countries
-            if config.definitions.region.country is True:
-                for c in nomenclature.countries:
-                    try:
-                        code_list.append(
-                            RegionCode(
-                                name=c.name, iso3_codes=c.alpha_3, hierarchy="Country"
-                            )
+        # adding all countries
+        config = config or NomenclatureConfig()
+        if config.definitions.region.country is True:
+            for c in nomenclature.countries:
+                try:
+                    code_list.append(
+                        RegionCode(
+                            name=c.name, iso3_codes=c.alpha_3, hierarchy="Country"
                         )
-                    # special handling for countries that do not have an alpha_3 code
-                    except AttributeError:
-                        code_list.append(RegionCode(name=c.name, hierarchy="Country"))
+                    )
+                # special handling for countries that do not have an alpha_3 code
+                except AttributeError:
+                    code_list.append(RegionCode(name=c.name, hierarchy="Country"))
 
-            # importing from an external repository
-            for repo in config.definitions.region.repositories:
-                repo_path = (
-                    config.repositories[repo].local_path / "definitions" / "region"
-                )
+        # importing from an external repository
+        for repo in config.definitions.region.repositories:
+            repo_path = config.repositories[repo].local_path / "definitions" / "region"
 
-                code_list = cls._parse_region_code_dir(
-                    code_list,
-                    repo_path,
-                    file_glob_pattern,
-                    repository=config.definitions.region.repositories,
-                )
-                code_list = cls._parse_and_replace_tags(
-                    code_list, repo_path, file_glob_pattern
-                )
+            code_list = cls._parse_region_code_dir(
+                code_list,
+                repo_path,
+                file_glob_pattern,
+                repository=config.definitions.region.repositories,
+            )
+            code_list = cls._parse_and_replace_tags(
+                code_list, repo_path, file_glob_pattern
+            )
 
         # parse from current repository
         code_list = cls._parse_region_code_dir(code_list, path, file_glob_pattern)
