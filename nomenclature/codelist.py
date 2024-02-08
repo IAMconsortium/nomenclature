@@ -1,4 +1,3 @@
-from contextlib import suppress
 import logging
 from pathlib import Path
 from typing import ClassVar, Dict, List
@@ -6,15 +5,14 @@ from typing import ClassVar, Dict, List
 import numpy as np
 import pandas as pd
 import yaml
-from pyam.utils import write_sheet
-from pydantic import field_validator, BaseModel, ValidationInfo
+from pyam.utils import is_list_like, write_sheet
+from pydantic import BaseModel, ValidationInfo, field_validator
 from pydantic_core import PydanticCustomError
 
 import nomenclature
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
-from nomenclature.config import NomenclatureConfig
-from nomenclature.error import custom_pydantic_errors, ErrorCollector
-from pyam.utils import is_list_like
+from nomenclature.config import CodeListConfig, NomenclatureConfig
+from nomenclature.error import ErrorCollector, custom_pydantic_errors
 
 here = Path(__file__).parent.absolute()
 
