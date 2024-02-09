@@ -55,3 +55,15 @@ def test_multiple_mapping_repos():
         assert nomenclature_config.repositories.keys() == exp_repos
     finally:
         clean_up_external_repos(nomenclature_config.repositories)
+
+
+def test_double_stacked_external_repo_raises(monkeypatch):
+    repo = Repository(url="lorem ipsum")
+    monkeypatch.setitem(
+        repo.__dict__,
+        "local_path",
+        TEST_DATA_DIR / "double_stacked_external_repo",
+    )
+    match = "No external repos allowed in external repo"
+    with raises(ValueError, match=match):
+        repo.check_external_repo_double_stacking()
