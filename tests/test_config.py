@@ -64,6 +64,6 @@ def test_double_stacked_external_repo_raises(monkeypatch):
         "local_path",
         TEST_DATA_DIR / "double_stacked_external_repo",
     )
-    match = "No external repos allowed in external repo"
+    match = "External repos cannot again refer to external repos"
     with raises(ValueError, match=match):
         repo.check_external_repo_double_stacking()
