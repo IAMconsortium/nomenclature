@@ -158,11 +158,11 @@ def test_cli_custom_dimensions_runs():
         [
             "validate-project",
             str(TEST_DATA_DIR / "non-default_dimensions"),
-            "--dimensions",
+            "--dimension",
             "variable",
-            "--dimensions",
+            "--dimension",
             "region",
-            "--dimensions",
+            "--dimension",
             "scenario",
         ],
     )
@@ -178,7 +178,7 @@ def test_cli_custom_dimensions_fails():
         [
             "validate-project",
             str(TEST_DATA_DIR / "non-default_dimensions"),
-            "--dimensions",
+            "--dimension",
             "foo",
         ],
     )
@@ -196,9 +196,9 @@ def test_cli_empty_dimensions_run():
         [
             "validate-project",
             str(TEST_DATA_DIR / "non-default_dimensions_one_empty"),
-            "--dimensions",
+            "--dimension",
             "variable",
-            "--dimensions",
+            "--dimension",
             "region",
         ],
     )
