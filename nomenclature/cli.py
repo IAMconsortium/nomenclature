@@ -36,7 +36,8 @@ def cli_valid_yaml(path: Path):
     default=None,
 )
 @click.option(
-    "--dimensions",
+    "--dimension",
+    "dimensions",
     help="Optional list of dimensions",
     type=str,
     multiple=True,
@@ -68,7 +69,10 @@ def cli_valid_project(
     -------
     $ nomenclature validate-project .
                         --definitions <def-folder> --mappings <map-folder>
-                        --dimensions "['<folder1>', '<folder2>', '<folder3>']"
+                        --dimension <folder1>
+                        --dimension <folder2>
+                        --dimension <folder3>
+
 
 
     Note
