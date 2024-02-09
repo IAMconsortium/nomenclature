@@ -27,9 +27,9 @@ def convert_to_set(v: str | list[str] | set[str]) -> set[str]:
 
 
 class CodeListConfig(BaseModel):
-    dimension: str
-    repositories: Annotated[set[str] | None, BeforeValidator(convert_to_set)] = Field(
-        None, alias="repository"
+    dimension: str | None = None
+    repositories: Annotated[set[str], BeforeValidator(convert_to_set)] = Field(
+        default_factory=set, alias="repository"
     )
     model_config = ConfigDict(populate_by_name=True)
 
@@ -94,8 +94,8 @@ class DataStructureConfig(BaseModel):
 
     """
 
-    region: Optional[RegionCodeListConfig] = None
-    variable: Optional[CodeListConfig] = None
+    region: Optional[RegionCodeListConfig] = Field(default_factory=RegionCodeListConfig)
+    variable: Optional[CodeListConfig] = Field(default_factory=CodeListConfig)
 
     @field_validator("region", "variable", mode="before")
     @classmethod
@@ -107,30 +107,29 @@ class DataStructureConfig(BaseModel):
         return {
             dimension: getattr(self, dimension).repositories
             for dimension in ("region", "variable")
-            if getattr(self, dimension) and getattr(self, dimension).repositories
+            if getattr(self, dimension).repositories
         }
 
 
 class RegionMappingConfig(BaseModel):
     repositories: Annotated[set[str], BeforeValidator(convert_to_set)] = Field(
-        ..., alias="repository"
+        default_factory=set, alias="repository"
     )
     model_config = ConfigDict(populate_by_name=True)
 
 
 class NomenclatureConfig(BaseModel):
-    repositories: dict[str, Repository] = {}
-    definitions: Optional[DataStructureConfig] = None
-    mappings: Optional[RegionMappingConfig] = None
+    repositories: dict[str, Repository] = Field(default_factory=dict)
+    definitions: DataStructureConfig = Field(default_factory=DataStructureConfig)
+    mappings: RegionMappingConfig = Field(default_factory=RegionMappingConfig)
 
     @model_validator(mode="after")
     @classmethod
     def check_definitions_repository(
         cls, v: "NomenclatureConfig"
     ) -> "NomenclatureConfig":
-        definitions_repos = v.definitions.repos if v.definitions else {}
         mapping_repos = {"mappings": v.mappings.repositories} if v.mappings else {}
-        repos = {**definitions_repos, **mapping_repos}
+        repos = {**v.definitions.repos, **mapping_repos}
         for use, repositories in repos.items():
             if repositories - v.repositories.keys():
                 raise ValueError((f"Unknown repository {repositories} in '{use}'."))
