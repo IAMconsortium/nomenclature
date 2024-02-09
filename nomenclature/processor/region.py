@@ -737,7 +737,7 @@ def _aggregate_region(df, var, *regions, **kwargs):
             logger.info(
                 (
                     f"Could not aggregate '{var}' for region '{regions[0]}' "
-                    f"({kwargs})\nerror: {error}"
+                    f"({kwargs})\n{error}"
                 )
             )
         else:
