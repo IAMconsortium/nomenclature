@@ -92,8 +92,8 @@ class Repository(BaseModel):
             if config.get("repositories"):
                 raise ValueError(
                     (
-                        "No external repos allowed in external repo, found in "
-                        f"nomenclature.yaml in '{self.url}'"
+                        "External repos cannot again refer to external repos, "
+                        f"found in nomenclature.yaml in '{self.url}'"
                     )
                 )
 
