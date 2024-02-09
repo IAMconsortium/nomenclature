@@ -733,9 +733,12 @@ def _aggregate_region(df, var, *regions, **kwargs):
     try:
         return df.aggregate_region(var, *regions, **kwargs)
     except ValueError as error:
-        if str(error) == "Inconsistent index between variable and weight!":
+        if str(error).startswith("Missing weights for the following data"):
             logger.info(
-                f"Could not aggregate '{var}' for region '{regions[0]}' ({kwargs})"
+                (
+                    f"Could not aggregate '{var}' for region '{regions[0]}' "
+                    f"({kwargs})\n{error}"
+                )
             )
         else:
             raise error
