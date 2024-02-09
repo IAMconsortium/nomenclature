@@ -82,6 +82,20 @@ class Repository(BaseModel):
         repo.git.clean("-xdf")
         if self.revision == "main":
             repo.remotes.origin.pull()
+        self.check_external_repo_double_stacking()
+
+    def check_external_repo_double_stacking(self):
+        nomenclature_config = self.local_path / "nomenclature.yaml"
+        if nomenclature_config.is_file():
+            with open(nomenclature_config, "r") as f:
+                config = yaml.safe_load(f)
+            if config.get("repositories"):
+                raise ValueError(
+                    (
+                        "No external repos allowed in external repo, found in "
+                        f"nomenclature.yaml in {self.url}"
+                    )
+                )
 
 
 class DataStructureConfig(BaseModel):
