@@ -93,7 +93,7 @@ class Repository(BaseModel):
                 raise ValueError(
                     (
                         "No external repos allowed in external repo, found in "
-                        f"nomenclature.yaml in {self.url}"
+                        f"nomenclature.yaml in '{self.url}'"
                     )
                 )
 
