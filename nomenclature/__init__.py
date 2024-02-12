@@ -11,8 +11,10 @@ from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition  #
 from nomenclature.processor import RegionAggregationMapping  # noqa
 from nomenclature.processor import RegionProcessor, RequiredDataValidator  # noqa
 
+
 __version__ = "0.0.0"
 __version_tuple__ = (0, 0, 0)
+
 
 # set up logging
 logging.basicConfig(
