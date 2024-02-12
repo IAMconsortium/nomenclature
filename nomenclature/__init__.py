@@ -1,5 +1,4 @@
 import logging
-from importlib.metadata import version
 from pathlib import Path
 
 import yaml
@@ -12,6 +11,9 @@ from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition  #
 from nomenclature.processor import RegionAggregationMapping  # noqa
 from nomenclature.processor import RegionProcessor, RequiredDataValidator  # noqa
 
+__version__ = "0.0.0"
+__version_tuple__ = (0, 0, 0)
+
 # set up logging
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
@@ -20,8 +22,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-
-__version__ = version("nomenclature-iamc")
 
 
 def create_yaml_from_xlsx(source, target, sheet_name, col, attrs=None):

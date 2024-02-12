@@ -36,7 +36,6 @@ numpydoc = "^1.6.0"
 nomenclature = 'nomenclature.cli:cli'
 
 [tool.poetry-dynamic-versioning]
-bump = true
 enable = true
 style = "pep440"
 vcs = "git"
