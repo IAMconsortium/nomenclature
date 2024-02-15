@@ -14,6 +14,7 @@ build:
     post_install:
       # Install dependencies with 'docs' dependency group
       # https://python-poetry.org/docs/managing-dependencies/#dependency-groups
+      - poetry self add "poetry-dynamic-versioning[plugin]"
       - poetry install --with docs
 
 sphinx:
