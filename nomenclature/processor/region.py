@@ -736,8 +736,7 @@ def _aggregate_region(df, var, *regions, **kwargs):
         if str(error).startswith("Missing weights for the following data"):
             logger.info(
                 (
-                    f"Could not aggregate '{var}' for region '{regions[0]}' "
-                    f"({kwargs})\n{error}"
+                    f"Could not aggregate '{var}' for region '{regions[0]}' ({kwargs})"
                 )
             )
         else:
