@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -6,6 +7,7 @@ import git
 from pyam import IamDataFrame
 from pyam.index import replace_index_labels
 from pyam.logging import adjust_log_level
+from pyam.utils import write_sheet
 
 from nomenclature.codelist import (
     CodeList,
@@ -55,7 +57,7 @@ class DataStructureDefinition:
             self.repo = None
 
         if not path.is_dir() and not (
-            self.config.repositories or self.config.definitions.region.country
+                self.config.repositories or self.config.definitions.region.country
         ):
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
@@ -145,7 +147,7 @@ class DataStructureDefinition:
             return error if not error.empty else None
 
     def to_excel(
-        self, excel_writer, sheet_name=None, sort_by_code: bool = False, **kwargs
+            self, excel_writer, sort_by_code: bool = False, **kwargs
     ):
         """Write the *variable* codelist to an Excel sheet
 
@@ -154,12 +156,51 @@ class DataStructureDefinition:
         excel_writer : path-like, file-like, or ExcelWriter object
             File path as string or :class:`pathlib.Path`,
             or existing :class:`pandas.ExcelWriter`.
-        sheet_name : str, optional
-            Name of sheet that will have the codelist. If *None*, use the codelist name.
         sort_by_code : bool, optional
             Sort the codelist before exporting to file.
         **kwargs
             Passed to :class:`pandas.ExcelWriter` (if *excel_writer* is path-like).
         """
-        # TODO write all dimensions to the file
-        self.variable.to_excel(excel_writer, sheet_name, sort_by_code, **kwargs)
+        with pd.ExcelWriter(excel_writer, engine="xlsxwriter", **kwargs) as writer:
+
+            # create dataframe with attributes of the DataStructureDefinition
+            arg_dict = {
+                "Project": Path(self.repo.common_dir).parts[-2],
+                "File created": time_format(datetime.now()),
+                "": "",
+            }
+            if self.repo is not None:
+                arg_dict.update(git_attributes("", self.repo))
+
+            ret = make_dataframe(arg_dict)
+
+            for key, value in self.config.repositories.items():
+                ret = pd.concat(
+                    [
+                        ret,
+                        make_dataframe(git_attributes(key, git.Repo(value.local_path)))
+                    ]
+                )
+
+            write_sheet(writer, "Repository", ret)
+
+            # write codelist for each dimensions to own sheet
+            for dim in self.dimensions:
+                getattr(self, dim).to_excel(writer, dim, sort_by_code)
+
+
+def git_attributes(name, repo):
+    return {
+        "Repository": name,
+        "url": repo.remote().url,
+        "commit": repo.commit(),
+        "timestamp": repo.commit().committed_datetime.strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+
+def make_dataframe(data):
+    return pd.DataFrame.from_dict(
+        data,
+        orient="index",
+        columns=["Value"],
+    ).reset_index().rename(columns={"index": "Attribute"})
