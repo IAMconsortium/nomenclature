@@ -325,9 +325,6 @@ class CodeList(BaseModel):
         )
         if sort_by_code:
             codelist.sort_values(by=self.name, inplace=True)
-        codelist.rename(
-            columns={c: str(c).capitalize() for c in codelist.columns}, inplace=True
-        )
         return codelist
 
     def to_csv(self, path=None, sort_by_code: bool = False, **kwargs):
