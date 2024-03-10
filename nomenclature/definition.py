@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 
 import pandas as pd
+import git
 from pyam import IamDataFrame
 from pyam.index import replace_index_labels
 from pyam.logging import adjust_log_level
@@ -41,10 +42,17 @@ class DataStructureDefinition:
         if not isinstance(path, Path):
             path = Path(path)
 
-        if (file := path.parent / "nomenclature.yaml").exists():
+        self.working_dir = path.parent
+
+        if (file := self.working_dir / "nomenclature.yaml").exists():
             self.config = NomenclatureConfig.from_file(file=file)
         else:
             self.config = NomenclatureConfig()
+
+        try:
+            self.repo = git.Repo(self.working_dir)
+        except git.InvalidGitRepositoryError:
+            self.repo = None
 
         if not path.is_dir() and not (
             self.config.repositories or self.config.definitions.region.country
