@@ -146,29 +146,29 @@ class DataStructureDefinition:
             error = pd.concat(lst)
             return error if not error.empty else None
 
-    def to_excel(self, excel_writer, sort_by_code: bool = False, **kwargs):
+    def to_excel(self, excel_writer, **kwargs):
         """Write the codelists to an xlsx spreadsheet
 
         Parameters
         ----------
-        excel_writer : path-like, file-like, or ExcelWriter object
-            File path as string or :class:`pathlib.Path`,
-            or existing :class:`pandas.ExcelWriter`.
-        sort_by_code : bool, optional
-            Sort the codelist before exporting to file.
+        excel_writer : str or :class:`pathlib.Path`
+            File path as string or :class:`pathlib.Path`.
         **kwargs
-            Passed to :class:`pandas.ExcelWriter` (if *excel_writer* is path-like).
+            Passed to :class:`pandas.ExcelWriter`
         """
-        with pd.ExcelWriter(excel_writer, engine="xlsxwriter", **kwargs) as writer:
+        if "engine" not in kwargs:
+            kwargs["engine"] = "xlsxwriter"
 
+        with pd.ExcelWriter(excel_writer,**kwargs) as writer:
             # create dataframe with attributes of the DataStructureDefinition
+            project = self.project_folder.absolute().parts[-1]
             arg_dict = {
-                "project": self.project_folder.absolute().parts[-1],
-                "file created": time_format(datetime.now()),
+                "project": project,
+                "file_created": time_format(datetime.now()),
                 "": "",
             }
             if self.repo is not None:
-                arg_dict.update(git_attributes("", self.repo))
+                arg_dict.update(git_attributes(project, self.repo))
 
             ret = make_dataframe(arg_dict)
 
@@ -184,7 +184,7 @@ class DataStructureDefinition:
 
             # write codelist for each dimensions to own sheet
             for dim in self.dimensions:
-                getattr(self, dim).to_excel(writer, dim, sort_by_code)
+                getattr(self, dim).to_excel(writer, dim, sort_by_code=True)
 
 
 def time_format(x):
@@ -192,11 +192,12 @@ def time_format(x):
 
 
 def git_attributes(name, repo):
+    if repo.is_dirty():
+        raise ValueError(f"Repository '{name}' is dirty")
     return {
-        "repository": name,
-        "url": repo.remote().url,
-        "commit": repo.commit(),
-        "timestamp": time_format(repo.commit().committed_datetime),
+        f"{name}.url": repo.remote().url,
+        f"{name}.commit_hash": repo.commit(),
+        f"{name}.commit_timestamp": time_format(repo.commit().committed_datetime),
     }
 
 

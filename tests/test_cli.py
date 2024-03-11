@@ -32,9 +32,9 @@ def test_cli_installed():
         command in result.stdout
         for command in (
             "check-region-aggregation",
+            "export-definition",
             "validate-project",
             "validate-yaml",
-            "export-project",
         )
     )
 
@@ -316,14 +316,14 @@ def test_check_region_aggregation(tmp_path):
 
 
 def test_cli_export_to_excel(tmpdir):
-    """Assert that writing to excel works as expected"""
+    """Assert that writing a DataStructureDefinition to excel works as expected"""
     file = tmpdir / "testing_export.xlsx"
 
     assert (
         runner.invoke(
             cli,
             [
-                "export-project",
+                "export-definition",
                 str(TEST_DATA_DIR / "general-config"),
                 str(file),
             ],

@@ -156,28 +156,12 @@ def check_region_aggregation(
         differences_df.reset_index().to_excel(differences, index=False)
 
 
-@cli.command("export-project")
+@cli.command("export-definition")
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
 @click.argument("target", type=click.Path(path_type=Path))
-@click.option(
-    "--definitions",
-    help="Optional name for definitions folder",
-    type=str,
-    default="definitions",
-)
-@click.option(
-    "--dimension",
-    "dimensions",
-    help="Optional list of dimensions",
-    type=str,
-    multiple=True,
-    default=None,
-)
-def cli_export_project_to_excel(
+def cli_export_definition_to_excel(
     path: Path,
     target: Path,
-    definitions: str,
-    dimensions: Optional[List[str]],
 ):
     """Assert that `path` is a valid project nomenclature
 
@@ -187,9 +171,5 @@ def cli_export_project_to_excel(
         Project directory to be exported
     target : Path
         Path and file name for the exported file
-    definitions : str, optional
-        Name of the definitions folder, defaults to "definitions"
-    dimensions : List[str], optional
-        Dimensions to be checked, defaults to all sub-folders of `definitions`
     """
-    DataStructureDefinition(path / definitions, dimensions=dimensions).to_excel(target)
+    DataStructureDefinition(path / "definitions").to_excel(target)
