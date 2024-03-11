@@ -158,12 +158,7 @@ def check_region_aggregation(
 
 @cli.command("export-project")
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
-@click.option(
-    "--target",
-    "target",
-    help="Path and file name for the exported excel file",
-    type=str,
-)
+@click.argument("target", type=click.Path(path_type=Path))
 @click.option(
     "--definitions",
     help="Optional name for definitions folder",

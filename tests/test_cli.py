@@ -319,14 +319,14 @@ def test_cli_export_to_excel(simple_definition, tmpdir):
     """Assert that writing to excel works as expected"""
     file = tmpdir / "testing_export.xlsx"
 
-    runner.invoke(
+    assert runner.invoke(
         cli,
         [
             "export-project",
-            str(TEST_DATA_DIR / "general-config"),
+            str(TEST_DATA_DIR / "general-config" / "definitions"),
             str(file),
         ],
-    )
+    ).exit_code == 0
 
     obs = pd.ExcelFile(file)
     assert obs.sheet_names == ["project", "region", "variable"]
