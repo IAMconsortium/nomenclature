@@ -165,7 +165,7 @@ class DataStructureDefinition:
 
             # create dataframe with attributes of the DataStructureDefinition
             arg_dict = {
-                "Project": Path(self.repo.common_dir).parts[-2],
+                "Project": self.working_dir.absolute().parts[-1],
                 "File created": time_format(datetime.now()),
                 "": "",
             }
@@ -189,12 +189,16 @@ class DataStructureDefinition:
                 getattr(self, dim).to_excel(writer, dim, sort_by_code)
 
 
+def time_format(x):
+    return x.strftime("%Y-%m-%d %H:%M:%S")
+
+
 def git_attributes(name, repo):
     return {
         "Repository": name,
         "url": repo.remote().url,
         "commit": repo.commit(),
-        "timestamp": repo.commit().committed_datetime.strftime("%Y-%m-%d %H:%M:%S")
+        "timestamp": time_format(repo.commit().committed_datetime)
     }
 
 
