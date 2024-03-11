@@ -90,10 +90,10 @@ def test_to_excel_with_external_repo(tmpdir):
     dsd = DataStructureDefinition(TEST_DATA_DIR / "general-config" / "definitions")
     dsd.to_excel(file)
 
-    obs = pd.ExcelFile(file)
-    assert obs.sheet_names == ["project", "region", "variable"]
+    with pd.ExcelFile(file) as obs:
+        assert obs.sheet_names == ["project", "region", "variable"]
 
-    obs_project = obs.parse("project")
+        obs_project = obs.parse("project")
     exp = pd.DataFrame([["project", "general-config"]], columns=["attribute", "value"])
     pd.testing.assert_frame_equal(exp, obs_project[0:1])
 

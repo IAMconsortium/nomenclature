@@ -331,5 +331,5 @@ def test_cli_export_to_excel(tmpdir):
         == 0
     )
 
-    obs = pd.ExcelFile(file)
-    assert obs.sheet_names == ["project", "region", "variable"]
+    with pd.ExcelFile(file) as obs:
+        assert obs.sheet_names == ["project", "region", "variable"]
