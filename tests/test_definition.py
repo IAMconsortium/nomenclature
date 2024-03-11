@@ -83,7 +83,7 @@ def test_to_excel(simple_definition, tmpdir):
     pd.testing.assert_frame_equal(obs, exp)
 
 
-def _test_to_excel_with_external_repo(tmpdir):
+def test_to_excel_with_external_repo(tmpdir):
     """Check writing a DataStructureDefinition with an external repo to file"""
     file = tmpdir / "testing_export.xlsx"
 

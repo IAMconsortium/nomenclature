@@ -44,11 +44,11 @@ def cli_valid_yaml(path: Path):
     default=None,
 )
 def cli_valid_project(
-    path: Path,
-    definitions: str,
-    mappings: Optional[str],
-    required_data: Optional[str],
-    dimensions: Optional[List[str]],
+        path: Path,
+        definitions: str,
+        mappings: Optional[str],
+        required_data: Optional[str],
+        dimensions: Optional[List[str]],
 ):
     """Assert that `path` is a valid project nomenclature
 
@@ -107,12 +107,12 @@ def cli_valid_project(
 )
 @click.option("--differences", type=click.Path(path_type=Path), default=None)
 def check_region_aggregation(
-    input_data_file: Path,
-    workflow_directory: Path,
-    definitions: str,
-    mappings: str,
-    processed_data: Optional[Path],
-    differences: Optional[Path],
+        input_data_file: Path,
+        workflow_directory: Path,
+        definitions: str,
+        mappings: str,
+        processed_data: Optional[Path],
+        differences: Optional[Path],
 ):
     """Perform region processing and compare aggregated and original data
 
@@ -154,3 +154,47 @@ def check_region_aggregation(
         results_df.to_excel(processed_data)
     if differences:
         differences_df.reset_index().to_excel(differences, index=False)
+
+
+@cli.command("export-project")
+@click.argument("path", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--target",
+    "target",
+    help="Path and file name for the exported excel file",
+    type=str,
+)
+@click.option(
+    "--definitions",
+    help="Optional name for definitions folder",
+    type=str,
+    default="definitions",
+)
+@click.option(
+    "--dimension",
+    "dimensions",
+    help="Optional list of dimensions",
+    type=str,
+    multiple=True,
+    default=None,
+)
+def cli_export_project_to_excel(
+        path: Path,
+        target: Path,
+        definitions: str,
+        dimensions: Optional[List[str]],
+):
+    """Assert that `path` is a valid project nomenclature
+
+    Parameters
+    ----------
+    path : Path
+        Project directory to be exported
+    target : Path
+        Path and file name for the exported file
+    definitions : str, optional
+        Name of the definitions folder, defaults to "definitions"
+    dimensions : List[str], optional
+        Dimensions to be checked, defaults to all sub-folders of `definitions`
+    """
+    DataStructureDefinition(path / definitions, dimensions=dimensions).to_excel(target)

@@ -149,7 +149,7 @@ class DataStructureDefinition:
     def to_excel(
             self, excel_writer, sort_by_code: bool = False, **kwargs
     ):
-        """Write the *variable* codelist to an Excel sheet
+        """Write the codelists to an xlsx spreadsheet
 
         Parameters
         ----------
