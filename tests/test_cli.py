@@ -223,14 +223,14 @@ def test_cli_missing_mappings_runs():
     to not exist"""
 
     assert (
-            runner.invoke(
-                cli,
-                [
-                    "validate-project",
-                    str(TEST_DATA_DIR / "structure_validation_no_mappings"),
-                ],
-            ).exit_code
-            == 0
+        runner.invoke(
+            cli,
+            [
+                "validate-project",
+                str(TEST_DATA_DIR / "structure_validation_no_mappings"),
+            ],
+        ).exit_code
+        == 0
     )
 
 
