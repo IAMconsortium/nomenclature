@@ -103,9 +103,9 @@ def test_to_excel_with_external_repo(tmpdir):
     [
         ("validation_nc.xlsx", ["description", "unit"], "validation_nc_flat.yaml"),
         (
-                "validation_nc_list_arg.xlsx",
-                ["description", "unit", "region-aggregation"],
-                "validation_nc_list_arg.yaml",
+            "validation_nc_list_arg.xlsx",
+            ["description", "unit", "region-aggregation"],
+            "validation_nc_list_arg.yaml",
         ),
     ],
 )

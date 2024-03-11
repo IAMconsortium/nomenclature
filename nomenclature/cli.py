@@ -44,11 +44,11 @@ def cli_valid_yaml(path: Path):
     default=None,
 )
 def cli_valid_project(
-        path: Path,
-        definitions: str,
-        mappings: Optional[str],
-        required_data: Optional[str],
-        dimensions: Optional[List[str]],
+    path: Path,
+    definitions: str,
+    mappings: Optional[str],
+    required_data: Optional[str],
+    dimensions: Optional[List[str]],
 ):
     """Assert that `path` is a valid project nomenclature
 
@@ -107,12 +107,12 @@ def cli_valid_project(
 )
 @click.option("--differences", type=click.Path(path_type=Path), default=None)
 def check_region_aggregation(
-        input_data_file: Path,
-        workflow_directory: Path,
-        definitions: str,
-        mappings: str,
-        processed_data: Optional[Path],
-        differences: Optional[Path],
+    input_data_file: Path,
+    workflow_directory: Path,
+    definitions: str,
+    mappings: str,
+    processed_data: Optional[Path],
+    differences: Optional[Path],
 ):
     """Perform region processing and compare aggregated and original data
 
@@ -174,10 +174,10 @@ def check_region_aggregation(
     default=None,
 )
 def cli_export_project_to_excel(
-        path: Path,
-        target: Path,
-        definitions: str,
-        dimensions: Optional[List[str]],
+    path: Path,
+    target: Path,
+    definitions: str,
+    dimensions: Optional[List[str]],
 ):
     """Assert that `path` is a valid project nomenclature
 

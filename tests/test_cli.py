@@ -223,14 +223,14 @@ def test_cli_missing_mappings_runs():
     to not exist"""
 
     assert (
-        runner.invoke(
-            cli,
-            [
-                "validate-project",
-                str(TEST_DATA_DIR / "structure_validation_no_mappings"),
-            ],
-        ).exit_code
-        == 0
+            runner.invoke(
+                cli,
+                [
+                    "validate-project",
+                    str(TEST_DATA_DIR / "structure_validation_no_mappings"),
+                ],
+            ).exit_code
+            == 0
     )
 
 
@@ -319,14 +319,17 @@ def test_cli_export_to_excel(simple_definition, tmpdir):
     """Assert that writing to excel works as expected"""
     file = tmpdir / "testing_export.xlsx"
 
-    assert runner.invoke(
-        cli,
-        [
-            "export-project",
-            str(TEST_DATA_DIR / "general-config"),
-            str(file),
-        ],
-    ).exit_code == 0
+    assert (
+        runner.invoke(
+            cli,
+            [
+                "export-project",
+                str(TEST_DATA_DIR / "general-config"),
+                str(file),
+            ],
+        ).exit_code
+        == 0
+    )
 
     obs = pd.ExcelFile(file)
     assert obs.sheet_names == ["project", "region", "variable"]

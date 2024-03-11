@@ -57,7 +57,7 @@ class DataStructureDefinition:
             self.repo = None
 
         if not path.is_dir() and not (
-                self.config.repositories or self.config.definitions.region.country
+            self.config.repositories or self.config.definitions.region.country
         ):
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
@@ -146,9 +146,7 @@ class DataStructureDefinition:
             error = pd.concat(lst)
             return error if not error.empty else None
 
-    def to_excel(
-            self, excel_writer, sort_by_code: bool = False, **kwargs
-    ):
+    def to_excel(self, excel_writer, sort_by_code: bool = False, **kwargs):
         """Write the codelists to an xlsx spreadsheet
 
         Parameters
@@ -178,7 +176,7 @@ class DataStructureDefinition:
                 ret = pd.concat(
                     [
                         ret,
-                        make_dataframe(git_attributes(key, git.Repo(value.local_path)))
+                        make_dataframe(git_attributes(key, git.Repo(value.local_path))),
                     ]
                 )
 
@@ -198,13 +196,17 @@ def git_attributes(name, repo):
         "repository": name,
         "url": repo.remote().url,
         "commit": repo.commit(),
-        "timestamp": time_format(repo.commit().committed_datetime)
+        "timestamp": time_format(repo.commit().committed_datetime),
     }
 
 
 def make_dataframe(data):
-    return pd.DataFrame.from_dict(
-        data,
-        orient="index",
-        columns=["value"],
-    ).reset_index().rename(columns={"index": "attribute"})
+    return (
+        pd.DataFrame.from_dict(
+            data,
+            orient="index",
+            columns=["value"],
+        )
+        .reset_index()
+        .rename(columns={"index": "attribute"})
+    )
