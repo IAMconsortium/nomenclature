@@ -34,6 +34,7 @@ def test_cli_installed():
             "check-region-aggregation",
             "validate-project",
             "validate-yaml",
+            "export-project",
         )
     )
 
