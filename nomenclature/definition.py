@@ -44,15 +44,15 @@ class DataStructureDefinition:
         if not isinstance(path, Path):
             path = Path(path)
 
-        self.working_dir = path.parent
+        self.project_folder = path.parent
 
-        if (file := self.working_dir / "nomenclature.yaml").exists():
+        if (file := self.project_folder / "nomenclature.yaml").exists():
             self.config = NomenclatureConfig.from_file(file=file)
         else:
             self.config = NomenclatureConfig()
 
         try:
-            self.repo = git.Repo(self.working_dir)
+            self.repo = git.Repo(self.project_folder)
         except git.InvalidGitRepositoryError:
             self.repo = None
 
@@ -163,7 +163,7 @@ class DataStructureDefinition:
 
             # create dataframe with attributes of the DataStructureDefinition
             arg_dict = {
-                "project": self.working_dir.absolute().parts[-1],
+                "project": self.project_folder.absolute().parts[-1],
                 "file created": time_format(datetime.now()),
                 "": "",
             }
