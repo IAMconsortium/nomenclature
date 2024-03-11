@@ -323,7 +323,7 @@ def test_cli_export_to_excel(simple_definition, tmpdir):
         cli,
         [
             "export-project",
-            str(TEST_DATA_DIR / "general-config" / "definitions"),
+            str(TEST_DATA_DIR / "general-config"),
             str(file),
         ],
     ).exit_code == 0
