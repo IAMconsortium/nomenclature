@@ -165,8 +165,8 @@ class DataStructureDefinition:
 
             # create dataframe with attributes of the DataStructureDefinition
             arg_dict = {
-                "Project": self.working_dir.absolute().parts[-1],
-                "File created": time_format(datetime.now()),
+                "project": self.working_dir.absolute().parts[-1],
+                "file created": time_format(datetime.now()),
                 "": "",
             }
             if self.repo is not None:
@@ -182,7 +182,7 @@ class DataStructureDefinition:
                     ]
                 )
 
-            write_sheet(writer, "Repository", ret)
+            write_sheet(writer, "project", ret)
 
             # write codelist for each dimensions to own sheet
             for dim in self.dimensions:
@@ -195,7 +195,7 @@ def time_format(x):
 
 def git_attributes(name, repo):
     return {
-        "Repository": name,
+        "repository": name,
         "url": repo.remote().url,
         "commit": repo.commit(),
         "timestamp": time_format(repo.commit().committed_datetime)
@@ -206,5 +206,5 @@ def make_dataframe(data):
     return pd.DataFrame.from_dict(
         data,
         orient="index",
-        columns=["Value"],
-    ).reset_index().rename(columns={"index": "Attribute"})
+        columns=["value"],
+    ).reset_index().rename(columns={"index": "attribute"})
