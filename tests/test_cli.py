@@ -315,7 +315,7 @@ def test_check_region_aggregation(tmp_path):
     assert_iamframe_equal(IamDataFrame(tmp_path / "results.xlsx"), exp_result)
 
 
-def test_cli_export_to_excel(simple_definition, tmpdir):
+def test_cli_export_to_excel(tmpdir):
     """Assert that writing to excel works as expected"""
     file = tmpdir / "testing_export.xlsx"
 
