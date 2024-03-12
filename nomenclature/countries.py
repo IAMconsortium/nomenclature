@@ -24,6 +24,7 @@ PYCOUNTRY_NAME_OVERRIDE = {
     "Venezuela, Bolivarian Republic of": "Venezuela",
     "Palestine, State of": "Palestine",
     "Taiwan, Province of China": "Taiwan",
+    "Türkiye": "Turkey",  # revert change in pycountry on Sep 29, 2023
     "Virgin Islands, British": "British Virgin Islands",
     "Virgin Islands, U.S.": "United States Virgin Islands",
 }
