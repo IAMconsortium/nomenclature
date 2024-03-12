@@ -78,18 +78,33 @@ def test_to_excel(simple_definition, tmpdir):
 
     simple_definition.to_excel(file)
 
-    obs = pd.read_excel(file)
+    obs = pd.read_excel(file, sheet_name="variable")
     exp = pd.read_excel(TEST_DATA_DIR / "excel_io" / "validation_nc.xlsx")
     pd.testing.assert_frame_equal(obs, exp)
+
+
+def test_to_excel_with_external_repo(tmpdir):
+    """Check writing a DataStructureDefinition with an external repo to file"""
+    file = tmpdir / "testing_export.xlsx"
+
+    dsd = DataStructureDefinition(TEST_DATA_DIR / "general-config" / "definitions")
+    dsd.to_excel(file)
+
+    with pd.ExcelFile(file) as obs:
+        assert obs.sheet_names == ["project", "region", "variable"]
+
+        obs_project = obs.parse("project")
+    exp = pd.DataFrame([["project", "general-config"]], columns=["attribute", "value"])
+    pd.testing.assert_frame_equal(exp, obs_project[0:1])
 
 
 @pytest.mark.parametrize(
     "input_file, attrs, exp_file",
     [
-        ("validation_nc.xlsx", ["Description", "Unit"], "validation_nc_flat.yaml"),
+        ("validation_nc.xlsx", ["description", "unit"], "validation_nc_flat.yaml"),
         (
             "validation_nc_list_arg.xlsx",
-            ["Description", "Unit", "Region-aggregation"],
+            ["description", "unit", "region-aggregation"],
             "validation_nc_list_arg.yaml",
         ),
     ],
@@ -102,7 +117,7 @@ def test_create_yaml_from_xlsx(input_file, attrs, exp_file, tmpdir):
         source=TEST_DATA_DIR / "excel_io" / input_file,
         target=file,
         sheet_name="variable_definitions",
-        col="Variable",
+        col="variable",
         attrs=attrs,
     )
 

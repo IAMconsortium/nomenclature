@@ -154,3 +154,22 @@ def check_region_aggregation(
         results_df.to_excel(processed_data)
     if differences:
         differences_df.reset_index().to_excel(differences, index=False)
+
+
+@cli.command("export-definition")
+@click.argument("path", type=click.Path(exists=True, path_type=Path))
+@click.argument("target", type=click.Path(path_type=Path))
+def cli_export_definition_to_excel(
+    path: Path,
+    target: Path,
+):
+    """Assert that `path` is a valid project nomenclature
+
+    Parameters
+    ----------
+    path : Path
+        Project directory to be exported
+    target : Path
+        Path and file name for the exported file
+    """
+    DataStructureDefinition(path / "definitions").to_excel(target)

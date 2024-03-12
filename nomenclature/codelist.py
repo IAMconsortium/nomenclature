@@ -335,9 +335,6 @@ class CodeList(BaseModel):
         )
         if sort_by_code:
             codelist.sort_values(by=self.name, inplace=True)
-        codelist.rename(
-            columns={c: str(c).capitalize() for c in codelist.columns}, inplace=True
-        )
         return codelist
 
     def to_csv(self, path=None, sort_by_code: bool = False, **kwargs):
@@ -378,22 +375,12 @@ class CodeList(BaseModel):
         **kwargs
             Passed to :class:`pandas.ExcelWriter` (if *excel_writer* is path-like).
         """
-
-        # default sheet_name to the name of the codelist
-        if sheet_name is None:
-            sheet_name = self.name
-
-        # open a new ExcelWriter instance (if necessary)
-        close = False
-        if not isinstance(excel_writer, pd.ExcelWriter):
-            close = True
-            excel_writer = pd.ExcelWriter(excel_writer, **kwargs)
-
-        write_sheet(excel_writer, sheet_name, self.to_pandas(sort_by_code))
-
-        # close the file if `excel_writer` arg was a file name
-        if close:
-            excel_writer.close()
+        sheet_name = sheet_name or self.name
+        if isinstance(excel_writer, pd.ExcelWriter):
+            write_sheet(excel_writer, sheet_name, self.to_pandas(sort_by_code))
+        else:
+            with pd.ExcelWriter(excel_writer, **kwargs) as writer:
+                write_sheet(writer, sheet_name, self.to_pandas(sort_by_code))
 
     def codelist_repr(self, json_serialized=False) -> Dict:
         """Cast a CodeList into corresponding dictionary"""

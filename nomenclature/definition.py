@@ -1,10 +1,13 @@
 import logging
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+import git
 from pyam import IamDataFrame
 from pyam.index import replace_index_labels
 from pyam.logging import adjust_log_level
+from pyam.utils import write_sheet
 
 from nomenclature.codelist import (
     CodeList,
@@ -41,10 +44,17 @@ class DataStructureDefinition:
         if not isinstance(path, Path):
             path = Path(path)
 
-        if (file := path.parent / "nomenclature.yaml").exists():
+        self.project_folder = path.parent
+
+        if (file := self.project_folder / "nomenclature.yaml").exists():
             self.config = NomenclatureConfig.from_file(file=file)
         else:
             self.config = NomenclatureConfig()
+
+        try:
+            self.repo = git.Repo(self.project_folder)
+        except git.InvalidGitRepositoryError:
+            self.repo = None
 
         if not path.is_dir() and not (
             self.config.repositories or self.config.definitions.region.country
@@ -136,22 +146,69 @@ class DataStructureDefinition:
             error = pd.concat(lst)
             return error if not error.empty else None
 
-    def to_excel(
-        self, excel_writer, sheet_name=None, sort_by_code: bool = False, **kwargs
-    ):
-        """Write the *variable* codelist to an Excel sheet
+    def to_excel(self, excel_writer, **kwargs):
+        """Write the codelists to an xlsx spreadsheet
 
         Parameters
         ----------
-        excel_writer : path-like, file-like, or ExcelWriter object
-            File path as string or :class:`pathlib.Path`,
-            or existing :class:`pandas.ExcelWriter`.
-        sheet_name : str, optional
-            Name of sheet that will have the codelist. If *None*, use the codelist name.
-        sort_by_code : bool, optional
-            Sort the codelist before exporting to file.
+        excel_writer : str or :class:`pathlib.Path`
+            File path as string or :class:`pathlib.Path`.
         **kwargs
-            Passed to :class:`pandas.ExcelWriter` (if *excel_writer* is path-like).
+            Passed to :class:`pandas.ExcelWriter`
         """
-        # TODO write all dimensions to the file
-        self.variable.to_excel(excel_writer, sheet_name, sort_by_code, **kwargs)
+        if "engine" not in kwargs:
+            kwargs["engine"] = "xlsxwriter"
+
+        with pd.ExcelWriter(excel_writer, **kwargs) as writer:
+
+            # create dataframe with attributes of the DataStructureDefinition
+            project = self.project_folder.absolute().parts[-1]
+            arg_dict = {
+                "project": project,
+                "file_created": time_format(datetime.now()),
+                "": "",
+            }
+            if self.repo is not None:
+                arg_dict.update(git_attributes(project, self.repo))
+
+            ret = make_dataframe(arg_dict)
+
+            for key, value in self.config.repositories.items():
+                ret = pd.concat(
+                    [
+                        ret,
+                        make_dataframe(git_attributes(key, git.Repo(value.local_path))),
+                    ]
+                )
+
+            write_sheet(writer, "project", ret)
+
+            # write codelist for each dimensions to own sheet
+            for dim in self.dimensions:
+                getattr(self, dim).to_excel(writer, dim, sort_by_code=True)
+
+
+def time_format(x):
+    return x.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def git_attributes(name, repo):
+    if repo.is_dirty():
+        raise ValueError(f"Repository '{name}' is dirty")
+    return {
+        f"{name}.url": repo.remote().url,
+        f"{name}.commit_hash": repo.commit(),
+        f"{name}.commit_timestamp": time_format(repo.commit().committed_datetime),
+    }
+
+
+def make_dataframe(data):
+    return (
+        pd.DataFrame.from_dict(
+            data,
+            orient="index",
+            columns=["value"],
+        )
+        .reset_index()
+        .rename(columns={"index": "attribute"})
+    )

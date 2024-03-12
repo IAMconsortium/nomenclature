@@ -135,7 +135,7 @@ def test_to_excel(tmpdir):
 
     (
         VariableCodeList.from_directory(
-            "Variable", TEST_DATA_DIR / "validation_nc" / "variable"
+            "variable", TEST_DATA_DIR / "validation_nc" / "variable"
         ).to_excel(file)
     )
 
@@ -148,11 +148,11 @@ def test_to_excel(tmpdir):
 def test_to_csv():
     """Check writing to csv"""
     obs = VariableCodeList.from_directory(
-        "Variable", TEST_DATA_DIR / "simple_codelist"
+        "variable", TEST_DATA_DIR / "simple_codelist"
     ).to_csv(lineterminator="\n")
 
     exp = (
-        "Variable,Description,Unit,Skip-region-aggregation,Bool\n"
+        "variable,description,unit,skip-region-aggregation,bool\n"
         "Some Variable,Some basic variable,,False,True\n"
     )
     assert obs == exp
@@ -207,8 +207,8 @@ def test_to_excel_read_excel_roundtrip(tmpdir):
         "variable",
         tmpdir / "output.xlsx",
         "variable",
-        "Variable",
-        attrs=["Description", "Unit", "Region-aggregation"],
+        "variable",
+        attrs=["description", "unit", "region-aggregation"],
     )
 
     assert obs == exp
