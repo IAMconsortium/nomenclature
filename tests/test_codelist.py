@@ -351,6 +351,22 @@ def test_multiple_external_repos():
         clean_up_external_repos(nomenclature_config.repositories)
 
 
+def test_multiple_external_repos():
+    nomenclature_config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "nomenclature_configs" / "multiple_repos_per_dimension.yaml"
+    )
+    try:
+        variable_code_list = VariableCodeList.from_directory(
+            "variable",
+            TEST_DATA_DIR / "nomenclature_configs" / "variable",
+            nomenclature_config,
+        )
+        assert variable_code_list["Final Energy"].repository == "common-definitions"
+        assert variable_code_list["Employment"].repository == "legacy-definitions"
+    finally:
+        clean_up_external_repos(nomenclature_config.repositories)
+
+
 @pytest.mark.parametrize("CodeList", [VariableCodeList, CodeList])
 def test_variable_codelist_with_duplicates_raises(CodeList):
     error_string = "2 errors:\n.*Some Variable\n.*Some other Variable"
