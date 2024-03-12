@@ -174,7 +174,7 @@ class CodeList(BaseModel):
         cls,
         name: str,
         path: Path,
-        config: NomenclatureConfig = None,
+        config: NomenclatureConfig | None = None,
         file_glob_pattern: str = "**/*",
     ):
         """Initialize a CodeList from a directory with codelist files
@@ -200,9 +200,12 @@ class CodeList(BaseModel):
         for repo in getattr(
             config.definitions, name.lower(), CodeListConfig()
         ).repositories:
-            repo_path = config.repositories[repo].local_path / "definitions" / name
-            code_list = (
-                cls._parse_codelist_dir(repo_path, file_glob_pattern) + code_list
+            code_list.extend(
+                cls._parse_codelist_dir(
+                    config.repositories[repo].local_path / "definitions" / name,
+                    file_glob_pattern,
+                    repo,
+                )
             )
         errors = ErrorCollector()
         mapping: Dict[str, Code] = {}
@@ -217,7 +220,12 @@ class CodeList(BaseModel):
         return cls(name=name, mapping=mapping)
 
     @classmethod
-    def _parse_codelist_dir(cls, path: Path, file_glob_pattern: str = "**/*"):
+    def _parse_codelist_dir(
+        cls,
+        path: Path,
+        file_glob_pattern: str = "**/*",
+        repository: str | None = None,
+    ):
         code_list: List[Code] = []
         for yaml_file in (
             f
@@ -229,6 +237,8 @@ class CodeList(BaseModel):
             for code_dict in _code_list:
                 code = cls.code_basis.from_dict(code_dict)
                 code.file = yaml_file.relative_to(path.parent).as_posix()
+                if repository:
+                    code.repository = repository
                 code_list.append(code)
 
         code_list = cls._parse_and_replace_tags(code_list, path, file_glob_pattern)
@@ -569,7 +579,7 @@ class RegionCodeList(CodeList):
         cls,
         name: str,
         path: Path,
-        config: NomenclatureConfig = None,
+        config: NomenclatureConfig | None = None,
         file_glob_pattern: str = "**/*",
     ):
         """Initialize a RegionCodeList from a directory with codelist files
@@ -617,7 +627,7 @@ class RegionCodeList(CodeList):
                 code_list,
                 repo_path,
                 file_glob_pattern,
-                repository=config.definitions.region.repositories,
+                repository=repo,
             )
             code_list = cls._parse_and_replace_tags(
                 code_list, repo_path, file_glob_pattern
@@ -656,7 +666,7 @@ class RegionCodeList(CodeList):
         code_list: List[Code],
         path: Path,
         file_glob_pattern: str = "**/*",
-        repository: Path = None,
+        repository: str | None = None,
     ) -> List[RegionCode]:
         """"""
 
