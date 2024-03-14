@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from textwrap import indent
 from typing import ClassVar, Dict, List
 
 import numpy as np
@@ -212,12 +213,49 @@ class CodeList(BaseModel):
         for code in code_list:
             if code.name in mapping:
                 errors.append(
-                    ValueError(f"Duplicate item in {name} codelist: {code.name}")
+                    ValueError(
+                        cls.get_duplicate_code_error_message(
+                            name,
+                            code,
+                            mapping,
+                        )
+                    )
                 )
             mapping[code.name] = code
         if errors:
             raise ValueError(errors)
         return cls(name=name, mapping=mapping)
+
+    @classmethod
+    def get_duplicate_code_error_message(
+        cls,
+        codelist_name: str,
+        code: Code,
+        mapping: dict[str, Code],
+    ) -> str:
+        model_dump_setting = {
+            "exclude": ["name"],
+            "exclude_unset": True,
+            "exclude_defaults": True,
+        }
+        error_msg = f"duplicate items in '{codelist_name}' codelist: '{code.name}'"
+        if code == mapping[code.name]:
+            error_msg = "Identical " + error_msg
+        else:
+            error_msg = (
+                "Conflicting "
+                + error_msg
+                + "\n"
+                + indent(
+                    f"{mapping[code.name].model_dump(**model_dump_setting)}\n",
+                    prefix="  ",
+                )
+                + indent(
+                    f"{code.model_dump(**model_dump_setting)}",
+                    prefix="  ",
+                )
+            )
+        return error_msg
 
     @classmethod
     def _parse_codelist_dir(
@@ -630,7 +668,15 @@ class RegionCodeList(CodeList):
         errors = ErrorCollector()
         for code in code_list:
             if code.name in mapping:
-                errors.append(ValueError(f"Trying to set a duplicate code {code.name}"))
+                errors.append(
+                    ValueError(
+                        cls.get_duplicate_code_error_message(
+                            name,
+                            code,
+                            mapping,
+                        )
+                    )
+                )
             mapping[code.name] = code
         if errors:
             raise ValueError(errors)
