@@ -67,7 +67,7 @@ def test_codelist_to_yaml():
 
 def test_duplicate_code_raises():
     """Check that code conflicts across different files raises"""
-    match = "Duplicate item in variable codelist: Some Variable"
+    match = "Conflicting duplicate items in 'variable' codelist: 'Some Variable'"
     with raises(ValueError, match=match):
         VariableCodeList.from_directory(
             "variable", TEST_DATA_DIR / "duplicate_code_raises"
@@ -369,7 +369,10 @@ def test_multiple_external_repos():
 
 @pytest.mark.parametrize("CodeList", [VariableCodeList, CodeList])
 def test_variable_codelist_with_duplicates_raises(CodeList):
-    error_string = "2 errors:\n.*Some Variable\n.*Some other Variable"
+    error_string = (
+        "2 errors:\n.*Identical.*'Some Variable'.*\n.*Conflicting."
+        "*'Some other Variable'"
+    )
     with raises(ValueError, match=error_string):
         CodeList.from_directory(
             "variable", TEST_DATA_DIR / "duplicate-code-list" / "variable"
