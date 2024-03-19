@@ -87,15 +87,20 @@ def test_to_excel_with_external_repo(tmpdir):
     """Check writing a DataStructureDefinition with an external repo to file"""
     file = tmpdir / "testing_export.xlsx"
 
-    dsd = DataStructureDefinition(TEST_DATA_DIR / "general-config" / "definitions")
-    dsd.to_excel(file)
+    try:
+        dsd = DataStructureDefinition(TEST_DATA_DIR / "general-config" / "definitions")
+        dsd.to_excel(file)
 
-    with pd.ExcelFile(file) as obs:
-        assert obs.sheet_names == ["project", "region", "variable"]
+        with pd.ExcelFile(file) as obs:
+            assert obs.sheet_names == ["project", "region", "variable"]
 
-        obs_project = obs.parse("project")
-    exp = pd.DataFrame([["project", "general-config"]], columns=["attribute", "value"])
-    pd.testing.assert_frame_equal(exp, obs_project[0:1])
+            obs_project = obs.parse("project")
+        exp = pd.DataFrame(
+            [["project", "general-config"]], columns=["attribute", "value"]
+        )
+        pd.testing.assert_frame_equal(exp, obs_project[0:1])
+    finally:
+        clean_up_external_repos(dsd.config.repositories)
 
 
 @pytest.mark.parametrize(
