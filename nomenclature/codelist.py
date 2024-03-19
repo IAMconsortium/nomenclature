@@ -240,7 +240,13 @@ class CodeList(BaseModel):
         }
         error_msg = f"duplicate items in '{codelist_name}' codelist: '{code.name}'"
         if code == mapping[code.name]:
-            error_msg = "Identical " + error_msg
+            error_msg = (
+                "Identical "
+                + error_msg
+                + "\n"
+                + indent(f"{{'file': '{mapping[code.name].file}' }}\n", prefix="  ")
+                + indent(f"{{'file': '{code.file}' }}", prefix="  ")
+            )
         else:
             error_msg = (
                 "Conflicting "
