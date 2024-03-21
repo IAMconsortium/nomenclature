@@ -5,7 +5,7 @@
 Installation
 ============
 
-.. attention:: The nomenclature requires python >= 3.8
+.. attention:: The nomenclature requires python >= 3.10, < 3.13
 
 
 Via Pip
