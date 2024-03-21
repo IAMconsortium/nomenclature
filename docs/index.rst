@@ -13,7 +13,7 @@ Release v\ |version|.
 .. |doi| image:: https://zenodo.org/badge/375724610.svg
    :target: https://zenodo.org/badge/latestdoi/375724610
 
-.. |python| image:: https://img.shields.io/badge/python-3.10_|_3.11_|_3.12-blue?logo=python&logoColor=white
+.. |python| image:: https://img.shields.io/badge/python-≥3.10,<3.13-blue?logo=python&logoColor=white
    :target: https://github.com/IAMconsortium/nomenclature
 
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
