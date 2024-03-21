@@ -5,9 +5,6 @@
 Installation
 ============
 
-.. attention:: The nomenclature requires python >= 3.8
-
-
 Via Pip
 -------
 .. attention::  The nomenclature package is distributed as "nomenclature-iamc" on pypi.
