@@ -32,7 +32,7 @@ def test_cli_installed():
         command in result.stdout
         for command in (
             "check-region-aggregation",
-            "export-definition",
+            "export-definitions",
             "validate-project",
             "validate-yaml",
         )
@@ -323,7 +323,7 @@ def test_cli_export_to_excel(tmpdir):
         runner.invoke(
             cli,
             [
-                "export-definition",
+                "export-definitions",
                 str(TEST_DATA_DIR / "general-config"),
                 str(file),
             ],

@@ -156,10 +156,10 @@ def check_region_aggregation(
         differences_df.reset_index().to_excel(differences, index=False)
 
 
-@cli.command("export-definition")
+@cli.command("export-definitions")
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
 @click.argument("target", type=click.Path(path_type=Path))
-def cli_export_definition_to_excel(
+def cli_export_definitions_to_excel(
     path: Path,
     target: Path,
 ):
