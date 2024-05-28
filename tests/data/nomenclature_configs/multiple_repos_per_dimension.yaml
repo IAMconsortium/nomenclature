@@ -1,8 +1,10 @@
 repositories:
   common-definitions:
     url: https://github.com/IAMconsortium/common-definitions.git/
+    hash: 013295a
   legacy-definitions:
     url: https://github.com/IAMconsortium/legacy-definitions.git/
+    hash: 63d39bf
 definitions:
   variable:
     repository:
