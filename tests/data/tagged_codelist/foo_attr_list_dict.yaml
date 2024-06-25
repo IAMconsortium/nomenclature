@@ -8,9 +8,9 @@
     unit: "{Species}/yr"
     check-aggregate: true
     components:
-        By source:
+        - By source:
             - Emissions|{Species}|Fossil
             - Emissions|{Species}|Renewables
-        By sector:
+        - By sector:
             - Emissions|{Species}|Energy
             - Emissions|{Species}|Industry

@@ -110,8 +110,8 @@ def test_tagged_codelist():
             assert getattr(code[code_name], attr_name) == value
 
 
-def test_tags_in_list_and_dict_attributes():
-    """Test that tags are replaced correctly in list and dict attributes"""
+def test_tags_in_list_attributes():
+    """Test that tags are replaced correctly in list attributes"""
     code = VariableCodeList.from_directory(
         "variable", TEST_DATA_DIR / "tagged_codelist"
     )
@@ -126,19 +126,19 @@ def test_tags_in_list_and_dict_attributes():
             "description": "Total emissions of CO2",
             "unit": "tCO2/yr",
             "check-aggregate": True,
-            "components": {
-                "By source": ["Emissions|CO2|Fossil", "Emissions|CO2|Renewables"],
-                "By sector": ["Emissions|CO2|Energy", "Emissions|CO2|Industry"]
-            }
+            "components": [
+                {"By source": ["Emissions|CO2|Fossil", "Emissions|CO2|Renewables"]},
+                {"By sector": ["Emissions|CO2|Energy", "Emissions|CO2|Industry"]}
+            ]
         },
         "Emissions|CH4": {
             "description": "Total emissions of CH4",
             "unit": "tCH4/yr",
             "check-aggregate": True,
-            "components": {
-                "By source": ["Emissions|CH4|Fossil", "Emissions|CH4|Renewables"],
-                "By sector": ["Emissions|CH4|Energy", "Emissions|CH4|Industry"]
-            }
+            "components": [
+                {"By source": ["Emissions|CH4|Fossil", "Emissions|CH4|Renewables"]},
+                {"By sector": ["Emissions|CH4|Energy", "Emissions|CH4|Industry"]}
+            ]
         }
     }
 
