@@ -110,6 +110,44 @@ def test_tagged_codelist():
             assert getattr(code[code_name], attr_name) == value
 
 
+def test_tags_in_list_and_dict_attributes():
+    """Test that tags are replaced correctly in list and dict attributes"""
+    code = VariableCodeList.from_directory(
+        "variable", TEST_DATA_DIR / "tagged_codelist"
+    )
+    # The test should test that the tags in the definitions in the tagged_codelist/foo_attr_list_dict.yaml file are expanded correctly.
+
+    exp = {
+        "Emissions|Species": {
+            "description": "Emissions of Species",
+            "unit": "tSpecies/yr"
+        },
+        "Emissions|CO2": {
+            "description": "Total emissions of CO2",
+            "unit": "tCO2/yr",
+            "check-aggregate": True,
+            "components": {
+                "By source": ["Emissions|CO2|Fossil", "Emissions|CO2|Renewables"],
+                "By sector": ["Emissions|CO2|Energy", "Emissions|CO2|Industry"]
+            }
+        },
+        "Emissions|CH4": {
+            "description": "Total emissions of CH4",
+            "unit": "tCH4/yr",
+            "check-aggregate": True,
+            "components": {
+                "By source": ["Emissions|CH4|Fossil", "Emissions|CH4|Renewables"],
+                "By sector": ["Emissions|CH4|Energy", "Emissions|CH4|Industry"]
+            }
+        }
+    }
+
+    for code_name, attrs in exp.items():
+        assert code_name in code
+        for attr_name, value in attrs.items():
+            assert getattr(code[code_name], attr_name) == value
+
+
 def test_region_codelist():
     """Check replacing top-level hierarchy of yaml file as attribute for regions"""
     code = RegionCodeList.from_directory("region", TEST_DATA_DIR / "region_codelist")

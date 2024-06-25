@@ -1,0 +1,7 @@
+- Species:
+  - CO2:
+     definition: CO2
+     unit: tCO2
+  - CH4:
+      definition: CH4
+      unit: tCH4
