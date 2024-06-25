@@ -115,12 +115,13 @@ def test_tags_in_list_attributes():
     code = VariableCodeList.from_directory(
         "variable", TEST_DATA_DIR / "tagged_codelist"
     )
-    # The test should test that the tags in the definitions in the tagged_codelist/foo_attr_list_dict.yaml file are expanded correctly.
+    # The test should test that the tags in the definitions in the 
+    # tagged_codelist/foo_attr_list_dict.yaml file are expanded correctly.
 
     exp = {
         "Emissions|Species": {
             "description": "Emissions of Species",
-            "unit": "tSpecies/yr"
+            "unit": "tSpecies/yr",
         },
         "Emissions|CO2": {
             "description": "Total emissions of CO2",
@@ -128,8 +129,8 @@ def test_tags_in_list_attributes():
             "check_aggregate": True,
             "components": {
                 "By source": ["Emissions|CO2|Fossil", "Emissions|CO2|Renewables"],
-                "By sector": ["Emissions|CO2|Energy", "Emissions|CO2|Industry"]
-            }
+                "By sector": ["Emissions|CO2|Energy", "Emissions|CO2|Industry"],
+            },
         },
         "Emissions|CH4": {
             "description": "Total emissions of CH4",
@@ -137,9 +138,9 @@ def test_tags_in_list_attributes():
             "check_aggregate": True,
             "components": {
                 "By source": ["Emissions|CH4|Fossil", "Emissions|CH4|Renewables"],
-                "By sector": ["Emissions|CH4|Energy", "Emissions|CH4|Industry"]
-            }
-        }
+                "By sector": ["Emissions|CH4|Energy", "Emissions|CH4|Industry"],
+            },
+        },
     }
 
     for code_name, attrs in exp.items():
