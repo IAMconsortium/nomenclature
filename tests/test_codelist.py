@@ -115,7 +115,7 @@ def test_tags_in_list_attributes():
     code = VariableCodeList.from_directory(
         "variable", TEST_DATA_DIR / "tagged_codelist"
     )
-    # The test should test that the tags in the definitions in the 
+    # The test should test that the tags in the definitions in the
     # tagged_codelist/foo_attr_list_dict.yaml file are expanded correctly.
 
     exp = {
