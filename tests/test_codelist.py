@@ -126,19 +126,19 @@ def test_tags_in_list_attributes():
             "description": "Total emissions of CO2",
             "unit": "tCO2/yr",
             "check_aggregate": True,
-            "components": [
-                {"By source": ["Emissions|CO2|Fossil", "Emissions|CO2|Renewables"]},
-                {"By sector": ["Emissions|CO2|Energy", "Emissions|CO2|Industry"]}
-            ]
+            "components": {
+                "By source": ["Emissions|CO2|Fossil", "Emissions|CO2|Renewables"],
+                "By sector": ["Emissions|CO2|Energy", "Emissions|CO2|Industry"]
+            }
         },
         "Emissions|CH4": {
             "description": "Total emissions of CH4",
             "unit": "tCH4/yr",
             "check_aggregate": True,
-            "components": [
-                {"By source": ["Emissions|CH4|Fossil", "Emissions|CH4|Renewables"]},
-                {"By sector": ["Emissions|CH4|Energy", "Emissions|CH4|Industry"]}
-            ]
+            "components": {
+                "By source": ["Emissions|CH4|Fossil", "Emissions|CH4|Renewables"],
+                "By sector": ["Emissions|CH4|Energy", "Emissions|CH4|Industry"]
+            }
         }
     }
 
