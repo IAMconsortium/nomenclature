@@ -119,13 +119,10 @@ def test_tags_in_list_attributes():
     # tagged_codelist/foo_attr_list_dict.yaml file are expanded correctly.
 
     exp = {
-        "Emissions|Species": {
-            "description": "Emissions of Species",
-            "unit": "tSpecies/yr",
-        },
         "Emissions|CO2": {
-            "description": "Total emissions of CO2",
-            "unit": "tCO2/yr",
+            "description": "Total emissions of carbon dioxide (CO2)",
+            "unit": "Mt CO2/yr",
+
             "check_aggregate": True,
             "components": {
                 "By source": ["Emissions|CO2|Fossil", "Emissions|CO2|Renewables"],
@@ -133,8 +130,8 @@ def test_tags_in_list_attributes():
             },
         },
         "Emissions|CH4": {
-            "description": "Total emissions of CH4",
-            "unit": "tCH4/yr",
+            "description": "Total emissions of methane (CH4)",
+            "unit": "Mt CH4/yr",
             "check_aggregate": True,
             "components": {
                 "By source": ["Emissions|CH4|Fossil", "Emissions|CH4|Renewables"],

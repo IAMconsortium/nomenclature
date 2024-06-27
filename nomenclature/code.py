@@ -121,10 +121,11 @@ class Code(BaseModel):
                 # otherwise return the name
                 else:
                     return _value.replace("{" + tag + "}", getattr(target, "name"))
-            # If the attribute is a list, descend into it and replace
+            # if the attribute is a list, iterate over the items and replace tags
             elif isinstance(_value, list):
                 return [_replace_or_recurse(_attr, _v) for _v in _value]
-            # If the attribute is a dict, descend into it and replace the values
+            # if the attribute is a mapping, iterate over the items and replace tags
+            # in the values (not the keys)
             elif isinstance(_value, dict):
                 return {_k: _replace_or_recurse(attr, _v) for _k, _v in _value.items()}
             # otherwise return as is

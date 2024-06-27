@@ -1,8 +1,3 @@
-- Emissions|Species:
-    # the "Sector" guards against feature regression (conflict with "Sector" tag)
-    definition: Emissions of Species
-    unit: tSpecies/yr
-
 - Emissions|{Species}:
     definition: Total emissions of {Species}
     unit: "{Species}/yr"
