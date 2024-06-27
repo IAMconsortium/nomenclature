@@ -112,21 +112,29 @@ class Code(BaseModel):
             New Code instance with occurrences of "{tag}" replaced by target
         """
 
+        def _replace_or_recurse(_attr, _value):
+            # if the attribute is a string and contains "{tag}" replace
+            if isinstance(_value, str) and "{" + tag + "}" in _value:
+                # if the the target has the corresponding attribute replace
+                if _attr in target.flattened_dict:
+                    return _value.replace("{" + tag + "}", getattr(target, _attr))
+                # otherwise return the name
+                else:
+                    return _value.replace("{" + tag + "}", getattr(target, "name"))
+            # if the attribute is a list, iterate over the items and replace tags
+            elif isinstance(_value, list):
+                return [_replace_or_recurse(_attr, _v) for _v in _value]
+            # if the attribute is a mapping, iterate over the items and replace tags
+            # in the values (not the keys)
+            elif isinstance(_value, dict):
+                return {_k: _replace_or_recurse(attr, _v) for _k, _v in _value.items()}
+            # otherwise return as is
+            else:
+                return _value
+
         mapping = {}
         for attr, value in self.flattened_dict.items():
-            # if the attribute is a string and contains "{tag}" replace
-            if isinstance(value, str) and "{" + tag + "}" in value:
-                # if the the target has the corresponding attribute replace
-                if attr in target.flattened_dict:
-                    mapping[attr] = value.replace(
-                        "{" + tag + "}", getattr(target, attr)
-                    )
-                # otherwise insert the name
-                else:
-                    mapping[attr] = value.replace("{" + tag + "}", target.name)
-            # otherwise append as is
-            else:
-                mapping[attr] = value
+            mapping[attr] = _replace_or_recurse(attr, value)
         name = mapping["name"]
         del mapping["name"]
         return self.__class__.from_dict({name: mapping})

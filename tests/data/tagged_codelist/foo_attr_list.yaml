@@ -1,0 +1,11 @@
+- Emissions|{Species}:
+    definition: Total emissions of {Species}
+    unit: "{Species}/yr"
+    check-aggregate: true
+    components:
+        - By source:
+            - Emissions|{Species}|Fossil
+            - Emissions|{Species}|Renewables
+        - By sector:
+            - Emissions|{Species}|Energy
+            - Emissions|{Species}|Industry
