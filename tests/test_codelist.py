@@ -122,7 +122,6 @@ def test_tags_in_list_attributes():
         "Emissions|CO2": {
             "description": "Total emissions of carbon dioxide (CO2)",
             "unit": "Mt CO2/yr",
-
             "check_aggregate": True,
             "components": {
                 "By source": ["Emissions|CO2|Fossil", "Emissions|CO2|Renewables"],
