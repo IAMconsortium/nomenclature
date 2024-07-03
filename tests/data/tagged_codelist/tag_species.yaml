@@ -1,0 +1,7 @@
+- Species:
+  - CO2:
+      definition: carbon dioxide (CO2)
+      unit: Mt CO2
+  - CH4:
+      definition: methane (CH4)
+      unit: Mt CH4
