@@ -138,6 +138,7 @@ class DimensionEnum(str, Enum):
     scenario = "scenario"
     variable = "variable"
     region = "region"
+    subannual = "subannual"
 
 
 class NomenclatureConfig(BaseModel):
