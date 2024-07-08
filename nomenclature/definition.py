@@ -61,7 +61,14 @@ class DataStructureDefinition:
         ):
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
-        self.dimensions = dimensions or ["region", "variable"]
+        self.dimensions = (
+            dimensions
+            or self.config.dimensions
+            or [
+                "region",
+                "variable",
+            ]
+        )
         for dim in self.dimensions:
             codelist_cls = SPECIAL_CODELIST.get(dim, CodeList)
             self.__setattr__(
