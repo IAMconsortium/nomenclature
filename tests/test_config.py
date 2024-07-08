@@ -67,3 +67,25 @@ def test_double_stacked_external_repo_raises(monkeypatch):
     match = "External repos cannot again refer to external repos"
     with raises(ValueError, match=match):
         repo.check_external_repo_double_stacking()
+
+
+def test_config_dimensions():
+    config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "nomenclature_configs" / "dimensions.yaml"
+    )
+    assert set(config.dimensions) == {
+        "scenario",
+        "region",
+        "variable",
+    }
+
+
+def test_invalid_config_dimensions_raises():
+    with raises(
+        ValueError,
+        match=(
+            "Input should be 'model', 'scenario', 'variable',"
+            " 'region' or 'subannual'"
+        ),
+    ):
+        NomenclatureConfig(dimensions=["year"])

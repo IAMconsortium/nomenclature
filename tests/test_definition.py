@@ -66,8 +66,7 @@ def test_definition_from_general_config(workflow_folder):
 
 def test_definition_general_config_country_only():
     obs = DataStructureDefinition(
-        TEST_DATA_DIR / "general-config-only-country" / "definitions",
-        dimensions=["region"],
+        TEST_DATA_DIR / "general-config-only-country" / "definitions"
     )
     assert all(region in obs.region for region in ("Austria", "Bolivia", "Kosovo"))
 
