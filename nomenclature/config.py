@@ -1,3 +1,4 @@
+from enum import Enum
 from pathlib import Path
 from typing import Annotated, Optional
 
@@ -132,7 +133,15 @@ class RegionMappingConfig(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class DimensionEnum(str, Enum):
+    model = "model"
+    scenario = "scenario"
+    variable = "variable"
+    region = "region"
+
+
 class NomenclatureConfig(BaseModel):
+    dimensions: None | list[DimensionEnum] = None
     repositories: dict[str, Repository] = Field(default_factory=dict)
     definitions: DataStructureConfig = Field(default_factory=DataStructureConfig)
     mappings: RegionMappingConfig = Field(default_factory=RegionMappingConfig)
