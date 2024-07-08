@@ -1,3 +1,5 @@
+dimensions:
+  - region
 definitions:
   region:
     country: true
