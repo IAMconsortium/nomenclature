@@ -77,3 +77,19 @@ By setting *definitions.region.country* as *true* in the configuration file:
 the nomenclature package will add all countries to the *region* codelist.
 
 More details on the list of countries can be found here: :ref:`countries`.
+
+Specify dimensions to be read
+-----------------------------
+
+The configuration file offers the possibility to set the dimensions which will be read
+by *DataStructureDefinition*.
+
+In the below case we specify *region*, *variable* and *scenario* to be read and used for
+validation:
+
+.. code:: yaml
+
+  dimensions:
+    - region
+    - variable
+    - scenario
