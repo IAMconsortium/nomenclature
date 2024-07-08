@@ -82,6 +82,10 @@ def test_config_dimensions():
 
 def test_invalid_config_dimensions_raises():
     with raises(
-        ValueError, match="Input should be 'model', 'scenario', 'variable' or 'region'"
+        ValueError,
+        match=(
+            "Input should be 'model', 'scenario', 'variable',"
+            " 'region' or 'subannual'"
+        ),
     ):
         NomenclatureConfig(dimensions=["year"])
