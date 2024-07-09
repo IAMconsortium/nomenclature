@@ -147,6 +147,8 @@ class NomenclatureConfig(BaseModel):
     definitions: DataStructureConfig = Field(default_factory=DataStructureConfig)
     mappings: RegionMappingConfig = Field(default_factory=RegionMappingConfig)
 
+    model_config = ConfigDict(use_enum_values=True)
+
     @model_validator(mode="after")
     @classmethod
     def check_definitions_repository(
