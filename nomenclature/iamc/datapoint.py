@@ -23,7 +23,7 @@ class IamcDataFilter(BaseModel):
     def validate(self, dsd: DataStructureDefinition) -> None:
         error_msg = ""
 
-        # check for filter-items that are not defined in the codelists 
+        # check for filter-items that are not defined in the codelists
         for dimension in IAMC_DIMENSIONS:
             if codelist := getattr(dsd, dimension, None) is None:
                 continue
