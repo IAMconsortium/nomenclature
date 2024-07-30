@@ -23,7 +23,7 @@ def test_simple_codelist():
     )
 
     assert "Some Variable" in codelist
-    assert codelist["Some Variable"].unit is None  # this is a dimensionless variable
+    assert codelist["Some Variable"].unit == ""  # this is a dimensionless variable
     assert type(codelist["Some Variable"].bool) == bool  # this is a boolean
 
 

@@ -481,5 +481,5 @@ def test_region_aggregation_unknown_region(simple_df, simple_definition, caplog)
         ).apply(df_with_unknown_region)
     assert all(
         text in caplog.text
-        for text in ["not defined in the 'region' codelist", "unknown region"]
+        for text in ["not defined in the region codelist", "unknown region"]
     )
