@@ -16,7 +16,6 @@ from nomenclature.codelist import (
     MetaCodeList,
 )
 from nomenclature.config import NomenclatureConfig
-from nomenclature.validation import validate
 
 logger = logging.getLogger(__name__)
 SPECIAL_CODELIST = {
@@ -97,7 +96,12 @@ class DataStructureDefinition:
         ValueError
             If `df` fails validation against any codelist.
         """
-        validate(self, df, dimensions=dimensions or self.dimensions)
+
+        if any(
+            getattr(self, dimension).validate_dataframe(df, dimension) is False
+            for dimension in (dimensions or self.dimensions)
+        ):
+            raise ValueError("The validation failed. Please check the log for details.")
 
     def check_aggregate(self, df: IamDataFrame, **kwargs) -> None:
         """Check for consistency of scenario data along the variable hierarchy
