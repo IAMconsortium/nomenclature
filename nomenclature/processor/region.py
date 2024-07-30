@@ -22,12 +22,12 @@ from pydantic import (
 from pydantic.types import DirectoryPath, FilePath
 from pydantic_core import PydanticCustomError
 
+from nomenclature import log_error
 from nomenclature.codelist import RegionCodeList, VariableCodeList
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error import custom_pydantic_errors, ErrorCollector
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
-from nomenclature.validation import log_error
 
 logger = logging.getLogger(__name__)
 
