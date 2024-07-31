@@ -163,11 +163,13 @@ class VariableCode(Code):
     unit: Union[str, List[str]] = Field(...)
     weight: str | None = None
     region_aggregation: List[Dict[str, Dict]] | None = Field(
-        None, alias="region-aggregation"
+        default=None, alias="region-aggregation"
     )
-    skip_region_aggregation: bool | None = Field(False, alias="skip-region-aggregation")
+    skip_region_aggregation: bool | None = Field(
+        default=False, alias="skip-region-aggregation"
+    )
     method: str | None = None
-    check_aggregate: bool | None = Field(False, alias="check-aggregate")
+    check_aggregate: bool | None = Field(default=False, alias="check-aggregate")
     components: Union[List[str], List[Dict[str, List[str]]]] | None = None
     drop_negative_weights: bool | None = None
     model_config = ConfigDict(populate_by_name=True)
