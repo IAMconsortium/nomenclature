@@ -77,7 +77,7 @@ class DataStructureDefinition:
         if empty := [d for d in self.dimensions if not getattr(self, d)]:
             raise ValueError(f"Empty codelist: {', '.join(empty)}")
 
-    def validate(self, df: IamDataFrame, dimensions: list = None) -> None:
+    def validate(self, df: IamDataFrame, dimensions: list | None = None) -> None:
         """Validate that the coordinates of `df` are defined in the codelists
 
         Parameters
