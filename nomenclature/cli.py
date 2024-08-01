@@ -5,6 +5,7 @@ import click
 
 from pyam import IamDataFrame
 from nomenclature.definition import DataStructureDefinition
+from nomenclature.codelist import VariableCodeList
 from nomenclature.processor import RegionProcessor
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 
@@ -173,3 +174,22 @@ def cli_export_definitions_to_excel(
         Path and file name for the exported file
     """
     DataStructureDefinition(path / "definitions").to_excel(target)
+
+
+@cli.command("add-missing-variables")
+@click.argument("data", type=click.Path(exists=True, path_type=Path))
+@click.option("--target-file", type=str)
+@click.option(
+    "--workflow-directory",
+    default=lambda: Path.cwd(),
+    type=Path,
+)
+def cli_add_missing_variables(
+    data: Path, target_file: Path | None, workflow_directory: Path
+):
+    codelist_path = workflow_directory / "definitions" / "variable"
+    target_file = target_file if target_file is None else codelist_path / target_file
+    VariableCodeList.from_directory(
+        "variable",
+        codelist_path,
+    ).add_missing_variables(IamDataFrame(data), target_file)
