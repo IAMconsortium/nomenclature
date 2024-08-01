@@ -6,13 +6,15 @@ import pydantic
 import pytest
 
 from click.testing import CliRunner
-from conftest import TEST_DATA_DIR
 from pandas.testing import assert_frame_equal
 from pyam import IAMC_IDX, IamDataFrame, assert_iamframe_equal
 
 from nomenclature import cli
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 from nomenclature.codelist import VariableCodeList
+from nomenclature.cli import cli_run_workflow
+
+from conftest import TEST_DATA_DIR
 
 runner = CliRunner()
 
@@ -360,3 +362,22 @@ def test_cli_add_missing_variables(simple_definition, tmp_path):
 
     assert "Some new variable" in obs
     assert obs["Some new variable"].unit == "EJ/yr"
+
+
+def test_cli_run_workflow(tmp_path, simple_df):
+
+    simple_df.to_excel(tmp_path / "input.xlsx")
+
+    runner.invoke(
+        cli,
+        [
+            "run-workflow",
+            str(tmp_path / "input.xlsx"),
+            "--workflow-file",
+            str(TEST_DATA_DIR / "workflow" / "workflow.py"),
+            "--output-file",
+            str(tmp_path / "output.xlsx"),
+        ],
+    )
+
+    assert_iamframe_equal(simple_df, IamDataFrame(tmp_path / "output.xlsx"))
