@@ -627,20 +627,20 @@ class VariableCodeList(CodeList):
         self, df: IamDataFrame, file: Path | str | None = None
     ) -> None:
         file = file or Path.cwd() / "definitions" / "variable" / "variables.yaml"
-        missing_variables = self.validate_items(df.variable)
-        missing_variables_formatted = VariableCodeList(
-            name="variable",
-            mapping={
-                variable: VariableCode(
-                    name=variable,
-                    unit=df.unit_mapping[variable],
-                )
-                for variable in missing_variables
-            },
-        ).to_yaml()
+        if missing_variables := self.validate_items(df.variable):
+            missing_variables_formatted = VariableCodeList(
+                name="variable",
+                mapping={
+                    variable: VariableCode(
+                        name=variable,
+                        unit=df.unit_mapping[variable],
+                    )
+                    for variable in missing_variables
+                },
+            ).to_yaml()
 
-        with open(file, "a") as f:
-            f.write(missing_variables_formatted)
+            with open(file, "a") as f:
+                f.write(missing_variables_formatted)
 
 
 class RegionCodeList(CodeList):
