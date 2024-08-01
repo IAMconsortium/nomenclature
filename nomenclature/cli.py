@@ -1,5 +1,7 @@
 from pathlib import Path
 from typing import List, Optional
+import importlib.util
+import sys
 
 import click
 
@@ -198,7 +200,6 @@ def cli_list_missing_variables(
     target_file : Path | None
         Name of the target variable definition file, optional, defaults to
         'variables.yaml'
-
     Example
     -------
 
@@ -215,3 +216,55 @@ def cli_list_missing_variables(
         "variable",
         codelist_path,
     ).list_missing_variables(IamDataFrame(data), target_file)
+
+
+@cli.command("run-workflow")
+@click.argument("input_file", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--workflow-file",
+    default=lambda: Path.cwd() / "workflow.py",
+    type=click.Path(exists=True, path_type=Path),
+)
+@click.option("--workflow-function", default="main")
+@click.option("--output-file", type=click.Path())
+def cli_run_workflow(
+    input_file: Path,
+    workflow_file: Path,
+    workflow_function: str,
+    output_file: Path | None,
+):
+    """Run a given input file through a workflow function defined in a workflow.py
+
+    Parameters
+    ----------
+    input_file : Path
+        Input data file, must be IAMC format, .xlsx or .csv
+    workflow_file : Path
+            Path to the workflow file,
+            default: current working directory / "workflow.py"
+    workflow_function : str
+        Name of the workflow function inside the workflow file, default: main
+    output_file : Path | None
+        Path to the output file where the processing results is saved, nothing
+        is saved if None is given, default: None
+
+    Raises
+    ------
+    ValueError
+        If the workflow_file does not have the specified workflow_function
+    """
+
+    module_name = workflow_file.stem
+    spec = importlib.util.spec_from_file_location(module_name, workflow_file)
+    workflow = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = workflow
+    spec.loader.exec_module(workflow)
+
+    if not hasattr(workflow, workflow_function):
+        raise ValueError(f"{workflow} does not have a function `{workflow_function}`")
+
+    if output_file is not None:
+        getattr(workflow, workflow_function)(IamDataFrame(input_file)).to_excel(
+            output_file
+        )
+    getattr(workflow, workflow_function)(IamDataFrame(input_file))
