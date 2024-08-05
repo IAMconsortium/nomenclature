@@ -184,7 +184,7 @@ def cli_export_definitions_to_excel(
     type=Path,
 )
 @click.option("--target-file", type=str)
-def cli_add_missing_variables(
+def cli_list_missing_variables(
     data: Path, workflow_directory: Path, target_file: Path | None
 ):
     """Add variables from a IAMC data set that are currently not part of a
@@ -206,7 +206,7 @@ def cli_add_missing_variables(
     The following command will add all the missing variables to the file
     new_variables.yaml located in my_workflow/definitions/variable:
 
-    $ nomenclature add-missing-variables input_data.xlsx --workflow-directory
+    $ nomenclature list-missing-variables input_data.xlsx --workflow-directory
                         my_workflow
 
     """
@@ -215,4 +215,4 @@ def cli_add_missing_variables(
     VariableCodeList.from_directory(
         "variable",
         codelist_path,
-    ).add_missing_variables(IamDataFrame(data), target_file)
+    ).list_missing_variables(IamDataFrame(data), target_file)

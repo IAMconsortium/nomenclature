@@ -98,7 +98,7 @@ class CodeList(BaseModel):
     def values(self):
         return self.mapping.values()
 
-    def validate_dataframe(self, df: IamDataFrame, dimension: str) -> bool:
+    def validate_data(self, df: IamDataFrame, dimension: str) -> bool:
         if invalid := self.validate_items(getattr(df, dimension)):
             log_error(dimension, invalid)
             return False
@@ -617,13 +617,13 @@ class VariableCodeList(CodeList):
             return False
         return True
 
-    def validate_dataframe(self, df: IamDataFrame, dimension: str) -> bool:
+    def validate_data(self, df: IamDataFrame, dimension: str) -> bool:
         # validate variables
         all_variables_valid = super().validate_dataframe(df, dimension)
         all_units_valid = self.validate_units(df.unit_mapping)
         return all_variables_valid and all_units_valid
 
-    def add_missing_variables(
+        def list_missing_variables(
         self, df: IamDataFrame, file: Path | str | None = None
     ) -> None:
         file = file or Path.cwd() / "definitions" / "variable" / "variables.yaml"
