@@ -619,11 +619,11 @@ class VariableCodeList(CodeList):
 
     def validate_data(self, df: IamDataFrame, dimension: str) -> bool:
         # validate variables
-        all_variables_valid = super().validate_dataframe(df, dimension)
+        all_variables_valid = super().validate_data(df, dimension)
         all_units_valid = self.validate_units(df.unit_mapping)
         return all_variables_valid and all_units_valid
 
-        def list_missing_variables(
+    def list_missing_variables(
         self, df: IamDataFrame, file: Path | str | None = None
     ) -> None:
         file = file or Path.cwd() / "definitions" / "variable" / "variables.yaml"
