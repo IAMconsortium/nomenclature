@@ -16,7 +16,6 @@ from nomenclature.codelist import (
     MetaCodeList,
 )
 from nomenclature.config import NomenclatureConfig
-from nomenclature.validation import validate
 
 logger = logging.getLogger(__name__)
 SPECIAL_CODELIST = {
@@ -78,7 +77,7 @@ class DataStructureDefinition:
         if empty := [d for d in self.dimensions if not getattr(self, d)]:
             raise ValueError(f"Empty codelist: {', '.join(empty)}")
 
-    def validate(self, df: IamDataFrame, dimensions: list = None) -> None:
+    def validate(self, df: IamDataFrame, dimensions: list | None = None) -> None:
         """Validate that the coordinates of `df` are defined in the codelists
 
         Parameters
@@ -97,7 +96,12 @@ class DataStructureDefinition:
         ValueError
             If `df` fails validation against any codelist.
         """
-        validate(self, df, dimensions=dimensions or self.dimensions)
+
+        if any(
+            getattr(self, dimension).validate_data(df, dimension) is False
+            for dimension in (dimensions or self.dimensions)
+        ):
+            raise ValueError("The validation failed. Please check the log for details.")
 
     def check_aggregate(self, df: IamDataFrame, **kwargs) -> None:
         """Check for consistency of scenario data along the variable hierarchy
@@ -167,7 +171,6 @@ class DataStructureDefinition:
             kwargs["engine"] = "xlsxwriter"
 
         with pd.ExcelWriter(excel_writer, **kwargs) as writer:
-
             # create dataframe with attributes of the DataStructureDefinition
             project = self.project_folder.absolute().parts[-1]
             arg_dict = {

@@ -4,7 +4,7 @@ import pandas.testing as pdt
 import pytest
 import logging
 
-from nomenclature.code import Code, RegionCode, MetaCode
+from nomenclature.code import Code, RegionCode, MetaCode, VariableCode
 from nomenclature.codelist import (
     CodeList,
     VariableCodeList,
@@ -23,7 +23,7 @@ def test_simple_codelist():
     )
 
     assert "Some Variable" in codelist
-    assert codelist["Some Variable"].unit is None  # this is a dimensionless variable
+    assert codelist["Some Variable"].unit == ""  # this is a dimensionless variable
     assert type(codelist["Some Variable"].bool) == bool  # this is a boolean
 
 
@@ -412,3 +412,19 @@ def test_variable_codelist_with_duplicates_raises(CodeList):
         CodeList.from_directory(
             "variable", TEST_DATA_DIR / "duplicate-code-list" / "variable"
         )
+
+
+def test_variablecodelist_list_missing_variables_to_new_file(simple_df, tmp_path):
+    empty_codelist = VariableCodeList(name="variable")
+    empty_codelist.list_missing_variables(
+        simple_df,
+        tmp_path / "variables.yaml",
+    )
+
+    obs = VariableCodeList.from_directory("variable", tmp_path)
+    exp = {
+        "Primary Energy": VariableCode(name="Primary Energy", unit="EJ/yr"),
+        "Primary Energy|Coal": VariableCode(name="Primary Energy|Coal", unit="EJ/yr"),
+    }
+
+    assert obs.mapping == exp

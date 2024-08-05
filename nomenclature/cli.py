@@ -5,6 +5,7 @@ import click
 
 from pyam import IamDataFrame
 from nomenclature.definition import DataStructureDefinition
+from nomenclature.codelist import VariableCodeList
 from nomenclature.processor import RegionProcessor
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 
@@ -173,3 +174,44 @@ def cli_export_definitions_to_excel(
         Path and file name for the exported file
     """
     DataStructureDefinition(path / "definitions").to_excel(target)
+
+
+@cli.command("list-missing-variables")
+@click.argument("data", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--workflow-directory",
+    default=lambda: Path.cwd(),
+    type=Path,
+)
+@click.option("--target-file", type=str)
+def cli_list_missing_variables(
+    data: Path, workflow_directory: Path, target_file: Path | None
+):
+    """Create a list of variables that are not part of the variable codelist
+
+    Parameters
+    ----------
+    data : Path
+        path to the IAMC data file, can be .xlsx or .csv
+    workflow_directory : Path, default current working directory
+        Path to the workflow directory that contains the variable codelist
+    target_file : Path | None
+        Name of the target variable definition file, optional, defaults to
+        'variables.yaml'
+
+    Example
+    -------
+
+    The following command will add all the missing variables to the file
+    new_variables.yaml located in my_workflow/definitions/variable:
+
+    $ nomenclature list-missing-variables input_data.xlsx --workflow-directory
+                        my_workflow
+
+    """
+    codelist_path = workflow_directory / "definitions" / "variable"
+    target_file = target_file if target_file is None else codelist_path / target_file
+    VariableCodeList.from_directory(
+        "variable",
+        codelist_path,
+    ).list_missing_variables(IamDataFrame(data), target_file)

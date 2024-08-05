@@ -6,11 +6,13 @@ from typing import ClassVar, Dict, List
 import numpy as np
 import pandas as pd
 import yaml
+from pyam import IamDataFrame
 from pyam.utils import is_list_like, write_sheet
 from pydantic import BaseModel, ValidationInfo, field_validator
 from pydantic_core import PydanticCustomError
 
 import nomenclature
+from nomenclature import log_error
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import CodeListConfig, NomenclatureConfig
 from nomenclature.error import ErrorCollector, custom_pydantic_errors
@@ -95,6 +97,12 @@ class CodeList(BaseModel):
 
     def values(self):
         return self.mapping.values()
+
+    def validate_data(self, df: IamDataFrame, dimension: str) -> bool:
+        if invalid := self.validate_items(getattr(df, dimension)):
+            log_error(dimension, invalid)
+            return False
+        return True
 
     def validate_items(self, items: List[str]) -> List[str]:
         """Validate that a list of items are valid codes
@@ -492,6 +500,10 @@ class VariableCodeList(CodeList):
     validation_schema: ClassVar[str] = "variable"
 
     @property
+    def variables(self) -> list[str]:
+        return list(self.keys())
+
+    @property
     def units(self):
         """Get the list of all units"""
         units = set()
@@ -587,6 +599,48 @@ class VariableCodeList(CodeList):
             for var in variables
             if self[var].agg_kwargs and not self[var].skip_region_aggregation
         ]
+
+    def validate_units(self, unit_mapping) -> bool:
+        if invalid_units := [
+            (variable, unit, self.mapping[variable].unit)
+            for variable, unit in unit_mapping.items()
+            if variable in self.variables
+            and not set(unit) == set(self.mapping[variable].unit)
+        ]:
+            lst = [
+                f"'{v}' - expected: {'one of ' if isinstance(e, list) else ''}"
+                f"'{e}', found: '{u}'"
+                for v, u, e in invalid_units
+            ]
+            msg = "The following variable(s) are reported with the wrong unit:"
+            logging.error("\n - ".join([msg] + lst))
+            return False
+        return True
+
+    def validate_data(self, df: IamDataFrame, dimension: str) -> bool:
+        # validate variables
+        all_variables_valid = super().validate_data(df, dimension)
+        all_units_valid = self.validate_units(df.unit_mapping)
+        return all_variables_valid and all_units_valid
+
+    def list_missing_variables(
+        self, df: IamDataFrame, file: Path | str | None = None
+    ) -> None:
+        file = file or Path.cwd() / "definitions" / "variable" / "variables.yaml"
+        if missing_variables := self.validate_items(df.variable):
+            missing_variables_formatted = VariableCodeList(
+                name="variable",
+                mapping={
+                    variable: VariableCode(
+                        name=variable,
+                        unit=df.unit_mapping[variable],
+                    )
+                    for variable in missing_variables
+                },
+            ).to_yaml()
+
+            with open(file, "a") as f:
+                f.write(missing_variables_formatted)
 
 
 class RegionCodeList(CodeList):

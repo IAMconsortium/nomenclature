@@ -4,7 +4,14 @@ import pycountry
 from keyword import iskeyword
 from pathlib import Path
 from typing import Any, Dict, List, Set, Union
-from pydantic import field_validator, ConfigDict, BaseModel, Field, ValidationInfo
+from pydantic import (
+    field_validator,
+    field_serializer,
+    ConfigDict,
+    BaseModel,
+    Field,
+    ValidationInfo,
+)
 
 from pyam.utils import to_list
 
@@ -153,14 +160,16 @@ class Code(BaseModel):
 
 
 class VariableCode(Code):
-    unit: Union[str, List[str]] | None = Field(...)
+    unit: Union[str, List[str]] = Field(...)
     weight: str | None = None
     region_aggregation: List[Dict[str, Dict]] | None = Field(
-        None, alias="region-aggregation"
+        default=None, alias="region-aggregation"
     )
-    skip_region_aggregation: bool | None = Field(False, alias="skip-region-aggregation")
+    skip_region_aggregation: bool | None = Field(
+        default=False, alias="skip-region-aggregation"
+    )
     method: str | None = None
-    check_aggregate: bool | None = Field(False, alias="check-aggregate")
+    check_aggregate: bool | None = Field(default=False, alias="check-aggregate")
     components: Union[List[str], List[Dict[str, List[str]]]] | None = None
     drop_negative_weights: bool | None = None
     model_config = ConfigDict(populate_by_name=True)
@@ -173,8 +182,16 @@ class VariableCode(Code):
         except json.decoder.JSONDecodeError:
             return v
 
+    @field_validator("unit", mode="before")
+    def convert_none_to_empty_string(cls, v):
+        return v if v is not None else ""
+
+    @field_serializer("unit")
+    def convert_str_to_none_for_writing(self, v):
+        return v if v != "" else None
+
     @property
-    def units(self) -> List[Union[str, None]]:
+    def units(self) -> List[str]:
         return self.unit if isinstance(self.unit, list) else [self.unit]
 
     @classmethod
