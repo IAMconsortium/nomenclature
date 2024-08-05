@@ -263,8 +263,6 @@ def cli_run_workflow(
     if not hasattr(workflow, workflow_function):
         raise ValueError(f"{workflow} does not have a function `{workflow_function}`")
 
+    df = getattr(workflow, workflow_function)(IamDataFrame(input_file))
     if output_file is not None:
-        getattr(workflow, workflow_function)(IamDataFrame(input_file)).to_excel(
-            output_file
-        )
-    getattr(workflow, workflow_function)(IamDataFrame(input_file))
+        df.to_excel(output_file)
