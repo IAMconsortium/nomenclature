@@ -171,7 +171,6 @@ class DataStructureDefinition:
             kwargs["engine"] = "xlsxwriter"
 
         with pd.ExcelWriter(excel_writer, **kwargs) as writer:
-
             # create dataframe with attributes of the DataStructureDefinition
             project = self.project_folder.absolute().parts[-1]
             arg_dict = {

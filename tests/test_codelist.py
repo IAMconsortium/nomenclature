@@ -415,8 +415,6 @@ def test_variable_codelist_with_duplicates_raises(CodeList):
 
 
 def test_variablecodelist_list_missing_variables_to_new_file(simple_df, tmp_path):
-
-
     empty_codelist = VariableCodeList(name="variable")
     empty_codelist.list_missing_variables(
         simple_df,

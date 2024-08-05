@@ -338,7 +338,6 @@ def test_cli_export_to_excel(tmpdir):
 
 
 def test_cli_add_missing_variables(simple_definition, tmp_path):
-
     variable_code_list_path = tmp_path / "definitions" / "variable"
     variable_code_list_path.mkdir(parents=True)
     simple_definition.variable.to_yaml(variable_code_list_path / "variables.yaml")
@@ -346,7 +345,7 @@ def test_cli_add_missing_variables(simple_definition, tmp_path):
     runner.invoke(
         cli,
         [
-            "add-missing-variables",
+            "list-missing-variables",
             str(TEST_DATA_DIR / "add-missing-variables" / "data.xlsx"),
             "--workflow-directory",
             str(tmp_path),
