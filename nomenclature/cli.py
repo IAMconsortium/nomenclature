@@ -176,7 +176,7 @@ def cli_export_definitions_to_excel(
     DataStructureDefinition(path / "definitions").to_excel(target)
 
 
-@cli.command("add-missing-variables")
+@cli.command("list-missing-variables")
 @click.argument("data", type=click.Path(exists=True, path_type=Path))
 @click.option(
     "--workflow-directory",
@@ -187,8 +187,7 @@ def cli_export_definitions_to_excel(
 def cli_list_missing_variables(
     data: Path, workflow_directory: Path, target_file: Path | None
 ):
-    """Add variables from a IAMC data set that are currently not part of a
-    project variable codelist
+    """Create a list of variables that are not part of the variable codelist
 
     Parameters
     ----------
