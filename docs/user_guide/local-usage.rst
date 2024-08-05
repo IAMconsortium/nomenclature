@@ -68,16 +68,16 @@ A more elaborate use case is to perform validation against the codelists and use
   # Import the necessary libraries
   import pyam
   from nomenclature import DataStructureDefinition, RegionProcessor, process
-  
+
   # Initialize a DataStructureDefinition from a suitable directory
   dsd = DataStructureDefinition("definitions")
-  
+
   # Initialize a RegionProcessor from a suitable directory that has the mappings
   rp = RegionProcessor.from_directory("mappings")
-  
+
   # Read the data using pyam
   df = pyam.IamDataFrame("/path/to/file")
-  
+
   # Perform the validation and apply the region aggregation
   df = process(df, dsd, processor=rp)
 
@@ -92,6 +92,27 @@ implemented as a ``main()`` function in ``workflow.py`` of a project repository.
 
 .. attention:: The working-directory of the Python console has to be set to the clone
      of the project repository.
+
+A project workflow can be run directly form the console using the ``nomenclature
+run-workflow`` command.
+
+.. code-block:: console
+
+  nomenclature run-workflow input_data.xlsx
+
+The output should be saved using the ``--output-file`` option with a path to an excel
+file.
+
+.. code-block:: console
+
+  nomenclature run-workflow input_data.xlsx --output-file output.xlsx
+
+If the current working directory is not the workflow directory and/or the processing function is not main, this is also covered:
+
+.. code-block:: console
+
+  nomenclature run-workflow input_data.xlsx --workflow-file path/to/workflow.py --workflow-function not_main --output-file output.xlsx
+
 
 .. code-block:: python
 
