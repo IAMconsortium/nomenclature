@@ -49,6 +49,7 @@ class RequiredData(BaseModel):
     variable: List[str] | None = None
     region: List[str] | None = None
     year: List[int] | None = None
+    # TODO consider merging with IamcDataFilter
 
     @field_validator("measurand", "region", "year", "variable", mode="before")
     @classmethod
