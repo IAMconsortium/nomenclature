@@ -1,10 +1,11 @@
 from typing import List
 from pydantic import BaseModel, field_validator
 
+from pyam import IAMC_IDX
 
 from nomenclature.definition import DataStructureDefinition
 
-IAMC_DIMENSIONS = ["model", "scenario", "region", "variable", "unit"]
+IAMC_DIMENSIONS = IAMC_IDX
 
 
 class IamcDataFilter(BaseModel):
@@ -15,7 +16,7 @@ class IamcDataFilter(BaseModel):
     unit: List[str] | None = None
     year: List[int] | None = None
 
-    @field_validator(*IAMC_DIMENSIONS, mode="before")
+    @field_validator(*IAMC_IDX + ["year"], mode="before")
     @classmethod
     def single_input_to_list(cls, v):
         return v if isinstance(v, list) else [v]
