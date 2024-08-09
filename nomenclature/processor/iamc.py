@@ -5,8 +5,6 @@ from pyam import IAMC_IDX
 
 from nomenclature.definition import DataStructureDefinition
 
-IAMC_DIMENSIONS = IAMC_IDX
-
 
 class IamcDataFilter(BaseModel):
     model: List[str] | None = None
@@ -16,7 +14,7 @@ class IamcDataFilter(BaseModel):
     unit: List[str] | None = None
     year: List[int] | None = None
 
-    @field_validator(*IAMC_IDX + ["year"], mode="before")
+    @field_validator("*", mode="before")
     @classmethod
     def single_input_to_list(cls, v):
         return v if isinstance(v, list) else [v]
@@ -25,7 +23,7 @@ class IamcDataFilter(BaseModel):
         error_msg = ""
 
         # check for filter-items that are not defined in the codelists
-        for dimension in IAMC_DIMENSIONS:
+        for dimension in IAMC_IDX:
             if codelist := getattr(dsd, dimension, None) is None:
                 continue
             if invalid := codelist.validate_items(getattr(self, dimension) or []):
