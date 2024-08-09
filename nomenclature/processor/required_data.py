@@ -16,7 +16,7 @@ from pydantic import (
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error import ErrorCollector
-from nomenclature.iamc.datapoint import IamcDataFilter
+from nomenclature.processor.iamc import IamcDataFilter
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 
@@ -42,7 +42,7 @@ def cast_to_RequiredMeasurand(v) -> RequiredMeasurand:
     return RequiredMeasurand(variable=variable, **v[variable])
 
 
-class RequiredData(IamcDataFilter):
+class RequiredData(BaseModel):
     measurand: (
         List[Annotated[RequiredMeasurand, BeforeValidator(cast_to_RequiredMeasurand)]]
         | None
