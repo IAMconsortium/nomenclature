@@ -21,7 +21,8 @@ class IamcDataFilter(BaseModel):
     def single_input_to_list(cls, v):
         return v if isinstance(v, list) else [v]
 
-    def validate(self, dsd: DataStructureDefinition) -> None:
+
+    def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         error_msg = ""
 
         # check for filter-items that are not defined in the codelists
