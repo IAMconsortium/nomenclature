@@ -14,7 +14,7 @@ class IamcDataFilter(BaseModel):
     unit: List[str] | None = None
     year: List[int] | None = None
 
-    @field_validator("*", mode="before")
+    @field_validator(*IAMC_IDX + ["year"], mode="before")
     @classmethod
     def single_input_to_list(cls, v):
         return v if isinstance(v, list) else [v]
