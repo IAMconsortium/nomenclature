@@ -16,7 +16,6 @@ from pydantic import (
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error import ErrorCollector
-from nomenclature.processor.iamc import IamcDataFilter
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 
