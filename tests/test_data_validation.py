@@ -54,6 +54,6 @@ def test_DataValidator_validate_with_definition_raises(dimension, match):
     # validating against a DataStructure without the offending dimension passes
     dsd = DataStructureDefinition(
         TEST_DATA_DIR / "validation" / "definition",
-        dimensions=[dim for dim in ["region", "variable"] if dim != dimension]
+        dimensions=[dim for dim in ["region", "variable"] if dim != dimension],
     )
     assert data_validator.validate_with_definition(dsd) is None
