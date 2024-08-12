@@ -1,0 +1,6 @@
+ - region: World
+   variable: Final Energy|Industry
+   year: 2010
+   upper_bound: 2.5
+   lower_bound: 1
+
