@@ -26,7 +26,7 @@ def test_DataValidator_from_file():
     assert obs == exp
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definition")
-    obs.validate_with_definition(dsd) is None
+    assert obs.validate_with_definition(dsd) is None
 
 
 @pytest.mark.parametrize(
