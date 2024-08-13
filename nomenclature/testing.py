@@ -71,9 +71,7 @@ def _check_mappings(
 def _collect_processor_errors(
     path: Path, processor: Processor, dsd: DataStructureDefinition
 ) -> None:
-    errors = ErrorCollector(
-        description=f"files for '{processor.__name__}' ({path})"
-    )
+    errors = ErrorCollector(description=f"files for '{processor.__name__}' ({path})")
     for file in path.iterdir():
         try:
             processor.from_file(file).validate_with_definition(dsd)
