@@ -12,7 +12,6 @@ from pyam import IAMC_IDX, IamDataFrame, assert_iamframe_equal
 from nomenclature import cli
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 from nomenclature.codelist import VariableCodeList
-from nomenclature.cli import cli_run_workflow
 
 from conftest import TEST_DATA_DIR
 
