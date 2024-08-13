@@ -43,7 +43,7 @@ def test_DataValidator_validate_with_definition_raises(dimension, match):
     # TODO Undefined unit
 
     data_validator = DataValidator.from_file(
-        DATA_VALIDATION_TEST_DIR / f"validation_unknown_{dimension}.yaml"
+        DATA_VALIDATION_TEST_DIR / f"validate_unknown_{dimension}.yaml"
     )
 
     # validating against a DataStructure with all dimensions raises
