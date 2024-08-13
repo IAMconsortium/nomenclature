@@ -256,6 +256,22 @@ def test_cli_missing_mappings_fails():
     assert "Mappings directory not found" in str(cli_result.exception)
 
 
+def test_cli_validate_data_fails():
+    """Assert that validating invalid yaml fails"""
+    cli_result = runner.invoke(
+        cli,
+        [
+            "validate-project",
+            str(TEST_DATA_DIR / "validation"),
+        ],
+    )
+
+    assert cli_result.exit_code == 1
+    assert "Collected 2 errors:" in str(cli_result.exception)
+    assert "Asia" in str(cli_result.exception)
+    assert "Final Energy|Industry" in str(cli_result.exception)
+
+
 def test_cli_empty_definitions_dir():
     """Assert that an error is raised when the `definitions` directory is empty"""
 
@@ -365,7 +381,6 @@ def test_cli_add_missing_variables(simple_definition, tmp_path):
 
 
 def test_cli_run_workflow(tmp_path, simple_df):
-
     simple_df.to_excel(tmp_path / "input.xlsx")
 
     runner.invoke(
