@@ -3,7 +3,7 @@ from typing import List, Union
 
 import yaml
 
-from nomenclature import DataStructureDefinition
+from nomenclature.definition import DataStructureDefinition
 from nomenclature.error import ErrorCollector
 from nomenclature.processor.iamc import IamcDataFilter
 from nomenclature.processor import Processor

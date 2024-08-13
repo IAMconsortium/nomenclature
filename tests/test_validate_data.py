@@ -25,7 +25,7 @@ def test_DataValidator_from_file():
     obs = DataValidator.from_file(DATA_VALIDATION_TEST_DIR / "simple_validation.yaml")
     assert obs == exp
 
-    dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definition")
+    dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definitions")
     assert obs.validate_with_definition(dsd) is None
 
 
@@ -47,13 +47,13 @@ def test_DataValidator_validate_with_definition_raises(dimension, match):
     )
 
     # validating against a DataStructure with all dimensions raises
-    dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definition")
+    dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definitions")
     with pytest.raises(ValueError, match=match):
         data_validator.validate_with_definition(dsd)
 
     # validating against a DataStructure without the offending dimension passes
     dsd = DataStructureDefinition(
-        TEST_DATA_DIR / "validation" / "definition",
+        TEST_DATA_DIR / "validation" / "definitions",
         dimensions=[dim for dim in ["region", "variable"] if dim != dimension],
     )
     assert data_validator.validate_with_definition(dsd) is None
