@@ -266,7 +266,7 @@ def test_cli_validate_data_fails():
     )
 
     assert cli_result.exit_code == 1
-    assert "Collected 2 errors:" in str(cli_result.exception)
+    assert "Collected 2 errors" in str(cli_result.exception)
     assert "Asia" in str(cli_result.exception)
     assert "Final Energy|Industry" in str(cli_result.exception)
 

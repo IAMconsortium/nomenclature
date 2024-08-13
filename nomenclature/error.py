@@ -1,5 +1,6 @@
 import textwrap
 from collections import namedtuple
+from typing import Optional
 
 pydantic_custom_error_config = {
     "RegionNameCollisionError": (
@@ -47,9 +48,11 @@ custom_pydantic_errors = PydanticCustomErrors(**pydantic_custom_error_config)
 
 class ErrorCollector:
     errors: list[Exception]
+    description: Optional[str] = None
 
-    def __init__(self) -> None:
+    def __init__(self, description: str = None) -> None:
         self.errors = []
+        self.description = description
 
     def append(self, error: Exception) -> None:
         self.errors.append(error)
@@ -57,12 +60,14 @@ class ErrorCollector:
     def __repr__(self) -> str:
         error = "error" if len(self.errors) == 1 else "errors"
         error_list_str = "\n".join(
-            f"{i+1}. {error}" for i, error in enumerate(self.errors)
+            f"{i + 1}. {error}" for i, error in enumerate(self.errors)
         )
 
-        return f"Collected {len(self.errors)} {error}:\n" + textwrap.indent(
-            error_list_str, prefix="  "
-        )
+        message = f"Collected {len(self.errors)} {error}"
+        if self.description is not None:
+            message += f" when checking {self.description}"
+
+        return f"{message}:\n" + textwrap.indent(error_list_str, prefix="  ")
 
     def __bool__(self) -> bool:
         return bool(self.errors)
