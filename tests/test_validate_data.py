@@ -64,3 +64,11 @@ def test_DataValidator_apply_no_matching_data(simple_df):
     )
     # no data matches validation criteria, `apply()` passes and returns unchanged object
     assert data_validator.apply(simple_df) == simple_df
+
+
+def test_DataValidator_apply_fails(simple_df):
+    data_validator = DataValidator.from_file(
+        DATA_VALIDATION_TEST_DIR / "validate_data_fails.yaml"
+    )
+    with pytest.raises(ValueError, match="Data validation failed"):
+        data_validator.apply(simple_df)
