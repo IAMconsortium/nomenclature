@@ -163,4 +163,5 @@ def assert_valid_structure(
         path, DataValidator, "validate_data", validate_data, definitions, dimensions
     )
 
+
 # Todo: add function which runs `DataStructureDefinition(path).validate(scenario)`
