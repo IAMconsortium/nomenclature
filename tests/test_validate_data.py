@@ -56,3 +56,11 @@ def test_DataValidator_validate_with_definition_raises(dimension, match):
         dimensions=[dim for dim in ["region", "variable"] if dim != dimension],
     )
     assert data_validator.validate_with_definition(dsd) is None
+
+
+def test_DataValidator_apply_no_matching_data(simple_df):
+    data_validator = DataValidator.from_file(
+        DATA_VALIDATION_TEST_DIR / "simple_validation.yaml"
+    )
+    # no data matches validation criteria, `apply()` passes and returns unchanged object
+    assert data_validator.apply(simple_df) == simple_df
