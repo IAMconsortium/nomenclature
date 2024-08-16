@@ -69,7 +69,9 @@ def _check_mappings(
 
 
 def _collect_processor_errors(
-    path: Path, processor: Processor, dsd: DataStructureDefinition
+    path: Path,
+    processor: type[RequiredDataValidator] | type[DataValidator],
+    dsd: DataStructureDefinition,
 ) -> None:
     errors = ErrorCollector(description=f"files for '{processor.__name__}' ({path})")
     for file in path.iterdir():
@@ -160,6 +162,5 @@ def assert_valid_structure(
     _check_processor_directory(
         path, DataValidator, "validate_data", validate_data, definitions, dimensions
     )
-
 
 # Todo: add function which runs `DataStructureDefinition(path).validate(scenario)`
