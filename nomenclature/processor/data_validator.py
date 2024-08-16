@@ -34,9 +34,9 @@ class DataValidator(Processor):
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         errors = ErrorCollector(description=f"in file '{self.file}'")
-        for data in self.criteria_items:
+        for item in self.criteria_items:
             try:
-                data.validate_with_definition(dsd)
+                item.validate_with_definition(dsd)
             except ValueError as value_error:
                 errors.append(value_error)
         if errors:
