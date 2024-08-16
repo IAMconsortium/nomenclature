@@ -39,6 +39,12 @@ def cli_valid_yaml(path: Path):
     default=None,
 )
 @click.option(
+    "--validate_data",
+    help="Optional name for validation folder",
+    type=str,
+    default=None,
+)
+@click.option(
     "--dimension",
     "dimensions",
     help="Optional list of dimensions",
@@ -51,6 +57,7 @@ def cli_valid_project(
     definitions: str,
     mappings: Optional[str],
     required_data: Optional[str],
+    validate_data: Optional[str],
     dimensions: Optional[List[str]],
 ):
     """Assert that `path` is a valid project nomenclature
@@ -60,11 +67,13 @@ def cli_valid_project(
     path : Path
         Project directory to be validated
     definitions : str, optional
-        Name of the definitions folder, defaults to "definitions"
+        Name of 'definitions' folder, defaults to "definitions"
     mappings : str, optional
-        Name of the mappings folder, defaults to "mappings" (if this folder exists)
+        Name of 'mappings' folder, defaults to "mappings"
     required_data: str, optional
-        Name of the required data folder, default to "required_data" (if folder exists)
+        Name of folder for 'required data' criteria, default to "required_data"
+    validate_data: str, optional
+        Name of folder for data validation criteria, default to "validate_data"
     dimensions : List[str], optional
         Dimensions to be checked, defaults to all sub-folders of `definitions`
 
@@ -76,23 +85,25 @@ def cli_valid_project(
                         --dimension <folder2>
                         --dimension <folder3>
 
-
-
     Note
     ----
     This test includes three steps:
 
-    1. Test that all yaml files in `definitions/` and `mappings/` can be correctly read
+    1. Test that all yaml files in `definitions` and `mappings` can be correctly parsed
        as yaml files. This is a formal check for yaml syntax only.
-    2. Test that all files in `definitions/` can be correctly parsed as a
+    2. Test that all files in `definitions` can be correctly parsed as a
        :class:`DataStructureDefinition` object comprised of individual codelists.
-    3. Test that all model mappings in `mappings/` can be correctly parsed as a
+    3. Test that all model mappings in `mappings` can be correctly parsed as a
        :class:`RegionProcessor` object. This includes a check that all regions mentioned
        in a model mapping are defined in the region codelist.
+    4. Test that all required-data and data-validation files can be parsed correctly
+       and are consistent with the `definitions`.
 
     """
     assert_valid_yaml(path)
-    assert_valid_structure(path, definitions, mappings, required_data, dimensions)
+    assert_valid_structure(
+        path, definitions, mappings, required_data, validate_data, dimensions
+    )
 
 
 @cli.command("check-region-aggregation")

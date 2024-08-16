@@ -5,7 +5,12 @@ from typing import List, Optional
 import yaml
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.processor import RegionProcessor, RequiredDataValidator
+from nomenclature.processor import (
+    DataValidator,
+    RegionProcessor,
+    RequiredDataValidator,
+    Processor,
+)
 from nomenclature.error import ErrorCollector
 
 logger = logging.getLogger(__name__)
@@ -63,35 +68,38 @@ def _check_mappings(
         raise FileNotFoundError(f"Mappings directory not found: {path / mappings}")
 
 
-def _collect_RequiredData_errors(
-    required_data_dir: Path, dsd: DataStructureDefinition
+def _collect_processor_errors(
+    path: Path,
+    processor: type[RequiredDataValidator] | type[DataValidator],
+    dsd: DataStructureDefinition,
 ) -> None:
-    errors = ErrorCollector()
-    for file in required_data_dir.iterdir():
+    errors = ErrorCollector(description=f"files for '{processor.__name__}' ({path})")
+    for file in path.iterdir():
         try:
-            RequiredDataValidator.from_file(file).validate_with_definition(dsd)
+            processor.from_file(file).validate_with_definition(dsd)
         except ValueError as error:
             errors.append(error)
     if errors:
-        raise ValueError(f"Found error(s) in required data files:\n{errors}")
+        raise ValueError(errors)
 
 
-def _check_RequiredData(
+def _check_processor_directory(
     path: Path,
-    definitions: str = "definitions",
+    processor: Processor,
+    processor_arg: str,
+    folder: Optional[str] = None,
+    definitions: Optional[str] = "definitions",
     dimensions: Optional[List[str]] = None,
-    required_data: Optional[str] = None,
 ) -> None:
     dsd = DataStructureDefinition(path / definitions, dimensions)
-    if required_data is None:
-        if (path / "requiredData").is_dir():
-            _collect_RequiredData_errors(path / "required_data", dsd)
-
-    elif (path / required_data).is_dir():
-        _collect_RequiredData_errors(path / required_data, dsd)
+    if folder is None:
+        if (path / processor_arg).is_dir():
+            _collect_processor_errors(path / processor_arg, processor, dsd)
+    elif (path / folder).is_dir():
+        _collect_processor_errors(path / folder, processor, dsd)
     else:
         raise FileNotFoundError(
-            f"Directory for required data not found at: {path / required_data}"
+            f"Directory for '{processor_arg}' not found at: {path / folder}"
         )
 
 
@@ -100,6 +108,7 @@ def assert_valid_structure(
     definitions: str = "definitions",
     mappings: Optional[str] = None,
     required_data: Optional[str] = None,
+    validate_data: Optional[str] = None,
     dimensions: Optional[List[str]] = None,
 ) -> None:
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
@@ -113,8 +122,11 @@ def assert_valid_structure(
     mappings : str, optional
         Name of the mappings folder, defaults to "mappings" (if this folder exists)
     required_data : str, optional
-        Name of the required data folder, defaults to "required_data" (if this folder
-        exists)
+        Name of the folder for required data, defaults to "required_data"
+        (if this folder exists)
+    validate_data : str, optional
+        Name of the folder for data validation criteria, defaults to "validate_date"
+        (if this folder exists)
     dimensions : List[str], optional
         Dimensions to be checked, defaults to all sub-folders of `definitions`
 
@@ -122,7 +134,7 @@ def assert_valid_structure(
     -----
     Folder structure of `path`:
         - A `definitions` folder is required and must be a valid
-        :class:`DataStructureDefinition`
+          :class:`DataStructureDefinition`
         - The `definitions` folder must contain sub-folder(s) to validate
         - If a `mappings` folder exists, it must be a valid :class:`RegionProcessor`
 
@@ -139,7 +151,17 @@ def assert_valid_structure(
                 f"`definitions` directory is empty: {path / definitions}"
             )
     _check_mappings(path, definitions, dimensions, mappings)
-    _check_RequiredData(path, definitions, dimensions, required_data)
+    _check_processor_directory(
+        path,
+        RequiredDataValidator,
+        "required_data",
+        required_data,
+        definitions,
+        dimensions,
+    )
+    _check_processor_directory(
+        path, DataValidator, "validate_data", validate_data, definitions, dimensions
+    )
 
 
 # Todo: add function which runs `DataStructureDefinition(path).validate(scenario)`
