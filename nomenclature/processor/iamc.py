@@ -25,9 +25,10 @@ class IamcDataFilter(BaseModel):
         # check for filter-items that are not defined in the codelists
         for dimension in IAMC_IDX:
             codelist = getattr(dsd, dimension, None)
-            if codelist is None:
+            # no validation if codelist is not defined or filter-item is None
+            if codelist is None or getattr(self, dimension) is None:
                 continue
-            if invalid := codelist.validate_items(getattr(self, dimension, [])):
+            if invalid := codelist.validate_items(getattr(self, dimension)):
                 error_msg += (
                     f"The following {dimension}s are not defined in the "
                     f"DataStructureDefinition:\n   {', '.join(invalid)}\n"

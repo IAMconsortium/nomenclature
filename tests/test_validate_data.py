@@ -12,7 +12,6 @@ def test_DataValidator_from_file():
         **{
             "criteria_items": [
                 {
-                    "region": ["World"],
                     "variable": "Final Energy",
                     "year": [2010],
                     "upper_bound": 2.5,
