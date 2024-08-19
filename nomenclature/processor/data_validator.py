@@ -42,9 +42,6 @@ class DataValidator(Processor):
             for item in self.criteria_items:
                 failed_validation = df.validate(**item.criteria)
                 if failed_validation is not None:
-                    for direction in ["upper_bound", "lower_bound"]:
-                        if getattr(item, direction) is not None:
-                            failed_validation[direction] = getattr(item, direction)
                     failed_validation_list.append(
                         f"Criteria: {item.criteria}\n{failed_validation}\n"
                     )
