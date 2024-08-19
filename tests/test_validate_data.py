@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import pandas as pd
 import pytest
 from conftest import TEST_DATA_DIR
 
@@ -72,9 +71,6 @@ def test_DataValidator_apply_no_matching_data(simple_df):
 def test_DataValidator_apply_fails(simple_df, caplog):
     data_file = DATA_VALIDATION_TEST_DIR / "validate_data_fails.yaml"
     data_validator = DataValidator.from_file(data_file)
-
-    # TODO implement a utility function to display pandas nicely
-    pd.set_option("display.width", 180)
 
     failed_validation_message = f"""Failed data validation (file {data_file.relative_to(Path.cwd())}):
   Criteria: variable: ['Primary Energy'], upper_bound: 5.0
