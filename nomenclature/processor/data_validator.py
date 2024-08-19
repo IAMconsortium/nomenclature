@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import textwrap
 from typing import List, Union
 
 import yaml
@@ -35,26 +36,28 @@ class DataValidator(Processor):
         return cls(file=file, criteria_items=content)
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
-        failed_validation_list = []
-        error = False
+        error_list = []
 
         with adjust_log_level():
             for item in self.criteria_items:
                 failed_validation = df.validate(**item.criteria)
                 if failed_validation is not None:
-                    failed_validation_list.append(
-                        f"Criteria: {item.criteria}\n{failed_validation}\n"
+                    error_list.append(
+                        "  Criteria: "
+                        + ", ".join(
+                            [f"{key}: {value}" for key, value in item.criteria.items()]
+                        )
+                    )
+                    error_list.append(
+                        textwrap.indent(str(failed_validation), prefix="    ") + "\n"
                     )
 
-            if failed_validation_list:
+            if error_list:
                 logger.error(
                     "Failed data validation (file %s):\n%s",
                     get_relative_path(self.file),
-                    "\n".join(failed_validation_list),
+                    "\n".join(error_list),
                 )
-                error = True
-
-            if error:
                 raise ValueError(
                     "Data validation failed. Please check the log for details."
                 )
