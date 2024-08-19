@@ -2,7 +2,6 @@ import logging
 from pathlib import Path
 from typing import List, Union
 
-import pandas as pd
 import yaml
 from pyam import IamDataFrame
 from pyam.logging import adjust_log_level
@@ -46,13 +45,15 @@ class DataValidator(Processor):
                     for direction in ["upper_bound", "lower_bound"]:
                         if getattr(item, direction) is not None:
                             failed_validation[direction] = getattr(item, direction)
-                    failed_validation_list.append(failed_validation)
+                    failed_validation_list.append(
+                        f"Criteria: {item.criteria}\n{failed_validation}\n"
+                    )
 
             if failed_validation_list:
                 logger.error(
                     "Failed data validation (file %s):\n%s",
                     get_relative_path(self.file),
-                    pd.concat(failed_validation_list),
+                    "\n".join(failed_validation_list),
                 )
                 error = True
 
