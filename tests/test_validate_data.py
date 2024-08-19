@@ -1,3 +1,4 @@
+import pandas as pd
 import pytest
 from conftest import TEST_DATA_DIR
 
@@ -71,8 +72,10 @@ def test_DataValidator_apply_fails(simple_df, caplog):
         DATA_VALIDATION_TEST_DIR / "validate_data_fails.yaml"
     )
 
-    failed_validation_message = \
-        """Failed data validation (file data/validation/validate_data/validate_data_fails.yaml):
+    # TODO implement a utility function to display pandas nicely
+    pd.set_option("display.width", 180)
+
+    failed_validation_message = """Failed data validation (file data/validation/validate_data/validate_data_fails.yaml):
   Criteria: variable: ['Primary Energy'], upper_bound: 5.0
          model scenario region        variable   unit  year  value
     0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0
