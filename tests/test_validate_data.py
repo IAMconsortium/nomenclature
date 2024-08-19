@@ -72,7 +72,7 @@ def test_DataValidator_apply_fails(simple_df, caplog):
     )
 
     failed_validation_message = [
-        "Failed data validation (file data/validation/validate_data/validate_data_fails.yaml):"
+        "Failed data validation (file data/validation/validate_data/validate_data_fails.yaml):",
         """
   Criteria: variable: ['Primary Energy'], upper_bound: 5.0
          model scenario region        variable   unit  year  value
