@@ -71,9 +71,8 @@ def test_DataValidator_apply_fails(simple_df, caplog):
         DATA_VALIDATION_TEST_DIR / "validate_data_fails.yaml"
     )
 
-    failed_validation_message = [
-        "Failed data validation (file data/validation/validate_data/validate_data_fails.yaml):",
-        """
+    failed_validation_message = \
+        """Failed data validation (file data/validation/validate_data/validate_data_fails.yaml):
   Criteria: variable: ['Primary Energy'], upper_bound: 5.0
          model scenario region        variable   unit  year  value
     0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0
@@ -86,11 +85,10 @@ def test_DataValidator_apply_fails(simple_df, caplog):
   Criteria: variable: ['Primary Energy'], year: [2005], upper_bound: 1.9, lower_bound: 1.1
          model scenario region        variable   unit  year  value
     0  model_a   scen_a  World  Primary Energy  EJ/yr  2005    1.0
-    1  model_a   scen_b  World  Primary Energy  EJ/yr  2005    2.0""",
-    ]
+    1  model_a   scen_b  World  Primary Energy  EJ/yr  2005    2.0"""
 
     with pytest.raises(ValueError, match="Data validation failed"):
         data_validator.apply(simple_df)
 
     # check if the log message contains the correct information
-    assert all(x in caplog.text for x in failed_validation_message)
+    assert failed_validation_message in caplog.text
