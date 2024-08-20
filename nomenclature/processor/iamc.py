@@ -1,4 +1,4 @@
-from typing import List, Tuple, Any
+from typing import List
 from pydantic import BaseModel, field_validator
 
 from pyam import IAMC_IDX
@@ -19,15 +19,20 @@ class IamcDataFilter(BaseModel):
     def single_input_to_list(cls, v):
         return v if isinstance(v, list) else [v]
 
+    @property
+    def criteria(self):
+        return dict(item for item in self.model_dump().items() if item[1] is not None)
+
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         error_msg = ""
 
         # check for filter-items that are not defined in the codelists
         for dimension in IAMC_IDX:
             codelist = getattr(dsd, dimension, None)
-            if codelist is None:
+            # no validation if codelist is not defined or filter-item is None
+            if codelist is None or getattr(self, dimension) is None:
                 continue
-            if invalid := codelist.validate_items(getattr(self, dimension, [])):
+            if invalid := codelist.validate_items(getattr(self, dimension)):
                 error_msg += (
                     f"The following {dimension}s are not defined in the "
                     f"DataStructureDefinition:\n   {', '.join(invalid)}\n"
