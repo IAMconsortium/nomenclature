@@ -31,6 +31,17 @@ def test_DataValidator_from_file():
 
 
 @pytest.mark.parametrize(
+    "name, match",
+    [
+        ("missing_criteria", "No validation criteria provided, found"),
+    ],
+)
+def test_DataValidator_illegal_structure(name, match):
+    with pytest.raises(ValueError, match=match):
+        DataValidator.from_file(DATA_VALIDATION_TEST_DIR / f"validate_{name}.yaml")
+
+
+@pytest.mark.parametrize(
     "dimension, match",
     [
         ("region", r"regions.*not defined.*\n.*Asia"),

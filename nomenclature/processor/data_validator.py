@@ -7,6 +7,8 @@ import yaml
 from pyam import IamDataFrame
 from pyam.logging import adjust_log_level
 
+from pydantic import model_validator
+
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error import ErrorCollector
 from nomenclature.processor.iamc import IamcDataFilter
@@ -21,6 +23,13 @@ class DataValidationCriteria(IamcDataFilter):
 
     upper_bound: float = None
     lower_bound: float = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def check_bounds_exist(cls, values):
+        if values.get("upper_bound") is None and values.get("lower_bound") is None:
+            raise ValueError(f"No validation criteria provided, found {values}")
+        return values
 
 
 class DataValidator(Processor):
