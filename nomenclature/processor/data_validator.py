@@ -31,7 +31,7 @@ class DataValidationCriteria(IamcDataFilter):
     @classmethod
     def check_validation_criteria_exist(cls, values):
         error = False
-        # use value and rtol/atol 
+        # use value and rtol/atol
         if values.get("upper_bound") is None and values.get("lower_bound") is None:
             if values.get("value") is None:
                 error = "No validation criteria provided."
@@ -46,7 +46,7 @@ class DataValidationCriteria(IamcDataFilter):
 
         if error:
             raise ValueError(error + " Found " + str(values))
-        
+
         return values
 
 
