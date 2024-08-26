@@ -65,7 +65,16 @@ class DataValidator(Processor):
 
         with adjust_log_level():
             for item in self.criteria_items:
-                failed_validation = df.validate(**item.criteria)
+                if "value" in item.criteria:
+                    _criteria = item.criteria.copy()
+                    value = _criteria.pop("value")
+                    rtol, atol = _criteria.pop("rtol", 0), _criteria.pop("atol", 0)
+                    _criteria["upper_bound"] = value + value * rtol + atol
+                    _criteria["lower_bound"] =value - value * rtol - atol
+                else:
+                    _criteria = item.criteria
+                
+                failed_validation = df.validate(**_criteria)
                 if failed_validation is not None:
                     error_list.append(
                         "  Criteria: "

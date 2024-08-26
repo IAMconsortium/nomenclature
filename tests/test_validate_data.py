@@ -90,6 +90,12 @@ def test_DataValidator_apply_no_matching_data(simple_df):
             "lower_bound: 2.0",
             "upper_bound: 1.9, lower_bound: 1.1",
         ),
+        (
+            "value",
+            "value: 2.0, atol: 1.0",
+            "value: 3.0",
+            "value: 1.5, rtol: 0.2",
+        ),
     ],
 )
 def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, caplog):
