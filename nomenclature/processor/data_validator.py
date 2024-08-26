@@ -70,10 +70,10 @@ class DataValidator(Processor):
                     value = _criteria.pop("value")
                     rtol, atol = _criteria.pop("rtol", 0), _criteria.pop("atol", 0)
                     _criteria["upper_bound"] = value + value * rtol + atol
-                    _criteria["lower_bound"] =value - value * rtol - atol
+                    _criteria["lower_bound"] = value - value * rtol - atol
                 else:
                     _criteria = item.criteria
-                
+
                 failed_validation = df.validate(**_criteria)
                 if failed_validation is not None:
                     error_list.append(
