@@ -4,7 +4,7 @@
 # variable exists only for 'scen_a'
  - variable: Primary Energy|Coal
    lower_bound: 2
-# both upper and lower bound are triggered for both scenarios
+# both upper and lower bound fail for both scenarios
  - variable: Primary Energy
    year: 2005
    upper_bound: 1.9
