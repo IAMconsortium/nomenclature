@@ -23,12 +23,30 @@ class DataValidationCriteria(IamcDataFilter):
 
     upper_bound: float = None
     lower_bound: float = None
+    value: float = None
+    rtol: float = None
+    atol: float = None
 
     @model_validator(mode="before")
     @classmethod
-    def check_bounds_exist(cls, values):
+    def check_validation_criteria_exist(cls, values):
+        error = False
+        # use value and rtol/atol 
         if values.get("upper_bound") is None and values.get("lower_bound") is None:
-            raise ValueError(f"No validation criteria provided, found {values}")
+            if values.get("value") is None:
+                error = "No validation criteria provided."
+            if values.get("rtol") is not None and values.get("atol") is not None:
+                error = "Cannot use both absolute and relative tolerance."
+        # use upper/lower bound
+        else:
+            if values.get("value") is not None:
+                error = "Cannot use value and bounds simultaneously."
+            if values.get("rtol") is not None or values.get("atol") is not None:
+                error = "Cannot use tolerance with bounds. Use `value` instead."
+
+        if error:
+            raise ValueError(error + " Found " + str(values))
+        
         return values
 
 

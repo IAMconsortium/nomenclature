@@ -33,7 +33,9 @@ def test_DataValidator_from_file():
 @pytest.mark.parametrize(
     "name, match",
     [
-        ("missing_criteria", "No validation criteria provided, found"),
+        ("missing_criteria", "No validation criteria provided. Found"),
+        ("bounds_and_value", "Cannot use value and bounds simultaneously. Found"),
+        ("bounds_and_rtol", "Cannot use tolerance with bounds. Use"),
     ],
 )
 def test_DataValidator_illegal_structure(name, match):
