@@ -82,7 +82,7 @@ def test_DataValidator_apply_no_matching_data(simple_df):
 
 
 def test_DataValidator_apply_fails(simple_df, caplog):
-    data_file = DATA_VALIDATION_TEST_DIR / "validate_data_fails.yaml"
+    data_file = DATA_VALIDATION_TEST_DIR / "validate_data_fails_bounds.yaml"
     data_validator = DataValidator.from_file(data_file)
 
     failed_validation_message = f"""Failed data validation (file {data_file.relative_to(Path.cwd())}):
