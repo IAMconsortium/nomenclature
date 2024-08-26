@@ -35,8 +35,6 @@ class DataValidationCriteria(IamcDataFilter):
         if values.get("upper_bound") is None and values.get("lower_bound") is None:
             if values.get("value") is None:
                 error = "No validation criteria provided."
-            if values.get("rtol") is not None and values.get("atol") is not None:
-                error = "Cannot use both absolute and relative tolerance."
         # use upper/lower bound
         else:
             if values.get("value") is not None:
