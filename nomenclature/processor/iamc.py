@@ -1,5 +1,5 @@
 from typing import List
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from pyam import IAMC_IDX
 
@@ -7,6 +7,8 @@ from nomenclature.definition import DataStructureDefinition
 
 
 class IamcDataFilter(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    
     model: List[str] | None = None
     scenario: List[str] | None = None
     region: List[str] | None = None
