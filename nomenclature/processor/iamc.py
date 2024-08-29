@@ -23,7 +23,7 @@ class IamcDataFilter(BaseModel):
 
     @property
     def criteria(self):
-        return dict(item for item in self.model_dump().items() if item[1] is not None)
+        return self.model_dump(exclude_none=True, exclude_unset=True)
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         error_msg = ""
