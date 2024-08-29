@@ -59,7 +59,7 @@ class DataValidationCriteriaBounds(IamcDataFilter):
     def check_validation_criteria_exist(self):
         if self.upper_bound is None and self.lower_bound is None:
             raise ValueError(
-                "No validation criteria provided. Found " + str(self.criteria)
+                "No validation criteria provided: " + str(self.criteria)
             )
         return self
 
@@ -77,13 +77,11 @@ class DataValidator(Processor):
     @field_validator("criteria_items", mode="before")
     def check_criteria(cls, v):
         for criterion in v:
-            bounds = ["upper_bound", "lower_bound"]
-            values = ["value", "atol", "rtol"]
-            if any(bound in criterion for bound in bounds) and any(
-                value in criterion for value in values
-            ):
+            has_bounds = any(c in criterion for c in ["upper_bound", "lower_bound"])
+            has_values = any(c in criterion for c in ["value", "atol", "rtol"])
+            if has_bounds and has_values:
                 raise ValueError(
-                    f"Cannot mix bounds and value criteria. Found: {criterion}"
+                    f"Cannot use bounds and value-criteria simultaneously: {criterion}"
                 )
         return v
 
