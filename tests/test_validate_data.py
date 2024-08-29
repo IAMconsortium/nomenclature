@@ -31,6 +31,19 @@ def test_DataValidator_from_file():
 
 
 @pytest.mark.parametrize(
+    "name, match",
+    [
+        ("missing_criteria", "No validation criteria provided:"),
+        ("bounds_and_value", "Cannot use bounds and value-criteria simultaneously:"),
+        ("bounds_and_rtol", "Cannot use bounds and value-criteria simultaneously:"),
+    ],
+)
+def test_DataValidator_illegal_structure(name, match):
+    with pytest.raises(ValueError, match=match):
+        DataValidator.from_file(DATA_VALIDATION_TEST_DIR / f"validate_{name}.yaml")
+
+
+@pytest.mark.parametrize(
     "dimension, match",
     [
         ("region", r"regions.*not defined.*\n.*Asia"),
@@ -68,21 +81,38 @@ def test_DataValidator_apply_no_matching_data(simple_df):
     assert data_validator.apply(simple_df) == simple_df
 
 
-def test_DataValidator_apply_fails(simple_df, caplog):
-    data_file = DATA_VALIDATION_TEST_DIR / "validate_data_fails.yaml"
+@pytest.mark.parametrize(
+    "file, item_1, item_2, item_3",
+    [
+        (
+            "bounds",
+            "upper_bound: 5.0",
+            "lower_bound: 2.0",
+            "upper_bound: 1.9, lower_bound: 1.1",
+        ),
+        (
+            "value",
+            "value: 2.0, atol: 1.0",
+            "value: 3.0",
+            "value: 1.5, rtol: 0.2",
+        ),
+    ],
+)
+def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, caplog):
+    data_file = DATA_VALIDATION_TEST_DIR / f"validate_data_fails_{file}.yaml"
     data_validator = DataValidator.from_file(data_file)
 
     failed_validation_message = f"""Failed data validation (file {data_file.relative_to(Path.cwd())}):
-  Criteria: variable: ['Primary Energy'], upper_bound: 5.0
+  Criteria: variable: ['Primary Energy'], {item_1}
          model scenario region        variable   unit  year  value
     0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0
     1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0
 
-  Criteria: variable: ['Primary Energy|Coal'], lower_bound: 2.0
+  Criteria: variable: ['Primary Energy|Coal'], {item_2}
          model scenario region             variable   unit  year  value
     0  model_a   scen_a  World  Primary Energy|Coal  EJ/yr  2005    0.5
 
-  Criteria: variable: ['Primary Energy'], year: [2005], upper_bound: 1.9, lower_bound: 1.1
+  Criteria: variable: ['Primary Energy'], year: [2005], {item_3}
          model scenario region        variable   unit  year  value
     0  model_a   scen_a  World  Primary Energy  EJ/yr  2005    1.0
     1  model_a   scen_b  World  Primary Energy  EJ/yr  2005    2.0"""

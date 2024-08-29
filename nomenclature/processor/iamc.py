@@ -1,5 +1,5 @@
 from typing import List
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from pyam import IAMC_IDX
 
@@ -7,6 +7,8 @@ from nomenclature.definition import DataStructureDefinition
 
 
 class IamcDataFilter(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     model: List[str] | None = None
     scenario: List[str] | None = None
     region: List[str] | None = None
@@ -21,7 +23,7 @@ class IamcDataFilter(BaseModel):
 
     @property
     def criteria(self):
-        return dict(item for item in self.model_dump().items() if item[1] is not None)
+        return self.model_dump(exclude_none=True, exclude_unset=True)
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         error_msg = ""

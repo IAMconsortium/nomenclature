@@ -1,0 +1,5 @@
+ - variable: Final Energy
+   year: 2010
+   upper_bound: 2.5
+   lower_bound: 1
+   rtol: 0.5
