@@ -1,18 +1,17 @@
 import logging
-from pathlib import Path
 import textwrap
-from typing import List, Union, Optional
+from pathlib import Path
+from typing import List, Optional, Union
 
 import yaml
 from pyam import IamDataFrame
 from pyam.logging import adjust_log_level
-
-from pydantic import model_validator
+from pydantic import computed_field, field_validator, model_validator
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error import ErrorCollector
-from nomenclature.processor.iamc import IamcDataFilter
 from nomenclature.processor import Processor
+from nomenclature.processor.iamc import IamcDataFilter
 from nomenclature.processor.utils import get_relative_path
 
 logger = logging.getLogger(__name__)
