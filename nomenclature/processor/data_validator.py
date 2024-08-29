@@ -18,40 +18,40 @@ from nomenclature.processor.utils import get_relative_path
 logger = logging.getLogger(__name__)
 
 
-class DataValidationCriteria(IamcDataFilter):
-    """Data validation criteria"""
-
-    upper_bound: Optional[float] = None
-    lower_bound: Optional[float] = None
-    value: Optional[float] = None
+class DataValidationCriteriaValue(IamcDataFilter):
+    value: float
     rtol: Optional[float] = None
     atol: Optional[float] = None
 
+    def get_validation_args(self):
+        _criteria = self.criteria.copy()
+        value = _criteria.pop("value")
+        tolerance = value * _criteria.pop("rtol", 0) + _criteria.pop("atol", 0)
+        _criteria["upper_bound"] = value + tolerance
+        _criteria["lower_bound"] = value - tolerance
+        return _criteria
+
+
+class DataValidationCriteriaBounds(IamcDataFilter):
+    upper_bound: Optional[float] = None
+    lower_bound: Optional[float] = None
+
     @model_validator(mode="before")
-    @classmethod
     def check_validation_criteria_exist(cls, values):
-        error = False
-        # use value and rtol/atol
         if values.get("upper_bound") is None and values.get("lower_bound") is None:
-            if values.get("value") is None:
-                error = "No validation criteria provided."
-        # use upper/lower bound
-        else:
-            if values.get("value") is not None:
-                error = "Cannot use value and bounds simultaneously."
-            if values.get("rtol") is not None or values.get("atol") is not None:
-                error = "Cannot use tolerance with bounds. Use `value` instead."
-
-        if error:
-            raise ValueError(error + " Found " + str(values))
-
+            raise ValueError(
+                "No validation criteria provided. Found " + str(cls.criteria)
+            )
         return values
+
+    def get_validation_args(self):
+        return self.criteria
 
 
 class DataValidator(Processor):
     """Processor for validating IAMC datapoints"""
 
-    criteria_items: List[DataValidationCriteria]
+    criteria_items: List[DataValidationCriteriaBounds | DataValidationCriteriaValue]
     file: Path
 
     @classmethod
@@ -65,16 +65,7 @@ class DataValidator(Processor):
 
         with adjust_log_level():
             for item in self.criteria_items:
-                if "value" in item.criteria:
-                    _criteria = item.criteria.copy()
-                    value = _criteria.pop("value")
-                    rtol, atol = _criteria.pop("rtol", 0), _criteria.pop("atol", 0)
-                    _criteria["upper_bound"] = value + value * rtol + atol
-                    _criteria["lower_bound"] = value - value * rtol - atol
-                else:
-                    _criteria = item.criteria
-
-                failed_validation = df.validate(**_criteria)
+                failed_validation = df.validate(**item.get_validation_args())
                 if failed_validation is not None:
                     error_list.append(
                         "  Criteria: "
