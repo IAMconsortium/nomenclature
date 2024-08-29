@@ -74,6 +74,19 @@ class DataValidator(Processor):
     criteria_items: List[DataValidationCriteriaBounds | DataValidationCriteriaValue]
     file: Path
 
+    @field_validator("criteria_items", mode="before")
+    def check_criteria(cls, v):
+        for criterion in v:
+            bounds = ["upper_bound", "lower_bound"]
+            values = ["value", "atol", "rtol"]
+            if any(bound in criterion for bound in bounds) and any(
+                value in criterion for value in values
+            ):
+                raise ValueError(
+                    f"Cannot mix bounds and value criteria. Found: {criterion}"
+                )
+        return v
+
     @classmethod
     def from_file(cls, file: Union[Path, str]) -> "DataValidator":
         with open(file, "r") as f:
