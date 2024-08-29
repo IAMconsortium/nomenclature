@@ -58,9 +58,7 @@ class DataValidationCriteriaBounds(IamcDataFilter):
     @model_validator(mode="after")
     def check_validation_criteria_exist(self):
         if self.upper_bound is None and self.lower_bound is None:
-            raise ValueError(
-                "No validation criteria provided: " + str(self.criteria)
-            )
+            raise ValueError("No validation criteria provided: " + str(self.criteria))
         return self
 
     @property
