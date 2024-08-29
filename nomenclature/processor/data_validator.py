@@ -19,31 +19,52 @@ logger = logging.getLogger(__name__)
 
 class DataValidationCriteriaValue(IamcDataFilter):
     value: float
-    rtol: Optional[float] = None
-    atol: Optional[float] = None
+    rtol: float = 0.0
+    atol: float = 0.0
 
-    def get_validation_args(self):
-        _criteria = self.criteria.copy()
-        value = _criteria.pop("value")
-        tolerance = value * _criteria.pop("rtol", 0) + _criteria.pop("atol", 0)
-        _criteria["upper_bound"] = value + tolerance
-        _criteria["lower_bound"] = value - tolerance
-        return _criteria
+    @property
+    def tolerance(self) -> float:
+        return self.value * self.rtol + self.atol
+
+    @computed_field
+    def upper_bound(self) -> float:
+        return self.value + self.tolerance
+
+    @computed_field
+    def lower_bound(self) -> float:
+        return self.value - self.tolerance
+
+    @property
+    def validation_args(self):
+        return self.model_dump(
+            exclude_none=True,
+            exclude_unset=True,
+            exclude=["value", "rtol", "atol"],
+        )
+
+    @property
+    def criteria(self):
+        return self.model_dump(
+            exclude_none=True,
+            exclude_unset=True,
+            exclude=["lower_bound", "upper_bound"],
+        )
 
 
 class DataValidationCriteriaBounds(IamcDataFilter):
     upper_bound: Optional[float] = None
     lower_bound: Optional[float] = None
 
-    @model_validator(mode="before")
-    def check_validation_criteria_exist(cls, values):
-        if values.get("upper_bound") is None and values.get("lower_bound") is None:
+    @model_validator(mode="after")
+    def check_validation_criteria_exist(self):
+        if self.upper_bound is None and self.lower_bound is None:
             raise ValueError(
-                "No validation criteria provided. Found " + str(cls.criteria)
+                "No validation criteria provided. Found " + str(self.criteria)
             )
-        return values
+        return self
 
-    def get_validation_args(self):
+    @property
+    def validation_args(self):
         return self.criteria
 
 
