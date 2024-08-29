@@ -98,7 +98,7 @@ class DataValidator(Processor):
 
         with adjust_log_level():
             for item in self.criteria_items:
-                failed_validation = df.validate(**item.get_validation_args())
+                failed_validation = df.validate(**item.validation_args)
                 if failed_validation is not None:
                     error_list.append(
                         "  Criteria: "
