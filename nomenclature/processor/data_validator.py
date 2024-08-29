@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 import textwrap
-from typing import List, Union
+from typing import List, Union, Optional
 
 import yaml
 from pyam import IamDataFrame
@@ -21,11 +21,11 @@ logger = logging.getLogger(__name__)
 class DataValidationCriteria(IamcDataFilter):
     """Data validation criteria"""
 
-    upper_bound: float = None
-    lower_bound: float = None
-    value: float = None
-    rtol: float = None
-    atol: float = None
+    upper_bound: Optional[float] = None
+    lower_bound: Optional[float] = None
+    value: Optional[float] = None
+    rtol: Optional[float] = None
+    atol: Optional[float] = None
 
     @model_validator(mode="before")
     @classmethod
