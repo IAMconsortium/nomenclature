@@ -15,8 +15,10 @@ names based on the `ISO 3166-1 standard <https://en.wikipedia.org/wiki/ISO_3166-
 
 For consistency with established conventions in the modelling community, several country
 names are shortened compared to ISO 3166-1, e.g. from "Bolivia, Plurinational State of"
-to "Bolivia". Also, "Kosovo" is added even though it is not a universally recognized
-state. See the full list of changes on GitHub_.
+to "Bolivia". Also, "Kosovo" is added (with alpha_3 code "KOS", following the
+`IOC <https://olympics.com/ioc/kosovo>`_), even though it is not a universally
+recognized state and not oficially included in ISO 3166-1.
+See the full list of changes on GitHub_.
 
 You can access the list of countries via the model registration `Excel template`_.
 
