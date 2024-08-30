@@ -31,7 +31,9 @@ PYCOUNTRY_NAME_OVERRIDE = {
 PYCOUNTRY_NAME_ADD = [
     dict(
         name="Kosovo",
-        note="Kosovo recognized under UNSC resolution 1244, alpha_3 code not assigned",
+        alpha_3="KOS",  # see https://olympics.com/ioc/kosovo
+        note="Kosovo is recognized under UNSC resolution 1244, "
+        "using preliminary alpha_3 code following IOC (ISO-3166-1 not assigned)",
     ),
 ]
 

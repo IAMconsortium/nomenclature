@@ -1,6 +1,5 @@
 import json
 import re
-import pycountry
 from keyword import iskeyword
 from pathlib import Path
 from typing import Any, Dict, List, Set, Union
@@ -14,6 +13,8 @@ from pydantic import (
 )
 
 from pyam.utils import to_list
+
+from .countries import countries
 
 
 class Code(BaseModel):
@@ -246,7 +247,7 @@ class RegionCode(Code):
         if invalid_iso3_codes := [
             iso3_code
             for iso3_code in to_list(v)
-            if pycountry.countries.get(alpha_3=iso3_code) is None
+            if countries.get(alpha_3=iso3_code) is None
         ]:
             raise ValueError(
                 f"Region '{info.data['name']}' has invalid ISO3 country code(s): "
