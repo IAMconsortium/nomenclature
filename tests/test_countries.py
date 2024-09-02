@@ -13,6 +13,8 @@ def test_countries_override(nc_name, iso_name, alpha_3):
     assert countries.get(name=nc_name).alpha_3 == "BOL"
     assert countries.get(name=iso_name).alpha_3 == "BOL"
     assert countries.get(alpha_3=alpha_3).name == nc_name
+    
+    assert "Bolivia" in countries.names
 
 
 def test_countries_add():
@@ -23,6 +25,7 @@ def test_countries_add():
     with pytest.raises(AttributeError):
         countries.get(name="Kosovo").alpha_2
 
+    assert "Kosovo" in countries.names
 
 @pytest.mark.parametrize("alpha_2_eu, alpha_2", [("EL", "GR"), ("UK", "GB")])
 def test_alternative_alpha2(alpha_2_eu, alpha_2):
