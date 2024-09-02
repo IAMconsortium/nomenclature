@@ -255,7 +255,6 @@ class RegionCode(Code):
             )
         return v
 
-
     @field_validator("iso3_codes")
     def check_iso3_codes(cls, v: List[str], info: ValidationInfo) -> List[str]:
         """Verifies that each ISO3 code is valid according to pycountry library."""

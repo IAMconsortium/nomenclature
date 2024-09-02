@@ -113,6 +113,5 @@ class Countries(pycountry.ExistingCountries):
         return [country.name for country in self.objects]
 
 
-
 # Initialize `countries` for direct access via API and in codelist module
 countries = Countries()
