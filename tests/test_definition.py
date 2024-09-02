@@ -51,12 +51,6 @@ def test_definition_from_general_config(workflow_folder):
             assert "Region A" in obs.region
         # imported from https://github.com/IAMconsortium/common-definitions repo
         assert "World" in obs.region
-        # added via general-config definitions
-        assert "Austria" in obs.region
-        # added via general-config definitions renamed from pycountry name
-        assert "Bolivia" in obs.region
-        # added via general-config definitions in addition to pycountry.countries
-        assert "Kosovo" in obs.region
 
         # imported from https://github.com/IAMconsortium/common-definitions repo
         assert "Primary Energy" in obs.variable

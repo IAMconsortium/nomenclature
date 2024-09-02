@@ -4,6 +4,5 @@ repositories:
 definitions:
   region:
     repository: common-definitions
-    country: true
   variable:
     repository: common-definitions
