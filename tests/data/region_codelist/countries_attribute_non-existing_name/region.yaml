@@ -1,0 +1,7 @@
+- common:
+  - World
+- countries:
+  - Some region:
+      # "Czech Republic" this was renamed to "Czechia" in ISO 3166-1 in 2023
+      countries: [ Austria, Germany, Czech Republic ]
+

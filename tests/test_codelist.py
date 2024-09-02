@@ -159,6 +159,15 @@ def test_region_codelist():
     assert code["Some Country"].iso2 == "XY"
 
 
+def test_region_codelist_nonexisting_country_name():
+    """Check that countries are validated against `nomenclature.countries`"""
+    with pytest.raises(ValueError, match="Region 'Some region' .*: Czech Republic"):
+        RegionCodeList.from_directory(
+            "region",
+            TEST_DATA_DIR / "region_codelist" / "countries_attribute_non-existing_name", 
+        )
+
+
 def test_norway_as_str():
     """guard against casting of 'NO' to boolean `False` by PyYAML or pydantic"""
     region = RegionCodeList.from_directory(

@@ -2,7 +2,7 @@ import json
 import re
 from keyword import iskeyword
 from pathlib import Path
-from typing import Any, Dict, List, Set, Union
+from typing import Any, Dict, List, Set, Union, Optional
 from pydantic import (
     field_validator,
     field_serializer,
@@ -233,13 +233,28 @@ class RegionCode(Code):
         Name of the RegionCode
     hierarchy : str
         Hierarchy of the RegionCode
-    iso3_codes : str or list of str
+    countries : list of str, optional
+        List of countries in that region
+    iso3_codes : str or list of str, optional
         ISO3 codes of countries in that region
 
     """
 
     hierarchy: str = None
-    iso3_codes: Union[List[str], str] = None
+    countries: Optional[List[str]] = None
+    iso3_codes: Optional[Union[List[str], str]] = None
+
+    @field_validator("countries")
+    def check_countries(cls, v: List[str], info: ValidationInfo) -> List[str]:
+        """Verifies that each country name is defined in `nomenclature.countries`."""
+        if invalid_country_names := set(v) - set(countries.names):
+            raise ValueError(
+                f"Region '{info.data['name']}' uses non-standard country name(s): "
+                + ", ".join(invalid_country_names)
+                + "\nPlease follow `nomenclature.countries` for country names."
+            )
+        return v
+
 
     @field_validator("iso3_codes")
     def check_iso3_codes(cls, v: List[str], info: ValidationInfo) -> List[str]:
