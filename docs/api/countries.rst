@@ -33,6 +33,10 @@ and alpha-3 or alpha-2 codes, as shown in this example.
 
   from nomenclature import countries
 
+  # list of country names
+  countries.names
+
+  # mappings between ISO3 (alpha_3), alpha_2 and country names
   name = countries.get(alpha_3="...").name
   alpha_3 = countries.get(name="...").alpha_3
   alpha_2 = countries.get(name="...").alpha_2

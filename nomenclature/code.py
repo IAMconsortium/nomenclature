@@ -251,7 +251,8 @@ class RegionCode(Code):
             raise ValueError(
                 f"Region '{info.data['name']}' uses non-standard country name(s): "
                 + ", ".join(invalid_country_names)
-                + "\nPlease follow `nomenclature.countries` for country names."
+                + "\nPlease use `nomenclature.countries` for consistency. (https://"
+                + "nomenclature-iamc.readthedocs.io/en/stable/api/countries.html)"
             )
         return v
 
