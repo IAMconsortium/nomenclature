@@ -15,7 +15,7 @@ jobs:
         shell: bash
     strategy:
       matrix:
-        os: ["macos", "ubuntu", "windows"]
+        os: ["macos", "ubuntu", "windows-latest"]
         # keep consistent with py-version badge in README.md and docs/index.rst
         python-version: ["3.10", "3.11", "3.12"]
       fail-fast: false
