@@ -32,8 +32,9 @@ PYCOUNTRY_NAME_ADD = [
     dict(
         name="Kosovo",
         alpha_3="KOS",  # see https://olympics.com/ioc/kosovo
+        alpha_2="XK",  # see https://en.wikipedia.org/wiki/XK_(user_assigned_code)
         note="Kosovo is recognized under UNSC resolution 1244, "
-        "using preliminary alpha_3 code following IOC (ISO-3166-1 not assigned)",
+        "using preliminary alpha_3 and alpha_2 codes (ISO-3166-1 not assigned)",
     ),
 ]
 
