@@ -22,7 +22,7 @@ def test_countries_add():
 
     assert countries.get(name="Kosovo").name == "Kosovo"
     assert countries.get(name="Kosovo").alpha_3 == "KOS"
-    assert countries.get(name="Kosovo").alpha_3 == "XK"
+    assert countries.get(name="Kosovo").alpha_2 == "XK"
 
     assert "Kosovo" in countries.names
 
