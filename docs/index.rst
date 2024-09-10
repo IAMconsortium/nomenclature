@@ -5,7 +5,7 @@
 
 Release v\ |version|.
 
-|license| |doi| |python| |black| |pytest| |rtd|
+|license| |doi| |python| |ruff| |pytest| |rtd|
 
 .. |license| image:: https://img.shields.io/badge/License-Apache%202.0-black
    :target: https://github.com/IAMconsortium/nomenclature/blob/main/LICENSE
@@ -16,8 +16,8 @@ Release v\ |version|.
 .. |python| image:: https://img.shields.io/badge/python-≥3.10,<3.13-blue?logo=python&logoColor=white
    :target: https://github.com/IAMconsortium/nomenclature
 
-.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/psf/black
+.. |ruff| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json
+   :target: https://github.com/astral-sh/ruff
 
 .. |pytest| image:: https://img.shields.io/github/actions/workflow/status/iamconsortium/nomenclature/pytest.yml
    :target: https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml
