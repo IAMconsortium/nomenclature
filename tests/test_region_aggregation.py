@@ -144,9 +144,9 @@ def test_region_processor_not_defined(simple_definition):
     # definition
     error_msg = (
         "mappings.model_(a|b).*\n"
-        ".*region_a.*mapping_(1|2).yaml.*region_not_defined.*\n"
+        ".*\n.*region_a.*\n.*mapping_(1|2).yaml\n.*region_not_defined.*\n"
         "mappings.model_(a|b).*\n"
-        ".*region_a.*mapping_(1|2).yaml.*region_not_defined"
+        ".*\n.*region_a.*\n.*mapping_(1|2).yaml\n.*region_not_defined"
     )
 
     with pytest.raises(ValueError, match=error_msg):

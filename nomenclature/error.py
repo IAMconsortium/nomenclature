@@ -38,7 +38,7 @@ pydantic_custom_error_config = {
     ),
     "RegionNotDefinedError": (
         "region_not_defined",
-        "Region(s) {regions} in {file} not found in RegionCodeList",
+        "Region(s)\n{regions}\nin {file}\nnot found in RegionCodeList",
     ),
 }
 
