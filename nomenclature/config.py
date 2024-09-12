@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Any
 
 import yaml
 from git import Repo
@@ -11,8 +11,9 @@ from pydantic import (
     field_validator,
     model_validator,
     ConfigDict,
-    BeforeValidator,
 )
+
+from nomenclature.codelist import CodeList
 
 
 def convert_to_set(v: str | list[str] | set[str]) -> set[str]:
@@ -27,12 +28,29 @@ def convert_to_set(v: str | list[str] | set[str]) -> set[str]:
             raise TypeError("`repositories` must be of type str, list or set.")
 
 
+class RepositoryWithFilter(BaseModel):
+    name: str
+    filters: list[dict[str, Any]] = Field(default_factory=list)
+
+    def applyFilter(self, codelist: CodeList) -> CodeList:
+        for filter in self.filters:
+            for attribute, value in filter.items():
+
+        return filtered_codelist
+
+
 class CodeListConfig(BaseModel):
     dimension: str | None = None
-    repositories: Annotated[set[str], BeforeValidator(convert_to_set)] = Field(
-        default_factory=set, alias="repository"
+    repositories: list[RepositoryWithFilter] = Field(
+        default_factory=list, alias="repository"
     )
     model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator("repositories", mode="before")
+    def convert_to_set_of_repos(cls, v):
+        if not isinstance(v, list):
+            return [v]
+        return v
 
     @property
     def repository_dimension_path(self) -> str:
@@ -122,10 +140,8 @@ class DataStructureConfig(BaseModel):
 
     """
 
-    model: Optional[CodeListConfig] = Field(default_factory=CodeListConfig)
-    scenario: Optional[CodeListConfig] = Field(default_factory=CodeListConfig)
-    region: Optional[RegionCodeListConfig] = Field(default_factory=RegionCodeListConfig)
-    variable: Optional[CodeListConfig] = Field(default_factory=CodeListConfig)
+    region: RegionCodeListConfig = Field(default_factory=RegionCodeListConfig)
+    variable: CodeListConfig = Field(default_factory=CodeListConfig)
 
     @field_validator("model", "scenario", "region", "variable", mode="before")
     @classmethod
@@ -141,11 +157,21 @@ class DataStructureConfig(BaseModel):
         }
 
 
+class MappingRepository(BaseModel):
+    name: str
+
+
 class RegionMappingConfig(BaseModel):
-    repositories: Annotated[set[str], BeforeValidator(convert_to_set)] = Field(
-        default_factory=set, alias="repository"
+    repositories: list[MappingRepository] = Field(
+        default_factory=list, alias="repository"
     )
     model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator("repositories", mode="before")
+    def convert_to_set_of_repos(cls, v):
+        if not isinstance(v, list):
+            return [v]
+        return v
 
 
 class DimensionEnum(str, Enum):
@@ -172,7 +198,8 @@ class NomenclatureConfig(BaseModel):
         mapping_repos = {"mappings": v.mappings.repositories} if v.mappings else {}
         repos = {**v.definitions.repos, **mapping_repos}
         for use, repositories in repos.items():
-            if repositories - v.repositories.keys():
+            repository_names = [repository.name for repository in repositories]
+            if repository_names - v.repositories.keys():
                 raise ValueError((f"Unknown repository {repositories} in '{use}'."))
         return v
 

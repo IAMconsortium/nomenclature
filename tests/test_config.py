@@ -1,4 +1,5 @@
 from pathlib import Path
+import pytest
 from pytest import raises
 
 from nomenclature.config import Repository, NomenclatureConfig, CodeListConfig
@@ -85,3 +86,14 @@ def test_invalid_config_dimensions_raises():
         ),
     ):
         NomenclatureConfig(dimensions=["year"])
+
+
+@pytest.mark.parametrize(
+    "config_file",
+    ["external_repo_filters.yaml", "multiple_external_repos_filters.yaml"],
+)
+def test_config_with_filter(config_file):
+    config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "nomenclature_configs" / config_file
+    )
+    assert isinstance(config.definitions.variable.repositories, list)

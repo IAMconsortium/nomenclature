@@ -1,0 +1,17 @@
+repositories:
+  common-definitions:
+    url: https://github.com/IAMconsortium/common-definitions.git/
+  legacy-definitions:
+    url: https://github.com/IAMconsortium/legacy-definitions.git/
+definitions:
+  variable:
+    repository:
+      - name: common-definitions
+        filters:
+          - name: [Primary Energy*, Final Energy*]
+          - name: "Population*"
+            tier: 1
+      - name: legacy-definitions
+  region:
+    repository: common-definitions
+    country: true
