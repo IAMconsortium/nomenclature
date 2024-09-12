@@ -24,7 +24,7 @@ def test_simple_codelist():
 
     assert "Some Variable" in codelist
     assert codelist["Some Variable"].unit == ""  # this is a dimensionless variable
-    assert type(codelist["Some Variable"].bool) == bool  # this is a boolean
+    assert type(codelist["Some Variable"].bool) is bool  # this is a boolean
 
 
 def test_codelist_adding_duplicate_raises():
@@ -396,20 +396,6 @@ def test_multiple_external_repos():
             for repo in nomenclature_config.repositories.values()
         )
         assert len(variable_code_list) > 2000
-    finally:
-        clean_up_external_repos(nomenclature_config.repositories)
-
-
-def test_multiple_external_repos():
-    nomenclature_config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "nomenclature_configs" / "multiple_repos_per_dimension.yaml"
-    )
-    try:
-        variable_code_list = VariableCodeList.from_directory(
-            "variable",
-            TEST_DATA_DIR / "nomenclature_configs" / "variable",
-            nomenclature_config,
-        )
         assert variable_code_list["Final Energy"].repository == "common-definitions"
         assert variable_code_list["Employment"].repository == "legacy-definitions"
     finally:
