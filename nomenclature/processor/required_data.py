@@ -218,6 +218,7 @@ class RequiredDataValidator(Processor):
                         .to_frame()
                         .reset_index()
                         .drop(columns=["model"])
+                        .rename(columns={"year": "year(s)"})
                     )
         return missing_data
 
