@@ -178,7 +178,13 @@ class RequiredDataValidator(Processor):
             for model, data_list in missing_data.items():
                 missing_data_log_info += f"Missing for '{model}':\n"
                 for data in data_list:
-                    missing_data_log_info += f"{data}\n\n"
+                    missing_data_log_info += (
+                        data.to_string(
+                            index=False,
+                            justify="left",
+                        )
+                        + "\n\n"
+                    )
             logger.error(
                 "Missing required data.\nFile: %s\n\n%s",
                 get_relative_path(self.file),
