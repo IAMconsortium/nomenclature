@@ -1,7 +1,7 @@
 model: model_a
 required_data:
   - measurand:
-    - Primary Energy:
+    - Primary Energy|Making sure that a really long variable is displayed completely:
         unit: [GWh/yr, Mtoe]
     year: [2005, 2010, 2015] # 2015 is missing from simple_df for all models
   - variable: Final Energy
