@@ -44,6 +44,7 @@ class DataStructureDefinition:
             path = Path(path)
 
         self.project_folder = path.parent
+        self.project = self.project_folder.name.split("-workflow")[0]
 
         if (file := self.project_folder / "nomenclature.yaml").exists():
             self.config = NomenclatureConfig.from_file(file=file)
