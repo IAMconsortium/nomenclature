@@ -12,10 +12,9 @@ from pydantic import BaseModel, ValidationInfo, field_validator
 from pydantic_core import PydanticCustomError
 
 import nomenclature
-from nomenclature import log_error
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import CodeListConfig, NomenclatureConfig
-from nomenclature.error import ErrorCollector, custom_pydantic_errors
+from nomenclature.error import ErrorCollector, custom_pydantic_errors, log_error
 
 here = Path(__file__).parent.absolute()
 
