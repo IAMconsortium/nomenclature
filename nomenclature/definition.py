@@ -99,7 +99,12 @@ class DataStructureDefinition:
         """
 
         if any(
-            getattr(self, dimension).validate_data(df, dimension) is False
+            getattr(self, dimension).validate_data(
+                df,
+                dimension,
+                self.project,
+            )
+            is False
             for dimension in (dimensions or self.dimensions)
         ):
             raise ValueError("The validation failed. Please check the log for details.")
