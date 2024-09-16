@@ -28,28 +28,40 @@ def test_validation_brackets(extras_definition, simple_df):
     extras_definition.validate(simple_df)
 
 
-def test_validation_fails_variable(simple_definition, simple_df):
+def test_validation_fails_variable(simple_definition, simple_df, caplog):
     """Changing a variable name raises"""
     simple_df.rename(variable={"Primary Energy": "foo"}, inplace=True)
 
     with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         simple_definition.validate(simple_df)
+    assert (
+        "Please refer to https://files.ece.iiasa.ac.at/data/data-template.xlsx"
+        " for the list of allowed variables." in caplog.text
+    )
 
 
-def test_validation_fails_unit(simple_definition, simple_df):
+def test_validation_fails_unit(simple_definition, simple_df, caplog):
     """Changing a unit raises"""
     simple_df.rename(unit={"EJ/yr": "GWh/yr"}, inplace=True)
 
     with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         simple_definition.validate(simple_df)
+    assert (
+        "Please refer to https://files.ece.iiasa.ac.at/data/data-template.xlsx"
+        " for the list of allowed units." in caplog.text
+    )
 
 
-def test_validation_fails_region(simple_definition, simple_df):
+def test_validation_fails_region(simple_definition, simple_df, caplog):
     """Changing a region name raises"""
     simple_df.rename(region={"World": "foo"}, inplace=True)
 
     with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         simple_definition.validate(simple_df)
+    assert (
+        "Please refer to https://files.ece.iiasa.ac.at/data/data-template.xlsx"
+        " for the list of allowed regions." in caplog.text
+    )
 
 
 def test_validation_fails_region_as_int(simple_definition, simple_df):
