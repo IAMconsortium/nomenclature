@@ -44,6 +44,7 @@ class DataStructureDefinition:
             path = Path(path)
 
         self.project_folder = path.parent
+        self.project = self.project_folder.name.split("-workflow")[0]
 
         if (file := self.project_folder / "nomenclature.yaml").exists():
             self.config = NomenclatureConfig.from_file(file=file)
@@ -98,7 +99,12 @@ class DataStructureDefinition:
         """
 
         if any(
-            getattr(self, dimension).validate_data(df, dimension) is False
+            getattr(self, dimension).validate_data(
+                df,
+                dimension,
+                self.project,
+            )
+            is False
             for dimension in (dimensions or self.dimensions)
         ):
             raise ValueError("The validation failed. Please check the log for details.")

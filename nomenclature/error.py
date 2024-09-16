@@ -1,3 +1,4 @@
+import logging
 import textwrap
 from collections import namedtuple
 from typing import Optional
@@ -71,3 +72,23 @@ class ErrorCollector:
 
     def __bool__(self) -> bool:
         return bool(self.errors)
+
+
+def log_error(
+    dimension: str,
+    error_list,
+    project: str | None = None,
+) -> None:
+    """Compile an error message and write to log"""
+    file_service_address = "https://files.ece.iiasa.ac.at"
+    msg = f"The following {dimension}(s) are not defined in the {dimension} codelist:"
+
+    logging.error(
+        "\n - ".join(map(str, [msg] + error_list))
+        + (
+            f"\n\nPlease refer to {file_service_address}/{project}/{project}"
+            f"-template.xlsx for the list of allowed {dimension}s."
+            if project is not None
+            else ""
+        )
+    )
