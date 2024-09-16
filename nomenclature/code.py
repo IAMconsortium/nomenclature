@@ -12,6 +12,8 @@ from pydantic import (
     ValidationInfo,
 )
 
+from nomenclature.error import ErrorCollector
+
 from pyam.utils import to_list
 
 from .countries import countries
@@ -259,15 +261,20 @@ class RegionCode(Code):
     @field_validator("iso3_codes")
     def check_iso3_codes(cls, v: List[str], info: ValidationInfo) -> List[str]:
         """Verifies that each ISO3 code is valid according to pycountry library."""
+        errors = ErrorCollector()
         if invalid_iso3_codes := [
             iso3_code
             for iso3_code in to_list(v)
             if countries.get(alpha_3=iso3_code) is None
         ]:
-            raise ValueError(
-                f"Region '{info.data['name']}' has invalid ISO3 country code(s): "
-                + ", ".join(invalid_iso3_codes)
+            errors.append(
+                ValueError(
+                    f"Region '{info.data['name']}' has invalid ISO3 country code(s): "
+                    + ", ".join(invalid_iso3_codes)
+                )
             )
+        if errors:
+            raise ValueError(errors)
         return v
 
 
