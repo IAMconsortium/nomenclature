@@ -550,7 +550,9 @@ class RegionProcessor(Processor):
 
             # if no mapping is defined the data frame is returned unchanged
             if model not in self.mappings:
-                logger.info(f"No model mapping found for model '{model}'")
+                logger.info(
+                    f"Skipping region aggregation for model '{model}' (no region processing mapping)"
+                )
                 processed_dfs.append(model_df)
 
             # otherwise we first rename, then aggregate
