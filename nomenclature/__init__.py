@@ -4,13 +4,6 @@ from pathlib import Path
 
 import yaml
 
-
-def log_error(dimension, error_list):
-    """Compile an error message and write to log"""
-    msg = f"The following {dimension}(s) are not defined in the {dimension} codelist:"
-    logging.error("\n - ".join(map(str, [msg] + error_list)))
-
-
 from nomenclature.cli import cli  # noqa
 from nomenclature.codelist import CodeList  # noqa
 from nomenclature.core import process  # noqa

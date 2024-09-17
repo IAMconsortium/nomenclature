@@ -12,10 +12,9 @@ from pydantic import BaseModel, ValidationInfo, field_validator
 from pydantic_core import PydanticCustomError
 
 import nomenclature
-from nomenclature import log_error
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import CodeListConfig, NomenclatureConfig
-from nomenclature.error import ErrorCollector, custom_pydantic_errors
+from nomenclature.error import ErrorCollector, custom_pydantic_errors, log_error
 
 here = Path(__file__).parent.absolute()
 
@@ -98,9 +97,14 @@ class CodeList(BaseModel):
     def values(self):
         return self.mapping.values()
 
-    def validate_data(self, df: IamDataFrame, dimension: str) -> bool:
+    def validate_data(
+        self,
+        df: IamDataFrame,
+        dimension: str,
+        project: str | None = None,
+    ) -> bool:
         if invalid := self.validate_items(getattr(df, dimension)):
-            log_error(dimension, invalid)
+            log_error(dimension, invalid, project)
             return False
         return True
 
@@ -600,7 +604,11 @@ class VariableCodeList(CodeList):
             if self[var].agg_kwargs and not self[var].skip_region_aggregation
         ]
 
-    def validate_units(self, unit_mapping) -> bool:
+    def validate_units(
+        self,
+        unit_mapping,
+        project: None | str = None,
+    ) -> bool:
         if invalid_units := [
             (variable, unit, self.mapping[variable].unit)
             for variable, unit in unit_mapping.items()
@@ -613,14 +621,28 @@ class VariableCodeList(CodeList):
                 for v, u, e in invalid_units
             ]
             msg = "The following variable(s) are reported with the wrong unit:"
-            logging.error("\n - ".join([msg] + lst))
+            file_service_address = "https://files.ece.iiasa.ac.at"
+            logging.error(
+                "\n - ".join([msg] + lst)
+                + (
+                    f"\n\nPlease refer to {file_service_address}/{project}/"
+                    f"{project}-template.xlsx for the list of allowed units."
+                    if project is not None
+                    else ""
+                )
+            )
             return False
         return True
 
-    def validate_data(self, df: IamDataFrame, dimension: str) -> bool:
+    def validate_data(
+        self,
+        df: IamDataFrame,
+        dimension: str,
+        project: str | None = None,
+    ) -> bool:
         # validate variables
-        all_variables_valid = super().validate_data(df, dimension)
-        all_units_valid = self.validate_units(df.unit_mapping)
+        all_variables_valid = super().validate_data(df, dimension, project)
+        all_units_valid = self.validate_units(df.unit_mapping, project)
         return all_variables_valid and all_units_valid
 
     def list_missing_variables(
