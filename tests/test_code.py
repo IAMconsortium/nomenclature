@@ -157,7 +157,8 @@ def test_RegionCode_iso3_code_list_fail():
     error_pattern = (
         "1 validation error for RegionCode\n"
         "iso3_codes\n"
-        "  Value error, Region 'Western Europe' has "
+        "  Value error, Collected 1 error:\n"
+        "  1. Region 'Western Europe' has "
         "invalid ISO3 country code\(s\): DMK, IPL, ATZ, FNL, FRE, DEX, GRE, "  # noqa
         "IBL, ITL, LIC, MLA, BEG, FRT, ANB, GDR, LXB, MNO, NTD, NRW, PRE, EPA, "  # noqa
         "SWD, CEW, GTR, SOR"  # noqa
@@ -170,7 +171,8 @@ def test_RegionCode_iso3_code_str_fail():
     error_pattern = (
         "1 validation error for RegionCode\n"
         "iso3_codes\n"
-        "  Value error, Region 'Austria' has invalid ISO3 country code\(s\): AUTT"
+        "  Value error, Collected 1 error:\n"
+        "  1. Region 'Austria' has invalid ISO3 country code\(s\): AUTT"
     )
     with raises(ValueError, match=error_pattern):
         RegionCode(name="Austria", hierarchy="country", iso3_codes="AUTT")
