@@ -726,6 +726,16 @@ class RegionCodeList(CodeList):
                 except AttributeError:
                     code_list.append(RegionCode(name=c.name, hierarchy="Country"))
 
+        # adding nuts regions
+        if config.definitions.region.nuts:
+            for level, countries in config.definitions.region.nuts.items():
+                for n in nomenclature.nuts.get(
+                    level=int(level[-1]), country_code=countries
+                ):
+                    code_list.append(
+                        RegionCode(name=n.code, hierarchy="NUTS 2021-2024")
+                    )
+
         # importing from an external repository
         for repo in config.definitions.region.repositories:
             repo_path = config.repositories[repo].local_path / "definitions" / "region"

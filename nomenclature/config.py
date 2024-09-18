@@ -41,6 +41,17 @@ class CodeListConfig(BaseModel):
 
 class RegionCodeListConfig(CodeListConfig):
     country: bool = False
+    nuts: dict[str, list[str]] = None
+
+    @field_validator("nuts")
+    @classmethod
+    def check_nuts(cls, v: dict[str, list[str]] | None) -> dict[str, list[str]] | None:
+        if v and not all(k in ["nuts-1", "nuts-2", "nuts-3"] for k in v.keys()):
+            raise ValueError(
+                "Invalid fields for `nuts` in configuration. "
+                "NUTS level must be 1, 2 and/or 3."
+            )
+        return v
 
 
 class Repository(BaseModel):
