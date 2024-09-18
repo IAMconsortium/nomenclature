@@ -12,6 +12,8 @@ from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition  #
 from nomenclature.processor import RegionAggregationMapping  # noqa
 from nomenclature.processor import RegionProcessor, RequiredDataValidator  # noqa
 
+from pysquirrel import nuts  # noqa
+
 # set up logging
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
