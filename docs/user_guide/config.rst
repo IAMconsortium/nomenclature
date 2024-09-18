@@ -78,6 +78,27 @@ the nomenclature package will add all countries to the *region* codelist.
 
 More details on the list of countries can be found here: :ref:`countries`.
 
+Adding NUTS to the region codelist
+----------------------------------
+
+By setting *definitions.region.nuts* (optional) in the configuration file:
+
+.. code:: yaml
+
+  definitions:
+    region:
+      nuts:
+        nuts-1: [ AT, BE, CZ ]
+        nuts-2: [ AT ]
+        nuts-3: [ AT, BE ]
+
+the nomenclature package will add the selected NUTS regions to the *region* codelist.
+
+In the example above, the package will add all NUTS (1, 2, and 3) for Austria,
+NUTS 1 and 3 for Belgium, and NUTS 1 for Czechia.
+
+More details on the list of NUTS regions can be found here: :ref:`nuts`.
+
 Specify dimensions to be read
 -----------------------------
 
