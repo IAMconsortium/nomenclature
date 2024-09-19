@@ -4,5 +4,5 @@ definitions:
   region:
     nuts:
       nuts-1: [ AT ]
-      nuts-2: [ BE ]
+      nuts-2: BE
       nuts-3: [ CZ ]
