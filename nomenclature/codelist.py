@@ -15,6 +15,7 @@ import nomenclature
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import CodeListConfig, NomenclatureConfig
 from nomenclature.error import ErrorCollector, custom_pydantic_errors, log_error
+from nomenclature import nuts
 
 here = Path(__file__).parent.absolute()
 
@@ -729,11 +730,11 @@ class RegionCodeList(CodeList):
         # adding nuts regions
         if config.definitions.region.nuts:
             for level, countries in config.definitions.region.nuts.items():
-                for n in nomenclature.nuts.get(
+                for nuts_region in nuts.get(
                     level=int(level[-1]), country_code=countries
                 ):
                     code_list.append(
-                        RegionCode(name=n.code, hierarchy="NUTS 2021-2024")
+                        RegionCode(name=nuts_region.code, hierarchy="NUTS 2021-2024")
                     )
 
         # importing from an external repository
