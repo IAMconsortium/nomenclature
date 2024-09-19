@@ -4,6 +4,8 @@ repositories:
     hash: cb85704
 definitions:
   region:
-    repository: common-definitions
+    repository:
+      name: common-definitions
   variable:
-    repository: common-definitions
+    repository:
+      name: common-definitions

@@ -7,8 +7,10 @@ definitions:
   variable:
     repository:
       - name: common-definitions
-        filters:
+        include:
           - name: [Primary Energy*, Final Energy*]
           - name: "Population*"
             tier: 1
+        exclude:
+          - name: "Primary Energy|*|*" # exclude all third tier variables
       - name: legacy-definitions
