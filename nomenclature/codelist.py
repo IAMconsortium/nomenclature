@@ -233,13 +233,12 @@ class CodeList(BaseModel):
         for repo in getattr(
             config.definitions, name.lower(), CodeListConfig()
         ).repositories:
-            code_list.extend(
-                cls._parse_codelist_dir(
-                    config.repositories[repo].local_path / "definitions" / name,
-                    file_glob_pattern,
-                    repo,
-                )
+            repository_code_list = cls._parse_codelist_dir(
+                config.repositories[repo.name].local_path / "definitions" / name,
+                file_glob_pattern,
+                repo.name,
             )
+            code_list.extend(repo.filter_list_of_codes(repository_code_list))
         errors = ErrorCollector()
         mapping: Dict[str, Code] = {}
         for code in code_list:
@@ -758,21 +757,25 @@ class RegionCodeList(CodeList):
 
         # importing from an external repository
         for repo in config.definitions.region.repositories:
-            repo_path = config.repositories[repo].local_path / "definitions" / "region"
+            repo_path = (
+                config.repositories[repo.name].local_path / "definitions" / "region"
+            )
 
-            code_list = cls._parse_region_code_dir(
-                code_list,
+            repo_list_of_codes = cls._parse_region_code_dir(
                 repo_path,
                 file_glob_pattern,
-                repository=repo,
+                repository=repo.name,
             )
-            code_list = cls._parse_and_replace_tags(
-                code_list, repo_path, file_glob_pattern
+            repo_list_of_codes = cls._parse_and_replace_tags(
+                repo_list_of_codes, repo_path, file_glob_pattern
             )
+            code_list.extend(repo.filter_list_of_codes(repo_list_of_codes))
 
         # parse from current repository
-        code_list = cls._parse_region_code_dir(code_list, path, file_glob_pattern)
-        code_list = cls._parse_and_replace_tags(code_list, path, file_glob_pattern)
+        local_code_list = cls._parse_region_code_dir(path, file_glob_pattern)
+        code_list.extend(
+            cls._parse_and_replace_tags(local_code_list, path, file_glob_pattern)
+        )
 
         # translate to mapping
         mapping: Dict[str, RegionCode] = {}

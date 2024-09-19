@@ -1,6 +1,7 @@
 from enum import Enum
 from pathlib import Path
 from typing import Any
+from fnmatch import fnmatch
 
 import yaml
 from git import Repo
@@ -12,31 +13,66 @@ from pydantic import (
     model_validator,
     ConfigDict,
 )
-
-from nomenclature.codelist import CodeList
-
-
-def convert_to_set(v: str | list[str] | set[str]) -> set[str]:
-    match v:
-        case set(v):
-            return v
-        case list(v):
-            return set(v)
-        case str(v):
-            return {v}
-        case _:
-            raise TypeError("`repositories` must be of type str, list or set.")
+from nomenclature.code import Code
 
 
 class RepositoryWithFilter(BaseModel):
     name: str
-    filters: list[dict[str, Any]] = Field(default_factory=list)
+    include: list[dict[str, Any]] = [{"name": "*"}]
+    exclude: list[dict[str, Any]] = Field(default_factory=list)
 
-    def applyFilter(self, codelist: CodeList) -> CodeList:
-        for filter in self.filters:
-            for attribute, value in filter.items():
+    def filter_function(self, code: Code, filter: dict[str, Any], keep: bool):
+        # if is list -> recursive
+        # if is str -> fnmatch
+        # if is int -> match exactly
+        def check_attribute_match(code_value, filter_value):
+            if isinstance(filter_value, int):
+                return code_value == filter_value
+            if isinstance(filter_value, str):
+                return fnmatch(code_value, filter_value)
+            if isinstance(filter_value, list):
+                return any(
+                    check_attribute_match(code_value, value) for value in filter_value
+                )
+            if filter_value is None:
+                return False
+            raise ValueError("Something went wrong with the filtering")
 
-        return filtered_codelist
+        filter_match = all(
+            check_attribute_match(getattr(code, attribute, None), value)
+            for attribute, value in filter.items()
+        )
+        if keep:
+            return filter_match
+        else:
+            return not filter_match
+
+    def filter_list_of_codes(self, list_of_codes: list[Code]) -> list[Code]:
+        # include first
+        filter_result = [
+            code
+            for code in list_of_codes
+            if any(
+                self.filter_function(
+                    code,
+                    filter,
+                    keep=True,
+                )
+                for filter in self.include
+            )
+        ]
+
+        if self.exclude:
+            filter_result = [
+                code
+                for code in filter_result
+                if any(
+                    self.filter_function(code, filter, keep=False)
+                    for filter in self.exclude
+                )
+            ]
+
+        return filter_result
 
 
 class CodeListConfig(BaseModel):
@@ -199,8 +235,8 @@ class NomenclatureConfig(BaseModel):
         repos = {**v.definitions.repos, **mapping_repos}
         for use, repositories in repos.items():
             repository_names = [repository.name for repository in repositories]
-            if repository_names - v.repositories.keys():
-                raise ValueError((f"Unknown repository {repositories} in '{use}'."))
+            if unknown_repos := repository_names - v.repositories.keys():
+                raise ValueError((f"Unknown repository {unknown_repos} in '{use}'."))
         return v
 
     def fetch_repos(self, target_folder: Path):
