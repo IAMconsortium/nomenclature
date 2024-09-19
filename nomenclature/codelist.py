@@ -15,7 +15,8 @@ import nomenclature
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import CodeListConfig, NomenclatureConfig
 from nomenclature.error import ErrorCollector, custom_pydantic_errors, log_error
-from nomenclature import nuts
+from nomenclature.nuts import nuts
+
 
 here = Path(__file__).parent.absolute()
 
