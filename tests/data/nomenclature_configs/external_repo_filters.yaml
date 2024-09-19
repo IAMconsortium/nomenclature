@@ -5,7 +5,9 @@ definitions:
   variable:
     repository:
       name: common-definitions
-      filters:
+      include:
         - name: [Primary Energy*, Final Energy*]
         - name: "Population*"
           tier: 1
+      exclude:
+        - name: "Final Energy|*|*"
