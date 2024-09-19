@@ -51,7 +51,7 @@ class RegionCodeListConfig(CodeListConfig):
         if v and not all(k in ["nuts-1", "nuts-2", "nuts-3"] for k in v.keys()):
             raise ValueError(
                 "Invalid fields for `nuts` in configuration. "
-                "NUTS level must be 1, 2 and/or 3."
+                "Allowed values are: 'nuts-1', 'nuts-2' and 'nuts-3'."
             )
         return v
 
