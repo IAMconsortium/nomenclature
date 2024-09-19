@@ -25,6 +25,7 @@ class RepositoryWithFilter(BaseModel):
         # if is list -> recursive
         # if is str -> fnmatch
         # if is int -> match exactly
+        # if is None -> Attribute does not exist therefore does not match
         def check_attribute_match(code_value, filter_value):
             if isinstance(filter_value, int):
                 return code_value == filter_value
