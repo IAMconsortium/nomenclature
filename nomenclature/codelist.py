@@ -1,4 +1,5 @@
 import logging
+from fnmatch import fnmatch
 from pathlib import Path
 from textwrap import indent
 from typing import ClassVar, Dict, List
@@ -118,7 +119,7 @@ class CodeList(BaseModel):
         list
             Returns the list of items that are **not** defined in the codelist
         """
-        return [c for c in items if c not in self.keys()]
+        return [item for item in items if not any(fnmatch(item, code) for code in self)]
 
     @classmethod
     def replace_tags(
