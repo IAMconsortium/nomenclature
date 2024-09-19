@@ -5,9 +5,6 @@ from pytest import raises
 from nomenclature.config import (
     Repository,
     NomenclatureConfig,
-    CodeListConfig,
-    RepositoryWithFilter,
-    MappingRepository,
 )
 
 from conftest import TEST_DATA_DIR, clean_up_external_repos
