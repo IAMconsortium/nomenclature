@@ -95,3 +95,17 @@ def test_validation_with_custom_dimension(simple_df):
 
     # validating against all dimensions works
     definition.validate(simple_df)
+
+
+def test_wildcard_match(simple_df):
+    definition = DataStructureDefinition(
+        TEST_DATA_DIR / "codelist_wildcard",
+        dimensions=["scenario"],
+    )
+
+    assert definition.validate(simple_df) is None
+
+    with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
+        definition.validate(
+            simple_df.rename(scenario={"scen_a": "does not match scen_*"})
+        )
