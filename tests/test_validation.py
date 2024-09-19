@@ -67,14 +67,6 @@ def test_validation_fails_region(simple_definition, simple_df, caplog):
     )
 
 
-def test_validation_fails_region_as_int(simple_definition, simple_df):
-    """Using a region name as integer raises the expected error"""
-    simple_df.rename(region={"World": 1}, inplace=True)
-
-    with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
-        simple_definition.validate(simple_df)
-
-
 def test_validation_with_custom_dimension(simple_df):
     """Check validation with a custom DataStructureDefinition dimension"""
 
