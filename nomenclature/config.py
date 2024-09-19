@@ -41,7 +41,7 @@ class CodeListConfig(BaseModel):
 
 class RegionCodeListConfig(CodeListConfig):
     country: bool = False
-    nuts: dict[str, str | list[str]] = None
+    nuts: dict[str, str | list[str]] | None = None
 
     @field_validator("nuts")
     @classmethod
