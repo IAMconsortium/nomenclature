@@ -488,3 +488,32 @@ def test_variablecodelist_list_missing_variables_to_new_file(simple_df, tmp_path
     }
 
     assert obs.mapping == exp
+
+
+def test_external_repo_with_filters():
+    nomenclature_config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "nomenclature_configs" / "external_repo_filters.yaml"
+    )
+    try:
+        variable_code_list = VariableCodeList.from_directory(
+            "variable",
+            TEST_DATA_DIR / "nomenclature_configs" / "variable",
+            nomenclature_config,
+        )
+        exp_included_variables = [
+            "Final Energy",
+            "Population",
+            "Primary Energy|Oil|Hydrogen|w/ CCS",
+        ]
+        exp_excluded_variables = [
+            "Final Energy|Agriculture|Electricity",  # no third level Final Energy
+            "Population|Clean Cooking Access",  # only tier 1 Population
+        ]
+        assert all(
+            variable in variable_code_list for variable in exp_included_variables
+        )
+        assert all(
+            variable not in variable_code_list for variable in exp_excluded_variables
+        )
+    finally:
+        clean_up_external_repos(nomenclature_config.repositories)
