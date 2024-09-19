@@ -188,7 +188,7 @@ class VariableCode(Code):
     )
     method: str | None = None
     check_aggregate: bool | None = Field(default=False, alias="check-aggregate")
-    components: Union[List[str], List[Dict[str, List[str]]]] | None = None
+    components: Union[List[str], Dict[str, list[str]]] | None = None
     drop_negative_weights: bool | None = None
     model_config = ConfigDict(populate_by_name=True)
 
@@ -203,6 +203,18 @@ class VariableCode(Code):
     @field_validator("unit", mode="before")
     def convert_none_to_empty_string(cls, v):
         return v if v is not None else ""
+
+    @field_validator("components", mode="before")
+    def cast_variable_components_args(cls, v):
+        """Cast "components" list of dicts to a codelist"""
+
+        # translate a list of single-key dictionaries to a simple dictionary
+        if v is not None and isinstance(v, list) and isinstance(v[0], dict):
+            comp = {}
+            for val in v:
+                comp.update(val)
+            return comp
+        return v
 
     @field_serializer("unit")
     def convert_str_to_none_for_writing(self, v):

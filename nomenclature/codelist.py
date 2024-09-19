@@ -590,21 +590,6 @@ class VariableCodeList(CodeList):
             )
         return v
 
-    @field_validator("mapping")
-    @classmethod
-    def cast_variable_components_args(cls, v):
-        """Cast "components" list of dicts to a codelist"""
-
-        # translate a list of single-key dictionaries to a simple dictionary
-        for var in v.values():
-            if var.components and isinstance(var.components[0], dict):
-                comp = {}
-                for val in var.components:
-                    comp.update(val)
-                v[var.name].components = comp
-
-        return v
-
     def vars_default_args(self, variables: List[str]) -> List[VariableCode]:
         """return subset of variables which does not feature any special pyam
         aggregation arguments and where skip_region_aggregation is False"""
