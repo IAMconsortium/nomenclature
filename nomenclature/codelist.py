@@ -796,13 +796,12 @@ class RegionCodeList(CodeList):
     @classmethod
     def _parse_region_code_dir(
         cls,
-        code_list: List[Code],
         path: Path,
         file_glob_pattern: str = "**/*",
         repository: str | None = None,
     ) -> List[RegionCode]:
         """"""
-
+        code_list: List[RegionCode] = []
         for yaml_file in (
             f
             for f in path.glob(file_glob_pattern)
