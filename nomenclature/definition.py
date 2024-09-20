@@ -57,7 +57,9 @@ class DataStructureDefinition:
             self.repo = None
 
         if not path.is_dir() and not (
-            self.config.repositories or self.config.definitions.region.country
+            self.config.repositories
+            or self.config.definitions.region.country
+            or self.config.definitions.region.nuts
         ):
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 

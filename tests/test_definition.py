@@ -65,6 +65,17 @@ def test_definition_general_config_country_only():
     assert all(region in obs.region for region in ("Austria", "Bolivia", "Kosovo"))
 
 
+def test_definition_general_config_nuts_only():
+    """Check that DataStructureDefinition is properly initialised with NUTS region config only"""
+    obs = DataStructureDefinition(
+        TEST_DATA_DIR / "general-config-only-nuts" / "definitions"
+    )
+    assert all(region[:2] in ("AT", "BE", "CZ") for region in obs.region)
+    assert len([region for region in obs.region if region.startswith("AT")]) == 4
+    assert len([region for region in obs.region if region.startswith("BE")]) == 12
+    assert len([region for region in obs.region if region.startswith("CZ")]) == 15
+
+
 def test_to_excel(simple_definition, tmpdir):
     """Check writing a DataStructureDefinition to file"""
     file = tmpdir / "testing_export.xlsx"

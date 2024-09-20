@@ -8,6 +8,7 @@ from nomenclature.cli import cli  # noqa
 from nomenclature.codelist import CodeList  # noqa
 from nomenclature.core import process  # noqa
 from nomenclature.countries import countries  # noqa
+from nomenclature.nuts import nuts  # noqa
 from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition  # noqa
 from nomenclature.processor import RegionAggregationMapping  # noqa
 from nomenclature.processor import RegionProcessor, RequiredDataValidator  # noqa
