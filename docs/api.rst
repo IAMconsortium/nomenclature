@@ -14,4 +14,5 @@ API documentation
    api/codelist
    api/regionprocessor
    api/countries
+   api/nuts
    api/testing
