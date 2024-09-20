@@ -1,7 +1,11 @@
 from pathlib import Path
+import pytest
 from pytest import raises
 
-from nomenclature.config import Repository, NomenclatureConfig, CodeListConfig
+from nomenclature.config import (
+    Repository,
+    NomenclatureConfig,
+)
 
 from conftest import TEST_DATA_DIR, clean_up_external_repos
 
@@ -34,15 +38,8 @@ def test_multiple_definition_repos():
     try:
         exp_repos = {"common-definitions", "legacy-definitions"}
         assert nomenclature_config.repositories.keys() == exp_repos
-        assert nomenclature_config.definitions.variable.repositories == exp_repos
     finally:
         clean_up_external_repos(nomenclature_config.repositories)
-
-
-def test_codelist_config_set_input():
-    exp_repos = {"repo1", "repo2"}
-    code_list_config = CodeListConfig(dimension="variable", repositories=exp_repos)
-    assert code_list_config.repositories == exp_repos
 
 
 def test_multiple_mapping_repos():
@@ -51,7 +48,6 @@ def test_multiple_mapping_repos():
     )
     try:
         exp_repos = {"common-definitions", "legacy-definitions"}
-        assert nomenclature_config.mappings.repositories == exp_repos
         assert nomenclature_config.repositories.keys() == exp_repos
     finally:
         clean_up_external_repos(nomenclature_config.repositories)
@@ -89,3 +85,17 @@ def test_invalid_config_dimensions_raises():
         ),
     ):
         NomenclatureConfig(dimensions=["year"])
+
+
+@pytest.mark.parametrize(
+    "config_file",
+    ["external_repo_filters.yaml", "multiple_external_repos_filters.yaml"],
+)
+def test_config_with_filter(config_file):
+    config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "nomenclature_configs" / config_file
+    )
+    try:
+        assert isinstance(config.definitions.variable.repositories, list)
+    finally:
+        clean_up_external_repos(config.repositories)

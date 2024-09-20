@@ -4,6 +4,8 @@ repositories:
     url: https://github.com/IAMconsortium/common-definitions.git/
 definitions:
   region:
-    repository: common-definitions
+    repository:
+      name: common-definitions
   variable:
-    repository: common-definitions
+    repository:
+      name: common-definitions
