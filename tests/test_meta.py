@@ -1,8 +1,9 @@
-import pytest
-from nomenclature.processor.meta import MetaValidator
-from pathlib import Path
-from conftest import TEST_DATA_DIR
 import pyam
+import pytest
+
+from nomenclature.processor.meta import MetaValidator
+
+from conftest import TEST_DATA_DIR
 
 MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "meta_validator"
 
