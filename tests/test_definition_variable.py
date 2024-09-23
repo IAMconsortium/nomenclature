@@ -4,7 +4,7 @@ from nomenclature import DataStructureDefinition
 
 from conftest import TEST_DATA_DIR
 
-TEST_FOLDER_VARIABLE = TEST_DATA_DIR / "failing_variable_codelist"
+TEST_FOLDER_VARIABLE = TEST_DATA_DIR / "codelist" / "failing_variable_codelist"
 
 
 @pytest.mark.parametrize(

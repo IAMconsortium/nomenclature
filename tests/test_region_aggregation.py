@@ -15,16 +15,19 @@ from pyam.utils import IAMC_IDX
 
 from conftest import TEST_DATA_DIR, clean_up_external_repos
 
-TEST_FOLDER_REGION_MAPPING = TEST_DATA_DIR / "region_aggregation"
+TEST_FOLDER_REGION_PROCESSING = TEST_DATA_DIR / "region_processing"
+TEST_FOLDER_REGION_AGGREGATION = TEST_FOLDER_REGION_PROCESSING / "region_aggregation"
 
 
 def test_mapping():
     mapping_file = "working_mapping.yaml"
     # Test that the file is read and represented correctly
-    obs = RegionAggregationMapping.from_file(TEST_FOLDER_REGION_MAPPING / mapping_file)
+    obs = RegionAggregationMapping.from_file(
+        TEST_FOLDER_REGION_AGGREGATION / mapping_file
+    )
     exp = {
         "model": ["model_a"],
-        "file": (TEST_FOLDER_REGION_MAPPING / mapping_file).relative_to(Path.cwd()),
+        "file": (TEST_FOLDER_REGION_AGGREGATION / mapping_file).relative_to(Path.cwd()),
         "native_regions": [
             {"name": "region_a", "rename": "alternative_name_a"},
             {"name": "region_b", "rename": "alternative_name_b"},
@@ -86,21 +89,23 @@ def test_illegal_mappings(file, error_msg_pattern):
     # This is to test a few different failure conditions
 
     with pytest.raises(pydantic.ValidationError, match=f"{error_msg_pattern}.*{file}"):
-        RegionAggregationMapping.from_file(TEST_FOLDER_REGION_MAPPING / file)
+        RegionAggregationMapping.from_file(TEST_FOLDER_REGION_AGGREGATION / file)
 
 
 def test_mapping_parsing_error():
     with pytest.raises(ValueError, match="string indices must be integers"):
         RegionAggregationMapping.from_file(
-            TEST_FOLDER_REGION_MAPPING / "illegal_mapping_invalid_format_dict.yaml"
+            TEST_FOLDER_REGION_AGGREGATION / "illegal_mapping_invalid_format_dict.yaml"
         )
 
 
 @pytest.mark.parametrize(
     "region_processor_path",
     [
-        TEST_DATA_DIR / "regionprocessor_working",
-        (TEST_DATA_DIR / "regionprocessor_working").relative_to(Path.cwd()),
+        TEST_FOLDER_REGION_PROCESSING / "regionprocessor_working",
+        (TEST_FOLDER_REGION_PROCESSING / "regionprocessor_working").relative_to(
+            Path.cwd()
+        ),
     ],
 )
 def test_region_processor_working(region_processor_path, simple_definition):
@@ -109,7 +114,7 @@ def test_region_processor_working(region_processor_path, simple_definition):
         {
             "model": ["model_a"],
             "file": (
-                TEST_DATA_DIR / "regionprocessor_working/mapping_1.yml"
+                TEST_FOLDER_REGION_PROCESSING / "regionprocessor_working/mapping_1.yml"
             ).relative_to(Path.cwd()),
             "native_regions": [
                 {"name": "World", "rename": None},
@@ -120,7 +125,7 @@ def test_region_processor_working(region_processor_path, simple_definition):
         {
             "model": ["model_b"],
             "file": (
-                TEST_DATA_DIR / "regionprocessor_working/mapping_2.yaml"
+                TEST_FOLDER_REGION_PROCESSING / "regionprocessor_working/mapping_2.yaml"
             ).relative_to(Path.cwd()),
             "native_regions": None,
             "common_regions": [
@@ -151,7 +156,8 @@ def test_region_processor_not_defined(simple_definition):
 
     with pytest.raises(ValueError, match=error_msg):
         RegionProcessor.from_directory(
-            TEST_DATA_DIR / "regionprocessor_not_defined", simple_definition
+            TEST_FOLDER_REGION_PROCESSING / "regionprocessor_not_defined",
+            simple_definition,
         )
 
 
@@ -159,7 +165,8 @@ def test_region_processor_duplicate_model_mapping(simple_definition):
     error_msg = ".*model_a.*mapping_(1|2).yaml.*mapping_(1|2).yaml"
     with pytest.raises(ValueError, match=error_msg):
         RegionProcessor.from_directory(
-            TEST_DATA_DIR / "regionprocessor_duplicate", simple_definition
+            TEST_FOLDER_REGION_PROCESSING / "regionprocessor_duplicate",
+            simple_definition,
         )
 
 
@@ -176,7 +183,9 @@ def test_region_processor_wrong_args():
         match=".*path\n.*does not point to a directory.*",
     ):
         RegionProcessor.from_directory(
-            path=TEST_DATA_DIR / "regionprocessor_working/mapping_1.yml"
+            path=TEST_FOLDER_REGION_PROCESSING
+            / "regionprocessor_working"
+            / "mapping_1.yml"
         )
 
 
@@ -186,7 +195,8 @@ def test_region_processor_multiple_wrong_mappings(simple_definition):
 
     with pytest.raises(ValueError, match=msg):
         RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_aggregation", simple_definition
+            TEST_FOLDER_REGION_AGGREGATION,
+            simple_definition,
         )
 
 
@@ -201,7 +211,8 @@ def test_region_processor_exclude_model_native_overlap_raises(simple_definition)
         ),
     ):
         RegionProcessor.from_directory(
-            TEST_DATA_DIR / "regionprocessor_exclude_region_overlap", simple_definition
+            TEST_FOLDER_REGION_PROCESSING / "regionprocessor_exclude_region_overlap",
+            simple_definition,
         )
 
 
@@ -218,9 +229,11 @@ def test_region_processor_unexpected_region_raises():
     with pytest.raises(ValueError, match="Did not find.*'region_B'.*in.*model_a.yaml"):
         process(
             test_df,
-            dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+            dsd := DataStructureDefinition(
+                TEST_DATA_DIR / TEST_DATA_DIR / "region_processing" / "dsd"
+            ),
             processor=RegionProcessor.from_directory(
-                TEST_DATA_DIR / "regionprocessor_unexpected_region", dsd
+                TEST_FOLDER_REGION_PROCESSING / "regionprocessor_unexpected_region", dsd
             ),
         )
 
@@ -229,12 +242,9 @@ def test_mapping_from_external_repository():
     # This test reads both mappings and definitions from an external repository only
     try:
         processor = RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing" / "external_repo_test" / "mappings",
+            TEST_FOLDER_REGION_PROCESSING / "external_repo_test" / "mappings",
             dsd := DataStructureDefinition(
-                TEST_DATA_DIR
-                / "region_processing"
-                / "external_repo_test"
-                / "definitions"
+                TEST_FOLDER_REGION_PROCESSING / "external_repo_test" / "definitions"
             ),
         )
 
@@ -248,8 +258,8 @@ def test_mapping_from_external_repository():
 
 def test_reverse_region_aggregation():
     processor = RegionProcessor.from_directory(
-        TEST_DATA_DIR / "region_processing" / "complete_processing_list",
-        DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+        TEST_FOLDER_REGION_PROCESSING / "complete_processing_list",
+        DataStructureDefinition(TEST_FOLDER_REGION_PROCESSING / "dsd"),
     )
 
     obs = processor.revert(
@@ -278,7 +288,7 @@ def test_reverse_region_aggregation():
 
 
 def test_model_mapping_from_excel():
-    excel_file = TEST_DATA_DIR / "region_aggregation" / "excel_model_registration.xlsx"
+    excel_file = TEST_FOLDER_REGION_AGGREGATION / "excel_model_registration.xlsx"
     obs = RegionAggregationMapping.from_file(excel_file)
     model = "Model 1.1"
     exp = RegionAggregationMapping(
@@ -303,13 +313,13 @@ def test_model_mapping_from_excel():
 
 
 def test_model_mapping_from_excel_to_yaml(tmp_path):
-    excel_file = TEST_DATA_DIR / "region_aggregation" / "excel_model_registration.xlsx"
+    excel_file = TEST_FOLDER_REGION_AGGREGATION / "excel_model_registration.xlsx"
     # create a yaml mapping from an excel mapping
     RegionAggregationMapping.from_file(excel_file).to_yaml(tmp_path / "mapping.yaml")
 
     obs = RegionAggregationMapping.from_file(tmp_path / "mapping.yaml")
 
     exp = RegionAggregationMapping.from_file(
-        TEST_DATA_DIR / "region_aggregation" / "excel_mapping_reference.yaml"
+        TEST_FOLDER_REGION_AGGREGATION / "excel_mapping_reference.yaml"
     )
     assert obs == exp

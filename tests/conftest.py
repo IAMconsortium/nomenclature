@@ -26,12 +26,16 @@ TEST_DF = pd.DataFrame(
 
 @pytest.fixture(scope="session")
 def simple_definition():
-    yield DataStructureDefinition(TEST_DATA_DIR / "validation_nc")
+    yield DataStructureDefinition(
+        TEST_DATA_DIR / "data_structure_definition" / "validation_nc"
+    )
 
 
 @pytest.fixture(scope="session")
 def extras_definition():
-    yield DataStructureDefinition(TEST_DATA_DIR / "extras_nc")
+    yield DataStructureDefinition(
+        TEST_DATA_DIR / "data_structure_definition" / "extras_nc"
+    )
 
 
 @pytest.fixture(scope="function")

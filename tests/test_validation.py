@@ -35,8 +35,9 @@ def test_validation_fails_variable(simple_definition, simple_df, caplog):
     with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         simple_definition.validate(simple_df)
     assert (
-        "Please refer to https://files.ece.iiasa.ac.at/data/data-template.xlsx"
-        " for the list of allowed variables." in caplog.text
+        "Please refer to https://files.ece.iiasa.ac.at/data_structure_definition/"
+        "data_structure_definition-template.xlsx for the list of allowed variables."
+        in caplog.text
     )
 
 
@@ -47,8 +48,9 @@ def test_validation_fails_unit(simple_definition, simple_df, caplog):
     with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         simple_definition.validate(simple_df)
     assert (
-        "Please refer to https://files.ece.iiasa.ac.at/data/data-template.xlsx"
-        " for the list of allowed units." in caplog.text
+        "Please refer to https://files.ece.iiasa.ac.at/data_structure_definition/"
+        "data_structure_definition-template.xlsx for the list of allowed units."
+        in caplog.text
     )
 
 
@@ -59,8 +61,9 @@ def test_validation_fails_region(simple_definition, simple_df, caplog):
     with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         simple_definition.validate(simple_df)
     assert (
-        "Please refer to https://files.ece.iiasa.ac.at/data/data-template.xlsx"
-        " for the list of allowed regions." in caplog.text
+        "Please refer to https://files.ece.iiasa.ac.at/data_structure_definition/"
+        "data_structure_definition-template.xlsx for the list of allowed regions."
+        in caplog.text
     )
 
 
@@ -76,7 +79,7 @@ def test_validation_with_custom_dimension(simple_df):
     """Check validation with a custom DataStructureDefinition dimension"""
 
     definition = DataStructureDefinition(
-        TEST_DATA_DIR / "custom_dimension_nc",
+        TEST_DATA_DIR / "data_structure_definition" / "custom_dimension_nc",
         dimensions=["region", "variable", "scenario"],
     )
 
