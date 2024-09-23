@@ -1,5 +1,4 @@
 import logging
-from fnmatch import fnmatch
 from pathlib import Path
 from textwrap import indent
 from typing import ClassVar, Dict, List
@@ -8,7 +7,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from pyam import IamDataFrame
-from pyam.utils import is_list_like, write_sheet
+from pyam.utils import is_list_like, write_sheet, pattern_match
 from pydantic import BaseModel, ValidationInfo, field_validator
 from pydantic_core import PydanticCustomError
 
@@ -119,7 +118,8 @@ class CodeList(BaseModel):
         list
             Returns the list of items that are **not** defined in the codelist
         """
-        return [item for item in items if not any(fnmatch(item, code) for code in self)]
+        matches = pattern_match(pd.Series(items), self.keys())
+        return [item for item, match in zip(items, matches) if not match]
 
     @classmethod
     def replace_tags(
