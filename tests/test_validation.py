@@ -99,5 +99,5 @@ def test_wildcard_match(simple_df):
 
     with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         definition.validate(
-            simple_df.rename(scenario={"scen_a": "does not match scen_*"})
+            simple_df.rename(scenario={"scen_a": "foo"})
         )
