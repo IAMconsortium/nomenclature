@@ -8,7 +8,7 @@ from conftest import TEST_DATA_DIR
 
 def test_assert_yaml():
     """Check that importing a full-fledged (correct) nomenclature definition passes"""
-    assert_valid_yaml(TEST_DATA_DIR / "validation_nc")
+    assert_valid_yaml(TEST_DATA_DIR / "data_structure_definition" / "validation_nc")
 
 
 def test_assert_yaml_fails(caplog):
@@ -17,7 +17,7 @@ def test_assert_yaml_fails(caplog):
     # assert that the expected error is raised
     match = "Parsing the yaml files failed. Please check the log for details."
     with pytest.raises(AssertionError, match=match):
-        assert_valid_yaml(TEST_DATA_DIR / "invalid_yaml")
+        assert_valid_yaml(TEST_DATA_DIR / "cli" / "invalid_yaml")
 
     # assert that the expected error message was written to the log
     log = caplog.record_tuples[0]
@@ -32,7 +32,7 @@ def test_hidden_character():
     """Check that a non-printable character in any yaml file will raise an error"""
     match = "scenarios.yaml, line 3, col 12."
     with pytest.raises(AssertionError, match=match):
-        assert_valid_yaml(TEST_DATA_DIR / "hidden_character")
+        assert_valid_yaml(TEST_DATA_DIR / "codelist" / "hidden_character")
 
 
 def test_assert_valid_structure_requiredData_raises():

@@ -10,7 +10,7 @@ def test_definition_with_custom_dimension(simple_definition):
     """Check initializing a DataStructureDefinition with a custom dimension"""
 
     obs = DataStructureDefinition(
-        TEST_DATA_DIR / "custom_dimension_nc",
+        TEST_DATA_DIR / "data_structure_definition" / "custom_dimension_nc",
         dimensions=["region", "variable", "scenario"],
     )
 
@@ -36,13 +36,13 @@ def test_empty_codelist_raises():
     """Check that initializing a DataStructureDefinition with empty CodeList raises"""
     match = "Empty codelist: region, variable"
     with pytest.raises(ValueError, match=match):
-        DataStructureDefinition(TEST_DATA_DIR / "simple_codelist")
+        DataStructureDefinition(TEST_DATA_DIR / "codelist" / "simple_codelist")
 
 
 @pytest.mark.parametrize("workflow_folder", ["general-config-only", "general-config"])
 def test_definition_from_general_config(workflow_folder):
     obs = DataStructureDefinition(
-        TEST_DATA_DIR / workflow_folder / "definitions",
+        TEST_DATA_DIR / "config" / workflow_folder / "definitions",
         dimensions=["region", "variable"],
     )
     try:
@@ -60,7 +60,7 @@ def test_definition_from_general_config(workflow_folder):
 
 def test_definition_general_config_country_only():
     obs = DataStructureDefinition(
-        TEST_DATA_DIR / "general-config-only-country" / "definitions"
+        TEST_DATA_DIR / "config" / "general-config-only-country" / "definitions"
     )
     assert all(region in obs.region for region in ("Austria", "Bolivia", "Kosovo"))
 
@@ -68,7 +68,7 @@ def test_definition_general_config_country_only():
 def test_definition_general_config_nuts_only():
     """Check that DataStructureDefinition is properly initialised with NUTS region config only"""
     obs = DataStructureDefinition(
-        TEST_DATA_DIR / "general-config-only-nuts" / "definitions"
+        TEST_DATA_DIR / "config" / "general-config-only-nuts" / "definitions"
     )
     assert all(region[:2] in ("AT", "BE", "CZ") for region in obs.region)
     assert len([region for region in obs.region if region.startswith("AT")]) == 4
@@ -83,7 +83,7 @@ def test_to_excel(simple_definition, tmpdir):
     simple_definition.to_excel(file)
 
     obs = pd.read_excel(file, sheet_name="variable")
-    exp = pd.read_excel(TEST_DATA_DIR / "excel_io" / "validation_nc.xlsx")
+    exp = pd.read_excel(TEST_DATA_DIR / "io" / "excel_io" / "validation_nc.xlsx")
     pd.testing.assert_frame_equal(obs, exp)
 
 
@@ -92,7 +92,9 @@ def test_to_excel_with_external_repo(tmpdir):
     file = tmpdir / "testing_export.xlsx"
 
     try:
-        dsd = DataStructureDefinition(TEST_DATA_DIR / "general-config" / "definitions")
+        dsd = DataStructureDefinition(
+            TEST_DATA_DIR / "config" / "general-config" / "definitions"
+        )
         dsd.to_excel(file)
 
         with pd.ExcelFile(file) as obs:
@@ -123,7 +125,7 @@ def test_create_yaml_from_xlsx(input_file, attrs, exp_file, tmpdir):
     file = tmpdir / "foo.yaml"
 
     create_yaml_from_xlsx(
-        source=TEST_DATA_DIR / "excel_io" / input_file,
+        source=TEST_DATA_DIR / "io" / "excel_io" / input_file,
         target=file,
         sheet_name="variable_definitions",
         col="variable",
@@ -132,7 +134,7 @@ def test_create_yaml_from_xlsx(input_file, attrs, exp_file, tmpdir):
 
     with open(file, "r") as f:
         obs = f.read()
-    with open(TEST_DATA_DIR / "excel_io" / exp_file, "r") as f:
+    with open(TEST_DATA_DIR / "io" / "excel_io" / exp_file, "r") as f:
         exp = f.read()
 
     assert obs == exp
@@ -142,7 +144,7 @@ def test_create_yaml_from_xlsx_duplicate():
     """Check that creating a yaml codelist from xlsx with duplicates raises"""
     with pytest.raises(ValueError, match="Duplicate values in the codelist:"):
         create_yaml_from_xlsx(
-            source=TEST_DATA_DIR / "excel_io" / "validation_nc_duplicates.xlsx",
+            source=TEST_DATA_DIR / "io" / "excel_io" / "validation_nc_duplicates.xlsx",
             target="_",
             sheet_name="duplicate_index_raises",
             col="Variable",

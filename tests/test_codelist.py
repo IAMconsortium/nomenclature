@@ -15,11 +15,13 @@ from nomenclature.config import NomenclatureConfig
 
 from conftest import TEST_DATA_DIR, clean_up_external_repos
 
+MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "codelist"
+
 
 def test_simple_codelist():
     """Import a simple codelist"""
     codelist = VariableCodeList.from_directory(
-        "variable", TEST_DATA_DIR / "simple_codelist"
+        "variable", MODULE_TEST_DATA_DIR / "simple_codelist"
     )
 
     assert "Some Variable" in codelist
@@ -29,7 +31,7 @@ def test_simple_codelist():
 
 def test_codelist_adding_duplicate_raises():
     codelist = VariableCodeList.from_directory(
-        "variable", TEST_DATA_DIR / "simple_codelist"
+        "variable", MODULE_TEST_DATA_DIR / "simple_codelist"
     )
     with raises(ValueError, match="Duplicate item in variable codelist: Some Variable"):
         codelist["Some Variable"] = ""
@@ -52,7 +54,7 @@ def test_codelist_name_key_mismatch():
 def test_codelist_to_yaml():
     """Cast a codelist to yaml format"""
     code = VariableCodeList.from_directory(
-        "variable", TEST_DATA_DIR / "simple_codelist"
+        "variable", MODULE_TEST_DATA_DIR / "simple_codelist"
     )
 
     assert code.to_yaml() == (
@@ -70,7 +72,7 @@ def test_duplicate_code_raises():
     match = "Conflicting duplicate items in 'variable' codelist: 'Some Variable'"
     with raises(ValueError, match=match):
         VariableCodeList.from_directory(
-            "variable", TEST_DATA_DIR / "duplicate_code_raises"
+            "variable", MODULE_TEST_DATA_DIR / "duplicate_code_raises"
         )
 
 
@@ -79,14 +81,14 @@ def test_duplicate_tag_raises():
     match = "Duplicate item in tag codelist: Tag"
     with raises(ValueError, match=match):
         VariableCodeList.from_directory(
-            "variable", TEST_DATA_DIR / "duplicate_tag_raises"
+            "variable", MODULE_TEST_DATA_DIR / "duplicate_tag_raises"
         )
 
 
 def test_tagged_codelist():
     """Check that multiple tags in a code are correctly replaced"""
     code = VariableCodeList.from_directory(
-        "variable", TEST_DATA_DIR / "tagged_codelist"
+        "variable", MODULE_TEST_DATA_DIR / "tagged_codelist"
     )
 
     exp = {
@@ -113,7 +115,7 @@ def test_tagged_codelist():
 def test_tags_in_list_attributes():
     """Test that tags are replaced correctly in list attributes"""
     code = VariableCodeList.from_directory(
-        "variable", TEST_DATA_DIR / "tagged_codelist"
+        "variable", MODULE_TEST_DATA_DIR / "tagged_codelist"
     )
     # The test should test that the tags in the definitions in the
     # tagged_codelist/foo_attr_list_dict.yaml file are expanded correctly.
@@ -148,7 +150,7 @@ def test_tags_in_list_attributes():
 def test_region_codelist():
     """Check replacing top-level hierarchy of yaml file as attribute for regions"""
     code = RegionCodeList.from_directory(
-        "region", TEST_DATA_DIR / "region_codelist" / "simple"
+        "region", MODULE_TEST_DATA_DIR / "region_codelist" / "simple"
     )
 
     assert "World" in code
@@ -164,7 +166,9 @@ def test_region_codelist_nonexisting_country_name():
     with pytest.raises(ValueError, match="Region 'Some region' .*: Czech Republic"):
         RegionCodeList.from_directory(
             "region",
-            TEST_DATA_DIR / "region_codelist" / "countries_attribute_non-existing_name",
+            MODULE_TEST_DATA_DIR
+            / "region_codelist"
+            / "countries_attribute_non-existing_name",
         )
 
 
@@ -172,7 +176,7 @@ def test_norway_as_str():
     """guard against casting of 'NO' to boolean `False` by PyYAML or pydantic"""
     region = RegionCodeList.from_directory(
         "region",
-        TEST_DATA_DIR / "region_codelist" / "norway_as_bool",
+        MODULE_TEST_DATA_DIR / "region_codelist" / "norway_as_bool",
     )
     assert region["Norway"].eu_member is False
     assert region["Norway"].iso2 == "NO"
@@ -184,12 +188,13 @@ def test_to_excel(tmpdir):
 
     (
         VariableCodeList.from_directory(
-            "variable", TEST_DATA_DIR / "validation_nc" / "variable"
+            "variable",
+            TEST_DATA_DIR / "data_structure_definition" / "validation_nc" / "variable",
         ).to_excel(file)
     )
 
     obs = pd.read_excel(file)
-    exp = pd.read_excel(TEST_DATA_DIR / "excel_io" / "validation_nc.xlsx")
+    exp = pd.read_excel(TEST_DATA_DIR / "io" / "excel_io" / "validation_nc.xlsx")
 
     pdt.assert_frame_equal(obs, exp)
 
@@ -197,7 +202,7 @@ def test_to_excel(tmpdir):
 def test_to_csv():
     """Check writing to csv"""
     obs = VariableCodeList.from_directory(
-        "variable", TEST_DATA_DIR / "simple_codelist"
+        "variable", MODULE_TEST_DATA_DIR / "simple_codelist"
     ).to_csv(lineterminator="\n")
 
     exp = (
@@ -213,7 +218,7 @@ def test_stray_tag_fails():
     match = r"Unexpected {} in codelist: Primary Energy\|{Feul}"
     with raises(ValueError, match=match):
         VariableCodeList.from_directory(
-            "variable", TEST_DATA_DIR / "stray_tag" / "definitions" / "variable"
+            "variable", MODULE_TEST_DATA_DIR / "stray_tag" / "definitions" / "variable"
         )
 
 
@@ -223,14 +228,16 @@ def test_end_whitespace_fails():
     match = "Unexpected whitespace at the end of a scenario code: 'scenario2 '"
     with raises(ValueError, match=match):
         CodeList.from_directory(
-            "scenario", TEST_DATA_DIR / "end_whitespace" / "definitions" / "scenario"
+            "scenario",
+            MODULE_TEST_DATA_DIR / "end_whitespace" / "definitions" / "scenario",
         )
 
 
 def test_variable_codelist_units():
     """Check that the units-attribute works as expected"""
     codelist = VariableCodeList.from_directory(
-        "variable", TEST_DATA_DIR / "validation_nc" / "variable"
+        "variable",
+        TEST_DATA_DIR / "data_structure_definition" / "validation_nc" / "variable",
     )
     assert codelist.units == ["", "EJ/yr"]
 
@@ -238,14 +245,14 @@ def test_variable_codelist_units():
 def test_variable_codelist_multiple_units():
     """Check that multiple units work in a VariableCodeList"""
     codelist = VariableCodeList.from_directory(
-        "variable", TEST_DATA_DIR / "multiple_unit_codelist"
+        "variable", MODULE_TEST_DATA_DIR / "multiple_unit_codelist"
     )
     assert codelist["Var1"].unit == ["unit1", "unit2"]
     assert codelist.units == ["unit1", "unit2"]
 
 
 def test_to_excel_read_excel_roundtrip(tmpdir):
-    codelist_dir = TEST_DATA_DIR / "variable_codelist_complex_attr"
+    codelist_dir = MODULE_TEST_DATA_DIR / "variable_codelist_complex_attr"
 
     # read VariableCodeList
     exp = VariableCodeList.from_directory("variable", codelist_dir)
@@ -269,7 +276,7 @@ def test_to_yaml_from_directory(tmp_path):
 
     # read VariableCodeList
     exp = VariableCodeList.from_directory(
-        "variable", TEST_DATA_DIR / "variable_codelist_complex_attr"
+        "variable", MODULE_TEST_DATA_DIR / "variable_codelist_complex_attr"
     )
     exp.to_yaml(tmp_path / "variables.yaml")
 
@@ -285,7 +292,7 @@ def test_RegionCodeList_filter():
 
     # read RegionCodeList
     rcl = RegionCodeList.from_directory(
-        "Region", TEST_DATA_DIR / "region_to_filter_codelist"
+        "Region", MODULE_TEST_DATA_DIR / "region_to_filter_codelist"
     )
     obs = rcl.filter(hierarchy="countries")
 
@@ -307,13 +314,15 @@ def test_RegionCodeList_hierarchy():
     """Verifies that the hierarchy method returns a List[str]"""
 
     rcl = RegionCodeList.from_directory(
-        "Region", TEST_DATA_DIR / "region_to_filter_codelist"
+        "Region", MODULE_TEST_DATA_DIR / "region_to_filter_codelist"
     )
     assert rcl.hierarchy == ["common", "countries"]
 
 
 def test_codelist_general_filter():
-    var = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
+    var = CodeList.from_directory(
+        "Variable", MODULE_TEST_DATA_DIR / "general_filtering"
+    )
     obs = var.filter(required=True)
     mapping = {
         "Big Variable": Code(
@@ -329,7 +338,9 @@ def test_codelist_general_filter():
 
 
 def test_codelist_general_filter_multiple_attributes():
-    var = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
+    var = CodeList.from_directory(
+        "Variable", MODULE_TEST_DATA_DIR / "general_filtering"
+    )
     obs = var.filter(some_attribute=True, another_attribute="This is true")
     mapping = {
         "Another Variable": Code(
@@ -346,7 +357,9 @@ def test_codelist_general_filter_multiple_attributes():
 
 
 def test_codelist_general_filter_No_Elements(caplog):
-    var = CodeList.from_directory("Variable", TEST_DATA_DIR / "general_filtering")
+    var = CodeList.from_directory(
+        "Variable", MODULE_TEST_DATA_DIR / "general_filtering"
+    )
     caplog.set_level(logging.WARNING)
     with caplog.at_level(logging.WARNING):
         obs = var.filter(
@@ -359,7 +372,7 @@ def test_codelist_general_filter_No_Elements(caplog):
 
 
 def test_MetaCodeList_from_directory():
-    obs = MetaCodeList.from_directory("Meta", TEST_DATA_DIR / "meta")
+    obs = MetaCodeList.from_directory("Meta", MODULE_TEST_DATA_DIR / "meta")
     mapping = {
         "exclude": MetaCode(
             name="exclude",
@@ -378,12 +391,12 @@ def test_MetaCodeList_from_directory():
 
 def test_multiple_external_repos():
     nomenclature_config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "nomenclature_configs" / "multiple_repos_per_dimension.yaml"
+        TEST_DATA_DIR / "config" / "multiple_repos_per_dimension.yaml"
     )
     try:
         variable_code_list = VariableCodeList.from_directory(
             "variable",
-            TEST_DATA_DIR / "nomenclature_configs" / "variable",
+            TEST_DATA_DIR / "config" / "variable",
             nomenclature_config,
         )
         assert nomenclature_config.repositories.keys() == {
@@ -410,7 +423,7 @@ def test_variable_codelist_with_duplicates_raises(CodeList):
     )
     with raises(ValueError, match=error_string):
         CodeList.from_directory(
-            "variable", TEST_DATA_DIR / "duplicate-code-list" / "variable"
+            "variable", MODULE_TEST_DATA_DIR / "duplicate-code-list" / "variable"
         )
 
 

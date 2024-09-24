@@ -5,12 +5,12 @@ from nomenclature.config import Repository, NomenclatureConfig, CodeListConfig
 
 from conftest import TEST_DATA_DIR, clean_up_external_repos
 
+MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "config"
+
 
 def test_hash_and_release_raises():
     with raises(ValueError, match="`hash` or `release` can be provided, not both"):
-        NomenclatureConfig.from_file(
-            TEST_DATA_DIR / "nomenclature_configs" / "hash_and_release.yaml"
-        )
+        NomenclatureConfig.from_file(MODULE_TEST_DATA_DIR / "hash_and_release.yaml")
 
 
 def test_setting_local_path_raises():
@@ -22,14 +22,12 @@ def test_unknown_repo_raises():
     with raises(
         ValueError, match="Unknown repository {'common-definitions'} in 'region'"
     ):
-        NomenclatureConfig.from_file(
-            TEST_DATA_DIR / "nomenclature_configs" / "unknown_repo.yaml"
-        )
+        NomenclatureConfig.from_file(MODULE_TEST_DATA_DIR / "unknown_repo.yaml")
 
 
 def test_multiple_definition_repos():
     nomenclature_config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "nomenclature_configs" / "multiple_repos_per_dimension.yaml"
+        MODULE_TEST_DATA_DIR / "multiple_repos_per_dimension.yaml"
     )
     try:
         exp_repos = {"common-definitions", "legacy-definitions"}
@@ -47,7 +45,7 @@ def test_codelist_config_set_input():
 
 def test_multiple_mapping_repos():
     nomenclature_config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "nomenclature_configs" / "multiple_repos_for_mapping.yaml"
+        MODULE_TEST_DATA_DIR / "multiple_repos_for_mapping.yaml"
     )
     try:
         exp_repos = {"common-definitions", "legacy-definitions"}
@@ -62,7 +60,7 @@ def test_double_stacked_external_repo_raises(monkeypatch):
     monkeypatch.setitem(
         repo.__dict__,
         "local_path",
-        TEST_DATA_DIR / "double_stacked_external_repo",
+        MODULE_TEST_DATA_DIR / "double_stacked_external_repo",
     )
     match = "External repos cannot again refer to external repos"
     with raises(ValueError, match=match):
@@ -70,9 +68,7 @@ def test_double_stacked_external_repo_raises(monkeypatch):
 
 
 def test_config_dimensions():
-    config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "nomenclature_configs" / "dimensions.yaml"
-    )
+    config = NomenclatureConfig.from_file(MODULE_TEST_DATA_DIR / "dimensions.yaml")
     assert set(config.dimensions) == {
         "scenario",
         "region",

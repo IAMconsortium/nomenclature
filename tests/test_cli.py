@@ -15,6 +15,8 @@ from nomenclature.codelist import VariableCodeList
 
 from conftest import TEST_DATA_DIR
 
+MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "cli"
+
 runner = CliRunner()
 
 
@@ -54,7 +56,11 @@ def test_cli_valid_yaml():
     """Check that CLI runs through, when all yaml files in `path`
     can be parsed without errors"""
     result_valid = runner.invoke(
-        cli, ["validate-yaml", str(TEST_DATA_DIR / "duplicate_code_raises")]
+        cli,
+        [
+            "validate-yaml",
+            str(TEST_DATA_DIR / "codelist" / "duplicate_code_raises"),
+        ],
     )
     assert result_valid.exit_code == 0
 
@@ -62,12 +68,12 @@ def test_cli_valid_yaml():
 def test_cli_valid_yaml_fails():
     """Check that CLI raises expected error when parsing an invalid yaml"""
     result_invalid = runner.invoke(
-        cli, ["validate-yaml", str(TEST_DATA_DIR / "invalid_yaml")]
+        cli, ["validate-yaml", str(MODULE_TEST_DATA_DIR / "invalid_yaml")]
     )
     assert result_invalid.exit_code == 1
     match = "Parsing the yaml files failed. Please check the log for details."
     with pytest.raises(AssertionError, match=match):
-        assert_valid_yaml(TEST_DATA_DIR / "invalid_yaml")
+        assert_valid_yaml(MODULE_TEST_DATA_DIR / "invalid_yaml")
 
 
 def test_cli_valid_project_path():
@@ -81,7 +87,13 @@ def test_cli_valid_project():
     """Check that CLI runs through with existing "definitions" and "mappings"
     directory"""
     result_valid = runner.invoke(
-        cli, ["validate-project", str(TEST_DATA_DIR / "structure_validation")]
+        cli,
+        [
+            "validate-project",
+            str(
+                MODULE_TEST_DATA_DIR / "structure_validation",
+            ),
+        ],
     )
     assert result_valid.exit_code == 0
 
@@ -89,7 +101,11 @@ def test_cli_valid_project():
 def test_cli_invalid_region():
     """Test that errors are correctly propagated"""
     obs = runner.invoke(
-        cli, ["validate-project", str(TEST_DATA_DIR / "structure_validation_fails")]
+        cli,
+        [
+            "validate-project",
+            str(MODULE_TEST_DATA_DIR / "structure_validation_fails"),
+        ],
     )
     assert obs.exit_code == 1
     assert isinstance(obs.exception, pydantic.ValidationError)
@@ -100,7 +116,7 @@ def test_cli_valid_project_fails():
     """Check that CLI expected error when "definitions" directory doesn't exist"""
     path = TEST_DATA_DIR / "invalid_yaml" / "definitions"
     result_invalid = runner.invoke(
-        cli, ["validate-project", str(TEST_DATA_DIR / "invalid_yaml")]
+        cli, ["validate-project", str(MODULE_TEST_DATA_DIR / "invalid_yaml")]
     )
     assert result_invalid.exit_code == 1
 
@@ -109,7 +125,7 @@ def test_cli_valid_project_fails():
 
     with pytest.raises(NotADirectoryError, match=print_helper(path)):
         assert_valid_structure(
-            TEST_DATA_DIR / "invalid_yaml", "mappings", "definitions"
+            MODULE_TEST_DATA_DIR / "invalid_yaml", "mappings", "definitions"
         )
 
 
@@ -120,7 +136,7 @@ def test_cli_non_default_folders():
         cli,
         [
             "validate-project",
-            str(TEST_DATA_DIR / "non-default_folders"),
+            str(MODULE_TEST_DATA_DIR / "non-default_folders"),
             "--definitions",
             "def",
             "--mappings",
@@ -134,7 +150,13 @@ def test_cli_non_default_folders_fails():
     """Check that CLI raises expected error when non-default "definitions" and
     "mappings" directory names are not given"""
     result_valid = runner.invoke(
-        cli, ["validate-project", str(TEST_DATA_DIR / "non-default_folders")]
+        cli,
+        [
+            "validate-project",
+            str(
+                MODULE_TEST_DATA_DIR / "non-default_folders",
+            ),
+        ],
     )
     assert result_valid.exit_code == 1
 
@@ -146,7 +168,7 @@ def test_cli_wrong_definitions_name():
         cli,
         [
             "validate-project",
-            str(TEST_DATA_DIR / "structure_validation"),
+            str(MODULE_TEST_DATA_DIR / "structure_validation"),
             "--definitions",
             "def",
         ],
@@ -161,7 +183,7 @@ def test_cli_custom_dimensions_runs():
         cli,
         [
             "validate-project",
-            str(TEST_DATA_DIR / "non-default_dimensions"),
+            str(MODULE_TEST_DATA_DIR / "non-default_dimensions"),
             "--dimension",
             "variable",
             "--dimension",
@@ -181,7 +203,7 @@ def test_cli_custom_dimensions_fails():
         cli,
         [
             "validate-project",
-            str(TEST_DATA_DIR / "non-default_dimensions"),
+            str(MODULE_TEST_DATA_DIR / "non-default_dimensions"),
             "--dimension",
             "foo",
         ],
@@ -199,7 +221,7 @@ def test_cli_empty_dimensions_run():
         cli,
         [
             "validate-project",
-            str(TEST_DATA_DIR / "non-default_dimensions_one_empty"),
+            str(MODULE_TEST_DATA_DIR / "non-default_dimensions_one_empty"),
             "--dimension",
             "variable",
             "--dimension",
@@ -214,7 +236,10 @@ def test_cli_empty_dimensions_fails():
 
     result_invalid = runner.invoke(
         cli,
-        ["validate-project", str(TEST_DATA_DIR / "non-default_dimensions_one_empty")],
+        [
+            "validate-project",
+            str(MODULE_TEST_DATA_DIR / "non-default_dimensions_one_empty"),
+        ],
     )
     assert result_invalid.exit_code == 1
     assert isinstance(result_invalid.exception, ValueError)
@@ -230,7 +255,7 @@ def test_cli_missing_mappings_runs():
             cli,
             [
                 "validate-project",
-                str(TEST_DATA_DIR / "structure_validation_no_mappings"),
+                str(MODULE_TEST_DATA_DIR / "structure_validation_no_mappings"),
             ],
         ).exit_code
         == 0
@@ -244,7 +269,7 @@ def test_cli_missing_mappings_fails():
         cli,
         [
             "validate-project",
-            str(TEST_DATA_DIR / "structure_validation_no_mappings"),
+            str(MODULE_TEST_DATA_DIR / "structure_validation_no_mappings"),
             "--mappings",
             "mappings",
         ],
@@ -276,7 +301,7 @@ def test_cli_empty_definitions_dir():
 
     cli_result = runner.invoke(
         cli,
-        ["validate-project", str(TEST_DATA_DIR / "empty_definitions_dir")],
+        ["validate-project", str(MODULE_TEST_DATA_DIR / "empty_definitions_dir")],
     )
 
     assert cli_result.exit_code == 1
@@ -343,7 +368,7 @@ def test_cli_export_to_excel(tmpdir):
             cli,
             [
                 "export-definitions",
-                str(TEST_DATA_DIR / "general-config"),
+                str(TEST_DATA_DIR / "config" / "general-config"),
                 str(file),
             ],
         ).exit_code
@@ -363,7 +388,7 @@ def test_cli_add_missing_variables(simple_definition, tmp_path):
         cli,
         [
             "list-missing-variables",
-            str(TEST_DATA_DIR / "add-missing-variables" / "data.xlsx"),
+            str(MODULE_TEST_DATA_DIR / "add-missing-variables" / "data.xlsx"),
             "--workflow-directory",
             str(tmp_path),
             "--target-file",

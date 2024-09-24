@@ -7,14 +7,22 @@ from conftest import TEST_DATA_DIR
 
 def test_parse_model_registration(tmp_path):
     parse_model_registration(
-        TEST_DATA_DIR / "region_aggregation" / "excel_model_registration.xlsx", tmp_path
+        TEST_DATA_DIR
+        / "region_processing"
+        / "region_aggregation"
+        / "excel_model_registration.xlsx",
+        tmp_path,
     )
 
     # Test model mapping
     with open(tmp_path / "Model 1.1_mapping.yaml", "r") as file:
         obs_model_mapping = yaml.safe_load(file)
     with open(
-        TEST_DATA_DIR / "region_aggregation" / "excel_mapping_reference.yaml", "r"
+        TEST_DATA_DIR
+        / "region_processing"
+        / "region_aggregation"
+        / "excel_mapping_reference.yaml",
+        "r",
     ) as file:
         exp_model_mapping = yaml.safe_load(file)
     assert obs_model_mapping == exp_model_mapping
