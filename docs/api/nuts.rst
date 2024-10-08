@@ -13,7 +13,7 @@ This feature allows users to define an agreed list of territorial units with
 multiple levels of resolution, adding functionality to facilitate scenario 
 analysis and model comparison.
 
-The full list of NUTS regions is accessible in Eurostat's `Excel file`_.
+The full list of NUTS regions is accessible in Eurostat's `Excel template`_.
 
 .. _GitHub: https://github.com/IAMconsortium/nomenclature/blob/main/nomenclature/countries.py
 
