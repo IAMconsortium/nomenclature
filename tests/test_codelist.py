@@ -212,13 +212,62 @@ def test_to_csv():
     assert obs == exp
 
 
-def test_stray_tag_fails():
-    """Check that typos in a tag raises expected error"""
+def test_forbidden_characters_fail():
+    """Check that forbidden characters (such as typoed tags) raises expected error"""
 
-    match = r"Unexpected {} in codelist: Primary Energy\|{Feul}"
+    # also tests for forbidden characters in string attributes (in this case, name)
+    match = r"Unexpected forbidden character in codelist: Primary Energy\|{Feul}"
     with raises(ValueError, match=match):
         VariableCodeList.from_directory(
-            "variable", MODULE_TEST_DATA_DIR / "stray_tag" / "definitions" / "variable"
+            "variable", MODULE_TEST_DATA_DIR / "forbidden_characters" / "stray_tag"
+        )
+
+    match = r"Unexpected forbidden character in codelist: Share\|Coal"
+    with raises(ValueError, match=match):
+        VariableCodeList.from_directory(
+            "variable", MODULE_TEST_DATA_DIR / "forbidden_characters" / "char_in_list"
+        )
+
+    match = r"Unexpected forbidden character in codelist: Primary Energy"
+    with raises(ValueError, match=match):
+        VariableCodeList.from_directory(
+            "variable", MODULE_TEST_DATA_DIR / "forbidden_characters" / "char_in_dict"
+        )
+
+
+def test_add_tag_attributes():
+    """Check that tag attributes not present in Code are added"""
+
+    # Original Code
+    code = Code.from_dict(
+        {
+            "Primary Energy|{Fuel}|{Technology}": {
+                "description": "Primary energy of {Fuel} for {Technology}",
+                "unit": "EJ/yr",
+            }
+        }
+    )
+
+    # First tag replacement
+    code = code.replace_tag("Fuel", Code.from_dict({"Coal": {"info": "Fossil fuel"}}))
+
+    # Second tag replacement - this will raise an error
+    code = code.replace_tag(
+        "Technology", Code.from_dict({"Power": {"info": "Electricity generation"}})
+    )
+    # print(obs)
+    assert 2 == 1
+
+
+def test_same_tag_attributes_conflict():
+    """Check that multiple tags adding the same attribute to one Code raise expected error"""
+
+    match = r"Multiple tags trying to add the same attribute: 'info'\n"
+    r"Please define 'info' with explicit use of the tags."
+    with raises(ValueError, match=match):
+        VariableCodeList.from_directory(
+            "variable",
+            MODULE_TEST_DATA_DIR / "add_tag_attributes" / "definitions" / "variable",
         )
 
 
