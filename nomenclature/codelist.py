@@ -45,14 +45,31 @@ class CodeList(BaseModel):
 
     @field_validator("mapping")
     @classmethod
-    def check_stray_tag(cls, v: Dict[str, Code]) -> Dict[str, Code]:
-        """Check that no '{' are left in codes after tag replacement"""
-        for code in v:
-            if "{" in code:
-                raise ValueError(
-                    f"Unexpected {{}} in codelist: {code}."
-                    " Check if the tag was spelled correctly."
-                )
+    def check_stray_tag(
+        cls, v: Dict[str, Code], info: ValidationInfo
+    ) -> Dict[str, Code]:
+        """Check that no stray tags are left in codes after tag replacement"""
+        forbidden = ["{", "}"]
+
+        def _check_string(value):
+            if isinstance(value, str):
+                if any(char in value for char in forbidden):
+                    raise ValueError(
+                        f"Unexpected bracket in {info.data['name']}: '{code.name}'."
+                        " Check if tags were spelled correctly."
+                    )
+            elif isinstance(value, dict):
+                for v in value.values():
+                    _check_string(v)
+            elif isinstance(value, list):
+                for item in value:
+                    _check_string(item)
+
+        for code in v.values():
+            for attr in code.model_fields:
+                if attr not in ["file", "repository"]:
+                    value = getattr(code, attr)
+                    _check_string(value)
         return v
 
     @field_validator("mapping")

@@ -212,13 +212,19 @@ def test_to_csv():
     assert obs == exp
 
 
-def test_stray_tag_fails():
-    """Check that typos in a tag raises expected error"""
-
-    match = r"Unexpected {} in codelist: Primary Energy\|{Feul}"
+@pytest.mark.parametrize(
+    "subfolder, match",
+    [
+        ("char_in_str", r"Unexpected bracket in variable: 'Primary Energy\|{Feul}'"),
+        ("char_in_list", r"Unexpected bracket in variable: 'Share\|Coal'"),
+        ("char_in_dict", r"Unexpected bracket in variable: 'Primary Energy'"),
+    ],
+)
+def test_stray_tag_fails(subfolder, match):
+    """Check that stray brackets from, e.g. typos in a tag, raises expected error"""
     with raises(ValueError, match=match):
         VariableCodeList.from_directory(
-            "variable", MODULE_TEST_DATA_DIR / "stray_tag" / "definitions" / "variable"
+            "variable", MODULE_TEST_DATA_DIR / "stray_tag" / subfolder
         )
 
 
