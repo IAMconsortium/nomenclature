@@ -45,7 +45,9 @@ class CodeList(BaseModel):
 
     @field_validator("mapping")
     @classmethod
-    def check_stray_tag(cls, v: Dict[str, Code]) -> Dict[str, Code]:
+    def check_stray_tag(
+        cls, v: Dict[str, Code], info: ValidationInfo
+    ) -> Dict[str, Code]:
         """Check that no stray tags are left in codes after tag replacement"""
         forbidden = ["{", "}"]
 
@@ -53,7 +55,7 @@ class CodeList(BaseModel):
             if isinstance(value, str):
                 if any(char in value for char in forbidden):
                     raise ValueError(
-                        f"Unexpected bracket in codelist: {code.name}."
+                        f"Unexpected bracket in {info.data['name']}: '{code.name}'."
                         " Check if tags were spelled correctly."
                     )
             elif isinstance(value, dict):

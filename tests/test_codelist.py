@@ -215,9 +215,9 @@ def test_to_csv():
 @pytest.mark.parametrize(
     "subfolder, match",
     [
-        ("char_in_str", r"Unexpected bracket in codelist: Primary Energy\|{Feul}"),
-        ("char_in_list", r"Unexpected bracket in codelist: Share\|Coal"),
-        ("char_in_dict", r"Unexpected bracket in codelist: Primary Energy"),
+        ("char_in_str", r"Unexpected bracket in variable: 'Primary Energy\|{Feul}'"),
+        ("char_in_list", r"Unexpected bracket in variable: 'Share\|Coal'"),
+        ("char_in_dict", r"Unexpected bracket in variable: 'Primary Energy'"),
     ],
 )
 def test_stray_tag_fails(subfolder, match):
