@@ -213,12 +213,24 @@ def test_to_csv():
 
 
 def test_stray_tag_fails():
-    """Check that typos in a tag raises expected error"""
+    """Check that stray brackets from, e.g. typos in a tag, raises expected error"""
 
-    match = r"Unexpected {} in codelist: Primary Energy\|{Feul}"
+    match = r"Unexpected bracket in codelist: Primary Energy\|{Feul}"
     with raises(ValueError, match=match):
         VariableCodeList.from_directory(
-            "variable", MODULE_TEST_DATA_DIR / "stray_tag" / "definitions" / "variable"
+            "variable", MODULE_TEST_DATA_DIR / "stray_tag" / "char_in_str"
+        )
+
+    match = r"Unexpected bracket in codelist: Share\|Coal"
+    with raises(ValueError, match=match):
+        VariableCodeList.from_directory(
+            "variable", MODULE_TEST_DATA_DIR / "stray_tag" / "char_in_list"
+        )
+
+    match = r"Unexpected bracket in codelist: Primary Energy"
+    with raises(ValueError, match=match):
+        VariableCodeList.from_directory(
+            "variable", MODULE_TEST_DATA_DIR / "stray_tag" / "char_in_dict"
         )
 
 
