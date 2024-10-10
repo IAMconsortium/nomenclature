@@ -178,7 +178,7 @@ def test_region_codelist_str_country_name():
         "region",
         MODULE_TEST_DATA_DIR / "region_codelist" / "countries_attribute_str",
     )
-    assert code["Some region"].countries == "Austria"
+    assert code["Some region"].countries == ["Austria"]
 
 
 def test_norway_as_str():
