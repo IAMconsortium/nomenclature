@@ -243,13 +243,13 @@ class RegionCode(Code):
     """
 
     hierarchy: str = None
-    countries: Optional[List[str]] = None
+    countries: Optional[Union[List[str], str]] = None
     iso3_codes: Optional[Union[List[str], str]] = None
 
     @field_validator("countries")
     def check_countries(cls, v: List[str], info: ValidationInfo) -> List[str]:
         """Verifies that each country name is defined in `nomenclature.countries`."""
-        if invalid_country_names := set(v) - set(countries.names):
+        if invalid_country_names := set(to_list(v)) - set(countries.names):
             raise ValueError(
                 f"Region '{info.data['name']}' uses non-standard country name(s): "
                 + ", ".join(invalid_country_names)
