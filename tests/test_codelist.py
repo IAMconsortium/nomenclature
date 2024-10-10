@@ -172,6 +172,15 @@ def test_region_codelist_nonexisting_country_name():
         )
 
 
+def test_region_codelist_str_country_name():
+    """Check that country name as string is validated against `nomenclature.countries`"""
+    code = RegionCodeList.from_directory(
+        "region",
+        MODULE_TEST_DATA_DIR / "region_codelist" / "countries_attribute_str",
+    )
+    assert code["Some region"].countries == "Austria"
+
+
 def test_norway_as_str():
     """guard against casting of 'NO' to boolean `False` by PyYAML or pydantic"""
     region = RegionCodeList.from_directory(

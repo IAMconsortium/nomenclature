@@ -1,0 +1,5 @@
+- common:
+  - World
+- countries:
+  - Some region:
+      countries: Austria
