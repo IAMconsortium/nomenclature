@@ -1545,22 +1545,6 @@ uncertainties = ["uncertainties (>=3.1.6)"]
 xarray = ["xarray"]
 
 [[package]]
-name = "platformdirs"
-version = "4.3.6"
-description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "platformdirs-4.3.6-py3-none-any.whl", hash = "sha256:73e575e1408ab8103900836b97580d5307456908a03e92031bab39e4554cc3fb"},
-    {file = "platformdirs-4.3.6.tar.gz", hash = "sha256:357fb2acbc885b0419afd3ce3ed34564c13c9b95c89360cd9563f73aa5e2b907"},
-]
-
-[package.extras]
-docs = ["furo (>=2024.8.6)", "proselint (>=0.14)", "sphinx (>=8.0.2)", "sphinx-autodoc-typehints (>=2.4)"]
-test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=8.3.2)", "pytest-cov (>=5)", "pytest-mock (>=3.14)"]
-type = ["mypy (>=1.11.2)"]
-
-[[package]]
 name = "pluggy"
 version = "1.5.0"
 description = "plugin and hook calling mechanisms for python"
@@ -1574,27 +1558,6 @@ files = [
 [package.extras]
 dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
-
-[[package]]
-name = "pooch"
-version = "1.8.2"
-description = "A friend to fetch your data files"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "pooch-1.8.2-py3-none-any.whl", hash = "sha256:3529a57096f7198778a5ceefd5ac3ef0e4d06a6ddaf9fc2d609b806f25302c47"},
-    {file = "pooch-1.8.2.tar.gz", hash = "sha256:76561f0de68a01da4df6af38e9955c4c9d1a5c90da73f7e40276a5728ec83d10"},
-]
-
-[package.dependencies]
-packaging = ">=20.0"
-platformdirs = ">=2.5.0"
-requests = ">=2.19.0"
-
-[package.extras]
-progress = ["tqdm (>=4.41.0,<5.0.0)"]
-sftp = ["paramiko (>=2.7.0)"]
-xxhash = ["xxhash (>=1.4.3)"]
 
 [[package]]
 name = "psycopg"
@@ -1928,19 +1891,19 @@ diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
 name = "pysquirrel"
-version = "1.0"
+version = "1.1"
 description = "Python package designed to fetch NUTS administrative divisions"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "pysquirrel-1.0-py3-none-any.whl", hash = "sha256:d82759a31733ecda1fb045a0a2219fba02b37ac799b836c00aa95bf66f91a400"},
-    {file = "pysquirrel-1.0.tar.gz", hash = "sha256:ee79915a7140d159a010752dd1ddb7657ad2cc33f0ae53f8c875f3b7c1dfc273"},
+    {file = "pysquirrel-1.1-py3-none-any.whl", hash = "sha256:ea5660b35a35e69aa42afb871ecf9b84f80cc98c38a7946476cc9daa880f32ef"},
+    {file = "pysquirrel-1.1.tar.gz", hash = "sha256:09e56a1b6221b8c73a22d7e865c79d366f2cfb344e1d6479b4ed194f72b0fa65"},
 ]
 
 [package.dependencies]
 openpyxl = ">=3.1.5,<4.0.0"
-pooch = ">=1.8.2,<2.0.0"
 pydantic = ">=2.8.2,<3.0.0"
+pyyaml = ">=6.0.2,<7.0.0"
 
 [[package]]
 name = "pytest"
@@ -2759,4 +2722,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10, <3.13"
-content-hash = "ae78b6f629819ffc09f590cf5478fb749c40a94d8ea5e1f9f1b0823cf6902145"
+content-hash = "b25524a3a25df82869b824ac847f3cb2ec410e576632826edc50006472256659"
