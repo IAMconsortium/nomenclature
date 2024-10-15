@@ -124,6 +124,8 @@ class DataStructureConfig(BaseModel):
 
     region: Optional[RegionCodeListConfig] = Field(default_factory=RegionCodeListConfig)
     variable: Optional[CodeListConfig] = Field(default_factory=CodeListConfig)
+    model: Optional[CodeListConfig] = Field(default_factory=CodeListConfig)
+    scenario: Optional[CodeListConfig] = Field(default_factory=CodeListConfig)
 
     @field_validator("region", "variable", mode="before")
     @classmethod
