@@ -127,7 +127,7 @@ class DataStructureConfig(BaseModel):
     model: Optional[CodeListConfig] = Field(default_factory=CodeListConfig)
     scenario: Optional[CodeListConfig] = Field(default_factory=CodeListConfig)
 
-    @field_validator("region", "variable", mode="before")
+    @field_validator("region", "variable", "model", "scenario", mode="before")
     @classmethod
     def add_dimension(cls, v, info: ValidationInfo):
         return {"dimension": info.field_name, **v}
@@ -136,7 +136,7 @@ class DataStructureConfig(BaseModel):
     def repos(self) -> dict[str, str]:
         return {
             dimension: getattr(self, dimension).repositories
-            for dimension in ("region", "variable")
+            for dimension in ("region", "variable", "model", "scenario")
             if getattr(self, dimension).repositories
         }
 
