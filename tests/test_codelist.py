@@ -172,6 +172,15 @@ def test_region_codelist_nonexisting_country_name():
         )
 
 
+def test_region_codelist_str_country_name():
+    """Check that country name as string is validated against `nomenclature.countries`"""
+    code = RegionCodeList.from_directory(
+        "region",
+        MODULE_TEST_DATA_DIR / "region_codelist" / "countries_attribute_str",
+    )
+    assert code["Some region"].countries == ["Austria"]
+
+
 def test_norway_as_str():
     """guard against casting of 'NO' to boolean `False` by PyYAML or pydantic"""
     region = RegionCodeList.from_directory(
@@ -212,13 +221,19 @@ def test_to_csv():
     assert obs == exp
 
 
-def test_stray_tag_fails():
-    """Check that typos in a tag raises expected error"""
-
-    match = r"Unexpected {} in codelist: Primary Energy\|{Feul}"
+@pytest.mark.parametrize(
+    "subfolder, match",
+    [
+        ("char_in_str", r"Unexpected bracket in variable: 'Primary Energy\|{Feul}'"),
+        ("char_in_list", r"Unexpected bracket in variable: 'Share\|Coal'"),
+        ("char_in_dict", r"Unexpected bracket in variable: 'Primary Energy'"),
+    ],
+)
+def test_stray_tag_fails(subfolder, match):
+    """Check that stray brackets from, e.g. typos in a tag, raises expected error"""
     with raises(ValueError, match=match):
         VariableCodeList.from_directory(
-            "variable", MODULE_TEST_DATA_DIR / "stray_tag" / "definitions" / "variable"
+            "variable", MODULE_TEST_DATA_DIR / "stray_tag" / subfolder
         )
 
 
