@@ -159,8 +159,14 @@ class NomenclatureConfig(BaseModel):
     repositories: dict[str, Repository] = Field(default_factory=dict)
     definitions: DataStructureConfig = Field(default_factory=DataStructureConfig)
     mappings: RegionMappingConfig = Field(default_factory=RegionMappingConfig)
+    illegal_characters: None | list[str] = None
 
     model_config = ConfigDict(use_enum_values=True)
+
+    @field_validator("illegal_characters", mode="before")
+    @classmethod
+    def check_illegal_characters(cls, v: str | list[str]) -> list[str]:
+        return v if isinstance(v, list) else [v]
 
     @model_validator(mode="after")
     @classmethod
