@@ -1,0 +1,11 @@
+dimensions:
+  - variable
+repositories:
+  common-definitions:
+    url: https://github.com/IAMconsortium/common-definitions.git/
+    hash: 3b75bb9
+definitions:
+  variable:
+    repository:
+      - common-definitions
+illegal_characters: ['"' , ";"]  # these are known to be present in common-definitions variables

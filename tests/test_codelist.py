@@ -12,6 +12,7 @@ from nomenclature.codelist import (
     MetaCodeList,
 )
 from nomenclature.config import NomenclatureConfig
+from nomenclature.definition import DataStructureDefinition
 
 from conftest import TEST_DATA_DIR, clean_up_external_repos
 
@@ -224,17 +225,36 @@ def test_to_csv():
 @pytest.mark.parametrize(
     "subfolder, match",
     [
-        ("char_in_str", r"Unexpected bracket in variable: 'Primary Energy\|{Feul}'"),
-        ("char_in_list", r"Unexpected bracket in variable: 'Share\|Coal'"),
-        ("char_in_dict", r"Unexpected bracket in variable: 'Primary Energy'"),
+        ("tag_in_str", r"Unexpected character in variable: 'Primary Energy\|{Feul}'"),
+        ("tag_in_list", r"Unexpected character in variable: 'Share\|Coal'"),
+        ("tag_in_dict", r"Unexpected character in variable: 'Primary Energy'"),
     ],
 )
 def test_stray_tag_fails(subfolder, match):
     """Check that stray brackets from, e.g. typos in a tag, raises expected error"""
     with raises(ValueError, match=match):
-        VariableCodeList.from_directory(
+        code_list = VariableCodeList.from_directory(
             "variable", MODULE_TEST_DATA_DIR / "stray_tag" / subfolder
         )
+        code_list.check_illegal_characters()
+
+
+def test_illegal_char_fails():
+    """Check that illegal character raises expected error."""
+    match = r"Unexpected character in variable: 'Primary Energy\|Coal'"
+    with raises(ValueError, match=match):
+        DataStructureDefinition(
+            MODULE_TEST_DATA_DIR / "illegal_chars" / "char_in_str" / "definitions"
+        )
+
+
+def test_illegal_char_ignores_external_repo():
+    """Check that external repos are excluded from this check."""
+    # the config includes illegal characters known to be in common-definitions
+    # the test will not raise errors as the check is skipped for external repos
+    DataStructureDefinition(
+        MODULE_TEST_DATA_DIR / "illegal_chars" / "char_in_external_repo" / "definitions"
+    )
 
 
 def test_end_whitespace_fails():

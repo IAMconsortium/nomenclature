@@ -76,6 +76,7 @@ class DataStructureDefinition:
             self.__setattr__(
                 dim, codelist_cls.from_directory(dim, path / dim, self.config)
             )
+            getattr(self, dim).check_illegal_characters(self.config)
 
         if empty := [d for d in self.dimensions if not getattr(self, d)]:
             raise ValueError(f"Empty codelist: {', '.join(empty)}")
