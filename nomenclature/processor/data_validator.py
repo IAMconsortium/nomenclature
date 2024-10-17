@@ -85,7 +85,7 @@ class DataValidator(Processor):
 
     @classmethod
     def from_file(cls, file: Union[Path, str]) -> "DataValidator":
-        with open(file, "r") as f:
+        with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
         return cls(file=file, criteria_items=content)
 

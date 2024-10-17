@@ -268,7 +268,7 @@ class RegionAggregationMapping(BaseModel):
     @classmethod
     def from_yaml(cls, file: Path) -> "RegionAggregationMapping":
         try:
-            with open(file, "r") as f:
+            with open(file, "r", encoding="utf-8") as f:
                 mapping_input = yaml.safe_load(f)
 
             # Add the file name to mapping_input
@@ -425,7 +425,7 @@ class RegionAggregationMapping(BaseModel):
             ]
         if self.exclude_regions:
             dict_representation["exclude_regions"] = self.exclude_regions
-        with open(file, "w") as f:
+        with open(file, "w", encoding="utf-8") as f:
             yaml.dump(dict_representation, f, sort_keys=False)
 
 
