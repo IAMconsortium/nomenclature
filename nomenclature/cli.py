@@ -277,3 +277,29 @@ def cli_run_workflow(
     df = getattr(workflow, workflow_function)(IamDataFrame(input_file))
     if output_file is not None:
         df.to_excel(output_file)
+
+
+@cli.command("validate-scenarios")
+@click.argument("input_file", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--definitions",
+    help="Optional name for definitions folder",
+    type=str,
+    default="definitions",
+)
+def cli_validate_scenarios(input_file: Path, definitions: Path):
+    """Run a given input file through a workflow function defined in a workflow.py
+
+    Parameters
+    ----------
+    input_file : Path
+        Input data file, must be IAMC format, .xlsx or .csv
+    definitions : str
+        Definitions folder inside workflow_directory, by default "definitions"
+
+    Raises
+    ------
+    ValueError
+        If input_file validation fails against specified codelist(s).
+    """
+    DataStructureDefinition(definitions).validate(IamDataFrame(input_file))
