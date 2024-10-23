@@ -288,8 +288,7 @@ def cli_run_workflow(
     default="definitions",
 )
 def cli_validate_scenarios(input_file: Path, definitions: Path):
-    """Run a given input file through a DataStructureDefinition validation,
-    checking it against defined codelist(s)
+    """Validate a scenario file against the codelists of a project
 
     Parameters
     ----------

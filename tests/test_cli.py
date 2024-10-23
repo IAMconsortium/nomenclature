@@ -441,7 +441,11 @@ def test_cli_valid_scenarios(status, unit, exit_code, tmp_path):
             "validate-scenarios",
             str(tmp_path / f"{status}_data.xlsx"),
             "--definitions",
-            str(MODULE_TEST_DATA_DIR / "validate_scenarios" / "definitions"),
+            str(
+                MODULE_TEST_DATA_DIR
+                / "structure_validation_no_mappings"
+                / "definitions"
+            ),
         ],
     )
     assert result_valid.exit_code == exit_code
