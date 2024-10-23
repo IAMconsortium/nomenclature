@@ -284,18 +284,19 @@ def cli_run_workflow(
 @click.option(
     "--definitions",
     help="Optional name for definitions folder",
-    type=str,
+    type=click.Path(exists=True, path_type=Path),
     default="definitions",
 )
 def cli_validate_scenarios(input_file: Path, definitions: Path):
-    """Run a given input file through a workflow function defined in a workflow.py
+    """Run a given input file through a DataStructureDefinition validation,
+    checking it against defined codelist(s)
 
     Parameters
     ----------
     input_file : Path
         Input data file, must be IAMC format, .xlsx or .csv
-    definitions : str
-        Definitions folder inside workflow_directory, by default "definitions"
+    definitions : Path
+        Definitions folder with codelists, by default "definitions"
 
     Raises
     ------
