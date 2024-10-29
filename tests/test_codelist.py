@@ -150,8 +150,7 @@ def test_tags_in_list_attributes():
 def test_tier_attribute_in_tags():
     """Check for tier attribute functionality ('tier' in tags upgrade CodeList's):
     1) 'tier' is not added when not present in Code or tag;
-    2) 'tier' is/are upgraded when present in Code and matching tag(s)
-    3) 'tier' in tag only accepts two values: '^1' and '^2'"""
+    2) 'tier' is/are upgraded when present in Code and matching tag(s)"""
     code_list = VariableCodeList.from_directory(
         "variable", MODULE_TEST_DATA_DIR / "tier_attribute" / "valid"
     )
