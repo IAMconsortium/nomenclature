@@ -420,3 +420,32 @@ def test_cli_run_workflow(tmp_path, simple_df):
     )
 
     assert_iamframe_equal(simple_df, IamDataFrame(tmp_path / "output.xlsx"))
+
+
+@pytest.mark.parametrize(
+    "status, unit, exit_code", [("valid", "EJ/yr", 0), ("invalid", "EJ", 1)]
+)
+def test_cli_valid_scenarios(status, unit, exit_code, tmp_path):
+    """Check that CLI validates an IAMC dataset according to defined codelist."""
+    IamDataFrame(
+        pd.DataFrame(
+            [
+                ["m_a", "s_a", "World", "Primary Energy", unit, 1, 2],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    ).to_excel(tmp_path / f"{status}_data.xlsx")
+    result_valid = runner.invoke(
+        cli,
+        [
+            "validate-scenarios",
+            str(tmp_path / f"{status}_data.xlsx"),
+            "--definitions",
+            str(
+                MODULE_TEST_DATA_DIR
+                / "structure_validation_no_mappings"
+                / "definitions"
+            ),
+        ],
+    )
+    assert result_valid.exit_code == exit_code
