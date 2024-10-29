@@ -178,7 +178,7 @@ class Code(BaseModel):
 
 class VariableCode(Code):
     unit: Union[str, List[str]] = Field(...)
-    tier: int | None = None
+    tier: int | str | None = None
     weight: str | None = None
     region_aggregation: List[Dict[str, Dict]] | None = Field(
         default=None, alias="region-aggregation"

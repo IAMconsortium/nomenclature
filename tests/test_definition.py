@@ -40,7 +40,7 @@ def test_empty_codelist_raises():
 
 
 @pytest.mark.parametrize("workflow_folder", ["general-config-only", "general-config"])
-def _test_definition_from_general_config(workflow_folder):
+def test_definition_from_general_config(workflow_folder):
     obs = DataStructureDefinition(
         TEST_DATA_DIR / "config" / workflow_folder / "definitions",
         dimensions=["region", "variable"],
@@ -87,7 +87,7 @@ def test_to_excel(simple_definition, tmpdir):
     pd.testing.assert_frame_equal(obs, exp)
 
 
-def _test_to_excel_with_external_repo(tmpdir):
+def test_to_excel_with_external_repo(tmpdir):
     """Check writing a DataStructureDefinition with an external repo to file"""
     file = tmpdir / "testing_export.xlsx"
 

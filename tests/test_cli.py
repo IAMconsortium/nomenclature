@@ -359,7 +359,7 @@ def test_check_region_aggregation(tmp_path):
     assert_iamframe_equal(IamDataFrame(tmp_path / "results.xlsx"), exp_result)
 
 
-def _test_cli_export_to_excel(tmpdir):
+def test_cli_export_to_excel(tmpdir):
     """Assert that writing a DataStructureDefinition to excel works as expected"""
     file = tmpdir / "testing_export.xlsx"
 
