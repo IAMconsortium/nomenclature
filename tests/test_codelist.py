@@ -155,11 +155,14 @@ def test_tier_attribute_in_tags():
         "variable", MODULE_TEST_DATA_DIR / "tier_attribute" / "valid"
     )
     # check tier attribute is upgraded correctly
-    assert code_list["Share|Coal"].tier == 3
-    assert code_list["Primary Energy|Coal|Industry"].tier == 2
+    assert code_list["Final Energy|Coal|Industry"].tier == 1
+    assert code_list["Final Energy|Coal|Lignite|Industry"].tier == 2
+    assert code_list["Final Energy|Coal|Industry|Chemicals"].tier == 2
+    assert code_list["Primary Energy|Coal [Share]"].tier == 2
+    assert code_list["Primary Energy|Coal|Lignite [Share]"].tier == 3
 
     # check multiple tier attributes upgrade cumulatively
-    assert code_list["Primary Energy|Coal|Agriculture"].tier == 3
+    assert code_list["Final Energy|Coal|Lignite|Industry|Chemicals"].tier == 3
 
     # check codes without tier attributes don't change
     assert not code_list["Primary Energy"].tier
@@ -168,8 +171,8 @@ def test_tier_attribute_in_tags():
 def test_misformatted_tier_fails():
     """Check misformatted 'tier' attributes raise errors"""
 
-    match = "Tag 'Primary Energy|Coal' includes misformatted 'tier' attribute. "
-    "Allowed values for tier attributes in tags are '^1' or '^2'."
+    match = "Invalid 'tier' attribute in 'Fuel' tag 'Coal': 1\n"
+    "Allowed values are '^1' or '^2'."
     with pytest.raises(ValueError, match=match):
         VariableCodeList.from_directory(
             "variable", MODULE_TEST_DATA_DIR / "tier_attribute" / "invalid"
