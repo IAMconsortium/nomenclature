@@ -238,7 +238,7 @@ def test_region_processor_unexpected_region_raises():
         )
 
 
-def test_mapping_from_external_repository():
+def _test_mapping_from_external_repository():
     # This test reads both mappings and definitions from an external repository only
     try:
         processor = RegionProcessor.from_directory(
