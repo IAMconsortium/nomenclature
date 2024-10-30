@@ -1,0 +1,5 @@
+- Fuel:
+  - Coal:
+      description: coal
+  - Coal|Lignite:
+      tier: ^1

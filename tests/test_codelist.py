@@ -147,6 +147,38 @@ def test_tags_in_list_attributes():
             assert getattr(code[code_name], attr_name) == value
 
 
+def test_tier_attribute_in_tags():
+    """Check for tier attribute functionality ('tier' in tags upgrade CodeList's):
+    1) 'tier' is not added when not present in Code or tag;
+    2) 'tier' is/are upgraded when present in Code and matching tag(s)"""
+    code_list = VariableCodeList.from_directory(
+        "variable", MODULE_TEST_DATA_DIR / "tier_attribute" / "valid"
+    )
+    # check tier attribute is upgraded correctly
+    assert code_list["Final Energy|Coal|Industry"].tier == 1
+    assert code_list["Final Energy|Coal|Lignite|Industry"].tier == 2
+    assert code_list["Final Energy|Coal|Industry|Chemicals"].tier == 2
+    assert code_list["Primary Energy|Coal [Share]"].tier == 2
+    assert code_list["Primary Energy|Coal|Lignite [Share]"].tier == 3
+
+    # check multiple tier attributes upgrade cumulatively
+    assert code_list["Final Energy|Coal|Lignite|Industry|Chemicals"].tier == 3
+
+    # check codes without tier attributes don't change
+    assert not code_list["Primary Energy"].tier
+
+
+def test_misformatted_tier_fails():
+    """Check misformatted 'tier' attributes raise errors"""
+
+    match = "Invalid 'tier' attribute in 'Fuel' tag 'Coal': 1\n"
+    "Allowed values are '^1' or '^2'."
+    with pytest.raises(ValueError, match=match):
+        VariableCodeList.from_directory(
+            "variable", MODULE_TEST_DATA_DIR / "tier_attribute" / "invalid"
+        )
+
+
 def test_region_codelist():
     """Check replacing top-level hierarchy of yaml file as attribute for regions"""
     code = RegionCodeList.from_directory(

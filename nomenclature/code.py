@@ -125,12 +125,26 @@ class Code(BaseModel):
         def _replace_or_recurse(_attr, _value):
             # if the attribute is a string and contains "{tag}" replace
             if isinstance(_value, str) and "{" + tag + "}" in _value:
-                # if the the target has the corresponding attribute replace
+                # if the target has the attribute, replace the tag with the value
                 if _attr in target.flattened_dict:
                     return _value.replace("{" + tag + "}", getattr(target, _attr))
                 # otherwise return the name
                 else:
                     return _value.replace("{" + tag + "}", getattr(target, "name"))
+            # if the attribute is an integer and "tier"
+            elif _attr == "tier" and isinstance(_value, int):
+                # if tier in tag is str formatted as "^1"/"^2"
+                if (tag_tier := getattr(target, _attr, None)) in {"^1", "^2"}:
+                    return _value + int(tag_tier[-1])
+                # if tag doesn't have tier attribute
+                elif not tag_tier:
+                    return _value
+                # else misformatted tier in tag
+                else:
+                    raise ValueError(
+                        f"Invalid 'tier' attribute in '{tag}' tag '{target.name}': {tag_tier}\n"
+                        "Allowed values are '^1' or '^2'."
+                    )
             # if the attribute is a list, iterate over the items and replace tags
             elif isinstance(_value, list):
                 return [_replace_or_recurse(_attr, _v) for _v in _value]
@@ -164,6 +178,7 @@ class Code(BaseModel):
 
 class VariableCode(Code):
     unit: Union[str, List[str]] = Field(...)
+    tier: int | str | None = None
     weight: str | None = None
     region_aggregation: List[Dict[str, Dict]] | None = Field(
         default=None, alias="region-aggregation"
