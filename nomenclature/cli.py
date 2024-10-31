@@ -9,6 +9,7 @@ from pyam import IamDataFrame
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.codelist import VariableCodeList
 from nomenclature.processor import RegionProcessor
+from nomenclature.config import NomenclatureConfig
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 
 cli = click.Group()
@@ -287,8 +288,24 @@ def cli_run_workflow(
     type=click.Path(exists=True, path_type=Path),
     default="definitions",
 )
-def cli_validate_scenarios(input_file: Path, definitions: Path):
+@click.option(
+    "--dimension",
+    "dimensions",
+    help="Optional list of dimensions",
+    type=str,
+    multiple=True,
+    default=None,
+)
+def cli_validate_scenarios(input_file: Path, definitions: Path, dimensions: List[str]):
     """Validate a scenario file against the codelists of a project
+
+    Example
+    -------
+    $ nomenclature validate-scenarios <input-file>
+                        --definitions <def-folder>
+                        --dimension <folder1>
+                        --dimension <folder2>
+                        --dimension <folder3>
 
     Parameters
     ----------
@@ -296,10 +313,21 @@ def cli_validate_scenarios(input_file: Path, definitions: Path):
         Input data file, must be IAMC format, .xlsx or .csv
     definitions : Path
         Definitions folder with codelists, by default "definitions"
+    dimensions : List[str], optional
+        Dimensions to be checked, defaults to all sub-folders of `definitions`
 
     Raises
     ------
     ValueError
         If input_file validation fails against specified codelist(s).
     """
-    DataStructureDefinition(definitions).validate(IamDataFrame(input_file))
+    if not dimensions:  # if "dimensions" were not specified
+        if definitions.parent / "nomenclature.yaml" in definitions.parent.iterdir():
+            dimensions = NomenclatureConfig.from_file(
+                definitions.parent / "nomenclature.yaml"
+            ).dimensions
+        if not dimensions:
+            dimensions = [x.stem for x in definitions.iterdir() if x.is_dir()]
+        if not dimensions:
+            raise FileNotFoundError(f"`definitions` directory is empty: {definitions}")
+    DataStructureDefinition(definitions, dimensions).validate(IamDataFrame(input_file))
