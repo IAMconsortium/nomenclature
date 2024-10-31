@@ -132,9 +132,10 @@ def test_create_yaml_from_xlsx(input_file, attrs, exp_file, tmpdir):
         attrs=attrs,
     )
 
-    with open(file, "r") as f:
+    with open(file, "r", encoding="utf-8") as f:
         obs = f.read()
-    with open(TEST_DATA_DIR / "io" / "excel_io" / exp_file, "r") as f:
+    with open(TEST_DATA_DIR / "io" / "excel_io" / exp_file, "r",
+              encoding="utf-8") as f:
         exp = f.read()
 
     assert obs == exp

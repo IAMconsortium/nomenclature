@@ -390,7 +390,7 @@ class CodeList(BaseModel):
 
         if path is None:
             return stream
-        with open(path, "w") as file:
+        with open(path, "w", encoding="utf-8") as file:
             file.write(stream)
 
     def to_pandas(self, sort_by_code: bool = False) -> pd.DataFrame:
@@ -681,7 +681,7 @@ class VariableCodeList(CodeList):
                 },
             ).to_yaml()
 
-            with open(file, "a") as f:
+            with open(file, "a", encoding="utf-8") as f:
                 f.write(missing_variables_formatted)
 
 

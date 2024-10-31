@@ -101,7 +101,7 @@ class Repository(BaseModel):
     def check_external_repo_double_stacking(self):
         nomenclature_config = self.local_path / "nomenclature.yaml"
         if nomenclature_config.is_file():
-            with open(nomenclature_config, "r") as f:
+            with open(nomenclature_config, "r", encoding="utf-8") as f:
                 config = yaml.safe_load(f)
             if config.get("repositories"):
                 raise ValueError(
