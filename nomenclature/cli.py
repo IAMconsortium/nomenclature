@@ -9,7 +9,6 @@ from pyam import IamDataFrame
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.codelist import VariableCodeList
 from nomenclature.processor import RegionProcessor
-from nomenclature.config import NomenclatureConfig
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 
 cli = click.Group()
@@ -321,13 +320,4 @@ def cli_validate_scenarios(input_file: Path, definitions: Path, dimensions: List
     ValueError
         If input_file validation fails against specified codelist(s).
     """
-    if not dimensions:  # if "dimensions" were not specified
-        if definitions.parent / "nomenclature.yaml" in definitions.parent.iterdir():
-            dimensions = NomenclatureConfig.from_file(
-                definitions.parent / "nomenclature.yaml"
-            ).dimensions
-        if not dimensions:
-            dimensions = [x.stem for x in definitions.iterdir() if x.is_dir()]
-        if not dimensions:
-            raise FileNotFoundError(f"`definitions` directory is empty: {definitions}")
     DataStructureDefinition(definitions, dimensions).validate(IamDataFrame(input_file))
