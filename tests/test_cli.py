@@ -423,10 +423,15 @@ def test_cli_run_workflow(tmp_path, simple_df):
 
 
 @pytest.mark.parametrize(
-    "status, unit, exit_code", [("valid", "EJ/yr", 0), ("invalid", "EJ", 1)]
+    "status, unit, dimensions, exit_code",
+    [
+        ("valid_1", "EJ/yr", "region", 0),
+        ("invalid", "EJ", "variable", 1),
+        ("valid_2", "EJ", "region", 0),
+    ],
 )
-def test_cli_valid_scenarios(status, unit, exit_code, tmp_path):
-    """Check that CLI validates an IAMC dataset according to defined codelist."""
+def test_cli_valid_scenarios(status, unit, exit_code, dimensions, tmp_path):
+    """Check that CLI validates an IAMC dataset according to defined codelists."""
     IamDataFrame(
         pd.DataFrame(
             [
@@ -441,11 +446,50 @@ def test_cli_valid_scenarios(status, unit, exit_code, tmp_path):
             "validate-scenarios",
             str(tmp_path / f"{status}_data.xlsx"),
             "--definitions",
-            str(
-                MODULE_TEST_DATA_DIR
-                / "structure_validation_no_mappings"
-                / "definitions"
-            ),
+            str(MODULE_TEST_DATA_DIR / "structure_validation" / "definitions"),
+            "--dimension",
+            dimensions,
+        ],
+    )
+    assert result_valid.exit_code == exit_code
+
+
+@pytest.mark.parametrize(
+    "dimensions_src, path, unit, exit_code",
+    [
+        (
+            "nomenclature_yaml_dimensions",
+            "structure_validation",
+            "EJ/yr",
+            0,
+        ),  # defaults to nomenclature.yaml dimensions
+        (
+            "subfolders_dimensions",
+            "structure_validation_no_mappings",
+            "EJ",
+            1,
+        ),  # defaults to 'definitions' subfolders dimensions
+    ],
+)
+def test_cli_valid_scenarios_implicit_dimensions(
+    dimensions_src, path, unit, exit_code, tmp_path
+):
+    """Check that CLI validates an IAMC dataset according to implicit dimensions codelists."""
+    IamDataFrame(
+        pd.DataFrame(
+            [
+                ["m_a", "s_a", "World", "Primary Energy", unit, 1, 2],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    ).to_excel(tmp_path / f"{dimensions_src}_data.xlsx")
+    result_valid = runner.invoke(
+        cli,
+        [
+            "validate-scenarios",
+            str(tmp_path / f"{dimensions_src}_data.xlsx"),
+            "--definitions",
+            str(MODULE_TEST_DATA_DIR / path / "definitions"),
         ],
     )
     assert result_valid.exit_code == exit_code
