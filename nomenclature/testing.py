@@ -5,7 +5,6 @@ from typing import List, Optional
 import yaml
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.config import NomenclatureConfig
 from nomenclature.processor import (
     DataValidator,
     RegionProcessor,
@@ -145,16 +144,12 @@ def assert_valid_structure(
             f"Definitions directory not found: {path / definitions}"
         )
 
-    if not dimensions:  # if "dimensions" were not specified
-        if path / "nomenclature.yaml" in path.iterdir():
-            dimensions = NomenclatureConfig.from_file(
-                path / "nomenclature.yaml"
-            ).dimensions
+    if dimensions == ():  # if "dimensions" were not specified
+        dimensions = [x.stem for x in (path / definitions).iterdir() if x.is_dir()]
         if not dimensions:
-            dimensions = [x.stem for x in (path / definitions).iterdir() if x.is_dir()]
-        if not dimensions:
-            raise FileNotFoundError(f"`definitions` directory is empty: {definitions}")
-
+            raise FileNotFoundError(
+                f"`definitions` directory is empty: {path / definitions}"
+            )
     _check_mappings(path, definitions, dimensions, mappings)
     _check_processor_directory(
         path,
