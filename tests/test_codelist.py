@@ -236,7 +236,7 @@ def test_stray_tag_fails(subfolder, match):
         code_list = VariableCodeList.from_directory(
             "variable", MODULE_TEST_DATA_DIR / "stray_tag" / subfolder
         )
-        code_list.check_illegal_characters()
+        code_list.check_illegal_characters(NomenclatureConfig(dimensions=["variable"]))
 
 
 def test_illegal_char_fails():

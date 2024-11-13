@@ -335,22 +335,24 @@ class CodeList(BaseModel):
 
         return cls(name=name, mapping=mapp)
 
-    def check_illegal_characters(
-        self, config: NomenclatureConfig = None
-    ) -> Dict[str, Code]:
+    def check_illegal_characters(self, config: NomenclatureConfig) -> Dict[str, Code]:
         """Check that no illegal characters are left in codes after tag replacement"""
-        forbidden = ["{", "}"]
-        if config and config.illegal_characters:
-            forbidden += config.illegal_characters
+        illegal = (
+            ["{", "}"] + config.illegal_characters
+            if config.check_illegal_characters
+            else ["{", "}"]
+        )
 
         def _check_string(value):
             if isinstance(value, str):
-                if any(char in value for char in forbidden):
+                if any(char in value for char in illegal):
                     raise ValueError(
                         f"Unexpected character in {self.name}: '{code.name}'."
                         " Check for illegal characters and/or if tags were spelled correctly."
                     )
             elif isinstance(value, dict):
+                for k in value.keys():
+                    _check_string(k)
                 for v in value.values():
                     _check_string(v)
             elif isinstance(value, list):
@@ -360,7 +362,7 @@ class CodeList(BaseModel):
         for code in self.mapping.values():
             if not code.repository:
                 for attr in code.model_fields:
-                    if attr not in ["file", "repository"]:
+                    if attr != "file":
                         value = getattr(code, attr)
                         _check_string(value)
 
