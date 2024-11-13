@@ -306,7 +306,7 @@ def test_cli_empty_definitions_dir():
 
     assert cli_result.exit_code == 1
     assert isinstance(cli_result.exception, ValueError)
-    assert "No dimensions specified in data structure." in str(cli_result.exception)
+    assert "No dimensions specified." in str(cli_result.exception)
 
 
 def test_check_region_aggregation(tmp_path):

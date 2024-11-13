@@ -34,7 +34,7 @@ def test_nonexisting_path_raises():
 
 def test_empty_codelist_raises():
     """Check that initializing a DataStructureDefinition with empty CodeList raises"""
-    match = "No dimensions specified in data structure."
+    match = "No dimensions specified."
     with pytest.raises(ValueError, match=match):
         DataStructureDefinition(TEST_DATA_DIR / "codelist" / "simple_codelist")
 

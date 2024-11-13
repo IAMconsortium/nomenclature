@@ -69,7 +69,7 @@ class DataStructureDefinition:
             or [x.stem for x in path.iterdir() if x.is_dir()]
         )
         if not self.dimensions:
-            raise ValueError("No dimensions specified in data structure.")
+            raise ValueError("No dimensions specified.")
 
         for dim in self.dimensions:
             codelist_cls = SPECIAL_CODELIST.get(dim, CodeList)
