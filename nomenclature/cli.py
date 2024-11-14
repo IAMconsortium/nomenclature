@@ -213,11 +213,10 @@ def cli_diff_definitions_to_excel(
     target : Path
         Path and file name for the target file
     sheet_name : Optional[str]
-        If given, exports the results from region processing to a file called
-        `processed_data`, by default "variable"
+        The sheet_name to use for comparison, by default "variable"
     output : Optional[Path]
-        If given, exports the results from the diff to a file called
-        `processed_data`, by default "diff.xlsx"
+        Exports the results from the diff to a file called
+        `output`, by default "diff.xlsx"
     """
     s_col = set(pd.read_excel(source, sheet_name=sheet_name)[sheet_name])
     t_col = set(pd.read_excel(target, sheet_name=sheet_name)[sheet_name])
