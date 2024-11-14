@@ -66,11 +66,11 @@ class DataStructureDefinition:
         self.dimensions = (
             dimensions
             or self.config.dimensions
-            or [x.stem for x in path.iterdir() if x.is_dir()]
+            or [
+                "region",
+                "variable",
+            ]
         )
-        if not self.dimensions:
-            raise ValueError("No dimensions specified.")
-
         for dim in self.dimensions:
             codelist_cls = SPECIAL_CODELIST.get(dim, CodeList)
             self.__setattr__(

@@ -54,9 +54,11 @@ def assert_valid_yaml(path: Path):
 
 def _check_mappings(
     path: Path,
-    dsd: DataStructureDefinition,
+    definitions: str = "definitions",
+    dimensions: Optional[List[str]] = None,
     mappings: Optional[str] = None,
 ) -> None:
+    dsd = DataStructureDefinition(path / definitions, dimensions)
     if mappings is None:
         if (path / "mappings").is_dir():
             RegionProcessor.from_directory(path / "mappings", dsd)
@@ -83,11 +85,13 @@ def _collect_processor_errors(
 
 def _check_processor_directory(
     path: Path,
-    dsd: DataStructureDefinition,
     processor: Processor,
     processor_arg: str,
     folder: Optional[str] = None,
+    definitions: Optional[str] = "definitions",
+    dimensions: Optional[List[str]] = None,
 ) -> None:
+    dsd = DataStructureDefinition(path / definitions, dimensions)
     if folder is None:
         if (path / processor_arg).is_dir():
             _collect_processor_errors(path / processor_arg, processor, dsd)
@@ -140,12 +144,24 @@ def assert_valid_structure(
             f"Definitions directory not found: {path / definitions}"
         )
 
-    dsd = DataStructureDefinition(path / definitions, dimensions)
-    _check_mappings(path, dsd, mappings)
+    if dimensions == ():  # if "dimensions" were not specified
+        dimensions = [x.stem for x in (path / definitions).iterdir() if x.is_dir()]
+        if not dimensions:
+            raise FileNotFoundError(
+                f"`definitions` directory is empty: {path / definitions}"
+            )
+    _check_mappings(path, definitions, dimensions, mappings)
     _check_processor_directory(
-        path, dsd, RequiredDataValidator, "required_data", required_data
+        path,
+        RequiredDataValidator,
+        "required_data",
+        required_data,
+        definitions,
+        dimensions,
     )
-    _check_processor_directory(path, dsd, DataValidator, "validate_data", validate_data)
+    _check_processor_directory(
+        path, DataValidator, "validate_data", validate_data, definitions, dimensions
+    )
 
 
 # Todo: add function which runs `DataStructureDefinition(path).validate(scenario)`

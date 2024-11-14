@@ -103,9 +103,7 @@ Specify dimensions to be read
 -----------------------------
 
 The configuration file offers the possibility to set the dimensions which will be read
-by *DataStructureDefinition*, overriding the dimensions from the *definitions*
-sub-directories. If no sub-directories exist (e.g.: when importing dimensions
-from external repositories), setting dimensions in the configuration file is mandatory.
+by *DataStructureDefinition*.
 
 In the below case we specify *region*, *variable* and *scenario* to be read and used for
 validation:
