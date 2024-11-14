@@ -177,6 +177,8 @@ class DataStructureConfig(BaseModel):
 
     """
 
+    model: CodeListConfig = Field(default_factory=CodeListConfig)
+    scenario: CodeListConfig = Field(default_factory=CodeListConfig)
     region: RegionCodeListConfig = Field(default_factory=RegionCodeListConfig)
     variable: CodeListConfig = Field(default_factory=CodeListConfig)
 
