@@ -88,9 +88,7 @@ def test_invalid_config_dimensions_raises():
     ["external_repo_filters.yaml", "multiple_external_repos_filters.yaml"],
 )
 def test_config_with_filter(config_file):
-    config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "nomenclature_configs" / config_file
-    )
+    config = NomenclatureConfig.from_file(TEST_DATA_DIR / "config" / config_file)
     try:
         assert isinstance(config.definitions.variable.repositories, list)
     finally:

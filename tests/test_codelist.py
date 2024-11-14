@@ -492,7 +492,7 @@ def test_variablecodelist_list_missing_variables_to_new_file(simple_df, tmp_path
 
 def test_variable_code_list_external_repo_with_filters():
     nomenclature_config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "nomenclature_configs" / "external_repo_filters.yaml"
+        TEST_DATA_DIR / "config" / "external_repo_filters.yaml"
     )
     try:
         variable_code_list = VariableCodeList.from_directory(
@@ -521,12 +521,12 @@ def test_variable_code_list_external_repo_with_filters():
 
 def test_region_code_list_external_repo_with_filters():
     nomenclature_config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "nomenclature_configs" / "external_repo_filters.yaml"
+        TEST_DATA_DIR / "config" / "external_repo_filters.yaml"
     )
     try:
         region_code_list = RegionCodeList.from_directory(
             "region",
-            TEST_DATA_DIR / "nomenclature_configs" / "variable",
+            TEST_DATA_DIR / "config" / "variable",
             nomenclature_config,
         )
         R5_regions = [
