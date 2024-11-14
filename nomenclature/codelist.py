@@ -342,13 +342,16 @@ class CodeList(BaseModel):
             if config.check_illegal_characters
             else ["{", "}"]
         )
+        errors = ErrorCollector()
 
         def _check_string(value):
             if isinstance(value, str):
                 if any(char in value for char in illegal):
-                    raise ValueError(
-                        f"Unexpected character in {self.name}: '{code.name}'."
-                        " Check for illegal characters and/or if tags were spelled correctly."
+                    errors.append(
+                        ValueError(
+                            f"Unexpected character in {self.name}: '{code.name}'."
+                            " Check for illegal characters and/or if tags were spelled correctly."
+                        )
                     )
             elif isinstance(value, dict):
                 for k in value.keys():
@@ -361,10 +364,10 @@ class CodeList(BaseModel):
 
         for code in self.mapping.values():
             if not code.repository:
-                for attr in code.model_fields:
-                    if attr != "file":
-                        value = getattr(code, attr)
-                        _check_string(value)
+                for value in code.model_dump(exclude="file").values():
+                    _check_string(value)
+        if errors:
+            raise ValueError(errors)
 
     def to_yaml(self, path=None):
         """Write mapping to yaml file or return as stream
