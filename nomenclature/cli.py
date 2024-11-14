@@ -228,10 +228,7 @@ def cli_diff_definitions_to_excel(
         ],
         axis="columns",
     )
-    if output:
-        diff.to_excel(output, sheet_name=sheet_name, index=False)
-    else:
-        print(output)
+    diff.to_excel(output, sheet_name=sheet_name, index=False)
 
 
 @cli.command("list-missing-variables")
