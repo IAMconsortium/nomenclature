@@ -1,3 +1,6 @@
+dimensions:
+  - region
+  - variable
 repositories:
   common-definitions:
     url: https://github.com/IAMconsortium/common-definitions.git/

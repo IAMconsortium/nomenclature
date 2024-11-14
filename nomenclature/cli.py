@@ -277,3 +277,47 @@ def cli_run_workflow(
     df = getattr(workflow, workflow_function)(IamDataFrame(input_file))
     if output_file is not None:
         df.to_excel(output_file)
+
+
+@cli.command("validate-scenarios")
+@click.argument("input_file", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--definitions",
+    help="Optional name for definitions folder",
+    type=click.Path(exists=True, path_type=Path),
+    default="definitions",
+)
+@click.option(
+    "--dimension",
+    "dimensions",
+    help="Optional list of dimensions",
+    type=str,
+    multiple=True,
+    default=None,
+)
+def cli_validate_scenarios(input_file: Path, definitions: Path, dimensions: List[str]):
+    """Validate a scenario file against the codelists of a project
+
+    Example
+    -------
+    $ nomenclature validate-scenarios <input-file>
+                        --definitions <def-folder>
+                        --dimension <folder1>
+                        --dimension <folder2>
+                        --dimension <folder3>
+
+    Parameters
+    ----------
+    input_file : Path
+        Input data file, must be IAMC format, .xlsx or .csv
+    definitions : Path
+        Definitions folder with codelists, by default "definitions"
+    dimensions : List[str], optional
+        Dimensions to be checked, defaults to all sub-folders of `definitions`
+
+    Raises
+    ------
+    ValueError
+        If input_file validation fails against specified codelist(s).
+    """
+    DataStructureDefinition(definitions, dimensions).validate(IamDataFrame(input_file))

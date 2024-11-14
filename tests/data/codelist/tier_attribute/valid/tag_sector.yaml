@@ -1,0 +1,6 @@
+- Sector:
+    - Industry:
+        description: industrial sector excluding non-energy use (e.g.feedstocks)
+    - Industry|Chemicals:
+        description: chemicals industry
+        tier: ^1

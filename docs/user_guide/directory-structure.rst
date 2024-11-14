@@ -25,9 +25,9 @@ This is the directory structure for validation and region processing:
 
 The :class:`DataStructureDefinition` reads the codelists from the *definitions* folder.
 
-* Each "dimension" to be used for validation (default: *variable* and *region*) must
-  have its own sub-directory in the *definitions* folder. The dimension names usually
-  follow the column names of the IAMC data format.
+* Each "dimension" to be used for validation must have its own sub-directory in
+  the *definitions* folder. The dimension names usually follow the column names
+  of the IAMC data format.
 
 * The codelists for a dimension can be distributed across multiple yaml files within a
   dimension folder, including any subfolders. When the :class:`DataStructureDefinition`

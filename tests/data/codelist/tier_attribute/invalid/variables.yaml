@@ -1,0 +1,8 @@
+- Primary Energy:
+    description: Total primary energy consumption
+    unit: EJ/yr
+- Primary Energy|{Fuel}:
+    description: Primary energy consumption of {Fuel}
+    unit: EJ/yr
+    tier: 1
+
