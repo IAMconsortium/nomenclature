@@ -13,4 +13,4 @@ definitions:
             tier: 1
         exclude:
           - name: "Primary Energy|*|*" # exclude all third tier variables
-      - name: legacy-definitions
+      - legacy-definitions

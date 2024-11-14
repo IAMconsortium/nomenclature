@@ -8,5 +8,5 @@ repositories:
 definitions:
   variable:
     repository:
-      - name: common-definitions
-      - name: legacy-definitions
+      - common-definitions
+      - legacy-definitions

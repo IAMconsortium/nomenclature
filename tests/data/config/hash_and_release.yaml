@@ -5,9 +5,7 @@ repositories:
     release: "1.0"
 definitions:
   region:
-    repository:
-      name: common-definitions
+    repository: common-definitions
     country: true
   variable:
-    repository:
-      name: common-definitions
+    repository: common-definitions

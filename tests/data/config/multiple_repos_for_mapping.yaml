@@ -5,5 +5,5 @@ repositories:
     url: https://github.com/IAMconsortium/legacy-definitions.git/
 mappings:
   repositories:
-    - name: common-definitions
-    - name: legacy-definitions
+    - common-definitions
+    - legacy-definitions

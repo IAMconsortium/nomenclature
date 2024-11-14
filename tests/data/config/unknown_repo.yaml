@@ -1,4 +1,3 @@
 definitions:
   region:
-    repository:
-      name: common-definitions
+    repository: common-definitions

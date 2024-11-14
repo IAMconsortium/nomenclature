@@ -11,7 +11,7 @@ definitions:
           - name: [Primary Energy*, Final Energy*]
           - name: "Population*"
             tier: 1
-      - name: legacy-definitions
+      - legacy-definitions
   region:
     repository: common-definitions
     country: true
