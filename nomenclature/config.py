@@ -84,7 +84,16 @@ class CodeListConfig(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     @field_validator("repositories", mode="before")
-    def convert_to_set_of_repos(cls, v):
+    @classmethod
+    def add_name_if_necessary(cls, v: list):
+        return [
+            {"name": repository} if isinstance(repository, str) else repository
+            for repository in v
+        ]
+
+    @field_validator("repositories", mode="before")
+    @classmethod
+    def convert_to_list_of_repos(cls, v):
         if not isinstance(v, list):
             return [v]
         return v
@@ -205,6 +214,14 @@ class RegionMappingConfig(BaseModel):
         default_factory=list, alias="repository"
     )
     model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator("repositories", mode="before")
+    @classmethod
+    def add_name_if_necessary(cls, v: list):
+        return [
+            {"name": repository} if isinstance(repository, str) else repository
+            for repository in v
+        ]
 
     @field_validator("repositories", mode="before")
     def convert_to_set_of_repos(cls, v):
