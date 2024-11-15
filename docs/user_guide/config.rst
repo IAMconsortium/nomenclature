@@ -49,18 +49,15 @@ multiple external repositories can be used as the example below illustrates for
       url: https://github.com/IAMconsortium/common-definitions.git/
   definitions:
     region:
-      repository:
-        name: common-definitions
+      repository: common-definitions
     variable:
       repositories:
-        - name: common-definitions
-        - name: legacy-definitions
+        - common-definitions
+        - legacy-definitions
   mappings:
-    repository:
-      name: common-definitions
+    repository: common-definitions
 
-The value in *definitions.region.repository* can be a list or a single value, needs to
-contain the ``name`` keyword and reference the repository in the *repositories* section.
+The value in *definitions.region.repository* can be a list or a single value.
 
 For model mappings the process is analogous using *mappings.repository*.
 
@@ -88,16 +85,18 @@ The filtering can be done by any attribute:
           - name: "Population*"
             tier: 1
         exclude:
-          - name: "Final Energy|*|*"
+          - name: "Final Energy|Industry*"
+            depth: 2
+
+If a filter is being used for repositories, the *name* keyword **must be used**.
 
 In the example above we are including:
 1. All variables starting with *Primary Energy* or *Final Energy*
 2. All variables starting with *Population* **and** with the tier attribute equal to 1
 
-From this list we are then **excluding** all variables that match "Final Energy|*|*".
-This means that the final resulting list will contain no Final Energy variables with
-three or more levels.
-
+From this list we are then **excluding** all variables that match "Final
+Energy|Industry\*" and have a depth of 2 (meaning that they contain two pipe "|"
+characters).
 
 Adding countries to the region codelist
 ---------------------------------------
