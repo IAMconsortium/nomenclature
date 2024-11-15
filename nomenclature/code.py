@@ -106,6 +106,10 @@ class Code(BaseModel):
             for key, value in self.flattened_dict.items()
         }
 
+    @property
+    def depth(self) -> int:
+        return self.name.count("|")
+
     def replace_tag(self, tag: str, target: "Code") -> "Code":
         """Return a new instance with tag applied
 
