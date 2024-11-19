@@ -1,7 +1,7 @@
 from enum import Enum
 from pathlib import Path
 from typing import Any
-from fnmatch import fnmatch
+import re
 
 import yaml
 from git import Repo
@@ -14,6 +14,7 @@ from pydantic import (
     ConfigDict,
 )
 from nomenclature.code import Code
+from pyam.str import escape_regexp
 
 
 class RepositoryWithFilter(BaseModel):
@@ -23,14 +24,15 @@ class RepositoryWithFilter(BaseModel):
 
     def filter_function(self, code: Code, filter: dict[str, Any], keep: bool):
         # if is list -> recursive
-        # if is str -> fnmatch
+        # if is str -> escape all special characters except "*" and use a regex
         # if is int -> match exactly
         # if is None -> Attribute does not exist therefore does not match
         def check_attribute_match(code_value, filter_value):
             if isinstance(filter_value, int):
                 return code_value == filter_value
             if isinstance(filter_value, str):
-                return fnmatch(code_value, filter_value)
+                pattern = re.compile(escape_regexp(filter_value) + "$")
+                return re.match(pattern, code_value) is not None
             if isinstance(filter_value, list):
                 return any(
                     check_attribute_match(code_value, value) for value in filter_value
