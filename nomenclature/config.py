@@ -80,7 +80,7 @@ class CodeListFromRepository(BaseModel):
 
 class CodeListConfig(BaseModel):
     dimension: str | None = None
-    repositories: list[RepositoryWithFilter] = Field(
+    repositories: list[CodeListFromRepository] = Field(
         default_factory=list, alias="repository"
     )
     model_config = ConfigDict(populate_by_name=True)
