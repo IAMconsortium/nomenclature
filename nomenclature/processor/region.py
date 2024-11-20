@@ -486,7 +486,7 @@ class RegionProcessor(Processor):
             mapping_files.extend(
                 f
                 for f in (
-                    dsd.config.repositories[repository].local_path / "mappings"
+                    dsd.config.repositories[repository.name].local_path / "mappings"
                 ).glob("**/*")
                 if f.suffix in {".yaml", ".yml"}
             )

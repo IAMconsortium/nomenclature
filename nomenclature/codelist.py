@@ -233,13 +233,12 @@ class CodeList(BaseModel):
         for repo in getattr(
             config.definitions, name.lower(), CodeListConfig()
         ).repositories:
-            code_list.extend(
-                cls._parse_codelist_dir(
-                    config.repositories[repo].local_path / "definitions" / name,
-                    file_glob_pattern,
-                    repo,
-                )
+            repository_code_list = cls._parse_codelist_dir(
+                config.repositories[repo.name].local_path / "definitions" / name,
+                file_glob_pattern,
+                repo.name,
             )
+            code_list.extend(repo.filter_list_of_codes(repository_code_list))
         errors = ErrorCollector()
         mapping: Dict[str, Code] = {}
         for code in code_list:
@@ -591,21 +590,6 @@ class VariableCodeList(CodeList):
             )
         return v
 
-    @field_validator("mapping")
-    @classmethod
-    def cast_variable_components_args(cls, v):
-        """Cast "components" list of dicts to a codelist"""
-
-        # translate a list of single-key dictionaries to a simple dictionary
-        for var in v.values():
-            if var.components and isinstance(var.components[0], dict):
-                comp = {}
-                for val in var.components:
-                    comp.update(val)
-                v[var.name].components = comp
-
-        return v
-
     def vars_default_args(self, variables: List[str]) -> List[VariableCode]:
         """return subset of variables which does not feature any special pyam
         aggregation arguments and where skip_region_aggregation is False"""
@@ -758,21 +742,25 @@ class RegionCodeList(CodeList):
 
         # importing from an external repository
         for repo in config.definitions.region.repositories:
-            repo_path = config.repositories[repo].local_path / "definitions" / "region"
+            repo_path = (
+                config.repositories[repo.name].local_path / "definitions" / "region"
+            )
 
-            code_list = cls._parse_region_code_dir(
-                code_list,
+            repo_list_of_codes = cls._parse_region_code_dir(
                 repo_path,
                 file_glob_pattern,
-                repository=repo,
+                repository=repo.name,
             )
-            code_list = cls._parse_and_replace_tags(
-                code_list, repo_path, file_glob_pattern
+            repo_list_of_codes = cls._parse_and_replace_tags(
+                repo_list_of_codes, repo_path, file_glob_pattern
             )
+            code_list.extend(repo.filter_list_of_codes(repo_list_of_codes))
 
         # parse from current repository
-        code_list = cls._parse_region_code_dir(code_list, path, file_glob_pattern)
-        code_list = cls._parse_and_replace_tags(code_list, path, file_glob_pattern)
+        local_code_list = cls._parse_region_code_dir(path, file_glob_pattern)
+        code_list.extend(
+            cls._parse_and_replace_tags(local_code_list, path, file_glob_pattern)
+        )
 
         # translate to mapping
         mapping: Dict[str, RegionCode] = {}
@@ -808,13 +796,12 @@ class RegionCodeList(CodeList):
     @classmethod
     def _parse_region_code_dir(
         cls,
-        code_list: List[Code],
         path: Path,
         file_glob_pattern: str = "**/*",
         repository: str | None = None,
     ) -> List[RegionCode]:
         """"""
-
+        code_list: List[RegionCode] = []
         for yaml_file in (
             f
             for f in path.glob(file_glob_pattern)
