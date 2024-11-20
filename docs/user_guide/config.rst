@@ -88,7 +88,8 @@ The filtering can be done by any attribute:
           - name: "Final Energy|Industry*"
             depth: 2
 
-If a filter is being used for repositories, the *name* keyword **must be used**.
+If a filter is being used for repositories, the *name* attribute **must be used**
+for the repository.
 
 In the example above we are including:
 1. All variables starting with *Primary Energy* or *Final Energy*

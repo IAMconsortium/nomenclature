@@ -17,7 +17,7 @@ from nomenclature.code import Code
 from pyam.str import escape_regexp
 
 
-class RepositoryWithFilter(BaseModel):
+class CodeListFromRepository(BaseModel):
     name: str
     include: list[dict[str, Any]] = [{"name": "*"}]
     exclude: list[dict[str, Any]] = Field(default_factory=list)
