@@ -122,3 +122,19 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
 
     # check if the log message contains the correct information
     assert failed_validation_message in caplog.text
+
+
+def test_DataValidator_validate_with_warning(simple_df, caplog):
+    data_validator = DataValidator.from_file(
+        DATA_VALIDATION_TEST_DIR / "validate_warning.yaml"
+    )
+    data_validator.apply(simple_df)
+
+    failed_validation_message = "Failed data validation"
+    f"""(file {(DATA_VALIDATION_TEST_DIR / "validate_warning.yaml").relative_to(Path.cwd())}):
+  Criteria: variable: ['Primary Energy'], year: [2010], upper_bound: 2.5, lower_bound: 1.0
+        model scenario region        variable   unit  year  value warning_level
+    0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0           low
+    1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0           low"""
+
+    assert failed_validation_message in caplog.text
