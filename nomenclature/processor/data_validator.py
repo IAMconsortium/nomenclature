@@ -128,17 +128,19 @@ class DataValidator(Processor):
                     log_list.append(
                         textwrap.indent(str(failed_validation), prefix="    ") + "\n"
                     )
-            fail_msg = "Failed data validation (file %s):\n" % get_relative_path(
-                self.file
-            )
+            fail_msg = "(file %s):\n" % get_relative_path(self.file)
             if error_list:
-                fail_msg += "\n".join(error_list)
+                fail_msg = "Failed data validation " + fail_msg + "\n".join(error_list)
                 logger.error(fail_msg)
                 raise ValueError(
                     "Data validation failed. Please check the log for details."
                 )
             if warning_list:
-                fail_msg += "\n".join(warning_list)
+                fail_msg = (
+                    "Data validation with warning(s) "
+                    + fail_msg
+                    + "\n".join(warning_list)
+                )
                 logger.warning(fail_msg)
         return df
 

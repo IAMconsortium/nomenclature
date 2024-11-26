@@ -130,7 +130,7 @@ def test_DataValidator_validate_with_warning(simple_df, caplog):
     )
     data_validator.apply(simple_df)
 
-    failed_validation_message = "Failed data validation"
+    failed_validation_message = "Data validation with warning(s)"
     f"""(file {(DATA_VALIDATION_TEST_DIR / "validate_warning.yaml").relative_to(Path.cwd())}):
   Criteria: variable: ['Primary Energy'], year: [2010], upper_bound: 2.5, lower_bound: 1.0
         model scenario region        variable   unit  year  value warning_level
