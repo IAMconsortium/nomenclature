@@ -2,7 +2,7 @@ import json
 import re
 from keyword import iskeyword
 from pathlib import Path
-from typing import Any, Dict, List, Set, Union, Optional
+from typing import Any
 from pydantic import (
     field_validator,
     field_serializer,
@@ -24,8 +24,8 @@ class Code(BaseModel):
 
     name: str
     description: str | None = None
-    file: Union[str, Path] | None = None
-    extra_attributes: Dict[str, Any] = {}
+    file: str | Path | None = None
+    extra_attributes: dict[str, Any] = {}
     repository: str | None = None
 
     def __eq__(self, other) -> bool:
@@ -34,8 +34,8 @@ class Code(BaseModel):
     @field_validator("extra_attributes")
     @classmethod
     def check_attribute_names(
-        cls, v: Dict[str, Any], info: ValidationInfo
-    ) -> Dict[str, Any]:
+        cls, v: dict[str, Any], info: ValidationInfo
+    ) -> dict[str, Any]:
         # Check that attributes only contains keys which are valid identifiers
         if illegal_keys := [
             key for key in v.keys() if not key.isidentifier() or iskeyword(key)
@@ -79,7 +79,7 @@ class Code(BaseModel):
         )
 
     @classmethod
-    def named_attributes(cls) -> Set[str]:
+    def named_attributes(cls) -> set[str]:
         return {a for a in cls.model_fields if a != "extra_attributes"}
 
     @property
@@ -181,10 +181,10 @@ class Code(BaseModel):
 
 
 class VariableCode(Code):
-    unit: Union[str, List[str]] = Field(...)
+    unit: str | list[str] = Field(...)
     tier: int | str | None = None
     weight: str | None = None
-    region_aggregation: List[Dict[str, Dict]] | None = Field(
+    region_aggregation: list[dict[str, dict]] | None = Field(
         default=None, alias="region-aggregation"
     )
     skip_region_aggregation: bool | None = Field(
@@ -192,7 +192,7 @@ class VariableCode(Code):
     )
     method: str | None = None
     check_aggregate: bool | None = Field(default=False, alias="check-aggregate")
-    components: Union[List[str], Dict[str, list[str]]] | None = None
+    components: list[str] | dict[str, list[str]] | None = None
     drop_negative_weights: bool | None = None
     model_config = ConfigDict(populate_by_name=True)
 
@@ -225,17 +225,17 @@ class VariableCode(Code):
         return v if v != "" else None
 
     @property
-    def units(self) -> List[str]:
+    def units(self) -> list[str]:
         return self.unit if isinstance(self.unit, list) else [self.unit]
 
     @classmethod
-    def named_attributes(cls) -> Set[str]:
+    def named_attributes(cls) -> set[str]:
         return (
             super().named_attributes().union(f.alias for f in cls.model_fields.values())
         )
 
     @property
-    def pyam_agg_kwargs(self) -> Dict[str, Any]:
+    def pyam_agg_kwargs(self) -> dict[str, Any]:
         # return a dict of all not None pyam aggregation properties
         return {
             field: getattr(self, field)
@@ -249,7 +249,7 @@ class VariableCode(Code):
         }
 
     @property
-    def agg_kwargs(self) -> Dict[str, Any]:
+    def agg_kwargs(self) -> dict[str, Any]:
         return (
             {**self.pyam_agg_kwargs, **{"region_aggregation": self.region_aggregation}}
             if self.region_aggregation is not None
@@ -274,11 +274,11 @@ class RegionCode(Code):
     """
 
     hierarchy: str = None
-    countries: Optional[List[str]] = None
-    iso3_codes: Optional[Union[List[str], str]] = None
+    countries: list[str] | None = None
+    iso3_codes: list[str] | str | None = None
 
     @field_validator("countries", mode="before")
-    def check_countries(cls, v: List[str], info: ValidationInfo) -> List[str]:
+    def check_countries(cls, v: list[str], info: ValidationInfo) -> list[str]:
         """Verifies that each country name is defined in `nomenclature.countries`."""
         v = to_list(v)
         if invalid_country_names := set(v) - set(countries.names):
@@ -291,7 +291,7 @@ class RegionCode(Code):
         return v
 
     @field_validator("iso3_codes")
-    def check_iso3_codes(cls, v: List[str], info: ValidationInfo) -> List[str]:
+    def check_iso3_codes(cls, v: list[str], info: ValidationInfo) -> list[str]:
         """Verifies that each ISO3 code is valid according to pycountry library."""
         errors = ErrorCollector()
         if invalid_iso3_codes := [
@@ -315,9 +315,9 @@ class MetaCode(Code):
 
     Attributes
     ----------
-    allowed_values : Optional(list[any])
+    allowed_values : list[Any], optional
         An optional list of allowed values
 
     """
 
-    allowed_values: List[Any] | None = None
+    allowed_values: list[Any] | None = None
