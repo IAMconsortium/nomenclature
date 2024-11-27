@@ -358,7 +358,7 @@ def test_RegionCodeList_filter():
 
 
 def test_RegionCodeList_hierarchy():
-    """Verifies that the hierarchy method returns a List[str]"""
+    """Verifies that the hierarchy method returns a list[str]"""
 
     rcl = RegionCodeList.from_directory(
         "Region", MODULE_TEST_DATA_DIR / "region_to_filter_codelist"

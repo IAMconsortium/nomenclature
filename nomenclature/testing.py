@@ -1,6 +1,5 @@
 import logging
 from pathlib import Path
-from typing import List, Optional
 
 import yaml
 
@@ -55,7 +54,7 @@ def assert_valid_yaml(path: Path):
 def _check_mappings(
     path: Path,
     dsd: DataStructureDefinition,
-    mappings: Optional[str] = None,
+    mappings: str | None = None,
 ) -> None:
     if mappings is None:
         if (path / "mappings").is_dir():
@@ -86,7 +85,7 @@ def _check_processor_directory(
     dsd: DataStructureDefinition,
     processor: Processor,
     processor_arg: str,
-    folder: Optional[str] = None,
+    folder: str | None = None,
 ) -> None:
     if folder is None:
         if (path / processor_arg).is_dir():
@@ -102,10 +101,10 @@ def _check_processor_directory(
 def assert_valid_structure(
     path: Path,
     definitions: str = "definitions",
-    mappings: Optional[str] = None,
-    required_data: Optional[str] = None,
-    validate_data: Optional[str] = None,
-    dimensions: Optional[List[str]] = None,
+    mappings: str | None = None,
+    required_data: str | None = None,
+    validate_data: str | None = None,
+    dimensions: list[str] | None = None,
 ) -> None:
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
 
@@ -123,7 +122,7 @@ def assert_valid_structure(
     validate_data : str, optional
         Name of the folder for data validation criteria, defaults to "validate_date"
         (if this folder exists)
-    dimensions : List[str], optional
+    dimensions : list[str], optional
         Dimensions to be checked, defaults to all sub-folders of `definitions`
 
     Notes

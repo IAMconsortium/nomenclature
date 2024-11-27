@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 from textwrap import indent
-from typing import ClassVar, Dict, List
+from typing import ClassVar
 
 import numpy as np
 import pandas as pd
@@ -34,7 +34,7 @@ class CodeList(BaseModel):
     """
 
     name: str
-    mapping: Dict[str, Code] = {}
+    mapping: dict[str, Code] = {}
 
     # class variable
     validation_schema: ClassVar[str] = "generic"
@@ -46,8 +46,8 @@ class CodeList(BaseModel):
     @field_validator("mapping")
     @classmethod
     def check_stray_tag(
-        cls, v: Dict[str, Code], info: ValidationInfo
-    ) -> Dict[str, Code]:
+        cls, v: dict[str, Code], info: ValidationInfo
+    ) -> dict[str, Code]:
         """Check that no stray tags are left in codes after tag replacement"""
         forbidden = ["{", "}"]
 
@@ -75,8 +75,8 @@ class CodeList(BaseModel):
     @field_validator("mapping")
     @classmethod
     def check_end_whitespace(
-        cls, v: Dict[str, Code], info: ValidationInfo
-    ) -> Dict[str, Code]:
+        cls, v: dict[str, Code], info: ValidationInfo
+    ) -> dict[str, Code]:
         """Check that no code ends with a whitespace"""
         for code in v:
             if code.endswith(" "):
@@ -127,7 +127,7 @@ class CodeList(BaseModel):
             return False
         return True
 
-    def validate_items(self, items: List[str]) -> List[str]:
+    def validate_items(self, items: list[str]) -> list[str]:
         """Validate that a list of items are valid codes
 
         Returns
@@ -140,9 +140,9 @@ class CodeList(BaseModel):
 
     @classmethod
     def replace_tags(
-        cls, code_list: List[Code], tag_name: str, tags: List[Code]
-    ) -> List[Code]:
-        _code_list: List[Code] = []
+        cls, code_list: list[Code], tag_name: str, tags: list[Code]
+    ) -> list[Code]:
+        _code_list: list[Code] = []
 
         for code in code_list:
             if "{" + tag_name + "}" in code.name:
@@ -155,15 +155,15 @@ class CodeList(BaseModel):
     @classmethod
     def _parse_and_replace_tags(
         cls,
-        code_list: List[Code],
+        code_list: list[Code],
         path: Path,
         file_glob_pattern: str = "**/*",
-    ) -> List[Code]:
+    ) -> list[Code]:
         """Cast, validate and replace tags into list of codes for one dimension
 
         Parameters
         ----------
-        code_list : List[Code]
+        code_list : list[Code]
             List of Code to modify
         path : :class:`pathlib.Path` or path-like
             Directory with the codelist files
@@ -173,10 +173,10 @@ class CodeList(BaseModel):
 
         Returns
         -------
-        Dict[str, Code] :class: `nomenclature.Code`
+        dict[str, Code] :class: `nomenclature.Code`
 
         """
-        tag_dict: Dict[str, List[Code]] = {}
+        tag_dict: dict[str, list[Code]] = {}
 
         for yaml_file in (
             f
@@ -240,7 +240,7 @@ class CodeList(BaseModel):
             )
             code_list.extend(repo.filter_list_of_codes(repository_code_list))
         errors = ErrorCollector()
-        mapping: Dict[str, Code] = {}
+        mapping: dict[str, Code] = {}
         for code in code_list:
             if code.name in mapping:
                 errors.append(
@@ -301,7 +301,7 @@ class CodeList(BaseModel):
         file_glob_pattern: str = "**/*",
         repository: str | None = None,
     ):
-        code_list: List[Code] = []
+        code_list: list[Code] = []
         for yaml_file in (
             f
             for f in path.glob(file_glob_pattern)
@@ -457,7 +457,7 @@ class CodeList(BaseModel):
             with pd.ExcelWriter(excel_writer, **kwargs) as writer:
                 write_sheet(writer, sheet_name, self.to_pandas(sort_by_code))
 
-    def codelist_repr(self, json_serialized=False) -> Dict:
+    def codelist_repr(self, json_serialized=False) -> dict:
         """Cast a CodeList into corresponding dictionary"""
 
         nice_dict = {}
@@ -590,7 +590,7 @@ class VariableCodeList(CodeList):
             )
         return v
 
-    def vars_default_args(self, variables: List[str]) -> List[VariableCode]:
+    def vars_default_args(self, variables: list[str]) -> list[VariableCode]:
         """return subset of variables which does not feature any special pyam
         aggregation arguments and where skip_region_aggregation is False"""
         return [
@@ -599,7 +599,7 @@ class VariableCodeList(CodeList):
             if not self[var].agg_kwargs and not self[var].skip_region_aggregation
         ]
 
-    def vars_kwargs(self, variables: List[str]) -> List[VariableCode]:
+    def vars_kwargs(self, variables: list[str]) -> list[VariableCode]:
         # return subset of variables which features special pyam aggregation arguments
         # and where skip_region_aggregation is False
         return [
@@ -713,7 +713,7 @@ class RegionCodeList(CodeList):
 
         """
 
-        code_list: List[RegionCode] = []
+        code_list: list[RegionCode] = []
 
         # initializing from general configuration
         # adding all countries
@@ -763,7 +763,7 @@ class RegionCodeList(CodeList):
         )
 
         # translate to mapping
-        mapping: Dict[str, RegionCode] = {}
+        mapping: dict[str, RegionCode] = {}
 
         errors = ErrorCollector()
         for code in code_list:
@@ -783,12 +783,12 @@ class RegionCodeList(CodeList):
         return cls(name=name, mapping=mapping)
 
     @property
-    def hierarchy(self) -> List[str]:
+    def hierarchy(self) -> list[str]:
         """Return the hierarchies defined in the RegionCodeList
 
         Returns
         -------
-        List[str]
+        list[str]
 
         """
         return sorted(list({v.hierarchy for v in self.mapping.values()}))
@@ -799,9 +799,9 @@ class RegionCodeList(CodeList):
         path: Path,
         file_glob_pattern: str = "**/*",
         repository: str | None = None,
-    ) -> List[RegionCode]:
+    ) -> list[RegionCode]:
         """"""
-        code_list: List[RegionCode] = []
+        code_list: list[RegionCode] = []
         for yaml_file in (
             f
             for f in path.glob(file_glob_pattern)
