@@ -60,9 +60,9 @@ class DataValidationCriteriaValue(DataValidationCriteria):
             exclude_unset=True,
             exclude=["warning_level", "lower_bound", "upper_bound"],
         )
-      
 
-class DataValidationCriteriaBounds(IamcDataFilter):
+
+class DataValidationCriteriaBounds(DataValidationCriteria):
     upper_bound: float | None = None
     lower_bound: float | None = None
 
