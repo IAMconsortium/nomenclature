@@ -2,7 +2,6 @@ import logging
 import textwrap
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Union
 
 import yaml
 from pyam import IamDataFrame
@@ -61,11 +60,11 @@ class DataValidationCriteriaValue(DataValidationCriteria):
             exclude_unset=True,
             exclude=["warning_level", "lower_bound", "upper_bound"],
         )
+      
 
-
-class DataValidationCriteriaBounds(DataValidationCriteria):
-    upper_bound: Optional[float] = None
-    lower_bound: Optional[float] = None
+class DataValidationCriteriaBounds(IamcDataFilter):
+    upper_bound: float | None = None
+    lower_bound: float | None = None
 
     @model_validator(mode="after")
     def check_validation_criteria_exist(self):
@@ -89,7 +88,7 @@ class DataValidationCriteriaBounds(DataValidationCriteria):
 class DataValidator(Processor):
     """Processor for validating IAMC datapoints"""
 
-    criteria_items: List[DataValidationCriteriaBounds | DataValidationCriteriaValue]
+    criteria_items: list[DataValidationCriteriaBounds | DataValidationCriteriaValue]
     file: Path
 
     @field_validator("criteria_items", mode="before")
@@ -104,7 +103,7 @@ class DataValidator(Processor):
         return v
 
     @classmethod
-    def from_file(cls, file: Union[Path, str]) -> "DataValidator":
+    def from_file(cls, file: Path | str) -> "DataValidator":
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
         return cls(file=file, criteria_items=content)

@@ -1,4 +1,3 @@
-from typing import List
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from pyam import IAMC_IDX
@@ -9,12 +8,12 @@ from nomenclature.definition import DataStructureDefinition
 class IamcDataFilter(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    model: List[str] | None = None
-    scenario: List[str] | None = None
-    region: List[str] | None = None
-    variable: List[str] | None = None
-    unit: List[str] | None = None
-    year: List[int] | None = None
+    model: list[str] | None = None
+    scenario: list[str] | None = None
+    region: list[str] | None = None
+    variable: list[str] | None = None
+    unit: list[str] | None = None
+    year: list[int] | None = None
 
     @field_validator(*IAMC_IDX + ["year"], mode="before")
     @classmethod

@@ -256,6 +256,26 @@ def test_mapping_from_external_repository():
         clean_up_external_repos(dsd.config.repositories)
 
 
+def test_mapping_from_external_repository_missing_regions_raises():
+    try:
+        with pytest.raises(
+            pydantic.ValidationError,
+            match="validation errors for RegionProcessor",
+        ):
+            RegionProcessor.from_directory(
+                TEST_FOLDER_REGION_PROCESSING
+                / "external_repo_test_missing_region"
+                / "mappings",
+                dsd := DataStructureDefinition(
+                    TEST_FOLDER_REGION_PROCESSING
+                    / "external_repo_test_missing_region"
+                    / "definitions"
+                ),
+            )
+    finally:
+        clean_up_external_repos(dsd.config.repositories)
+
+
 def test_reverse_region_aggregation():
     processor = RegionProcessor.from_directory(
         TEST_FOLDER_REGION_PROCESSING / "complete_processing_list",

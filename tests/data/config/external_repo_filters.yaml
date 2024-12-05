@@ -1,0 +1,20 @@
+repositories:
+  common-definitions:
+    url: https://github.com/IAMconsortium/common-definitions.git/
+definitions:
+  variable:
+    repository:
+      name: common-definitions
+      include:
+        - name: [Primary Energy*, Final Energy*]
+        - name: "Population*"
+          tier: 1
+      exclude:
+        - name: "Final Energy|*|*"
+  region:
+    repository:
+      name: common-definitions
+      include:
+        - hierarchy: R5
+      exclude:
+        - name: Other (R5)
