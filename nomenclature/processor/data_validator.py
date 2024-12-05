@@ -22,10 +22,11 @@ class WarningEnum(str, Enum):
     high = "high"
     medium = "medium"
     low = "low"
+    error = "error"
 
 
 class DataValidationCriteria(IamcDataFilter):
-    warning_level: WarningEnum | None = None
+    warning_level: WarningEnum = WarningEnum.error
 
 
 class DataValidationCriteriaValue(DataValidationCriteria):
@@ -109,37 +110,37 @@ class DataValidator(Processor):
         return cls(file=file, criteria_items=content)
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
-        error_list = []
-        warning_list = []
+        fail_list = []
+        error = False
 
-        with adjust_log_level(level="WARNING"):
+        with adjust_log_level():
             for item in self.criteria_items:
                 failed_validation = df.validate(**item.validation_args)
                 if failed_validation is not None:
                     criteria_msg = "  Criteria: " + ", ".join(
                         [f"{key}: {value}" for key, value in item.criteria.items()]
                     )
-                    if item.warning_level:
-                        log_list = warning_list
-                        failed_validation["warning_level"] = item.warning_level.value
-                    else:
-                        log_list = error_list
-                    log_list.append(criteria_msg)
-                    log_list.append(
+                    failed_validation["warning_level"] = item.warning_level.value
+                    if item.warning_level == WarningEnum.error:
+                        error = True
+                    fail_list.append(criteria_msg)
+                    fail_list.append(
                         textwrap.indent(str(failed_validation), prefix="    ") + "\n"
                     )
             fail_msg = "(file %s):\n" % get_relative_path(self.file)
-            if error_list:
-                fail_msg = "Failed data validation " + fail_msg + "\n".join(error_list)
+            if error:
+                fail_msg = (
+                    "Data validation with error(s)/warning(s) "
+                    + fail_msg
+                    + "\n".join(fail_list)
+                )
                 logger.error(fail_msg)
                 raise ValueError(
                     "Data validation failed. Please check the log for details."
                 )
-            if warning_list:
+            if fail_list:
                 fail_msg = (
-                    "Data validation with warning(s) "
-                    + fail_msg
-                    + "\n".join(warning_list)
+                    "Data validation with warning(s) " + fail_msg + "\n".join(fail_list)
                 )
                 logger.warning(fail_msg)
         return df

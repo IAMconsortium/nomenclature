@@ -102,20 +102,25 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
     data_file = DATA_VALIDATION_TEST_DIR / f"validate_data_fails_{file}.yaml"
     data_validator = DataValidator.from_file(data_file)
 
-    failed_validation_message = f"""Failed data validation (file {data_file.relative_to(Path.cwd())}):
+    failed_validation_message = (
+        "Data validation with error(s)/warning(s) "
+        f"""(file {data_file.relative_to(Path.cwd())}):
   Criteria: variable: ['Primary Energy'], {item_1}
-         model scenario region        variable   unit  year  value
-    0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0
-    1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0
+         model scenario region        variable   unit  year  value warning_level
+    0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0         error
+    1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error
 
   Criteria: variable: ['Primary Energy|Coal'], {item_2}
-         model scenario region             variable   unit  year  value
-    0  model_a   scen_a  World  Primary Energy|Coal  EJ/yr  2005    0.5
+         model scenario region  ...  year value  warning_level
+    0  model_a   scen_a  World  ...  2005   0.5          error
+
+    [1 rows x 8 columns]
 
   Criteria: variable: ['Primary Energy'], year: [2005], {item_3}
-         model scenario region        variable   unit  year  value
-    0  model_a   scen_a  World  Primary Energy  EJ/yr  2005    1.0
-    1  model_a   scen_b  World  Primary Energy  EJ/yr  2005    2.0"""
+         model scenario region        variable   unit  year  value warning_level
+    0  model_a   scen_a  World  Primary Energy  EJ/yr  2005    1.0         error
+    1  model_a   scen_b  World  Primary Energy  EJ/yr  2005    2.0         error"""
+    )
 
     with pytest.raises(ValueError, match="Data validation failed"):
         data_validator.apply(simple_df)
@@ -128,13 +133,22 @@ def test_DataValidator_validate_with_warning(simple_df, caplog):
     data_validator = DataValidator.from_file(
         DATA_VALIDATION_TEST_DIR / "validate_warning.yaml"
     )
-    data_validator.apply(simple_df)
+    with pytest.raises(ValueError, match="Data validation failed"):
+        data_validator.apply(simple_df)
 
-    failed_validation_message = "Data validation with warning(s)"
-    f"""(file {(DATA_VALIDATION_TEST_DIR / "validate_warning.yaml").relative_to(Path.cwd())}):
+    failed_validation_message = (
+        "Data validation with error(s)/warning(s) "
+        f"""(file {(DATA_VALIDATION_TEST_DIR / "validate_warning.yaml").relative_to(Path.cwd())}):
   Criteria: variable: ['Primary Energy'], year: [2010], upper_bound: 2.5, lower_bound: 1.0
-        model scenario region        variable   unit  year  value warning_level
+         model scenario region        variable   unit  year  value warning_level
     0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0           low
-    1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0           low"""
+    1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0           low
 
+  Criteria: variable: ['Primary Energy'], year: [2010], upper_bound: 5.0, lower_bound: 1.0
+         model scenario region        variable   unit  year  value warning_level
+    0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0         error
+    1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error"""
+    )
+
+    # only prints two of three criteria in df to be validated
     assert failed_validation_message in caplog.text
