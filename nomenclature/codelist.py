@@ -334,7 +334,7 @@ class CodeList(BaseModel):
 
         return cls(name=name, mapping=mapp)
 
-    def check_illegal_characters(self, config: NomenclatureConfig) -> Dict[str, Code]:
+    def check_illegal_characters(self, config: NomenclatureConfig) -> dict[str, Code]:
         """Check that no illegal characters are left in codes after tag replacement"""
         illegal = (
             ["{", "}"] + config.illegal_characters
