@@ -107,13 +107,13 @@ class CodeListConfig(BaseModel):
 
 class RegionCodeListConfig(CodeListConfig):
     country: bool = False
-    nuts: dict[str, str | list[str]] | None = None
+    nuts: dict[str, str | list[str] | bool] | None = None
 
     @field_validator("nuts")
     @classmethod
     def check_nuts(
-        cls, v: dict[str, str | list[str]] | None
-    ) -> dict[str, str | list[str]] | None:
+        cls, v: dict[str, str | list[str] | bool] | None
+    ) -> dict[str, str | list[str] | bool] | None:
         if v and not all(k in ["nuts-1", "nuts-2", "nuts-3"] for k in v.keys()):
             raise ValueError(
                 "Invalid fields for `nuts` in configuration. "

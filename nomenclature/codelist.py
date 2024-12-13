@@ -733,11 +733,16 @@ class RegionCodeList(CodeList):
         # adding nuts regions
         if config.definitions.region.nuts:
             for level, countries in config.definitions.region.nuts.items():
-                for nuts_region in nuts.get(
-                    level=int(level[-1]), country_code=countries
-                ):
+                if countries is True:
+                    region_list = nuts.get(level=int(level[-1]))
+                else:
+                    region_list = nuts.get(level=int(level[-1]), country_code=countries)
+                for r in region_list:
                     code_list.append(
-                        RegionCode(name=nuts_region.code, hierarchy="NUTS 2021-2024")
+                        RegionCode(
+                            name=r.code,
+                            hierarchy=f"NUTS {level[-1]} regions (2021-2024)",
+                        )
                     )
 
         # importing from an external repository

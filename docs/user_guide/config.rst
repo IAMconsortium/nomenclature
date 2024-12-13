@@ -126,12 +126,12 @@ By setting *definitions.region.nuts* (optional) in the configuration file:
       nuts:
         nuts-1: [ AT, BE, CZ ]
         nuts-2: [ AT ]
-        nuts-3: [ AT, BE ]
+        nuts-3: true
 
 the nomenclature package will add the selected NUTS regions to the *region* codelist.
 
-In the example above, the package will add all NUTS (1, 2, and 3) for Austria,
-NUTS 1 and 3 for Belgium, and NUTS 1 for Czechia.
+In the example above, the package will add: NUTS 1 regions for Austria, Belgium
+and Czechia, NUTS 2 regions for Austria, NUTS 3 regions for all EU countries.
 
 More details on the list of NUTS regions can be found here: :ref:`nuts`.
 
