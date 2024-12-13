@@ -70,7 +70,9 @@ def test_definition_general_config_nuts_only():
     obs = DataStructureDefinition(
         TEST_DATA_DIR / "config" / "general-config-only-nuts" / "definitions"
     )
+    # check country codes
     assert all(region[:2] in ("AT", "BE", "CZ") for region in obs.region)
+    # check region import
     assert len([region for region in obs.region if region.startswith("AT")]) == 4
     assert len([region for region in obs.region if region.startswith("BE")]) == 12
     assert len([region for region in obs.region if region.startswith("CZ")]) == 15

@@ -22,4 +22,4 @@ of the main branch.
 
 .. code-block:: bash
 
-    pip install -e git+https://github.com/IAMconsortium/nomenclature@main#egg=nomenclature
+    pip install -e git+https://github.com/IAMconsortium/nomenclature@main#egg=nomenclature-iamc

@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List, Optional
 import importlib.util
 import sys
 
@@ -55,10 +54,10 @@ def cli_valid_yaml(path: Path):
 def cli_valid_project(
     path: Path,
     definitions: str,
-    mappings: Optional[str],
-    required_data: Optional[str],
-    validate_data: Optional[str],
-    dimensions: Optional[List[str]],
+    mappings: str | None,
+    required_data: str | None,
+    validate_data: str | None,
+    dimensions: list[str] | None,
 ):
     """Assert that `path` is a valid project nomenclature
 
@@ -74,7 +73,7 @@ def cli_valid_project(
         Name of folder for 'required data' criteria, default to "required_data"
     validate_data: str, optional
         Name of folder for data validation criteria, default to "validate_data"
-    dimensions : List[str], optional
+    dimensions : list[str], optional
         Dimensions to be checked, defaults to all sub-folders of `definitions`
 
     Example
@@ -125,8 +124,8 @@ def check_region_aggregation(
     workflow_directory: Path,
     definitions: str,
     mappings: str,
-    processed_data: Optional[Path],
-    differences: Optional[Path],
+    processed_data: Path | None,
+    differences: Path | None,
 ):
     """Perform region processing and compare aggregated and original data
 
@@ -141,10 +140,10 @@ def check_region_aggregation(
         Definitions folder inside workflow_directory, by default "definitions"
     mappings : str
         Model mapping folder inside workflow_directory, by default "mappings"
-    processed_data : Optional[Path]
+    processed_data : Path, optional
         If given, exports the results from region processing to a file called
         `processed_data`, by default "results.xlsx"
-    differences : Optional[Path]
+    differences : Path, optional
         If given, exports the differences between aggregated and model native data to a
         file called `differences`, by default None
 
@@ -295,7 +294,7 @@ def cli_run_workflow(
     multiple=True,
     default=None,
 )
-def cli_validate_scenarios(input_file: Path, definitions: Path, dimensions: List[str]):
+def cli_validate_scenarios(input_file: Path, definitions: Path, dimensions: list[str]):
     """Validate a scenario file against the codelists of a project
 
     Example
@@ -312,7 +311,7 @@ def cli_validate_scenarios(input_file: Path, definitions: Path, dimensions: List
         Input data file, must be IAMC format, .xlsx or .csv
     definitions : Path
         Definitions folder with codelists, by default "definitions"
-    dimensions : List[str], optional
+    dimensions : list[str], optional
         Dimensions to be checked, defaults to all sub-folders of `definitions`
 
     Raises

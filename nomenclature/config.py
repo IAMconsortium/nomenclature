@@ -1,6 +1,7 @@
 from enum import Enum
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Any
+import re
 
 import yaml
 from git import Repo
@@ -11,28 +12,93 @@ from pydantic import (
     field_validator,
     model_validator,
     ConfigDict,
-    BeforeValidator,
 )
+from nomenclature.code import Code
+from pyam.str import escape_regexp
 
 
-def convert_to_set(v: str | list[str] | set[str]) -> set[str]:
-    match v:
-        case set(v):
-            return v
-        case list(v):
-            return set(v)
-        case str(v):
-            return {v}
-        case _:
-            raise TypeError("`repositories` must be of type str, list or set.")
+class CodeListFromRepository(BaseModel):
+    name: str
+    include: list[dict[str, Any]] = [{"name": "*"}]
+    exclude: list[dict[str, Any]] = Field(default_factory=list)
+
+    def filter_function(self, code: Code, filter: dict[str, Any], keep: bool):
+        # if is list -> recursive
+        # if is str -> escape all special characters except "*" and use a regex
+        # if is int -> match exactly
+        # if is None -> Attribute does not exist therefore does not match
+        def check_attribute_match(code_value, filter_value):
+            if isinstance(filter_value, int):
+                return code_value == filter_value
+            if isinstance(filter_value, str):
+                pattern = re.compile(escape_regexp(filter_value) + "$")
+                return re.match(pattern, code_value) is not None
+            if isinstance(filter_value, list):
+                return any(
+                    check_attribute_match(code_value, value) for value in filter_value
+                )
+            if filter_value is None:
+                return False
+            raise ValueError("Something went wrong with the filtering")
+
+        filter_match = all(
+            check_attribute_match(getattr(code, attribute, None), value)
+            for attribute, value in filter.items()
+        )
+        if keep:
+            return filter_match
+        else:
+            return not filter_match
+
+    def filter_list_of_codes(self, list_of_codes: list[Code]) -> list[Code]:
+        # include first
+        filter_result = [
+            code
+            for code in list_of_codes
+            if any(
+                self.filter_function(
+                    code,
+                    filter,
+                    keep=True,
+                )
+                for filter in self.include
+            )
+        ]
+
+        if self.exclude:
+            filter_result = [
+                code
+                for code in filter_result
+                if any(
+                    self.filter_function(code, filter, keep=False)
+                    for filter in self.exclude
+                )
+            ]
+
+        return filter_result
 
 
 class CodeListConfig(BaseModel):
     dimension: str | None = None
-    repositories: Annotated[set[str], BeforeValidator(convert_to_set)] = Field(
-        default_factory=set, alias="repository"
+    repositories: list[CodeListFromRepository] = Field(
+        default_factory=list, alias="repository"
     )
     model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator("repositories", mode="before")
+    @classmethod
+    def add_name_if_necessary(cls, v: list):
+        return [
+            {"name": repository} if isinstance(repository, str) else repository
+            for repository in v
+        ]
+
+    @field_validator("repositories", mode="before")
+    @classmethod
+    def convert_to_list_of_repos(cls, v):
+        if not isinstance(v, list):
+            return [v]
+        return v
 
     @property
     def repository_dimension_path(self) -> str:
@@ -41,13 +107,13 @@ class CodeListConfig(BaseModel):
 
 class RegionCodeListConfig(CodeListConfig):
     country: bool = False
-    nuts: dict[str, str | list[str]] | None = None
+    nuts: dict[str, str | list[str] | bool] | None = None
 
     @field_validator("nuts")
     @classmethod
     def check_nuts(
-        cls, v: dict[str, str | list[str]] | None
-    ) -> dict[str, str | list[str]] | None:
+        cls, v: dict[str, str | list[str] | bool] | None
+    ) -> dict[str, str | list[str] | bool] | None:
         if v and not all(k in ["nuts-1", "nuts-2", "nuts-3"] for k in v.keys()):
             raise ValueError(
                 "Invalid fields for `nuts` in configuration. "
@@ -122,10 +188,10 @@ class DataStructureConfig(BaseModel):
 
     """
 
-    model: Optional[CodeListConfig] = Field(default_factory=CodeListConfig)
-    scenario: Optional[CodeListConfig] = Field(default_factory=CodeListConfig)
-    region: Optional[RegionCodeListConfig] = Field(default_factory=RegionCodeListConfig)
-    variable: Optional[CodeListConfig] = Field(default_factory=CodeListConfig)
+    model: CodeListConfig = Field(default_factory=CodeListConfig)
+    scenario: CodeListConfig = Field(default_factory=CodeListConfig)
+    region: RegionCodeListConfig = Field(default_factory=RegionCodeListConfig)
+    variable: CodeListConfig = Field(default_factory=CodeListConfig)
 
     @field_validator("model", "scenario", "region", "variable", mode="before")
     @classmethod
@@ -141,11 +207,29 @@ class DataStructureConfig(BaseModel):
         }
 
 
+class MappingRepository(BaseModel):
+    name: str
+
+
 class RegionMappingConfig(BaseModel):
-    repositories: Annotated[set[str], BeforeValidator(convert_to_set)] = Field(
-        default_factory=set, alias="repository"
+    repositories: list[MappingRepository] = Field(
+        default_factory=list, alias="repository"
     )
     model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator("repositories", mode="before")
+    @classmethod
+    def add_name_if_necessary(cls, v: list):
+        return [
+            {"name": repository} if isinstance(repository, str) else repository
+            for repository in v
+        ]
+
+    @field_validator("repositories", mode="before")
+    def convert_to_set_of_repos(cls, v):
+        if not isinstance(v, list):
+            return [v]
+        return v
 
 
 class DimensionEnum(str, Enum):
@@ -179,8 +263,9 @@ class NomenclatureConfig(BaseModel):
         mapping_repos = {"mappings": v.mappings.repositories} if v.mappings else {}
         repos = {**v.definitions.repos, **mapping_repos}
         for use, repositories in repos.items():
-            if repositories - v.repositories.keys():
-                raise ValueError((f"Unknown repository {repositories} in '{use}'."))
+            repository_names = [repository.name for repository in repositories]
+            if unknown_repos := repository_names - v.repositories.keys():
+                raise ValueError((f"Unknown repository {unknown_repos} in '{use}'."))
         return v
 
     def fetch_repos(self, target_folder: Path):

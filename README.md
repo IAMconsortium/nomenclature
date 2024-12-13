@@ -63,7 +63,7 @@ pip install nomenclature-iamc
 Alternatively, it can also be installed directly from source:
 
 ```bash
-pip install -e git+https://github.com/IAMconsortium/nomenclature#egg=nomenclature
+pip install -e git+https://github.com/IAMconsortium/nomenclature#egg=nomenclature-iamc
 ```
 
 See the [User Guide](https://nomenclature-iamc.readthedocs.io/en/latest/user_guide.html)

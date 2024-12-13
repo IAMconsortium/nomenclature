@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, List, Tuple, Union, Annotated
+from typing import Any, Annotated
 
 import pandas as pd
 import yaml
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class RequiredMeasurand(BaseModel):
     variable: str
-    unit: List[Union[str, None]] = Field(...)
+    unit: list[str | None] = Field(...)
 
     @field_validator("unit", mode="before")
     @classmethod
@@ -43,12 +43,12 @@ def cast_to_RequiredMeasurand(v) -> RequiredMeasurand:
 
 class RequiredData(BaseModel):
     measurand: (
-        List[Annotated[RequiredMeasurand, BeforeValidator(cast_to_RequiredMeasurand)]]
+        list[Annotated[RequiredMeasurand, BeforeValidator(cast_to_RequiredMeasurand)]]
         | None
     ) = None
-    variable: List[str] | None = None
-    region: List[str] | None = None
-    year: List[int] | None = None
+    variable: list[str] | None = None
+    region: list[str] | None = None
+    year: list[int] | None = None
     # TODO consider merging with IamcDataFilter
 
     @field_validator("measurand", "region", "year", "variable", mode="before")
@@ -99,13 +99,13 @@ class RequiredData(BaseModel):
             raise ValueError(error_msg)
 
     @property
-    def variables(self) -> List[str]:
+    def variables(self) -> list[str]:
         if self.measurand is not None:
             return [m.variable for m in self.measurand]
         return self.variable
 
     @property
-    def pyam_required_data_list(self) -> List[List[dict]]:
+    def pyam_required_data_list(self) -> list[list[dict]]:
         if self.measurand is not None:
             return [
                 [
@@ -132,8 +132,8 @@ class RequiredData(BaseModel):
 
     def _wrong_unit_variables(
         self, dsd: DataStructureDefinition
-    ) -> List[Tuple[str, str, str]]:
-        wrong_units: List[Tuple[str, Any, Any]] = []
+    ) -> list[tuple[str, str, str]]:
+        wrong_units: list[tuple[str, Any, Any]] = []
         if hasattr(dsd, "variable") and self.measurand is not None:
             wrong_units.extend(
                 (m.variable, unit, dsd.variable[m.variable].unit)
@@ -148,8 +148,8 @@ class RequiredData(BaseModel):
 
 class RequiredDataValidator(Processor):
     description: str | None = None
-    model: List[str] | None = None
-    required_data: List[RequiredData]
+    model: list[str] | None = None
+    required_data: list[RequiredData]
     file: Path
 
     @field_validator("model", mode="before")
@@ -158,7 +158,7 @@ class RequiredDataValidator(Processor):
         return pyam.utils.to_list(v)
 
     @classmethod
-    def from_file(cls, file: Union[Path, str]) -> "RequiredDataValidator":
+    def from_file(cls, file: Path | str) -> "RequiredDataValidator":
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
         return cls(file=file, **content)
@@ -195,7 +195,7 @@ class RequiredDataValidator(Processor):
 
     def check_required_data_per_model(
         self, df: IamDataFrame, model: str
-    ) -> List[pyam.IamDataFrame]:
+    ) -> list[pyam.IamDataFrame]:
         model_df = df.filter(model=model)
         missing_data = []
         for requirement in self.required_data:

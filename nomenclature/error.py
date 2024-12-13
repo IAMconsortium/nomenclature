@@ -1,7 +1,6 @@
 import logging
 import textwrap
 from collections import namedtuple
-from typing import Optional
 
 pydantic_custom_error_config = {
     "RegionNameCollisionError": (
@@ -49,7 +48,7 @@ custom_pydantic_errors = PydanticCustomErrors(**pydantic_custom_error_config)
 
 class ErrorCollector:
     errors: list[Exception]
-    description: Optional[str] = None
+    description: str | None = None
 
     def __init__(self, description: str = None) -> None:
         self.errors = []

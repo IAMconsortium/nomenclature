@@ -378,7 +378,8 @@ def test_RegionCodeList_filter():
 
 
 def test_RegionCodeList_hierarchy():
-    """Verifies that the hierarchy method returns a List[str]"""
+    """Verifies that the hierarchy method returns a list"""
+
 
     rcl = RegionCodeList.from_directory(
         "Region", MODULE_TEST_DATA_DIR / "region_to_filter_codelist"
@@ -508,3 +509,56 @@ def test_variablecodelist_list_missing_variables_to_new_file(simple_df, tmp_path
     }
 
     assert obs.mapping == exp
+
+
+def test_variable_code_list_external_repo_with_filters():
+    nomenclature_config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "config" / "external_repo_filters.yaml"
+    )
+    try:
+        variable_code_list = VariableCodeList.from_directory(
+            "variable",
+            TEST_DATA_DIR / "nomenclature_configs" / "variable",
+            nomenclature_config,
+        )
+        exp_included_variables = [
+            "Final Energy",
+            "Population",
+            "Primary Energy|Oil|Hydrogen|w/ CCS",
+        ]
+        exp_excluded_variables = [
+            "Final Energy|Agriculture|Electricity",  # no third level Final Energy
+            "Population|Clean Cooking Access",  # only tier 1 Population
+        ]
+        assert all(
+            variable in variable_code_list for variable in exp_included_variables
+        )
+        assert all(
+            variable not in variable_code_list for variable in exp_excluded_variables
+        )
+    finally:
+        clean_up_external_repos(nomenclature_config.repositories)
+
+
+def test_region_code_list_external_repo_with_filters():
+    nomenclature_config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "config" / "external_repo_filters.yaml"
+    )
+    try:
+        region_code_list = RegionCodeList.from_directory(
+            "region",
+            TEST_DATA_DIR / "config" / "variable",
+            nomenclature_config,
+        )
+        R5_regions = [
+            "OECD & EU (R5)",
+            "Reforming Economies (R5)",
+            "Asia (R5)",
+            "Middle East & Africa (R5)",
+            "Latin America (R5)",
+        ]
+        assert len(region_code_list) == 5
+        assert all(r5_region in region_code_list for r5_region in R5_regions)
+        assert "Other (R5)" not in region_code_list
+    finally:
+        clean_up_external_repos(nomenclature_config.repositories)

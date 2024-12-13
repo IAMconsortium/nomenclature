@@ -1,7 +1,7 @@
 import logging
 import textwrap
+from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Union
 
 import yaml
 from pyam import IamDataFrame
@@ -17,7 +17,18 @@ from nomenclature.processor.utils import get_relative_path
 logger = logging.getLogger(__name__)
 
 
-class DataValidationCriteriaValue(IamcDataFilter):
+class WarningEnum(str, Enum):
+    high = "high"
+    medium = "medium"
+    low = "low"
+    error = "error"
+
+
+class DataValidationCriteria(IamcDataFilter):
+    warning_level: WarningEnum = WarningEnum.error
+
+
+class DataValidationCriteriaValue(DataValidationCriteria):
     value: float
     rtol: float = 0.0
     atol: float = 0.0
@@ -39,7 +50,7 @@ class DataValidationCriteriaValue(IamcDataFilter):
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
-            exclude=["value", "rtol", "atol"],
+            exclude=["warning_level", "value", "rtol", "atol"],
         )
 
     @property
@@ -47,13 +58,13 @@ class DataValidationCriteriaValue(IamcDataFilter):
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
-            exclude=["lower_bound", "upper_bound"],
+            exclude=["warning_level", "lower_bound", "upper_bound"],
         )
 
 
-class DataValidationCriteriaBounds(IamcDataFilter):
-    upper_bound: Optional[float] = None
-    lower_bound: Optional[float] = None
+class DataValidationCriteriaBounds(DataValidationCriteria):
+    upper_bound: float | None = None
+    lower_bound: float | None = None
 
     @model_validator(mode="after")
     def check_validation_criteria_exist(self):
@@ -65,11 +76,19 @@ class DataValidationCriteriaBounds(IamcDataFilter):
     def validation_args(self):
         return self.criteria
 
+    @property
+    def criteria(self):
+        return self.model_dump(
+            exclude_none=True,
+            exclude_unset=True,
+            exclude=["warning_level"],
+        )
+
 
 class DataValidator(Processor):
     """Processor for validating IAMC datapoints"""
 
-    criteria_items: List[DataValidationCriteriaBounds | DataValidationCriteriaValue]
+    criteria_items: list[DataValidationCriteriaBounds | DataValidationCriteriaValue]
     file: Path
 
     @field_validator("criteria_items", mode="before")
@@ -84,37 +103,45 @@ class DataValidator(Processor):
         return v
 
     @classmethod
-    def from_file(cls, file: Union[Path, str]) -> "DataValidator":
+    def from_file(cls, file: Path | str) -> "DataValidator":
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
         return cls(file=file, criteria_items=content)
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
-        error_list = []
+        fail_list = []
+        error = False
 
         with adjust_log_level():
             for item in self.criteria_items:
                 failed_validation = df.validate(**item.validation_args)
                 if failed_validation is not None:
-                    error_list.append(
-                        "  Criteria: "
-                        + ", ".join(
-                            [f"{key}: {value}" for key, value in item.criteria.items()]
-                        )
+                    criteria_msg = "  Criteria: " + ", ".join(
+                        [f"{key}: {value}" for key, value in item.criteria.items()]
                     )
-                    error_list.append(
+                    failed_validation["warning_level"] = item.warning_level.value
+                    if item.warning_level == WarningEnum.error:
+                        error = True
+                    fail_list.append(criteria_msg)
+                    fail_list.append(
                         textwrap.indent(str(failed_validation), prefix="    ") + "\n"
                     )
-
-            if error_list:
-                logger.error(
-                    "Failed data validation (file %s):\n%s",
-                    get_relative_path(self.file),
-                    "\n".join(error_list),
+            fail_msg = "(file %s):\n" % get_relative_path(self.file)
+            if error:
+                fail_msg = (
+                    "Data validation with error(s)/warning(s) "
+                    + fail_msg
+                    + "\n".join(fail_list)
                 )
+                logger.error(fail_msg)
                 raise ValueError(
                     "Data validation failed. Please check the log for details."
                 )
+            if fail_list:
+                fail_msg = (
+                    "Data validation with warning(s) " + fail_msg + "\n".join(fail_list)
+                )
+                logger.warning(fail_msg)
         return df
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:

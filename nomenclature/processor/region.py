@@ -1,7 +1,6 @@
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
 
 import numpy as np
@@ -42,12 +41,12 @@ class NativeRegion(BaseModel):
     ----------
     name : str
         Name of the model native region.
-    rename: Optional[str]
+    rename: str, optional
         Optional second name that the region will be renamed to.
     """
 
     name: str
-    rename: Optional[str] = None
+    rename: str | None = None
 
     @property
     def target_native_region(self) -> str:
@@ -74,7 +73,7 @@ class CommonRegion(BaseModel):
     """
 
     name: str
-    constituent_regions: List[str]
+    constituent_regions: list[str]
 
     @property
     def is_single_constituent_region(self):
@@ -102,17 +101,17 @@ class RegionAggregationMapping(BaseModel):
         Name of the model for which RegionAggregationMapping is defined.
     file: FilePath
         File path of the mapping file. Saved mostly for error reporting purposes.
-    native_regions: Optional[List[NativeRegion]]
+    native_regions: list[NativeRegion], optional
         Optionally, list of model native regions to select and potentially rename.
-    common_regions: Optional[List[CommonRegion]]
+    common_regions: list[CommonRegion], optional
         Optionally, list of common regions where aggregation will be performed.
     """
 
-    model: List[str]
+    model: list[str]
     file: FilePath
-    native_regions: List[NativeRegion] | None = None
-    common_regions: List[CommonRegion] | None = None
-    exclude_regions: List[str] | None = None
+    native_regions: list[NativeRegion] | None = None
+    common_regions: list[CommonRegion] | None = None
+    exclude_regions: list[str] | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -234,12 +233,12 @@ class RegionAggregationMapping(BaseModel):
         return _check_exclude_region_overlap(v, "common_regions")
 
     @classmethod
-    def from_file(cls, file: Union[Path, str]):
+    def from_file(cls, file: Path | str):
         """Initialize a RegionAggregationMapping from a file.
 
         Parameters
         ----------
-        file : Union[Path, str]
+        file : Path | str
             Path to a yaml file which contains region aggregation information for one
             model.
 
@@ -276,7 +275,7 @@ class RegionAggregationMapping(BaseModel):
 
             # Reformat the "native_regions"
             if "native_regions" in mapping_input:
-                native_region_list: List[Dict] = []
+                native_region_list: list[dict] = []
                 for native_region in mapping_input["native_regions"]:
                     if isinstance(native_region, str):
                         native_region_list.append({"name": native_region})
@@ -291,7 +290,7 @@ class RegionAggregationMapping(BaseModel):
 
             # Reformat the "common_regions"
             if "common_regions" in mapping_input:
-                common_region_list: List[Dict[str, List[Dict[str, str]]]] = []
+                common_region_list: list[dict[str, list[dict[str, str]]]] = []
                 for common_region in mapping_input["common_regions"]:
                     common_region_name = list(common_region)[0]
                     common_region_list.append(
@@ -351,34 +350,34 @@ class RegionAggregationMapping(BaseModel):
         )
 
     @property
-    def all_regions(self) -> List[str]:
+    def all_regions(self) -> list[str]:
         # For the native regions we take the **renamed** (if given) names
         nr_list = [x.target_native_region for x in self.native_regions or []]
         return nr_list + self.common_region_names
 
     @property
-    def model_native_region_names(self) -> List[str]:
+    def model_native_region_names(self) -> list[str]:
         # List of the **original** model native region names
         return [x.name for x in self.native_regions or []]
 
     @property
-    def common_region_names(self) -> List[str]:
+    def common_region_names(self) -> list[str]:
         # List of the common region names
         return [x.name for x in self.common_regions or []]
 
     @property
-    def rename_mapping(self) -> Dict[str, str]:
+    def rename_mapping(self) -> dict[str, str]:
         return {r.name: r.target_native_region for r in self.native_regions or []}
 
     @property
-    def upload_native_regions(self) -> List[str]:
+    def upload_native_regions(self) -> list[str]:
         return [
             native_region.target_native_region
             for native_region in self.native_regions or []
         ]
 
     @property
-    def reverse_rename_mapping(self) -> Dict[str, str]:
+    def reverse_rename_mapping(self) -> dict[str, str]:
         return {renamed: original for original, renamed in self.rename_mapping.items()}
 
     def check_unexpected_regions(self, df: IamDataFrame) -> None:
@@ -444,7 +443,7 @@ class RegionProcessor(Processor):
 
     region_codelist: RegionCodeList
     variable_codelist: VariableCodeList
-    mappings: Dict[
+    mappings: dict[
         str,
         Annotated[RegionAggregationMapping, AfterValidator(validate_with_definition)],
     ]
@@ -477,7 +476,7 @@ class RegionProcessor(Processor):
             Raised if the provided DataStructureDefinition does not contain the dimensions ``region`` and ``variable``.
 
         """
-        mapping_dict: Dict[str, RegionAggregationMapping] = {}
+        mapping_dict: dict[str, RegionAggregationMapping] = {}
         errors = ErrorCollector()
 
         mapping_files = [f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}]
@@ -486,7 +485,7 @@ class RegionProcessor(Processor):
             mapping_files.extend(
                 f
                 for f in (
-                    dsd.config.repositories[repository].local_path / "mappings"
+                    dsd.config.repositories[repository.name].local_path / "mappings"
                 ).glob("**/*")
                 if f.suffix in {".yaml", ".yml"}
             )
@@ -543,7 +542,7 @@ class RegionProcessor(Processor):
             * If *df* contains regions that are not listed in the model mapping, or
             * If the region-processing results in an empty **IamDataFrame**.
         """
-        processed_dfs: List[IamDataFrame] = []
+        processed_dfs: list[IamDataFrame] = []
 
         for model in df.model:
             model_df = df.filter(model=model)
@@ -571,7 +570,7 @@ class RegionProcessor(Processor):
 
     def check_region_aggregation(
         self, df: IamDataFrame, rtol_difference: float = 0.01
-    ) -> Tuple[IamDataFrame, pd.DataFrame]:
+    ) -> tuple[IamDataFrame, pd.DataFrame]:
         """Return region aggregation results and differences between aggregated and
         model native data
 
@@ -584,7 +583,7 @@ class RegionProcessor(Processor):
 
         Returns
         -------
-        Tuple[IamDataFrame, pd.DataFrame]
+        tuple[IamDataFrame, pd.DataFrame]
             IamDataFrame containing aggregation results and pandas dataframe containing
             the differences
         """
@@ -605,7 +604,7 @@ class RegionProcessor(Processor):
         model_df: IamDataFrame,
         return_aggregation_difference: bool = False,
         rtol_difference: float = 0.01,
-    ) -> Tuple[IamDataFrame, pd.DataFrame]:
+    ) -> tuple[IamDataFrame, pd.DataFrame]:
         """Apply the region processing for a single model"""
         if len(model_df.model) != 1:
             raise ValueError(
@@ -616,7 +615,7 @@ class RegionProcessor(Processor):
         # check for regions not mentioned in the model mapping
         self.mappings[model].check_unexpected_regions(model_df)
 
-        _processed_data: List[pd.Series] = []
+        _processed_data: list[pd.Series] = []
 
         # silence pyam's empty filter warnings
         with adjust_log_level(logger="pyam", level="ERROR"):
@@ -747,7 +746,7 @@ def _compare_and_merge(
     aggregated: pd.Series,
     rtol: float = 0.01,
     return_aggregation_difference: bool = False,
-) -> Tuple[IamDataFrame, pd.DataFrame]:
+) -> tuple[IamDataFrame, pd.DataFrame]:
     """Compare and merge original and aggregated results"""
 
     # compare processed (aggregated) data and data provided at the common-region level
