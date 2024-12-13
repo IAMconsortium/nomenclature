@@ -162,7 +162,7 @@ class NomenclatureConfig(BaseModel):
     definitions: DataStructureConfig = Field(default_factory=DataStructureConfig)
     mappings: RegionMappingConfig = Field(default_factory=RegionMappingConfig)
     check_illegal_characters: bool = True
-    illegal_characters: list[str] = ["'", ":", ";"]
+    illegal_characters: list[str] = [":", ";", '"']
 
     model_config = ConfigDict(use_enum_values=True)
 
