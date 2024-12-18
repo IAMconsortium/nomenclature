@@ -193,6 +193,9 @@ def test_region_codelist():
     assert code["Some Country"].hierarchy == "countries"
     assert code["Some Country"].iso2 == "XY"
 
+    assert "Some Country>World" in code
+    assert code["Some Country>World"].hierarchy == "directional"
+
 
 def test_region_codelist_nonexisting_country_name():
     """Check that countries are validated against `nomenclature.countries`"""
@@ -202,6 +205,17 @@ def test_region_codelist_nonexisting_country_name():
             MODULE_TEST_DATA_DIR
             / "region_codelist"
             / "countries_attribute_non-existing_name",
+        )
+
+
+def test_directional_region_codelist_nonexisting_country_name():
+    """Check that directional regions have defined origin and destination"""
+    with pytest.raises(ValueError, match="Region 'Germany' not .* 'Austria>Germany'"):
+        RegionCodeList.from_directory(
+            "region",
+            MODULE_TEST_DATA_DIR
+            / "region_codelist"
+            / "directional_non-existing_component",
         )
 
 
