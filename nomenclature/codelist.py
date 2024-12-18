@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from pyam import IamDataFrame
-from pyam.utils import is_list_like, write_sheet, pattern_match
+from pyam.utils import is_list_like, write_sheet, pattern_match, to_list
 from pydantic import BaseModel, ValidationInfo, field_validator
 from pydantic_core import PydanticCustomError
 
@@ -622,7 +622,7 @@ class VariableCodeList(CodeList):
             (variable, unit, self.mapping[variable].unit)
             for variable, unit in unit_mapping.items()
             if variable in self.variables
-            and unit not in self.mapping[variable].unit
+            and unit not in to_list(self.mapping[variable].unit)
         ]:
             lst = [
                 f"'{v}' - expected: {'one of ' if isinstance(e, list) else ''}"
