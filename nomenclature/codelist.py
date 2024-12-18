@@ -788,6 +788,18 @@ class RegionCodeList(CodeList):
                     )
                 )
             mapping[code.name] = code
+
+        for code in list(mapping):
+            if ">" in code:
+                origin, destination = code.split(">")
+                for region in [origin, destination]:
+                    if region not in mapping:
+                        errors.append(
+                            ValueError(
+                                f"Region '{region}' not defined for '{code}'"
+                            )
+                        )
+
         if errors:
             raise ValueError(errors)
         return cls(name=name, mapping=mapping)
