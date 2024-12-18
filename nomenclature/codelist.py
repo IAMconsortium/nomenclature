@@ -795,9 +795,7 @@ class RegionCodeList(CodeList):
                 for region in [origin, destination]:
                     if region not in mapping:
                         errors.append(
-                            ValueError(
-                                f"Region '{region}' not defined for '{code}'"
-                            )
+                            ValueError(f"Region '{region}' not defined for '{code}'")
                         )
 
         if errors:
