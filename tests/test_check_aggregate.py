@@ -70,7 +70,9 @@ def test_check_aggregate_failing(components, exp):
 
     # create a copy where aggregation tests will fail
     df = TEST_DF.copy()
-    df._data.iloc[5] = 8
+    df._data.loc[
+        ("model_a", "scen_a", "World", "Final Energy|Industry", "EJ/yr", 2005)
+    ] = 8
 
     # `check_aggregate` returns a dataframe of the inconsistent data
     pdt.assert_frame_equal(dsd.check_aggregate(df), exp)
