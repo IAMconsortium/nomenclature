@@ -595,11 +595,15 @@ class VariableCodeList(CodeList):
             )
         return v
 
-    def vars_default_args(self, variables: list[str]) -> list[VariableCode]:
+    def vars_default_args(self, variables: list[str]) -> list[str]:
         """return subset of variables which does not feature any special pyam
         aggregation arguments and where skip_region_aggregation is False"""
+        # this is where the problem lies
+        # say we have a variable code that is Primary Energy* and a variable in variables called Primary Energy|1
+        # Our lookup will never work since Primary Energy* is not the same as Primary Energy|1. But we need to uniquely identify which variable pattern we're matching to get aggregation information agg_kwargs and skip_region_aggregation
+        # we need to perform a wildcard match of var on self and then look up the result (WHICH HAS TO BE UNQIUE -> https://github.com/IAMconsortium/nomenclature/issues/432) and get VariableCode.agg_kwargs and VariableCode.skip_region_aggregation
         return [
-            self[var]
+            var
             for var in variables
             if not self[var].agg_kwargs and not self[var].skip_region_aggregation
         ]
@@ -621,8 +625,7 @@ class VariableCodeList(CodeList):
         if invalid_units := [
             (variable, unit, self.mapping[variable].unit)
             for variable, unit in unit_mapping.items()
-            if variable in self.variables
-            and unit not in self.mapping[variable].units
+            if variable in self.variables and unit not in self.mapping[variable].units
         ]:
             lst = [
                 f"'{v}' - expected: {'one of ' if isinstance(e, list) else ''}"
