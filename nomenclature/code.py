@@ -309,6 +309,22 @@ class RegionCode(Code):
             raise ValueError(errors)
         return v
 
+    @property
+    def is_directional(self) -> bool:
+        return ">" in self.name
+
+    @property
+    def destination(self) -> str:
+        if not self.is_directional:
+            raise ValueError("Non directional region does not have a destination")
+        return self.name.split(">")[1]
+
+    @property
+    def origin(self) -> str:
+        if not self.is_directional:
+            raise ValueError("Non directional region does not have an origin")
+        return self.name.split(">")[0]
+
 
 class MetaCode(Code):
     """Code object with allowed values list
