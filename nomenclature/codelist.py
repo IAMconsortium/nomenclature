@@ -598,6 +598,10 @@ class VariableCodeList(CodeList):
     def vars_default_args(self, variables: list[str]) -> list[str]:
         """return subset of variables which does not feature any special pyam
         aggregation arguments and where skip_region_aggregation is False"""
+        # this is where the problem lies
+        # say we have a variable code that is Primary Energy* and a variable in variables called Primary Energy|1
+        # Our lookup will never work since Primary Energy* is not the same as Primary Energy|1. But we need to uniquely identify which variable pattern we're matching to get aggregation information agg_kwargs and skip_region_aggregation
+        # we need to perform a wildcard match of var on self and then look up the result (WHICH HAS TO BE UNQIUE -> https://github.com/IAMconsortium/nomenclature/issues/432) and get VariableCode.agg_kwargs and VariableCode.skip_region_aggregation
         return [
             var
             for var in variables
