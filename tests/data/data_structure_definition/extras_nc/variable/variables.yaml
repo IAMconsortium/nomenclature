@@ -3,7 +3,7 @@
     unit: EJ/yr
 - Primary Energy|Coal:
     definition: Primary energy consumption of coal
-    unit: EJ/yr
+    unit: [EJ/yr, GWh/yr]
 - Variable (w/ bunkers):
     definition: This is a variable with special characters for testing purposes
     unit: EJ/yr

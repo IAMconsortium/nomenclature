@@ -622,7 +622,7 @@ class VariableCodeList(CodeList):
             (variable, unit, self.mapping[variable].unit)
             for variable, unit in unit_mapping.items()
             if variable in self.variables
-            and not set(unit) == set(self.mapping[variable].unit)
+            and unit not in self.mapping[variable].units
         ]:
             lst = [
                 f"'{v}' - expected: {'one of ' if isinstance(e, list) else ''}"

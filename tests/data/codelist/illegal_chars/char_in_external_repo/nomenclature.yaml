@@ -9,4 +9,4 @@ definitions:
     repository:
       - common-definitions
 check_illegal_characters: true
-illegal_characters: ['"' , ";"]  # these are known to be present in common-definitions variables
+illegal_characters: ["'"]  # these are known to be present in common-definitions variables
