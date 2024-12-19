@@ -126,6 +126,42 @@ def test_region_processing_aggregate():
     assert_iamframe_equal(obs, exp)
 
 
+def test_region_processing_aggregate_wildcard():
+    # Test only the aggregation feature
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "region_A", "Primary Energy|1", "EJ/yr", 1, 2],
+                ["model_a", "scen_a", "region_B", "Primary Energy|1", "EJ/yr", 3, 4],
+                ["model_a", "scen_a", "region_A", "Primary Energy|2", "EJ/yr", 5, 6],
+                ["model_a", "scen_a", "region_B", "Primary Energy|2", "EJ/yr", 7, 8],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    # add_meta(test_df)
+
+    exp = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "World", "Primary Energy|1", "EJ/yr", 4, 6],
+                ["model_a", "scen_a", "World", "Primary Energy|2", "EJ/yr", 12, 14],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    # add_meta(exp)
+    obs = process(
+        test_df,
+        dsd := DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd"),
+        processor=RegionProcessor.from_directory(
+            TEST_DATA_DIR / "region_processing/aggregate_only", dsd
+        ),
+    )
+
+    assert_iamframe_equal(obs, exp)
+
+
 @pytest.mark.parametrize(
     "directory", ("complete_processing", "complete_processing_list")
 )
