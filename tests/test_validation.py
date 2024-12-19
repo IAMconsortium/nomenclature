@@ -70,9 +70,9 @@ def test_validation_fails_region(simple_definition, simple_df, caplog):
 def test_validation_multiple_units(extras_definition, simple_df):
     """Validating against a VariableCode with multiple units works as expected"""
     extras_definition.validate(
-        simple_df
-        .filter(variable="Primary Energy|Coal")
-        .rename(unit={"EJ/yr": "GWh/yr"})
+        simple_df.filter(variable="Primary Energy|Coal").rename(
+            unit={"EJ/yr": "GWh/yr"}
+        )
     )
 
 
