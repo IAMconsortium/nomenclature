@@ -646,7 +646,7 @@ class RegionProcessor(Processor):
 
                     # first, perform 'simple' aggregation (no arguments)
                     simple_vars = [
-                        var.name
+                        var
                         for var in self.variable_codelist.vars_default_args(
                             model_df.variable
                         )
