@@ -801,11 +801,11 @@ class RegionCodeList(CodeList):
             if region.is_directional:
                 if region.origin not in v:
                     missing_regions.append(
-                        f"Region '{region.origin}' not defined for '{region.name}'"
+                        f"Origin '{region.origin}' not defined for '{region.name}'"
                     )
                 if region.destination not in v:
                     missing_regions.append(
-                        f"Region '{region.destination}' not defined for '{region.name}'"
+                        f"Destination '{region.destination}' not defined for '{region.name}'"
                     )
         if missing_regions:
             raise ValueError("\n".join(missing_regions))
