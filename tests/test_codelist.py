@@ -210,7 +210,7 @@ def test_region_codelist_nonexisting_country_name():
 
 def test_directional_region_codelist_nonexisting_country_name():
     """Check that directional regions have defined origin and destination"""
-    with pytest.raises(ValueError, match="Region 'Germany' not .* 'Austria>Germany'"):
+    with pytest.raises(ValueError, match="Destination 'Germany' .* 'Austria>Germany'"):
         RegionCodeList.from_directory(
             "region",
             MODULE_TEST_DATA_DIR
