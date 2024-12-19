@@ -788,9 +788,28 @@ class RegionCodeList(CodeList):
                     )
                 )
             mapping[code.name] = code
+
         if errors:
             raise ValueError(errors)
         return cls(name=name, mapping=mapping)
+
+    @field_validator("mapping")
+    @classmethod
+    def check_directional_regions(cls, v: dict[str, RegionCode]):
+        missing_regions = []
+        for region in v.values():
+            if region.is_directional:
+                if region.origin not in v:
+                    missing_regions.append(
+                        f"Origin '{region.origin}' not defined for '{region.name}'"
+                    )
+                if region.destination not in v:
+                    missing_regions.append(
+                        f"Destination '{region.destination}' not defined for '{region.name}'"
+                    )
+        if missing_regions:
+            raise ValueError("\n".join(missing_regions))
+        return v
 
     @property
     def hierarchy(self) -> list[str]:

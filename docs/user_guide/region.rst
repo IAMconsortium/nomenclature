@@ -22,6 +22,20 @@ Regions can have attributes, for example a description or ISO3-codes. If the att
 `iso3_codes` is provided, the item(s) are validated against a list of valid codes taken
 from the `pycountry <https://github.com/flyingcircusio/pycountry>`_ package.
 
+Directional data
+----------------
+
+For reporting of directional data (e.g., trade flows), "directional regions" can be
+defined using a *>* separator. The region before the separator is the *origin*,
+the region after the separator is the *destination*.
+
+.. code:: yaml
+
+   - Trade Connections:
+     - China>Europe
+
+Both the origin and destination regions must be defined in the region codelist.
+
 Common regions
 --------------
 

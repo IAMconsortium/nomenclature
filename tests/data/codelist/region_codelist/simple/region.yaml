@@ -1,7 +1,9 @@
 - common:
-  - World:
-      definition: The entire world
+    - World:
+        definition: The entire world
 - countries:
-  - Some Country:
-      iso2: XY
-      iso3: XYZ
+    - Some Country:
+        iso2: XY
+        iso3: XYZ
+- directional:
+    - Some Country>World
