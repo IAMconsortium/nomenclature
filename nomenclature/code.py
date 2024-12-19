@@ -6,6 +6,7 @@ from typing import Any
 from pydantic import (
     field_validator,
     field_serializer,
+    model_validator,
     ConfigDict,
     BaseModel,
     Field,
@@ -207,6 +208,13 @@ class VariableCode(Code):
     @field_validator("unit", mode="before")
     def convert_none_to_empty_string(cls, v):
         return v if v is not None else ""
+
+    @model_validator(mode="after")
+    def wildcard_must_skip_region_aggregation(cls, data):
+        if "*" in data.name and data.skip_region_aggregation is False:
+            raise ValueError(
+                f"Wildcard variable '{data.name}' must skip region aggregation"
+            )
 
     @field_validator("components", mode="before")
     def cast_variable_components_args(cls, v):
