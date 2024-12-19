@@ -259,8 +259,8 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
 )
 def test_region_processing_skip_aggregation(model_name, region_names):
     # Testing two cases:
-    # * model "m_a" renames native regions and the world region is skipped
-    # * model "m_b" renames single constituent common regions
+    # * model "model_a" renames native regions and the world region is skipped
+    # * model "model_b" renames single constituent common regions
 
     test_df = IamDataFrame(
         pd.DataFrame(
@@ -298,12 +298,12 @@ def test_region_processing_skip_aggregation(model_name, region_names):
 
 @pytest.mark.parametrize(
     "model_name, region_names",
-    [("m_a", ("region_A", "region_B")), ("m_b", ("region_A", "region_b"))],
+    [("model_a", ("region_A", "region_B")), ("model_b", ("region_A", "region_b"))],
 )
 def test_region_processing_wildcard_skip_aggregation(model_name, region_names):
     # Testing two cases:
-    # * model "m_a" renames native regions and the world region is skipped
-    # * model "m_b" renames single constituent common regions
+    # * model "model_a" keeps native regions as they are
+    # * model "model_b" renames one native region
 
     variable = "Capital Cost|Electricity|Solar PV"
     unit = "USD_2010/kW"

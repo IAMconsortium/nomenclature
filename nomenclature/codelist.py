@@ -601,7 +601,7 @@ class VariableCodeList(CodeList):
         return [
             var
             for var in variables
-            if not self[var].agg_kwargs and not self[var].skip_region_aggregation
+            if var in self.keys() and not self[var].agg_kwargs and not self[var].skip_region_aggregation
         ]
 
     def vars_kwargs(self, variables: list[str]) -> list[VariableCode]:
@@ -610,7 +610,7 @@ class VariableCodeList(CodeList):
         return [
             self[var]
             for var in variables
-            if self[var].agg_kwargs and not self[var].skip_region_aggregation
+            if var in self.keys() and self[var].agg_kwargs and not self[var].skip_region_aggregation
         ]
 
     def validate_units(

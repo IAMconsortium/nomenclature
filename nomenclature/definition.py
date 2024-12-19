@@ -139,6 +139,9 @@ class DataStructureDefinition:
 
         with adjust_log_level(level="WARNING"):
             for code in df.variable:
+                if code not in self.variable.mapping:
+                    continue
+
                 attr = self.variable.mapping[code]
                 if attr.check_aggregate:
                     components = attr.components
