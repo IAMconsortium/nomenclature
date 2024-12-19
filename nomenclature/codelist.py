@@ -595,11 +595,11 @@ class VariableCodeList(CodeList):
             )
         return v
 
-    def vars_default_args(self, variables: list[str]) -> list[VariableCode]:
+    def vars_default_args(self, variables: list[str]) -> list[str]:
         """return subset of variables which does not feature any special pyam
         aggregation arguments and where skip_region_aggregation is False"""
         return [
-            self[var]
+            var
             for var in variables
             if not self[var].agg_kwargs and not self[var].skip_region_aggregation
         ]
@@ -621,8 +621,7 @@ class VariableCodeList(CodeList):
         if invalid_units := [
             (variable, unit, self.mapping[variable].unit)
             for variable, unit in unit_mapping.items()
-            if variable in self.variables
-            and unit not in self.mapping[variable].units
+            if variable in self.variables and unit not in self.mapping[variable].units
         ]:
             lst = [
                 f"'{v}' - expected: {'one of ' if isinstance(e, list) else ''}"
