@@ -1,0 +1,4 @@
+- Capital Cost|Electricity|*:
+    definition: Capital cost of electricity generation for a specific technology
+    unit: USD_2010/kW
+    skip-region-aggregation: true

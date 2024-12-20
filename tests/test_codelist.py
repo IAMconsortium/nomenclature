@@ -298,9 +298,16 @@ def test_illegal_char_ignores_external_repo():
     """Check that external repos are excluded from this check."""
     # the config includes illegal characters known to be in common-definitions
     # the test will not raise errors as the check is skipped for external repos
-    DataStructureDefinition(
-        MODULE_TEST_DATA_DIR / "illegal_chars" / "char_in_external_repo" / "definitions"
-    )
+
+    try:
+        dsd = DataStructureDefinition(
+            MODULE_TEST_DATA_DIR
+            / "illegal_chars"
+            / "char_in_external_repo"
+            / "definitions"
+        )
+    finally:
+        clean_up_external_repos(dsd.config.repositories)
 
 
 def test_end_whitespace_fails():

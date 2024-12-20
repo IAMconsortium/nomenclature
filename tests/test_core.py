@@ -259,8 +259,8 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
 )
 def test_region_processing_skip_aggregation(model_name, region_names):
     # Testing two cases:
-    # * model "m_a" renames native regions and the world region is skipped
-    # * model "m_b" renames single constituent common regions
+    # * model "model_a" renames native regions and the world region is skipped
+    # * model "model_b" renames single constituent common regions
 
     test_df = IamDataFrame(
         pd.DataFrame(
@@ -291,6 +291,51 @@ def test_region_processing_skip_aggregation(model_name, region_names):
         ),
         processor=RegionProcessor.from_directory(
             TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
+        ),
+    )
+    assert_iamframe_equal(obs, exp)
+
+
+@pytest.mark.parametrize(
+    "model_name, region_names",
+    [("model_a", ("region_A", "region_B")), ("model_b", ("region_A", "region_b"))],
+)
+def test_region_processing_wildcard_skip_aggregation(model_name, region_names):
+    # Testing two cases:
+    # * model "model_a" keeps native regions as they are
+    # * model "model_b" renames one native region
+
+    variable = "Capital Cost|Electricity|Solar PV"
+    unit = "USD_2010/kW"
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                [model_name, "s_a", region_names[0], variable, unit, 1, 2],
+                [model_name, "s_a", region_names[1], variable, unit, 3, 4],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    add_meta(test_df)
+
+    exp = IamDataFrame(
+        pd.DataFrame(
+            [
+                [model_name, "s_a", "region_A", variable, unit, 1, 2],
+                [model_name, "s_a", "region_B", variable, unit, 3, 4],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    add_meta(exp)
+
+    obs = process(
+        test_df,
+        dsd := DataStructureDefinition(
+            TEST_DATA_DIR / "region_processing/wildcard_skip_aggregation/dsd"
+        ),
+        processor=RegionProcessor.from_directory(
+            TEST_DATA_DIR / "region_processing/wildcard_skip_aggregation/mappings", dsd
         ),
     )
     assert_iamframe_equal(obs, exp)

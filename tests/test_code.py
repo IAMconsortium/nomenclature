@@ -37,6 +37,12 @@ def test_variable_multiple_units():
     assert var.unit == ["unit1", "unit2"]
 
 
+def test_variable_wildcard_skip_region_aggregation_required():
+    """Test that a VariableCode with wildcard must have skip_region_aggregation: True"""
+    with raises(ValueError, match="Wildcard variable 'Var1\*' must skip region"):
+        VariableCode.from_dict({"Var1*": {"unit": "unit1"}})
+
+
 @pytest.mark.parametrize("unit", ["Test unit", ["Test unit 1", "Test unit 2"]])
 def test_set_attributes_with_json(unit):
     var = VariableCode(
