@@ -3,19 +3,20 @@ import re
 from keyword import iskeyword
 from pathlib import Path
 from typing import Any
-from pydantic import (
-    field_validator,
-    field_serializer,
-    model_validator,
-    ConfigDict,
-    BaseModel,
-    Field,
-    ValidationInfo,
-)
-
-from nomenclature.error import ErrorCollector
 
 from pyam.utils import to_list
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationInfo,
+    field_serializer,
+    field_validator,
+    model_validator,
+)
+from typing_extensions import Self
+
+from nomenclature.error import ErrorCollector
 
 from .countries import countries
 
@@ -210,11 +211,12 @@ class VariableCode(Code):
         return v if v is not None else ""
 
     @model_validator(mode="after")
-    def wildcard_must_skip_region_aggregation(cls, data):
-        if "*" in data.name and data.skip_region_aggregation is False:
+    def wildcard_must_skip_region_aggregation(self) -> Self:
+        if self.is_wildcard and self.skip_region_aggregation is False:
             raise ValueError(
-                f"Wildcard variable '{data.name}' must skip region aggregation"
+                f"Wildcard variable '{self.name}' must skip region aggregation"
             )
+        return self
 
     @field_validator("components", mode="before")
     def cast_variable_components_args(cls, v):
@@ -231,6 +233,10 @@ class VariableCode(Code):
     @field_serializer("unit")
     def convert_str_to_none_for_writing(self, v):
         return v if v != "" else None
+
+    @property
+    def is_wildcard(self) -> bool:
+        return "*" in self.name
 
     @property
     def units(self) -> list[str]:
