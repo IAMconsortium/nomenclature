@@ -336,11 +336,7 @@ class CodeList(BaseModel):
 
     def check_illegal_characters(self, config: NomenclatureConfig) -> dict[str, Code]:
         """Check that no illegal characters are left in codes after tag replacement"""
-        illegal = (
-            ["{", "}"] + config.illegal_characters
-            if config.check_illegal_characters
-            else ["{", "}"]
-        )
+        illegal = ["{", "}"] + config.illegal_characters
         errors = ErrorCollector()
 
         def _check_string(value):
