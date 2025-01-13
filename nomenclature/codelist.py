@@ -745,7 +745,7 @@ class RegionCodeList(CodeList):
                     code_list.append(
                         RegionCode(
                             name=r.code,
-                            hierarchy=f"NUTS {level[-1]} regions (2021-2024)",
+                            hierarchy=f"NUTS {level[-1]} regions (2024 edition)",
                         )
                     )
 
