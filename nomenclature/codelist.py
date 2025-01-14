@@ -342,9 +342,10 @@ class CodeList(BaseModel):
         def _check_string(attr, value):
             if isinstance(value, str):
                 if found := set(illegal).intersection(value):
+                    found = "', '".join(sorted(found))
                     errors.append(
                         ValueError(
-                            f"Unexpected character(s) '{"', '".join(sorted(found))}' in {self.name}.{attr} of: '{code.name}'."
+                            f"Unexpected character(s) '{found}' in {self.name}.{attr} of: '{code.name}'."
                             " Check for illegal characters and/or if tags were spelled correctly."
                         )
                     )
