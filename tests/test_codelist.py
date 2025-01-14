@@ -273,15 +273,15 @@ def test_to_csv():
     [
         (
             "tag_in_str",
-            r"Unexpected character\(s\) '{', '}' in variable.name: 'Primary Energy\|{Feul}'",
+            r"Unexpected character\(s\) '{', '}' in variable.name of: 'Primary Energy\|{Feul}'",
         ),
         (
             "tag_in_list",
-            r"Unexpected character\(s\) '{' in variable.info: 'Share\|Coal'",
+            r"Unexpected character\(s\) '{' in variable.info of: 'Share\|Coal'",
         ),
         (
             "tag_in_dict",
-            r"Unexpected character\(s\) '}' in variable.invalid: 'Primary Energy'",
+            r"Unexpected character\(s\) '}' in variable.invalid of: 'Primary Energy'",
         ),
     ],
 )
@@ -296,7 +296,9 @@ def test_stray_tag_fails(subfolder, match):
 
 def test_illegal_char_fails():
     """Check that illegal character raises expected error."""
-    match = r"Unexpected character\(s\) '\"' in variable.info: 'Primary Energy\|Coal'"
+    match = (
+        r"Unexpected character\(s\) '\"' in variable.info of: 'Primary Energy\|Coal'"
+    )
     with raises(ValueError, match=match):
         DataStructureDefinition(
             MODULE_TEST_DATA_DIR / "illegal_chars" / "char_in_str" / "definitions"

@@ -344,7 +344,7 @@ class CodeList(BaseModel):
                 if found := set(illegal).intersection(value):
                     errors.append(
                         ValueError(
-                            f"Unexpected character(s) '{"', '".join(found)}' in {self.name}.{attr}: '{code.name}'."
+                            f"Unexpected character(s) '{"', '".join(sorted(found))}' in {self.name}.{attr} of: '{code.name}'."
                             " Check for illegal characters and/or if tags were spelled correctly."
                         )
                     )
