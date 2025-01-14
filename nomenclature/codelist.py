@@ -339,28 +339,27 @@ class CodeList(BaseModel):
         illegal = ["{", "}"] + config.illegal_characters
         errors = ErrorCollector()
 
-        def _check_string(value):
+        def _check_string(attr, value):
             if isinstance(value, str):
-                if any(char in value for char in illegal):
+                if found := set(illegal).intersection(value):
                     errors.append(
                         ValueError(
-                            f"Unexpected character in {self.name}: '{code.name}'."
+                            f"Unexpected character(s) '{"', '".join(found)}' in {self.name}.{attr}: '{code.name}'."
                             " Check for illegal characters and/or if tags were spelled correctly."
                         )
                     )
             elif isinstance(value, dict):
-                for k in value.keys():
-                    _check_string(k)
-                for v in value.values():
-                    _check_string(v)
+                for k, v in value.items():
+                    _check_string(k, k)
+                    _check_string(k, v)
             elif isinstance(value, list):
                 for item in value:
-                    _check_string(item)
+                    _check_string(attr, item)
 
         for code in self.mapping.values():
             if not code.repository:
-                for value in code.model_dump(exclude="file").values():
-                    _check_string(value)
+                for attr, value in code.model_dump(exclude="file").items():
+                    _check_string(attr, value)
         if errors:
             raise ValueError(errors)
 
