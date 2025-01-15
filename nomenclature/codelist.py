@@ -345,7 +345,7 @@ class CodeList(BaseModel):
                     found = "', '".join(sorted(found))
                     errors.append(
                         ValueError(
-                            f"Unexpected character(s) '{found}' in {self.name}.{attr} of: '{code.name}'."
+                            f"Illegal character(s) '{found}' in {attr} of {self.name} '{code.name}'."
                             " Check for illegal characters and/or if tags were spelled correctly."
                         )
                     )
