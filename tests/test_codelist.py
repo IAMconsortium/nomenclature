@@ -497,8 +497,14 @@ def test_multiple_external_repos():
             for repo in nomenclature_config.repositories.values()
         )
         assert len(variable_code_list) > 2000
-        assert variable_code_list["Final Energy"].repository == "common-definitions"
-        assert variable_code_list["Employment"].repository == "legacy-definitions"
+        assert (
+            variable_code_list["Final Energy"].from_external_repository
+            == "common-definitions"
+        )
+        assert (
+            variable_code_list["Employment"].from_external_repository
+            == "legacy-definitions"
+        )
     finally:
         clean_up_external_repos(nomenclature_config.repositories)
 
