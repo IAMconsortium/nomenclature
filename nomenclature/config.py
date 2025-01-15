@@ -209,6 +209,18 @@ class DataStructureConfig(BaseModel):
 
 class MappingRepository(BaseModel):
     name: str
+    include: list[str] = ["*"]
+
+    @property
+    def regex_include_patterns(self):
+        return [re.compile(escape_regexp(pattern) + "$") for pattern in self.include]
+
+    def match_models(self, models: list[str]) -> bool:
+        return any(
+            re.match(pattern, model) is not None
+            for model in models
+            for pattern in self.regex_include_patterns
+        )
 
 
 class RegionMappingConfig(BaseModel):
