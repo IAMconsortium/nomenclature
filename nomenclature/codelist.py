@@ -346,7 +346,6 @@ class CodeList(BaseModel):
                     errors.append(
                         ValueError(
                             f"Illegal character(s) '{found}' in {attr} of {self.name} '{code.name}'."
-                            " Check for illegal characters and/or if tags were spelled correctly."
                         )
                     )
             elif isinstance(value, dict):
