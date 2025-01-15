@@ -11,4 +11,7 @@ definitions:
   variable:
     repository: common-definitions
 mappings:
-  repository: common-definitions
+  repository:
+    name: common-definitions
+    include:
+      - MESSAGEix-GLOBIOM 2.1-M-R12

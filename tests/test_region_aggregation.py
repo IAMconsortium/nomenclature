@@ -239,7 +239,7 @@ def test_region_processor_unexpected_region_raises():
 
 
 def test_mapping_from_external_repository():
-    # This test reads both mappings and definitions from an external repository only
+    # This test reads definitions and the mapping for only MESSAGEix-GLOBIOM 2.1-M-R12 # from an external repository only
     try:
         processor = RegionProcessor.from_directory(
             TEST_FOLDER_REGION_PROCESSING / "external_repo_test" / "mappings",
@@ -247,11 +247,7 @@ def test_mapping_from_external_repository():
                 TEST_FOLDER_REGION_PROCESSING / "external_repo_test" / "definitions"
             ),
         )
-
-        assert all(
-            model in processor.mappings.keys()
-            for model in ("REMIND 3.1", "REMIND-MAgPIE 3.1-4.6")
-        )
+        assert {"MESSAGEix-GLOBIOM 2.1-M-R12"} == set(processor.mappings.keys())
     finally:
         clean_up_external_repos(dsd.config.repositories)
 
