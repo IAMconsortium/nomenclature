@@ -485,14 +485,25 @@ class RegionProcessor(Processor):
 
         mapping_files = [mapping_file for mapping_file in path.glob("**/*.y*ml")]
 
+        # Read model mappings from external repositories
         for repository in dsd.config.mappings.repositories:
             for mapping_file in (
                 dsd.config.repositories[repository.name].local_path / "mappings"
             ).glob("**/*.y*ml"):
                 mapping = RegionAggregationMapping.from_file(mapping_file)
-                if repository.match_models(mapping.models):
-                    mapping_files.append(mapping_file)
+                for model in repository.match_models(mapping.models):
+                    if model not in mapping_dict:
+                        mapping_dict[model] = mapping
+                    else:
+                        errors.append(
+                            ValueError(
+                                "Multiple region aggregation mappings for "
+                                f"model {model} in [{mapping.file}, "
+                                f"{mapping_dict[model].file}]"
+                            )
+                        )
 
+        # Read model mappings from the local repository
         for mapping_file in mapping_files:
             try:
                 mapping = RegionAggregationMapping.from_file(mapping_file)
