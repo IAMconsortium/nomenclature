@@ -284,7 +284,7 @@ class CodeList(BaseModel):
                 code = cls.code_basis.from_dict(code_dict)
                 code.file = yaml_file.relative_to(path.parent).as_posix()
                 if repository:
-                    code.from_external_repository = repository
+                    code.repository = repository
                 code_list.append(code)
 
         code_list = cls._parse_and_replace_tags(code_list, path, file_glob_pattern)
@@ -358,7 +358,7 @@ class CodeList(BaseModel):
                     _check_string(item)
 
         for code in self.mapping.values():
-            if not code.from_external_repository:
+            if not code.repository:
                 for value in code.model_dump(exclude="file").values():
                     _check_string(value)
         if errors:
@@ -845,7 +845,7 @@ class RegionCodeList(CodeList):
                         code = RegionCode.from_dict(item)
                         code.hierarchy = top_key
                         if repository:
-                            code.from_external_repository = repository
+                            code.repository = repository
                         code.file = yaml_file.relative_to(path.parent).as_posix()
                         code_list.append(code)
 

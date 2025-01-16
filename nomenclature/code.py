@@ -28,7 +28,7 @@ class Code(BaseModel):
     description: str | None = None
     file: str | Path | None = None
     extra_attributes: dict[str, Any] = {}
-    from_external_repository: str | None = None
+    repository: str | None = None
 
     def __eq__(self, other) -> bool:
         return self.model_dump(exclude="file") == other.model_dump(exclude="file")
