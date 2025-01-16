@@ -271,9 +271,18 @@ def test_to_csv():
 @pytest.mark.parametrize(
     "subfolder, match",
     [
-        ("tag_in_str", r"Unexpected character in variable: 'Primary Energy\|{Feul}'"),
-        ("tag_in_list", r"Unexpected character in variable: 'Share\|Coal'"),
-        ("tag_in_dict", r"Unexpected character in variable: 'Primary Energy'"),
+        (
+            "tag_in_str",
+            r"Illegal character\(s\) '{', '}' in name of variable 'Primary Energy\|{Feul}'",
+        ),
+        (
+            "tag_in_list",
+            r"Illegal character\(s\) '{' in info of variable 'Share\|Coal'",
+        ),
+        (
+            "tag_in_dict",
+            r"Illegal character\(s\) '}' in invalid of variable 'Primary Energy'",
+        ),
     ],
 )
 def test_stray_tag_fails(subfolder, match):
@@ -287,7 +296,7 @@ def test_stray_tag_fails(subfolder, match):
 
 def test_illegal_char_fails():
     """Check that illegal character raises expected error."""
-    match = r"Unexpected character in variable: 'Primary Energy\|Coal'"
+    match = r"Illegal character\(s\) '\"' in info of variable 'Primary Energy\|Coal'"
     with raises(ValueError, match=match):
         DataStructureDefinition(
             MODULE_TEST_DATA_DIR / "illegal_chars" / "char_in_str" / "definitions"
