@@ -14,4 +14,4 @@ mappings:
   repository:
     name: common-definitions
     include:
-      - MESSAGEix-GLOBIOM 2.1-M-R12
+      - REMIND-MAgPIE 3.1-4.6

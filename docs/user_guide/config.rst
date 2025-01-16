@@ -157,7 +157,7 @@ validation:
 Filter model mappings from external repositories
 ------------------------------------------------
 
-Since importing all model mappings from an external repository is typically not desired,
+We often only want to use a subset of models in a particular project (and not import all mappings), so
 there is an option to filter for specific model mappings. This works very similarly to
 the filtering for definitions.
 

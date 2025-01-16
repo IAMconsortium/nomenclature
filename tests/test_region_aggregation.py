@@ -247,7 +247,7 @@ def test_mapping_from_external_repository():
                 TEST_FOLDER_REGION_PROCESSING / "external_repo_test" / "definitions"
             ),
         )
-        assert {"MESSAGEix-GLOBIOM 2.1-M-R12"} == set(processor.mappings.keys())
+        assert {"REMIND-MAgPIE 3.1-4.6"} == set(processor.mappings.keys())
     finally:
         clean_up_external_repos(dsd.config.repositories)
 
