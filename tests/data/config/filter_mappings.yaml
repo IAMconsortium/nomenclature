@@ -1,0 +1,9 @@
+repositories:
+  common-definitions:
+    url: https://github.com/IAMconsortium/common-definitions.git/
+    hash: 091c0fe
+mappings:
+  repository:
+    name: common-definitions
+    include:
+      - MESSAGEix-GLOBIOM 2.1-M-R12

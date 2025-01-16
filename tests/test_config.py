@@ -2,10 +2,7 @@ from pathlib import Path
 import pytest
 from pytest import raises
 
-from nomenclature.config import (
-    Repository,
-    NomenclatureConfig,
-)
+from nomenclature.config import Repository, NomenclatureConfig, MappingRepository
 
 from conftest import TEST_DATA_DIR, clean_up_external_repos
 
@@ -91,5 +88,20 @@ def test_config_with_filter(config_file):
     config = NomenclatureConfig.from_file(TEST_DATA_DIR / "config" / config_file)
     try:
         assert isinstance(config.definitions.variable.repositories, list)
+    finally:
+        clean_up_external_repos(config.repositories)
+
+
+def test_config_external_repo_mapping_filter():
+
+    config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "config" / "filter_mappings.yaml"
+    )
+    exp = MappingRepository(
+        name="common-definitions", include=["MESSAGEix-GLOBIOM 2.1-M-R12"]
+    )
+    try:
+        assert isinstance(config.mappings.repositories, list)
+        assert config.mappings.repositories[0] == exp
     finally:
         clean_up_external_repos(config.repositories)
