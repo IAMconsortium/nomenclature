@@ -18,10 +18,10 @@ logger = logging.getLogger(__name__)
 
 
 class WarningEnum(str, Enum):
+    error = "error"
     high = "high"
     medium = "medium"
     low = "low"
-    error = "error"
 
 
 class DataValidationCriteria(IamcDataFilter):
@@ -106,7 +106,18 @@ class DataValidator(Processor):
     def from_file(cls, file: Path | str) -> "DataValidator":
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
-        return cls(file=file, criteria_items=content)
+        criteria_items = []
+        for item in content:
+            if "validation" in item:
+                filter_args = {k: v for k, v in item.items() if k != "validation"}
+                for validation_args in sorted(
+                    item["validation"],
+                    key=lambda d: d.get("warning_level", WarningEnum.error),
+                ):
+                    criteria_items.append(dict({**filter_args, **validation_args}))
+            else:
+                criteria_items.append(item)
+        return cls(file=file, criteria_items=criteria_items)
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
         fail_list = []
