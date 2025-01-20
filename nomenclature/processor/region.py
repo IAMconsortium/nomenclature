@@ -233,7 +233,7 @@ class RegionAggregationMapping(BaseModel):
         return _check_exclude_region_overlap(v, "common_regions")
 
     @classmethod
-    def from_file(cls, file: Path | str):
+    def from_file(cls, file: Path | str) -> "RegionAggregationMapping":
         """Initialize a RegionAggregationMapping from a file.
 
         Parameters
@@ -380,6 +380,10 @@ class RegionAggregationMapping(BaseModel):
     def reverse_rename_mapping(self) -> dict[str, str]:
         return {renamed: original for original, renamed in self.rename_mapping.items()}
 
+    @property
+    def models(self) -> list[str]:
+        return self.model
+
     def check_unexpected_regions(self, df: IamDataFrame) -> None:
         # Raise error if a region in the input data is not used in the model mapping
 
@@ -479,21 +483,31 @@ class RegionProcessor(Processor):
         mapping_dict: dict[str, RegionAggregationMapping] = {}
         errors = ErrorCollector()
 
-        mapping_files = [f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}]
+        mapping_files = [mapping_file for mapping_file in path.glob("**/*.y*ml")]
 
+        # Read model mappings from external repositories
         for repository in dsd.config.mappings.repositories:
-            mapping_files.extend(
-                f
-                for f in (
-                    dsd.config.repositories[repository.name].local_path / "mappings"
-                ).glob("**/*")
-                if f.suffix in {".yaml", ".yml"}
-            )
+            for mapping_file in (
+                dsd.config.repositories[repository.name].local_path / "mappings"
+            ).glob("**/*.y*ml"):
+                mapping = RegionAggregationMapping.from_file(mapping_file)
+                for model in repository.match_models(mapping.models):
+                    if model not in mapping_dict:
+                        mapping_dict[model] = mapping
+                    else:
+                        errors.append(
+                            ValueError(
+                                "Multiple region aggregation mappings for "
+                                f"model {model} in [{mapping.file}, "
+                                f"{mapping_dict[model].file}]"
+                            )
+                        )
 
-        for file in mapping_files:
+        # Read model mappings from the local repository
+        for mapping_file in mapping_files:
             try:
-                mapping = RegionAggregationMapping.from_file(file)
-                for model in mapping.model:
+                mapping = RegionAggregationMapping.from_file(mapping_file)
+                for model in mapping.models:
                     if model not in mapping_dict:
                         mapping_dict[model] = mapping
                     else:
