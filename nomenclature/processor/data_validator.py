@@ -177,6 +177,7 @@ class DataValidator(Processor):
                             textwrap.indent(str(failed_validation), prefix="    ")
                             + "\n"
                         )
+                        break
             fail_msg = "(file %s):\n" % get_relative_path(self.file)
             if error:
                 fail_msg = (
