@@ -47,6 +47,7 @@ class DataValidationCriteriaValue(DataValidationCriteria):
 
     @property
     def validation_args(self):
+        """Attributes used for validation (as bounds)."""
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
@@ -55,6 +56,7 @@ class DataValidationCriteriaValue(DataValidationCriteria):
 
     @property
     def criteria(self):
+        """Attributes used for validation (as specified in the file)."""
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
@@ -79,23 +81,51 @@ class DataValidationCriteriaBounds(DataValidationCriteria):
     @property
     def criteria(self):
         return self.model_dump(
-            exclude_none=True,
-            exclude_unset=True,
-            exclude=["warning_level"],
+            exclude_none=True, exclude_unset=True, exclude=["warning_level"]
+        )
+
+
+class DataValidationCriteriaMultiple(IamcDataFilter):
+    validation: (
+        list[DataValidationCriteriaValue | DataValidationCriteriaBounds] | None
+    ) = None
+
+    @model_validator(mode="after")
+    def check_warnings_order(self):
+        """Check if warnings are set in descending order of severity."""
+        errors = ErrorCollector()
+        if self.validation != sorted(self.validation, key=lambda c: c.warning_level):
+            errors.append(
+                ValueError(
+                    f"Validation criteria for {self.criteria} not"
+                    " in descending order of severity."
+                )
+            )
+        else:
+            return self
+        if errors:
+            raise ValueError(errors)
+
+    @property
+    def criteria(self):
+        """Attributes used for validation (as specified in the file)."""
+        return self.model_dump(
+            exclude_none=True, exclude_unset=True, exclude=["validation"]
         )
 
 
 class DataValidator(Processor):
     """Processor for validating IAMC datapoints"""
 
-    criteria_items: list[DataValidationCriteriaBounds | DataValidationCriteriaValue]
+    criteria_items: list[DataValidationCriteriaMultiple]
     file: Path
 
     @field_validator("criteria_items", mode="before")
     def check_criteria(cls, v):
-        for criterion in v:
-            has_bounds = any(c in criterion for c in ["upper_bound", "lower_bound"])
-            has_values = any(c in criterion for c in ["value", "atol", "rtol"])
+        for item in v:
+            for criterion in item["validation"]:
+                has_bounds = any(c in criterion for c in ["upper_bound", "lower_bound"])
+                has_values = any(c in criterion for c in ["value", "atol", "rtol"])
             if has_bounds and has_values:
                 raise ValueError(
                     f"Cannot use bounds and value-criteria simultaneously: {criterion}"
@@ -108,15 +138,18 @@ class DataValidator(Processor):
             content = yaml.safe_load(f)
         criteria_items = []
         for item in content:
+            filter_args = {k: item[k] for k in item if k in IamcDataFilter.model_fields}
+            criteria_args = {
+                k: item[k]
+                for k in item
+                if k not in IamcDataFilter.model_fields and k != "validation"
+            }
             if "validation" in item:
-                filter_args = {k: v for k, v in item.items() if k != "validation"}
-                for validation_args in sorted(
-                    item["validation"],
-                    key=lambda d: d.get("warning_level", WarningEnum.error),
-                ):
-                    criteria_items.append(dict({**filter_args, **validation_args}))
+                for criterion in item["validation"]:
+                    criterion.update(filter_args)
             else:
-                criteria_items.append(item)
+                item["validation"] = [{**filter_args, **criteria_args}]
+            criteria_items.append({k: item[k] for k in item if k not in criteria_args})
         return cls(file=file, criteria_items=criteria_items)
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
@@ -125,18 +158,25 @@ class DataValidator(Processor):
 
         with adjust_log_level():
             for item in self.criteria_items:
-                failed_validation = df.validate(**item.validation_args)
-                if failed_validation is not None:
-                    criteria_msg = "  Criteria: " + ", ".join(
-                        [f"{key}: {value}" for key, value in item.criteria.items()]
-                    )
-                    failed_validation["warning_level"] = item.warning_level.value
-                    if item.warning_level == WarningEnum.error:
-                        error = True
-                    fail_list.append(criteria_msg)
-                    fail_list.append(
-                        textwrap.indent(str(failed_validation), prefix="    ") + "\n"
-                    )
+                for criterion in item.validation:
+                    failed_validation = df.validate(**criterion.validation_args)
+                    if failed_validation is not None:
+                        criteria_msg = "  Criteria: " + ", ".join(
+                            [
+                                f"{key}: {value}"
+                                for key, value in criterion.criteria.items()
+                            ]
+                        )
+                        failed_validation["warning_level"] = (
+                            criterion.warning_level.value
+                        )
+                        if criterion.warning_level == WarningEnum.error:
+                            error = True
+                        fail_list.append(criteria_msg)
+                        fail_list.append(
+                            textwrap.indent(str(failed_validation), prefix="    ")
+                            + "\n"
+                        )
             fail_msg = "(file %s):\n" % get_relative_path(self.file)
             if error:
                 fail_msg = (
