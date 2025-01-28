@@ -232,6 +232,21 @@ class RegionAggregationMapping(BaseModel):
     ) -> "RegionAggregationMapping":
         return _check_exclude_region_overlap(v, "common_regions")
 
+    @model_validator(mode="after")
+    @classmethod
+    def check_constituent_regions_in_native_regions(
+        cls, v: "RegionAggregationMapping"
+    ) -> "RegionAggregationMapping":
+        if v.common_regions and v.native_regions:
+            if missing := set(
+                [cr for r in v.common_regions for cr in r.constituent_regions]
+            ).difference([r.name for r in v.native_regions if v.native_regions]):
+                raise PydanticCustomError(
+                    *custom_pydantic_errors.ConstituentsNotNativeError,
+                    {"regions": missing, "file": v.file},
+                )
+        return v
+
     @classmethod
     def from_file(cls, file: Path | str) -> "RegionAggregationMapping":
         """Initialize a RegionAggregationMapping from a file.

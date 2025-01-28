@@ -4,4 +4,3 @@ native_regions:
 common_regions:
   - World:
     - region_a
-    - region_b

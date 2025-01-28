@@ -1,0 +1,10 @@
+# Constituent region is not defined in native region
+model: model_a
+native_regions:
+  - region_a: alternative_name_a
+  - region_b: alternative_name_b
+common_regions:
+  - common_region_1:
+    - region_a
+    - region_b
+    - region_c

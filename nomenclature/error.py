@@ -40,6 +40,10 @@ pydantic_custom_error_config = {
         "region_not_defined",
         "Region(s)\n{regions}\nin {file}\nnot found in RegionCodeList",
     ),
+    "ConstituentsNotNativeError": (
+        "constituents_not_native",
+        "Constituent region(s)\n{regions}\nin {file} not found in RegionCodeList",
+    ),
 }
 
 PydanticCustomErrors = namedtuple("PydanticCustomErrors", pydantic_custom_error_config)
