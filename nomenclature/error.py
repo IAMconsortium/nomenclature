@@ -42,7 +42,7 @@ pydantic_custom_error_config = {
     ),
     "ConstituentsNotNativeError": (
         "constituents_not_native",
-        "Constituent region(s)\n{regions}\nin {file} not found in RegionCodeList",
+        "Constituent region(s)\n{regions}\nin {file} not found in native region(s)",
     ),
 }
 
