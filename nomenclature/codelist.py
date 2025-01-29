@@ -357,7 +357,7 @@ class CodeList(BaseModel):
                     _check_string(attr, item)
 
         for code in self.mapping.values():
-            if not code.repository:
+            if not code.from_external_repository:
                 for attr, value in code.model_dump(exclude="file").items():
                     _check_string(attr, value)
         if errors:
