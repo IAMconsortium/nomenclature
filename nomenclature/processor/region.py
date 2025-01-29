@@ -396,28 +396,35 @@ class RegionAggregationMapping(BaseModel):
     def __eq__(self, other: "RegionAggregationMapping") -> bool:
         return self.model_dump(exclude={"file"}) == other.model_dump(exclude={"file"})
 
+    @field_serializer("model", when_used="json")
+    def serialize_model(self, model) -> str | list[str]:
+        return model[0] if len(model) == 1 else model
+
+    @field_serializer("native_regions", when_used="json")
+    def serialize_native_regions(self, native_regions) -> list:
+        return [
+            (
+                {native_region.name: native_region.rename}
+                if native_region.rename
+                else native_region.name
+            )
+            for native_region in native_regions
+        ]
+
+    @field_serializer("common_regions", when_used="json")
+    def serialize_common_regions(self, common_regions) -> list:
+        return [
+            {common_region.name: common_region.constituent_regions}
+            for common_region in common_regions
+        ]
+
     def to_yaml(self, file) -> None:
-        dict_representation = {
-            "model": self.model[0] if len(self.model) == 1 else self.model
-        }
-        if self.native_regions:
-            dict_representation["native_regions"] = [
-                (
-                    {native_region.name: native_region.rename}
-                    if native_region.rename
-                    else native_region.name
-                )
-                for native_region in self.native_regions
-            ]
-        if self.common_regions:
-            dict_representation["common_regions"] = [
-                {common_region.name: common_region.constituent_regions}
-                for common_region in self.common_regions
-            ]
-        if self.exclude_regions:
-            dict_representation["exclude_regions"] = self.exclude_regions
         with open(file, "w", encoding="utf-8") as f:
-            yaml.dump(dict_representation, f, sort_keys=False)
+            yaml.dump(
+                self.model_dump(mode="json", exclude_defaults=True, exclude={"file"}),
+                f,
+                sort_keys=False,
+            )
 
 
 def validate_with_definition(v: RegionAggregationMapping, info: ValidationInfo):
