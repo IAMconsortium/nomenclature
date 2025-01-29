@@ -94,18 +94,13 @@ class DataValidationCriteriaMultiple(IamcDataFilter):
     @model_validator(mode="after")
     def check_warnings_order(self):
         """Check if warnings are set in descending order of severity."""
-        errors = ErrorCollector()
         if self.validation != sorted(self.validation, key=lambda c: c.warning_level):
-            errors.append(
-                ValueError(
-                    f"Validation criteria for {self.criteria} not"
-                    " in descending order of severity."
-                )
+            raise ValueError(
+                f"Validation criteria for {self.criteria} not"
+                " in descending order of severity."
             )
         else:
             return self
-        if errors:
-            raise ValueError(errors)
 
     @property
     def criteria(self):
