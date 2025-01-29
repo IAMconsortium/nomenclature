@@ -5,7 +5,6 @@ from conftest import TEST_DATA_DIR
 
 from nomenclature import DataStructureDefinition
 from nomenclature.processor.data_validator import DataValidator
-from pyam import IamDataFrame
 
 DATA_VALIDATION_TEST_DIR = TEST_DATA_DIR / "validation" / "validate_data"
 
@@ -142,7 +141,7 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
 )
 def test_DataValidator_validate_with_warning(file, value, simple_df, caplog):
     """Checks that failed validation rows are printed in log."""
-    simple_df = IamDataFrame(simple_df._data.replace(6.0, value))
+    simple_df._data.iloc[1] = value
     data_validator = DataValidator.from_file(
         DATA_VALIDATION_TEST_DIR / f"validate_warning_{file}.yaml"
     )
@@ -156,7 +155,8 @@ def test_DataValidator_validate_with_warning(file, value, simple_df, caplog):
     1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error"""
     )
     if file == "legacy":
-        # prints all failed warning levels for legacy format
+        # prints both error and low warning levels for legacy format
+        # because these are treated as independent validation-criteria
         failed_validation_message += """
 
   Criteria: variable: ['Primary Energy'], year: [2010], upper_bound: 2.5, lower_bound: 1.0
