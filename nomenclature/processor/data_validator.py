@@ -4,6 +4,7 @@ from enum import Enum
 from pathlib import Path
 
 import yaml
+from pandas import concat
 from pyam import IamDataFrame
 from pyam.logging import adjust_log_level
 from pydantic import computed_field, field_validator, model_validator
@@ -158,9 +159,17 @@ class DataValidator(Processor):
 
         with adjust_log_level():
             for item in self.criteria_items:
+                per_item_df = df
                 for criterion in item.validation:
-                    failed_validation = df.validate(**criterion.validation_args)
+                    failed_validation = per_item_df.validate(
+                        **criterion.validation_args
+                    )
                     if failed_validation is not None:
+                        per_item_df = IamDataFrame(
+                            concat([df.data, failed_validation]).drop_duplicates(
+                                keep=False
+                            )
+                        )
                         criteria_msg = "  Criteria: " + ", ".join(
                             [
                                 f"{key}: {value}"
@@ -177,7 +186,6 @@ class DataValidator(Processor):
                             textwrap.indent(str(failed_validation), prefix="    ")
                             + "\n"
                         )
-                        break
             fail_msg = "(file %s):\n" % get_relative_path(self.file)
             if error:
                 fail_msg = (
