@@ -228,7 +228,7 @@ class RegionAggregationMapping(BaseModel):
         if v.common_regions and v.native_regions:
             if missing := set(
                 [cr for r in v.common_regions for cr in r.constituent_regions]
-            ).difference([r.name for r in v.native_regions if v.native_regions]):
+            ).difference([r.name for r in v.native_regions]):
                 raise PydanticCustomError(
                     *custom_pydantic_errors.ConstituentsNotNativeError,
                     {"regions": missing, "file": v.file},
