@@ -13,10 +13,12 @@ from pydantic import (
     AfterValidator,
     BaseModel,
     ConfigDict,
+    Field,
     ValidationInfo,
     field_validator,
     model_validator,
     validate_call,
+    field_serializer,
 )
 from pydantic.types import DirectoryPath, FilePath
 from pydantic_core import PydanticCustomError
@@ -109,23 +111,11 @@ class RegionAggregationMapping(BaseModel):
 
     model: list[str]
     file: FilePath
-    native_regions: list[NativeRegion] | None = None
-    common_regions: list[CommonRegion] | None = None
-    exclude_regions: list[str] | None = None
+    native_regions: list[NativeRegion] = Field(default_factory=list)
+    common_regions: list[CommonRegion] = Field(default_factory=list)
+    exclude_regions: list[str] = Field(default_factory=list)
 
-    @model_validator(mode="before")
-    @classmethod
-    def check_no_additional_attributes(cls, v):
-        if illegal_additional_attributes := [
-            input_attribute
-            for input_attribute in v.keys()
-            if input_attribute not in cls.model_fields
-        ]:
-            raise ValueError(
-                "Illegal attributes in 'RegionAggregationMapping': "
-                f"{illegal_additional_attributes} (file {v['file']})"
-            )
-        return v
+    model_config = ConfigDict(extra="forbid")
 
     @field_validator("model", mode="before")
     @classmethod
@@ -188,7 +178,7 @@ class RegionAggregationMapping(BaseModel):
         cls, v: "RegionAggregationMapping"
     ) -> "RegionAggregationMapping":
         # Check that we have at least one of the two: native and common regions
-        if v.native_regions is None and v.common_regions is None:
+        if not v.native_regions and not v.common_regions:
             raise ValueError(
                 "At least one of 'native_regions' and 'common_regions' must be "
                 f"provided in {v.file}"
@@ -201,9 +191,7 @@ class RegionAggregationMapping(BaseModel):
         cls, v: "RegionAggregationMapping"
     ) -> "RegionAggregationMapping":
         """Check if any renaming overlaps with common regions"""
-        # Skip if only either native-regions or common-regions are specified
-        if v.native_regions is None or v.common_regions is None:
-            return v
+
         native_region_names = {nr.target_native_region for nr in v.native_regions}
         common_region_names = {cr.name for cr in v.common_regions}
         overlap = list(native_region_names & common_region_names)
@@ -233,7 +221,7 @@ class RegionAggregationMapping(BaseModel):
         return _check_exclude_region_overlap(v, "common_regions")
 
     @classmethod
-    def from_file(cls, file: Path | str):
+    def from_file(cls, file: Path | str) -> "RegionAggregationMapping":
         """Initialize a RegionAggregationMapping from a file.
 
         Parameters
@@ -380,6 +368,10 @@ class RegionAggregationMapping(BaseModel):
     def reverse_rename_mapping(self) -> dict[str, str]:
         return {renamed: original for original, renamed in self.rename_mapping.items()}
 
+    @property
+    def models(self) -> list[str]:
+        return self.model
+
     def check_unexpected_regions(self, df: IamDataFrame) -> None:
         # Raise error if a region in the input data is not used in the model mapping
 
@@ -404,28 +396,35 @@ class RegionAggregationMapping(BaseModel):
     def __eq__(self, other: "RegionAggregationMapping") -> bool:
         return self.model_dump(exclude={"file"}) == other.model_dump(exclude={"file"})
 
+    @field_serializer("model", when_used="json")
+    def serialize_model(self, model) -> str | list[str]:
+        return model[0] if len(model) == 1 else model
+
+    @field_serializer("native_regions", when_used="json")
+    def serialize_native_regions(self, native_regions) -> list:
+        return [
+            (
+                {native_region.name: native_region.rename}
+                if native_region.rename
+                else native_region.name
+            )
+            for native_region in native_regions
+        ]
+
+    @field_serializer("common_regions", when_used="json")
+    def serialize_common_regions(self, common_regions) -> list:
+        return [
+            {common_region.name: common_region.constituent_regions}
+            for common_region in common_regions
+        ]
+
     def to_yaml(self, file) -> None:
-        dict_representation = {
-            "model": self.model[0] if len(self.model) == 1 else self.model
-        }
-        if self.native_regions:
-            dict_representation["native_regions"] = [
-                (
-                    {native_region.name: native_region.rename}
-                    if native_region.rename
-                    else native_region.name
-                )
-                for native_region in self.native_regions
-            ]
-        if self.common_regions:
-            dict_representation["common_regions"] = [
-                {common_region.name: common_region.constituent_regions}
-                for common_region in self.common_regions
-            ]
-        if self.exclude_regions:
-            dict_representation["exclude_regions"] = self.exclude_regions
         with open(file, "w", encoding="utf-8") as f:
-            yaml.dump(dict_representation, f, sort_keys=False)
+            yaml.dump(
+                self.model_dump(mode="json", exclude_defaults=True, exclude={"file"}),
+                f,
+                sort_keys=False,
+            )
 
 
 def validate_with_definition(v: RegionAggregationMapping, info: ValidationInfo):
@@ -479,21 +478,31 @@ class RegionProcessor(Processor):
         mapping_dict: dict[str, RegionAggregationMapping] = {}
         errors = ErrorCollector()
 
-        mapping_files = [f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}]
+        mapping_files = [mapping_file for mapping_file in path.glob("**/*.y*ml")]
 
+        # Read model mappings from external repositories
         for repository in dsd.config.mappings.repositories:
-            mapping_files.extend(
-                f
-                for f in (
-                    dsd.config.repositories[repository.name].local_path / "mappings"
-                ).glob("**/*")
-                if f.suffix in {".yaml", ".yml"}
-            )
+            for mapping_file in (
+                dsd.config.repositories[repository.name].local_path / "mappings"
+            ).glob("**/*.y*ml"):
+                mapping = RegionAggregationMapping.from_file(mapping_file)
+                for model in repository.match_models(mapping.models):
+                    if model not in mapping_dict:
+                        mapping_dict[model] = mapping
+                    else:
+                        errors.append(
+                            ValueError(
+                                "Multiple region aggregation mappings for "
+                                f"model {model} in [{mapping.file}, "
+                                f"{mapping_dict[model].file}]"
+                            )
+                        )
 
-        for file in mapping_files:
+        # Read model mappings from the local repository
+        for mapping_file in mapping_files:
             try:
-                mapping = RegionAggregationMapping.from_file(file)
-                for model in mapping.model:
+                mapping = RegionAggregationMapping.from_file(mapping_file)
+                for model in mapping.models:
                     if model not in mapping_dict:
                         mapping_dict[model] = mapping
                     else:
@@ -620,70 +629,64 @@ class RegionProcessor(Processor):
         # silence pyam's empty filter warnings
         with adjust_log_level(logger="pyam", level="ERROR"):
             # rename native regions
-            if self.mappings[model].native_regions is not None:
-                _df = model_df.filter(
-                    region=self.mappings[model].model_native_region_names
+            _df = model_df.filter(region=self.mappings[model].model_native_region_names)
+            if not _df.empty:
+                _processed_data.append(
+                    _df.rename(region=self.mappings[model].rename_mapping)._data
                 )
-                if not _df.empty:
-                    _processed_data.append(
-                        _df.rename(region=self.mappings[model].rename_mapping)._data
-                    )
 
             # aggregate common regions
-            if self.mappings[model].common_regions is not None:
-                for common_region in self.mappings[model].common_regions:
-                    # if a common region is consists of a single native region, rename
-                    if common_region.is_single_constituent_region:
-                        _df = model_df.filter(
-                            region=common_region.constituent_regions[0]
-                        ).rename(region=common_region.rename_dict)
-                        if not _df.empty:
-                            _processed_data.append(_df._data)
-                        continue
-
-                    # if there are multiple constituent regions, aggregate
-                    regions = [common_region.name, common_region.constituent_regions]
-
-                    # first, perform 'simple' aggregation (no arguments)
-                    simple_vars = [
-                        var
-                        for var in self.variable_codelist.vars_default_args(
-                            model_df.variable
-                        )
-                    ]
-                    _df = model_df.aggregate_region(
-                        simple_vars,
-                        *regions,
-                    )
-                    if _df is not None and not _df.empty:
+            for common_region in self.mappings[model].common_regions:
+                # if a common region is consists of a single native region, rename
+                if common_region.is_single_constituent_region:
+                    _df = model_df.filter(
+                        region=common_region.constituent_regions[0]
+                    ).rename(region=common_region.rename_dict)
+                    if not _df.empty:
                         _processed_data.append(_df._data)
+                    continue
 
-                    # second, special weighted aggregation
-                    for var in self.variable_codelist.vars_kwargs(model_df.variable):
-                        if var.region_aggregation is None:
-                            _df = _aggregate_region(
-                                model_df,
-                                var.name,
-                                *regions,
-                                **var.pyam_agg_kwargs,
-                            )
-                            if _df is not None and not _df.empty:
-                                _processed_data.append(_df._data)
-                        else:
-                            for rename_var in var.region_aggregation:
-                                for _rename, _kwargs in rename_var.items():
-                                    _df = _aggregate_region(
-                                        model_df,
-                                        var.name,
-                                        *regions,
-                                        **_kwargs,
+                # if there are multiple constituent regions, aggregate
+                regions = [common_region.name, common_region.constituent_regions]
+
+                # first, perform 'simple' aggregation (no arguments)
+                simple_vars = [
+                    var
+                    for var in self.variable_codelist.vars_default_args(
+                        model_df.variable
+                    )
+                ]
+                _df = model_df.aggregate_region(
+                    simple_vars,
+                    *regions,
+                )
+                if _df is not None and not _df.empty:
+                    _processed_data.append(_df._data)
+
+                # second, special weighted aggregation
+                for var in self.variable_codelist.vars_kwargs(model_df.variable):
+                    if var.region_aggregation is None:
+                        _df = _aggregate_region(
+                            model_df,
+                            var.name,
+                            *regions,
+                            **var.pyam_agg_kwargs,
+                        )
+                        if _df is not None and not _df.empty:
+                            _processed_data.append(_df._data)
+                    else:
+                        for rename_var in var.region_aggregation:
+                            for _rename, _kwargs in rename_var.items():
+                                _df = _aggregate_region(
+                                    model_df,
+                                    var.name,
+                                    *regions,
+                                    **_kwargs,
+                                )
+                                if _df is not None and not _df.empty:
+                                    _processed_data.append(
+                                        _df.rename(variable={var.name: _rename})._data
                                     )
-                                    if _df is not None and not _df.empty:
-                                        _processed_data.append(
-                                            _df.rename(
-                                                variable={var.name: _rename}
-                                            )._data
-                                        )
 
             common_region_df = model_df.filter(
                 region=self.mappings[model].common_region_names,

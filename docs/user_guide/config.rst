@@ -152,3 +152,25 @@ validation:
     - region
     - variable
     - scenario
+
+
+Filter model mappings from external repositories
+------------------------------------------------
+
+We often only want to use a subset of models in a particular project (and not import all mappings), so
+there is an option to filter for specific model mappings. This works very similarly to
+the filtering for definitions.
+
+.. code:: yaml
+
+  repositories:
+  common-definitions:
+    url: https://github.com/IAMconsortium/common-definitions.git/
+  mappings:
+    repository:
+      name: common-definitions
+      include:
+        - MESSAGEix-GLOBIOM 2.1-M-R12
+
+The above example retrieves only the model mapping for *MESSAGEix-GLOBIOM 2.1-M-R12*
+from the common-definitions repository.

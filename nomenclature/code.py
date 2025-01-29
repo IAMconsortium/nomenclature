@@ -112,6 +112,10 @@ class Code(BaseModel):
     def depth(self) -> int:
         return self.name.count("|")
 
+    @property
+    def from_external_repository(self) -> bool:
+        return self.repository is not None
+
     def replace_tag(self, tag: str, target: "Code") -> "Code":
         """Return a new instance with tag applied
 

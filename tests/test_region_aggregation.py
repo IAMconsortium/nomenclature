@@ -43,7 +43,7 @@ def test_mapping():
                 "constituent_regions": ["region_c"],
             },
         ],
-        "exclude_regions": None,
+        "exclude_regions": [],
     }
     assert obs.model_dump() == exp
 
@@ -51,10 +51,6 @@ def test_mapping():
 @pytest.mark.parametrize(
     "file, error_msg_pattern",
     [
-        (
-            "illegal_mapping_illegal_attribute.yaml",
-            "Illegal attributes in 'RegionAggregationMapping'",
-        ),
         (
             "illegal_mapping_conflict_regions.yaml",
             "Name collision in native and common regions.*common_region_1",
@@ -92,6 +88,15 @@ def test_illegal_mappings(file, error_msg_pattern):
         RegionAggregationMapping.from_file(TEST_FOLDER_REGION_AGGREGATION / file)
 
 
+def test_illegal_additional_attribute():
+    with pytest.raises(
+        pydantic.ValidationError, match="Extra inputs are not permitted"
+    ):
+        RegionAggregationMapping.from_file(
+            TEST_FOLDER_REGION_AGGREGATION / "illegal_mapping_illegal_attribute.yaml"
+        )
+
+
 def test_mapping_parsing_error():
     with pytest.raises(ValueError, match="string indices must be integers"):
         RegionAggregationMapping.from_file(
@@ -119,15 +124,15 @@ def test_region_processor_working(region_processor_path, simple_definition):
             "native_regions": [
                 {"name": "World", "rename": None},
             ],
-            "common_regions": None,
-            "exclude_regions": None,
+            "common_regions": [],
+            "exclude_regions": [],
         },
         {
             "model": ["model_b"],
             "file": (
                 TEST_FOLDER_REGION_PROCESSING / "regionprocessor_working/mapping_2.yaml"
             ).relative_to(Path.cwd()),
-            "native_regions": None,
+            "native_regions": [],
             "common_regions": [
                 {
                     "name": "World",
@@ -239,7 +244,7 @@ def test_region_processor_unexpected_region_raises():
 
 
 def test_mapping_from_external_repository():
-    # This test reads both mappings and definitions from an external repository only
+    # This test reads definitions and the mapping for only MESSAGEix-GLOBIOM 2.1-M-R12 # from an external repository only
     try:
         processor = RegionProcessor.from_directory(
             TEST_FOLDER_REGION_PROCESSING / "external_repo_test" / "mappings",
@@ -247,11 +252,7 @@ def test_mapping_from_external_repository():
                 TEST_FOLDER_REGION_PROCESSING / "external_repo_test" / "definitions"
             ),
         )
-
-        assert all(
-            model in processor.mappings.keys()
-            for model in ("REMIND 3.1", "REMIND-MAgPIE 3.1-4.6")
-        )
+        assert {"REMIND-MAgPIE 3.1-4.6"} == set(processor.mappings.keys())
     finally:
         clean_up_external_repos(dsd.config.repositories)
 
