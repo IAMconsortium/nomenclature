@@ -109,23 +109,11 @@ class RegionAggregationMapping(BaseModel):
 
     model: list[str]
     file: FilePath
-    native_regions: list[NativeRegion] | None = None
-    common_regions: list[CommonRegion] | None = None
-    exclude_regions: list[str] | None = None
+    native_regions: list[NativeRegion] = Field(default_factory=list)
+    common_regions: list[CommonRegion] = Field(default_factory=list)
+    exclude_regions: list[str] = Field(default_factory=list)
 
-    @model_validator(mode="before")
-    @classmethod
-    def check_no_additional_attributes(cls, v):
-        if illegal_additional_attributes := [
-            input_attribute
-            for input_attribute in v.keys()
-            if input_attribute not in cls.model_fields
-        ]:
-            raise ValueError(
-                "Illegal attributes in 'RegionAggregationMapping': "
-                f"{illegal_additional_attributes} (file {v['file']})"
-            )
-        return v
+    model_config = ConfigDict(extra="forbid")
 
     @field_validator("model", mode="before")
     @classmethod
