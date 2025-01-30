@@ -93,7 +93,6 @@ def test_config_with_filter(config_file):
 
 
 def test_config_external_repo_mapping_filter():
-
     config = NomenclatureConfig.from_file(
         TEST_DATA_DIR / "config" / "filter_mappings.yaml"
     )
