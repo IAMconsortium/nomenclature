@@ -79,6 +79,10 @@ def test_mapping():
             "illegal_mapping_model_only.yaml",
             "one of 'native_regions' and 'common_regions'",
         ),
+        (
+            "illegal_mapping_constituent_native_missing.yaml",
+            "Constituent region\(s\)\n.*\n",
+        ),
     ],
 )
 def test_illegal_mappings(file, error_msg_pattern):
@@ -196,7 +200,7 @@ def test_region_processor_wrong_args():
 
 def test_region_processor_multiple_wrong_mappings(simple_definition):
     # Read in the entire region_aggregation directory and return **all** errors
-    msg = "Collected 9 errors"
+    msg = "Collected 10 errors"
 
     with pytest.raises(ValueError, match=msg):
         RegionProcessor.from_directory(
