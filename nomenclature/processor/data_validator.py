@@ -149,6 +149,24 @@ class DataValidator(Processor):
         return cls(file=file, criteria_items=criteria_items)
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
+        """Validates data in IAMC format according to specified criteria.
+
+        Logs warning/error messages for each criterion that is not met.
+
+        Parameters
+        ----------
+        df : IamDataFrame
+            Data in IAMC format to be validated
+
+        Returns
+        -------
+        IamDataFrame
+
+        Raises
+        ------
+            `ValueError` if any criterion has a warning level of `error`
+        """
+
         fail_list = []
         error = False
 

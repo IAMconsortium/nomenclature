@@ -147,6 +147,8 @@ class RequiredData(BaseModel):
 
 
 class RequiredDataValidator(Processor):
+    """Processor for validating required dimensions in IAMC datapoints"""
+
     description: str | None = None
     model: list[str] | None = None
     required_data: list[RequiredData]
@@ -164,6 +166,21 @@ class RequiredDataValidator(Processor):
         return cls(file=file, **content)
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
+        """Validates data in IAMC format according to required models and dimensions.
+
+        Parameters
+        ----------
+        df : IamDataFrame
+            Data in IAMC format to be validated
+
+        Returns
+        -------
+        IamDataFrame
+
+        Raises
+        ------
+            `ValueError` if any required dimension is not found in the data
+        """
         if self.model is not None:
             models_to_check = [model for model in df.model if model in self.model]
         else:
