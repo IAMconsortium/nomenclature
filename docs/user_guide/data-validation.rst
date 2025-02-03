@@ -19,7 +19,7 @@ periods of time are covered in the datapoints.
 For this, a configuration file specifies the model(s) and dimension(s) expected
 in the dataset. These are ``variable``, ``region`` and/or ``year``.
 Alternatively, instead of using ``variable``, it is possible to declare measurands,
-which can also specify units.
+which jointly specify variables and units.
 
 .. code:: yaml
 
