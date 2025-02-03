@@ -39,7 +39,7 @@ years 2020, 2030, 2040 and 2050.
 Data validation
 ---------------
 
-**Data validation** checks if data values are within reasonable ranges.
+**Data validation** checks if data values are within specified ranges.
 
 Consider the example below:
 
