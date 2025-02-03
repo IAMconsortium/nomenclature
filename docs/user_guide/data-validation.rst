@@ -5,7 +5,7 @@
 Data validation
 ===============
 
-The **nomenclature** package allows users to validate IAMC data in two ways.
+The **nomenclature** package allows users to validate IAMC data in several ways.
 
 For this, validation requirements and criteria can be specified in YAML configuration
 files.
