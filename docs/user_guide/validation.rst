@@ -2,8 +2,8 @@
 
 .. currentmodule:: nomenclature
 
-Data validation
-===============
+Validation
+==========
 
 The **nomenclature** package allows users to validate IAMC data in several ways.
 
