@@ -65,6 +65,7 @@ class Aggregator(Processor):
 
     @field_validator("mapping")
     def validate_components(cls, v, info: ValidationInfo):
+        # components have to be unique for creating rename-mapping (component -> target)
         all_components = list()
         for item in v:
             all_components.extend(item.components)
