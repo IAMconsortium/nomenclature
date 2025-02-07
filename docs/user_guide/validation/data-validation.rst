@@ -5,7 +5,7 @@
 Data validation
 ===============
 
-**Data validation** checks if data values are within specified ranges.
+**Data validation** checks if timeseries data values are within specified ranges.
 
 Consider the example below:
 
