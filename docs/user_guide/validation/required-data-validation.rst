@@ -6,7 +6,7 @@ Required data validation
 ========================
 
 **Required data validation** checks if certain models, variables, regions and/or 
-periods of time are covered in the datapoints.
+periods of time are covered in the timeseries data.
 
 For this, a configuration file specifies the model(s) and dimension(s) expected
 in the dataset. These are ``variable``, ``region`` and/or ``year``.
