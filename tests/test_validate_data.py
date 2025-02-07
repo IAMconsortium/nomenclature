@@ -137,7 +137,7 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
 
 @pytest.mark.parametrize(
     "file, value",
-    [("joined", 6.0), ("joined", 3.0), ("legacy", 6.0)],
+    [("joined", 6.0), ("joined", 3.0), ("legacy", 6.0), ("range", 6.0)],
 )
 def test_DataValidator_validate_with_warning(file, value, simple_df, caplog):
     """Checks that failed validation rows are printed in log."""
@@ -154,6 +154,7 @@ def test_DataValidator_validate_with_warning(file, value, simple_df, caplog):
     0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0         error
     1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error"""
     )
+
     if file == "legacy":
         # prints both error and low warning levels for legacy format
         # because these are treated as independent validation-criteria
@@ -163,6 +164,11 @@ def test_DataValidator_validate_with_warning(file, value, simple_df, caplog):
          model scenario region        variable   unit  year  value warning_level
     0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0           low
     1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0           low"""
+
+    if file == "range":
+        failed_validation_message = failed_validation_message.replace(
+            "upper_bound: 5.0, lower_bound: 1.0", "range: [1.0, 5.0]"
+        )
 
     if value == 3.0:
         # prints each warning level when each is triggered by different rows

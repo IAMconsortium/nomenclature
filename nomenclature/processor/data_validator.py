@@ -7,7 +7,7 @@ import yaml
 from pandas import concat
 from pyam import IamDataFrame
 from pyam.logging import adjust_log_level
-from pydantic import computed_field, field_validator, model_validator
+from pydantic import computed_field, field_validator, model_validator, Field
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error import ErrorCollector
@@ -86,9 +86,49 @@ class DataValidationCriteriaBounds(DataValidationCriteria):
         )
 
 
+class DataValidationCriteriaRange(DataValidationCriteria):
+    range: list[float] = Field(..., min_length=2, max_length=2)
+
+    @model_validator(mode="after")
+    def check_range_is_valid(self):
+        if self.range[0] > self.range[1]:
+            raise ValueError("Validation range is invalid: " + str(self.criteria))
+        return self
+
+    @computed_field
+    def upper_bound(self) -> float:
+        return self.range[1]
+
+    @computed_field
+    def lower_bound(self) -> float:
+        return self.range[0]
+
+    @property
+    def validation_args(self):
+        """Attributes used for validation (as bounds)."""
+        return self.model_dump(
+            exclude_none=True,
+            exclude_unset=True,
+            exclude=["warning_level", "range"],
+        )
+
+    @property
+    def criteria(self):
+        return self.model_dump(
+            exclude_none=True,
+            exclude_unset=True,
+            exclude=["warning_level", "lower_bound", "upper_bound"],
+        )
+
+
 class DataValidationCriteriaMultiple(IamcDataFilter):
     validation: (
-        list[DataValidationCriteriaValue | DataValidationCriteriaBounds] | None
+        list[
+            DataValidationCriteriaValue
+            | DataValidationCriteriaBounds
+            | DataValidationCriteriaRange
+        ]
+        | None
     ) = None
 
     @model_validator(mode="after")
