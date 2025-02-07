@@ -37,6 +37,10 @@ def test_Aggregator_from_file():
             "aggregation_mapping_duplicate_target.yaml",
             "Duplicate target \['Primary Energy'\] in aggregation-mapping in ",
         ),
+        (
+            "aggregation_mapping_duplicate_component.yaml",
+            "Duplicate component \['Primary Energy\|Coal'\] in aggregation-mapping in ",
+        ),
     ],
 )
 def test_Aggregator_raises(file, error_msg_pattern):

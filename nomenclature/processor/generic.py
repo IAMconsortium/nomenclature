@@ -68,7 +68,7 @@ class Aggregator(Processor):
         all_components = list()
         for item in v:
             all_components.extend(item.components)
-        _validate_items(all_components, info, "components")
+        _validate_items(all_components, info, "component")
         return v
 
     @classmethod
@@ -99,9 +99,9 @@ class Aggregator(Processor):
             raise ValueError(f"{error} in {get_relative_path(file)}") from error
         return cls(
             dimension=mapping_input["dimension"],
-            mapping=mapping_list,
+            mapping=mapping_list,  # type: ignore
             file=get_relative_path(file),
-        )  # type: ignore
+        )
 
 
 def _validate_items(items, info, _type):
