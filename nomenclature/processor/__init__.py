@@ -5,3 +5,4 @@ from nomenclature.processor.region import (  # noqa
 )
 from nomenclature.processor.required_data import RequiredDataValidator  # noqa
 from nomenclature.processor.data_validator import DataValidator  # noqa
+from nomenclature.processor.generic import Aggregator  # noqa
