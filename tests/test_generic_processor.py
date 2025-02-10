@@ -4,6 +4,7 @@ import pydantic
 import pytest
 
 from conftest import TEST_DATA_DIR
+from nomenclature import DataStructureDefinition
 from nomenclature.processor import Aggregator
 
 TEST_FOLDER_GENERIC_PROCESSOR = TEST_DATA_DIR / "processor" / "generic"
@@ -53,3 +54,19 @@ def test_aggregator_raises(file, error_msg_pattern):
     with pytest.raises(pydantic.ValidationError, match=f"{error_msg_pattern}.*{file}"):
         Aggregator.from_file(TEST_FOLDER_GENERIC_PROCESSOR / file)
 
+
+def test_aggregator_validate_with_definition():
+    obs = Aggregator.from_file(
+        TEST_FOLDER_GENERIC_PROCESSOR / "aggregation_mapping.yaml"
+    )
+    definition = DataStructureDefinition(TEST_FOLDER_GENERIC_PROCESSOR / "definition")
+    obs.validate_with_definition(definition)
+
+
+def test_aggregator_validate_with_definition_raises():
+    file = "aggregation_mapping_invalid_code.yaml"
+    obs = Aggregator.from_file(TEST_FOLDER_GENERIC_PROCESSOR / file)
+    definition = DataStructureDefinition(TEST_FOLDER_GENERIC_PROCESSOR / "definition")
+    match = f"The following variables are not .*\n .*- Final Energy\|Foo\n.*{file}"
+    with pytest.raises(ValueError, match=match):
+       obs.validate_with_definition(definition)

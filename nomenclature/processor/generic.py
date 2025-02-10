@@ -9,7 +9,7 @@ from pydantic.types import FilePath
 from pydantic_core import PydanticCustomError
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.error import custom_pydantic_errors, ErrorCollector
+from nomenclature.error import custom_pydantic_errors
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 
@@ -83,16 +83,28 @@ class Aggregator(Processor):
         _validate_items(_codes, info, "Non-unique target and component")
         return v
 
+    @property
+    def codes(self):
+        _codes = list()
+        for item in self.mapping:
+            _codes.append(item.name)
+            _codes.extend(item.components)
+        return _codes
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
-        errors = ErrorCollector(description=f"in file '{self.file}'")
-        for criterion in self.mapping:
-            try:
-                criterion.validate_with_definition(dsd)
-            except ValueError as value_error:
-                errors.append(value_error)
-        if errors:
-            raise ValueError(errors)
+        # check for codes that are not defined in the codelists
+        codelist = getattr(dsd, self.dimension, None)
+        # no validation if codelist is not defined or filter-item is None
+        if codelist is None:
+            raise ValueError(
+                f"Dimension {self.dimension} not defined in DataStructureDefinition."
+            )
+        if invalid := codelist.validate_items(self.codes):
+            raise ValueError(
+                f"The following {self.dimension}s are not defined in the "
+                f"DataStructureDefinition:\n - {'\n - '.join(invalid)}\n"
+                f"in file {self.file}"
+            )
 
     @classmethod
     def from_file(cls, file: Path | str):
