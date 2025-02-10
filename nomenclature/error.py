@@ -46,7 +46,7 @@ pydantic_custom_error_config = {
     ),
     "AggregationMappingConflict": (
         "aggregation_mapping_conflict",
-        "Duplicate {type} {duplicates} in aggregation-mapping in {file}",
+        "{type} {duplicates} in aggregation-mapping in {file}",
     ),
 }
 

@@ -8,7 +8,8 @@ from pydantic import BaseModel, field_validator, ValidationInfo
 from pydantic.types import FilePath
 from pydantic_core import PydanticCustomError
 
-from nomenclature.error import custom_pydantic_errors
+from nomenclature.definition import DataStructureDefinition
+from nomenclature.error import custom_pydantic_errors, ErrorCollector
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 
@@ -60,7 +61,7 @@ class Aggregator(Processor):
 
     @field_validator("mapping")
     def validate_target_names(cls, v, info: ValidationInfo):
-        _validate_items([item.name for item in v], info, "target")
+        _validate_items([item.name for item in v], info, "Duplicate target")
         return v
 
     @field_validator("mapping")
@@ -69,8 +70,29 @@ class Aggregator(Processor):
         all_components = list()
         for item in v:
             all_components.extend(item.components)
-        _validate_items(all_components, info, "component")
+        _validate_items(all_components, info, "Duplicate component")
         return v
+
+    @field_validator("mapping")
+    def validate_target_vs_components(cls, v, info: ValidationInfo):
+        # guard against having identical target and component
+        all_components = list()
+        for item in v:
+            all_components.extend([item.name])
+            all_components.extend(item.components)
+        _validate_items(all_components, info, "Non-unique target and component")
+        return v
+
+
+    def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
+        errors = ErrorCollector(description=f"in file '{self.file}'")
+        for criterion in self.mapping:
+            try:
+                criterion.validate_with_definition(dsd)
+            except ValueError as value_error:
+                errors.append(value_error)
+        if errors:
+            raise ValueError(errors)
 
     @classmethod
     def from_file(cls, file: Path | str):
