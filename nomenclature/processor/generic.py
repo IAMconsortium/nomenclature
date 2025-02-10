@@ -76,11 +76,11 @@ class Aggregator(Processor):
     @field_validator("mapping")
     def validate_target_vs_components(cls, v, info: ValidationInfo):
         # guard against having identical target and component
-        all_components = list()
+        _codes = list()
         for item in v:
-            all_components.extend([item.name])
-            all_components.extend(item.components)
-        _validate_items(all_components, info, "Non-unique target and component")
+            _codes.append(item.name)
+            _codes.extend(item.components)
+        _validate_items(_codes, info, "Non-unique target and component")
         return v
 
 
