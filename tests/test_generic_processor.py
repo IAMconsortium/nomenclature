@@ -6,15 +6,15 @@ import pytest
 from conftest import TEST_DATA_DIR
 from nomenclature.processor import Aggregator
 
-TEST_FOLDER_SIMPLE_PROCESSOR = TEST_DATA_DIR / "processor" / "generic"
+TEST_FOLDER_GENERIC_PROCESSOR = TEST_DATA_DIR / "processor" / "generic"
 
 
 def test_Aggregator_from_file():
     mapping_file = "aggregation_mapping.yaml"
     # Test that the file is read and represented correctly
-    obs = Aggregator.from_file(TEST_FOLDER_SIMPLE_PROCESSOR / mapping_file)
+    obs = Aggregator.from_file(TEST_FOLDER_GENERIC_PROCESSOR / mapping_file)
     exp = {
-        "file": (TEST_FOLDER_SIMPLE_PROCESSOR / mapping_file).relative_to(Path.cwd()),
+        "file": (TEST_FOLDER_GENERIC_PROCESSOR / mapping_file).relative_to(Path.cwd()),
         "dimension": "variable",
         "mapping": [
             {
@@ -51,4 +51,5 @@ def test_Aggregator_raises(file, error_msg_pattern):
     # This is to test a few different failure conditions
 
     with pytest.raises(pydantic.ValidationError, match=f"{error_msg_pattern}.*{file}"):
-        Aggregator.from_file(TEST_FOLDER_SIMPLE_PROCESSOR / file)
+        Aggregator.from_file(TEST_FOLDER_GENERIC_PROCESSOR / file)
+
