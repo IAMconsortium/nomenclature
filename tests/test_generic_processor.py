@@ -48,7 +48,7 @@ def test_aggregator_from_file():
         ),
         (
             "aggregation_mapping_target_component_conflict.yaml",
-            "Non-unique target and component \['Primary Energy'\] in aggregation-"
+            "Non-unique target and component \['Primary Energy'\] in aggregation-",
         ),
     ],
 )
@@ -73,7 +73,7 @@ def test_aggregator_validate_with_definition_raises():
     definition = DataStructureDefinition(TEST_FOLDER_GENERIC_PROCESSOR / "definition")
     match = f"The following variables are not .*\n .*- Final Energy\|Foo\n.*{file}"
     with pytest.raises(ValueError, match=match):
-       obs.validate_with_definition(definition)
+        obs.validate_with_definition(definition)
 
 
 def test_aggregator_apply():
