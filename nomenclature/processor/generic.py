@@ -26,6 +26,7 @@ class AggregationItem(BaseModel):
 
 
 class Aggregator(Processor):
+    """Aggregation or renaming of an IamDataFrame on a `dimension`"""
     file: FilePath
     dimension: str
     mapping: list[AggregationItem]
@@ -113,7 +114,7 @@ class Aggregator(Processor):
         .. code:: yaml
 
         dimension: <some_dimension>
-        aggegate:
+        aggregate:
           - Target Value:
             - Source Value A
             - Source Value B
