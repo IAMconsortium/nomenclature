@@ -45,7 +45,7 @@ class Aggregator(Processor):
 
         """
         return df.rename(
-            {self.dimension: self.rename_mapping},
+            mapping={self.dimension: self.rename_mapping},
             check_duplicates=False,
         )
 
@@ -92,19 +92,19 @@ class Aggregator(Processor):
         return _codes
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
+        error = None
         # check for codes that are not defined in the codelists
         codelist = getattr(dsd, self.dimension, None)
         # no validation if codelist is not defined or filter-item is None
         if codelist is None:
-            raise ValueError(
-                f"Dimension {self.dimension} not defined in DataStructureDefinition."
-            )
-        if invalid := codelist.validate_items(self.codes):
-            raise ValueError(
+            error = f"Dimension '{self.dimension}' not found in DataStructureDefinition"
+        elif invalid := codelist.validate_items(self.codes):
+            error = (
                 f"The following {self.dimension}s are not defined in the "
-                f"DataStructureDefinition:\n - {'\n - '.join(invalid)}\n"
-                f"in file {self.file}"
+                f"DataStructureDefinition:\n - {'\n - '.join(invalid)}"
             )
+        if error:
+            raise ValueError(error + "\nin " + str(self.file) + "")
 
     @classmethod
     def from_file(cls, file: Path | str):
