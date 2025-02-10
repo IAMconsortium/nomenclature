@@ -53,27 +53,36 @@ def test_aggregator_from_file():
     ],
 )
 def test_aggregator_raises(file, error_msg_pattern):
-    # This is to test a few different failure conditions
-
+    # This is to test different failure conditions
     with pytest.raises(pydantic.ValidationError, match=f"{error_msg_pattern}.*{file}"):
         Aggregator.from_file(TEST_FOLDER_GENERIC_PROCESSOR / file)
 
 
 def test_aggregator_validate_with_definition():
-    obs = Aggregator.from_file(
+    # Validate the Aggregator against the codelist in a DataStructureDefintion
+    aggregator = Aggregator.from_file(
         TEST_FOLDER_GENERIC_PROCESSOR / "aggregation_mapping.yaml"
     )
     definition = DataStructureDefinition(TEST_FOLDER_GENERIC_PROCESSOR / "definition")
-    obs.validate_with_definition(definition)
+    aggregator.validate_with_definition(definition)
 
 
-def test_aggregator_validate_with_definition_raises():
+def test_aggregator_validate_invalid_code():
     file = "aggregation_mapping_invalid_code.yaml"
-    obs = Aggregator.from_file(TEST_FOLDER_GENERIC_PROCESSOR / file)
+    aggregator = Aggregator.from_file(TEST_FOLDER_GENERIC_PROCESSOR / file)
     definition = DataStructureDefinition(TEST_FOLDER_GENERIC_PROCESSOR / "definition")
     match = f"The following variables are not .*\n .*- Final Energy\|Foo\n.*{file}"
     with pytest.raises(ValueError, match=match):
-        obs.validate_with_definition(definition)
+        aggregator.validate_with_definition(definition)
+
+
+def test_aggregator_validate_invalid_dimension():
+    file = "aggregation_mapping_invalid_dimension.yaml"
+    aggregator = Aggregator.from_file(TEST_FOLDER_GENERIC_PROCESSOR / file)
+    definition = DataStructureDefinition(TEST_FOLDER_GENERIC_PROCESSOR / "definition")
+    match = f"Dimension 'foo' not found in DataStructureDefinition\nin.*{file}"
+    with pytest.raises(ValueError, match=match):
+        aggregator.validate_with_definition(definition)
 
 
 def test_aggregator_apply():
