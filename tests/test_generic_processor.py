@@ -1,8 +1,12 @@
 from pathlib import Path
 
+import pandas as pd
+import pyam
 import pydantic
 import pytest
 
+
+from pyam import IamDataFrame
 from conftest import TEST_DATA_DIR
 from nomenclature import DataStructureDefinition
 from nomenclature.processor import Aggregator
@@ -70,3 +74,34 @@ def test_aggregator_validate_with_definition_raises():
     match = f"The following variables are not .*\n .*- Final Energy\|Foo\n.*{file}"
     with pytest.raises(ValueError, match=match):
        obs.validate_with_definition(definition)
+
+
+def test_aggregator_apply():
+    aggregator = Aggregator.from_file(
+        TEST_FOLDER_GENERIC_PROCESSOR / "aggregation_mapping.yaml"
+    )
+    iamc_args = dict(model="model_a", scenario="scenario_a", region="World")
+
+    df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["Primary Energy|Coal", "EJ/yr", 0.5, 3],
+                ["Primary Energy|Biomass", "EJ/yr", 2, 7],
+                ["Final Energy|Electricity", "EJ/yr", 2.5, 3],
+                ["Final Energy|Heat", "EJ/yr", 3, 6],
+            ],
+            columns=["variable", "unit", 2005, 2010],
+        ),
+        **iamc_args,
+    )
+    exp = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["Primary Energy", "EJ/yr", 2.5, 10],
+                ["Final Energy", "EJ/yr", 5.5, 9],
+            ],
+            columns=["variable", "unit", 2005, 2010],
+        ),
+        **iamc_args,
+    )
+    pyam.assert_iamframe_equal(aggregator.apply(df), exp)
