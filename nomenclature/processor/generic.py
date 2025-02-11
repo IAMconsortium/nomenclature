@@ -102,7 +102,7 @@ class Aggregator(Processor):
         elif invalid := codelist.validate_items(self.codes):
             error = (
                 f"The following {self.dimension}s are not defined in the "
-                f"DataStructureDefinition:\n - {'\n - '.join(invalid)}"
+                "DataStructureDefinition:\n - " + "\n - ".join(invalid)
             )
         if error:
             raise ValueError(error + "\nin " + str(self.file) + "")
