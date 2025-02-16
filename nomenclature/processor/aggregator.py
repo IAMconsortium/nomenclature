@@ -29,7 +29,7 @@ class Aggregator(Processor):
     """Aggregation or renaming of an IamDataFrame on a `dimension`"""
     file: FilePath
     dimension: str
-    mapping: list[AggregationItem]
+    aggregate: list[AggregationItem]
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
         """Apply region processing
@@ -54,18 +54,18 @@ class Aggregator(Processor):
     def rename_mapping(self):
         rename_dict = {}
 
-        for item in self.mapping:
+        for item in self.aggregate:
             for c in item.components:
                 rename_dict[c] = item.name
 
         return rename_dict
 
-    @field_validator("mapping")
+    @field_validator("aggregate")
     def validate_target_names(cls, v, info: ValidationInfo):
         _validate_items([item.name for item in v], info, "Duplicate target")
         return v
 
-    @field_validator("mapping")
+    @field_validator("aggregate")
     def validate_components(cls, v, info: ValidationInfo):
         # components have to be unique for creating rename-mapping (component -> target)
         all_components = list()
@@ -74,7 +74,7 @@ class Aggregator(Processor):
         _validate_items(all_components, info, "Duplicate component")
         return v
 
-    @field_validator("mapping")
+    @field_validator("aggregate")
     def validate_target_vs_components(cls, v, info: ValidationInfo):
         # guard against having identical target and component
         _codes = list()
@@ -87,7 +87,7 @@ class Aggregator(Processor):
     @property
     def codes(self):
         _codes = list()
-        for item in self.mapping:
+        for item in self.aggregate:
             _codes.append(item.name)
             _codes.extend(item.components)
         return _codes
@@ -125,17 +125,17 @@ class Aggregator(Processor):
             with open(file, "r", encoding="utf-8") as f:
                 mapping_input = yaml.safe_load(f)
 
-            mapping_list: list[dict[str, list]] = []
+            aggregate_list: list[dict[str, list]] = []
             for item in mapping_input["aggregate"]:
                 # TODO explicit check that only one key-value pair exists per item
-                mapping_list.append(
+                aggregate_list.append(
                     dict(name=list(item)[0], components=list(item.values())[0])
                 )
         except Exception as error:
             raise ValueError(f"{error} in {get_relative_path(file)}") from error
         return cls(
             dimension=mapping_input["dimension"],
-            mapping=mapping_list,  # type: ignore
+            aggregate=aggregate_list,  # type: ignore
             file=get_relative_path(file),
         )
 

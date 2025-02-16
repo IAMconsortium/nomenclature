@@ -11,7 +11,7 @@ from conftest import TEST_DATA_DIR
 from nomenclature import DataStructureDefinition
 from nomenclature.processor import Aggregator
 
-TEST_FOLDER_GENERIC_PROCESSOR = TEST_DATA_DIR / "processor" / "generic"
+TEST_FOLDER_GENERIC_PROCESSOR = TEST_DATA_DIR / "processor" / "aggregator"
 
 
 def test_aggregator_from_file():
@@ -21,7 +21,7 @@ def test_aggregator_from_file():
     exp = {
         "file": (TEST_FOLDER_GENERIC_PROCESSOR / mapping_file).relative_to(Path.cwd()),
         "dimension": "variable",
-        "mapping": [
+        "aggregate": [
             {
                 "name": "Primary Energy",
                 "components": ["Primary Energy|Coal", "Primary Energy|Biomass"],
