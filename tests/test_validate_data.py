@@ -188,7 +188,7 @@ def test_DataValidator_validate_with_warning(file, value, simple_df, caplog):
 
 def test_DataValidator_warning_order_fail():
     """Raises validation error if warnings for same criteria not in descending order."""
-    match = "Validation criteria for .* not in descending order of severity."
+    match = "Validation criteria for .* not sorted in descending order of severity."
     with pytest.raises(ValueError, match=match):
         DataValidator.from_file(
             DATA_VALIDATION_TEST_DIR / "validate_warning_joined_asc.yaml"

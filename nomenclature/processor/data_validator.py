@@ -25,11 +25,11 @@ class WarningEnum(str, Enum):
     low = "low"
 
 
-class DataValidationCriteria(IamcDataFilter):
+class DataValidationItem(IamcDataFilter):
     warning_level: WarningEnum = WarningEnum.error
 
 
-class DataValidationCriteriaValue(DataValidationCriteria):
+class DataValidationValue(DataValidationItem):
     value: float
     rtol: float = 0.0
     atol: float = 0.0
@@ -65,7 +65,7 @@ class DataValidationCriteriaValue(DataValidationCriteria):
         )
 
 
-class DataValidationCriteriaBounds(DataValidationCriteria):
+class DataValidationBounds(DataValidationItem):
     upper_bound: float | None = None
     lower_bound: float | None = None
 
@@ -86,13 +86,16 @@ class DataValidationCriteriaBounds(DataValidationCriteria):
         )
 
 
-class DataValidationCriteriaRange(DataValidationCriteria):
+class DataValidationRange(DataValidationItem):
     range: list[float] = Field(..., min_length=2, max_length=2)
 
     @model_validator(mode="after")
     def check_range_is_valid(self):
         if self.range[0] > self.range[1]:
-            raise ValueError("Validation range is invalid: " + str(self.criteria))
+            raise ValueError(
+                "Validation 'range' must be given as (lower bound, upper bound), found: "
+                + str(self.range)
+            )
         return self
 
     @computed_field
@@ -121,22 +124,15 @@ class DataValidationCriteriaRange(DataValidationCriteria):
         )
 
 
-class DataValidationCriteriaMultiple(IamcDataFilter):
-    validation: (
-        list[
-            DataValidationCriteriaValue
-            | DataValidationCriteriaBounds
-            | DataValidationCriteriaRange
-        ]
-        | None
-    ) = None
+class DataValidationCriteria(IamcDataFilter):
+    validation: list[DataValidationBounds | DataValidationValue | DataValidationRange]
 
     @model_validator(mode="after")
     def check_warnings_order(self):
         """Check if warnings are set in descending order of severity."""
         if self.validation != sorted(self.validation, key=lambda c: c.warning_level):
             raise ValueError(
-                f"Validation criteria for {self.criteria} not"
+                f"Validation criteria for {self.criteria} not sorted"
                 " in descending order of severity."
             )
         else:
@@ -153,7 +149,7 @@ class DataValidationCriteriaMultiple(IamcDataFilter):
 class DataValidator(Processor):
     """Processor for validating IAMC datapoints"""
 
-    criteria_items: list[DataValidationCriteriaMultiple]
+    criteria_items: list[DataValidationCriteria]
     file: Path
 
     @field_validator("criteria_items", mode="before")
