@@ -7,7 +7,7 @@ import yaml
 from pandas import concat
 from pyam import IamDataFrame
 from pyam.logging import adjust_log_level
-from pydantic import ConfigDict, computed_field, field_validator, model_validator, Field
+from pydantic import BaseModel, ConfigDict, computed_field, field_validator, model_validator, Field
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error import ErrorCollector
@@ -25,11 +25,13 @@ class WarningEnum(str, Enum):
     low = "low"
 
 
-class DataValidationItem(IamcDataFilter):
+class DataValidationCriteria(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     warning_level: WarningEnum = WarningEnum.error
 
 
-class DataValidationValue(DataValidationItem):
+class DataValidationValue(DataValidationCriteria):
     value: float
     rtol: float = 0.0
     atol: float = 0.0
@@ -65,7 +67,7 @@ class DataValidationValue(DataValidationItem):
         )
 
 
-class DataValidationBounds(DataValidationItem):
+class DataValidationBounds(DataValidationCriteria):
     # allow extra but raise error to guard against multiple criteria
     model_config = ConfigDict(extra="allow")
 
@@ -86,7 +88,6 @@ class DataValidationBounds(DataValidationItem):
             )
         return self
 
-
     @property
     def validation_args(self):
         return self.criteria
@@ -98,7 +99,7 @@ class DataValidationBounds(DataValidationItem):
         )
 
 
-class DataValidationRange(DataValidationItem):
+class DataValidationRange(DataValidationCriteria):
     range: list[float] = Field(..., min_length=2, max_length=2)
 
     @field_validator("range", mode="after")
@@ -136,8 +137,8 @@ class DataValidationRange(DataValidationItem):
         )
 
 
-class DataValidationCriteria(IamcDataFilter):
-    validation: list[DataValidationBounds | DataValidationValue | DataValidationRange]
+class DataValidationItem(IamcDataFilter):
+    validation: list[DataValidationValue | DataValidationRange | DataValidationBounds]
 
     @model_validator(mode="after")
     def check_warnings_order(self):
@@ -151,7 +152,7 @@ class DataValidationCriteria(IamcDataFilter):
             return self
 
     @property
-    def criteria(self):
+    def filter_args(self):
         """Attributes used for validation (as specified in the file)."""
         return self.model_dump(
             exclude_none=True, exclude_unset=True, exclude=["validation"]
@@ -161,7 +162,7 @@ class DataValidationCriteria(IamcDataFilter):
 class DataValidator(Processor):
     """Processor for validating IAMC datapoints"""
 
-    criteria_items: list[DataValidationCriteria]
+    criteria_items: list[DataValidationItem]
     file: Path
 
     @classmethod
@@ -170,18 +171,16 @@ class DataValidator(Processor):
             content = yaml.safe_load(f)
         criteria_items = []
         for item in content:
-            filter_args = {k: item[k] for k in item if k in IamcDataFilter.model_fields}
-            criteria_args = {
-                k: item[k]
-                for k in item
-                if k not in IamcDataFilter.model_fields and k != "validation"
-            }
-            if "validation" in item:
-                for criterion in item["validation"]:
-                    criterion.update(filter_args)
-            else:
-                item["validation"] = [{**filter_args, **criteria_args}]
-            criteria_items.append({k: item[k] for k in item if k not in criteria_args})
+            # handling of simple case where filter and criteria args are given at the same level
+            if "validation" not in item:
+                filter_args = {k: item[k] for k in item if k in IamcDataFilter.model_fields}
+                criteria_args = [{
+                    k: item[k]
+                    for k in item
+                    if k not in IamcDataFilter.model_fields and k != "validation"
+                }]
+                item = dict(**filter_args, validation=criteria_args)
+            criteria_items.append(item)
         return cls(file=file, criteria_items=criteria_items)  # type: ignore
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
