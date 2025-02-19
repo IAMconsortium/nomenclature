@@ -18,8 +18,6 @@ def test_DataValidator_from_file():
                     "year": [2010],
                     "validation": [
                         {
-                            "variable": "Final Energy",
-                            "year": [2010],
                             "upper_bound": 2.5,
                             "lower_bound": 1.0,  # test that integer in yaml is cast to float
                         }
