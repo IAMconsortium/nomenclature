@@ -40,8 +40,8 @@ def test_DataValidator_from_file():
     "name, match",
     [
         ("missing_criteria", "No validation criteria provided:"),
-        ("bounds_and_value", "Cannot use bounds and value-criteria simultaneously:"),
-        ("bounds_and_rtol", "Cannot use bounds and value-criteria simultaneously:"),
+        ("bounds_and_value", "Must use either bounds, range or value, found:"),
+        ("bounds_and_rtol", "Must use either bounds, range or value, found:"),
     ],
 )
 def test_DataValidator_illegal_structure(name, match):

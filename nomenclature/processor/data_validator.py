@@ -7,7 +7,7 @@ import yaml
 from pandas import concat
 from pyam import IamDataFrame
 from pyam.logging import adjust_log_level
-from pydantic import computed_field, field_validator, model_validator, Field
+from pydantic import ConfigDict, computed_field, field_validator, model_validator, Field
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error import ErrorCollector
@@ -66,6 +66,9 @@ class DataValidationValue(DataValidationItem):
 
 
 class DataValidationBounds(DataValidationItem):
+    # allow extra but raise error to guard against multiple criteria
+    model_config = ConfigDict(extra="allow")
+
     upper_bound: float | None = None
     lower_bound: float | None = None
 
@@ -74,6 +77,15 @@ class DataValidationBounds(DataValidationItem):
         if self.upper_bound is None and self.lower_bound is None:
             raise ValueError("No validation criteria provided: " + str(self.criteria))
         return self
+
+    @model_validator(mode="after")
+    def check_validation_multiple_criteria(self):
+        if self.model_extra:
+            raise ValueError(
+                "Must use either bounds, range or value, found: " + str(self.criteria)
+            )
+        return self
+
 
     @property
     def validation_args(self):
@@ -151,18 +163,6 @@ class DataValidator(Processor):
 
     criteria_items: list[DataValidationCriteria]
     file: Path
-
-    @field_validator("criteria_items", mode="before")
-    def check_criteria(cls, v):
-        for item in v:
-            for criterion in item["validation"]:
-                has_bounds = any(c in criterion for c in ["upper_bound", "lower_bound"])
-                has_values = any(c in criterion for c in ["value", "atol", "rtol"])
-            if has_bounds and has_values:
-                raise ValueError(
-                    f"Cannot use bounds and value-criteria simultaneously: {criterion}"
-                )
-        return v
 
     @classmethod
     def from_file(cls, file: Path | str) -> "DataValidator":
