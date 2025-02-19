@@ -1,4 +1,4 @@
-from logging import config, getLogger
+import logging
 from importlib.metadata import version
 from pathlib import Path
 import json
@@ -18,9 +18,9 @@ here = Path(__file__).parent
 
 # set up logging
 with open(here / "logging.json") as file:
-    config.dictConfig(json.load(file))
+    logging.config.dictConfig(json.load(file))
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 __version__ = version("nomenclature-iamc")
 
