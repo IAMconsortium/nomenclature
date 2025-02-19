@@ -27,6 +27,7 @@ class AggregationItem(BaseModel):
 
 class Aggregator(Processor):
     """Aggregation or renaming of an IamDataFrame on a `dimension`"""
+
     file: FilePath
     dimension: str
     aggregate: list[AggregationItem]
