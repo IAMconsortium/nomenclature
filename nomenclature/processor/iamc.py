@@ -36,7 +36,7 @@ class IamcDataFilter(BaseModel):
             if invalid := codelist.validate_items(getattr(self, dimension)):
                 error_msg += (
                     f"The following {dimension}s are not defined in the "
-                    f"DataStructureDefinition:\n   {', '.join(invalid)}\n"
+                    "DataStructureDefinition:\n   " + ", ".join(invalid) + "\n"
                 )
 
         if error_msg:

@@ -44,6 +44,10 @@ pydantic_custom_error_config = {
         "constituents_not_native",
         "Constituent region(s)\n{regions}\nin {file} not found in native region(s)",
     ),
+    "AggregationMappingConflict": (
+        "aggregation_mapping_conflict",
+        "{type} {duplicates} in aggregation-mapping in {file}",
+    ),
 }
 
 PydanticCustomErrors = namedtuple("PydanticCustomErrors", pydantic_custom_error_config)

@@ -1,0 +1,8 @@
+dimension: variable
+aggregate:
+  - Primary Energy:
+    - Primary Energy|Coal
+    - Primary Energy|Biomass
+  - Primary Energy:
+    - Final Energy|Electricity
+    - Final Energy|Heat

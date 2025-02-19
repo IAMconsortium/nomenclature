@@ -1,0 +1,18 @@
+- Primary Energy:
+    description: Total primary energy consumption
+    unit: EJ/yr
+- Primary Energy|Coal:
+    description: Primary energy consumption of coal
+    unit: EJ/yr
+- Primary Energy|Biomass:
+    description: Primary energy consumption of biomass
+    unit: EJ/yr
+- Final Energy:
+    description: Total final energy consumption
+    unit: EJ/yr
+- Final Energy|Electricity:
+    description: Electricity demand
+    unit: EJ/yr
+- Final Energy|Heat:
+    description: Heat demand
+    unit: EJ/yr
