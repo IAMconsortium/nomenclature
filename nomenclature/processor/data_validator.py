@@ -101,14 +101,14 @@ class DataValidationBounds(DataValidationItem):
 class DataValidationRange(DataValidationItem):
     range: list[float] = Field(..., min_length=2, max_length=2)
 
-    @model_validator(mode="after")
-    def check_range_is_valid(self):
-        if self.range[0] > self.range[1]:
+    @field_validator("range", mode="after")
+    def check_range_is_valid(cls, value: list[float]):
+        if value[0] > value[1]:
             raise ValueError(
-                "Validation 'range' must be given as (lower bound, upper bound), found: "
-                + str(self.range)
+                "Validation 'range' must be given as `(lower_bound, upper_bound)`, "
+                "found: " + str(value)
             )
-        return self
+        return value
 
     @computed_field
     def upper_bound(self) -> float:
@@ -182,7 +182,7 @@ class DataValidator(Processor):
             else:
                 item["validation"] = [{**filter_args, **criteria_args}]
             criteria_items.append({k: item[k] for k in item if k not in criteria_args})
-        return cls(file=file, criteria_items=criteria_items)
+        return cls(file=file, criteria_items=criteria_items)  # type: ignore
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
         fail_list = []
