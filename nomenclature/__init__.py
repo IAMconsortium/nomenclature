@@ -1,7 +1,7 @@
 import logging
 from importlib.metadata import version
 from pathlib import Path
-
+import json
 import yaml
 
 from nomenclature.cli import cli  # noqa
@@ -13,12 +13,12 @@ from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition  #
 from nomenclature.processor import RegionAggregationMapping  # noqa
 from nomenclature.processor import RegionProcessor, RequiredDataValidator  # noqa
 
+
+here = Path(__file__).parent
+
 # set up logging
-logging.basicConfig(
-    format="%(asctime)s %(levelname)-8s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.INFO,
-)
+with open(here / "logging.json") as file:
+    logging.config.dictConfig(json.load(file))
 
 logger = logging.getLogger(__name__)
 
