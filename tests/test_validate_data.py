@@ -26,10 +26,10 @@ def test_DataValidator_from_file():
                     ],
                 }
             ],
-            "file": DATA_VALIDATION_TEST_DIR / "simple_validation.yaml",
+            "file": DATA_VALIDATION_TEST_DIR / "validation_pass.yaml",
         }
     )
-    obs = DataValidator.from_file(DATA_VALIDATION_TEST_DIR / "simple_validation.yaml")
+    obs = DataValidator.from_file(DATA_VALIDATION_TEST_DIR / "validation_pass.yaml")
     assert obs == exp
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definitions")
@@ -46,7 +46,7 @@ def test_DataValidator_from_file():
 )
 def test_DataValidator_illegal_structure(name, match):
     with pytest.raises(ValueError, match=match):
-        DataValidator.from_file(DATA_VALIDATION_TEST_DIR / f"validate_{name}.yaml")
+        DataValidator.from_file(DATA_VALIDATION_TEST_DIR / f"error_{name}.yaml")
 
 
 @pytest.mark.parametrize(
@@ -63,7 +63,7 @@ def test_DataValidator_validate_with_definition_raises(dimension, match):
     # TODO Undefined unit
 
     data_validator = DataValidator.from_file(
-        DATA_VALIDATION_TEST_DIR / f"validate_unknown_{dimension}.yaml"
+        DATA_VALIDATION_TEST_DIR / f"error_unknown_{dimension}.yaml"
     )
 
     # validating against a DataStructure with all dimensions raises
@@ -81,7 +81,7 @@ def test_DataValidator_validate_with_definition_raises(dimension, match):
 
 def test_DataValidator_apply_no_matching_data(simple_df):
     data_validator = DataValidator.from_file(
-        DATA_VALIDATION_TEST_DIR / "simple_validation.yaml"
+        DATA_VALIDATION_TEST_DIR / "validation_pass.yaml"
     )
     # no data matches validation criteria, `apply()` passes and returns unchanged object
     assert data_validator.apply(simple_df) == simple_df
@@ -105,7 +105,7 @@ def test_DataValidator_apply_no_matching_data(simple_df):
     ],
 )
 def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, caplog):
-    data_file = DATA_VALIDATION_TEST_DIR / f"validate_data_fails_{file}.yaml"
+    data_file = DATA_VALIDATION_TEST_DIR / f"validation_fails_{file}.yaml"
     data_validator = DataValidator.from_file(data_file)
 
     failed_validation_message = (
@@ -191,5 +191,5 @@ def test_DataValidator_warning_order_fail():
     match = "Validation criteria for .* not sorted in descending order of severity."
     with pytest.raises(ValueError, match=match):
         DataValidator.from_file(
-            DATA_VALIDATION_TEST_DIR / "validate_warning_joined_asc.yaml"
+            DATA_VALIDATION_TEST_DIR / "error_warning_level_asc.yaml"
         )
