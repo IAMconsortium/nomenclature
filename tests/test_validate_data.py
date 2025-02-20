@@ -110,20 +110,18 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
         "Data validation with error(s)/warning(s) "
         f"""(file {data_file.relative_to(Path.cwd())}):
   Criteria: variable: ['Primary Energy'], {item_1}
-         model scenario region        variable   unit  year  value warning_level
-    0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0         error
-    1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error
+       model scenario region        variable   unit  year  value warning_level
+  0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0         error
+  1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error
 
   Criteria: variable: ['Primary Energy|Coal'], {item_2}
-         model scenario region  ...  year value  warning_level
-    0  model_a   scen_a  World  ...  2005   0.5          error
-
-    [1 rows x 8 columns]
+       model scenario region             variable   unit  year  value warning_level
+  0  model_a   scen_a  World  Primary Energy|Coal  EJ/yr  2005    0.5         error
 
   Criteria: variable: ['Primary Energy'], year: [2005], {item_3}
-         model scenario region        variable   unit  year  value warning_level
-    0  model_a   scen_a  World  Primary Energy  EJ/yr  2005    1.0         error
-    1  model_a   scen_b  World  Primary Energy  EJ/yr  2005    2.0         error"""
+       model scenario region        variable   unit  year  value warning_level
+  0  model_a   scen_a  World  Primary Energy  EJ/yr  2005    1.0         error
+  1  model_a   scen_b  World  Primary Energy  EJ/yr  2005    2.0         error"""
     )
 
     with pytest.raises(ValueError, match="Data validation failed"):
@@ -148,9 +146,9 @@ def test_DataValidator_validate_with_warning(file, value, simple_df, caplog):
         "Data validation with error(s)/warning(s) "
         f"""(file {(DATA_VALIDATION_TEST_DIR / f"validate_warning_{file}.yaml").relative_to(Path.cwd())}):
   Criteria: variable: ['Primary Energy'], year: [2010], upper_bound: 5.0, lower_bound: 1.0
-         model scenario region        variable   unit  year  value warning_level
-    0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0         error
-    1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error"""
+       model scenario region        variable   unit  year  value warning_level
+  0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0         error
+  1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error"""
     )
 
     if file == "legacy":
@@ -159,9 +157,9 @@ def test_DataValidator_validate_with_warning(file, value, simple_df, caplog):
         failed_validation_message += """
 
   Criteria: variable: ['Primary Energy'], year: [2010], upper_bound: 2.5, lower_bound: 1.0
-         model scenario region        variable   unit  year  value warning_level
-    0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0           low
-    1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0           low"""
+       model scenario region        variable   unit  year  value warning_level
+  0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0           low
+  1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0           low"""
 
     if file == "range":
         failed_validation_message = failed_validation_message.replace(
@@ -172,12 +170,12 @@ def test_DataValidator_validate_with_warning(file, value, simple_df, caplog):
         # prints each warning level when each is triggered by different rows
         failed_validation_message = """
   Criteria: variable: ['Primary Energy'], year: [2010], upper_bound: 5.0, lower_bound: 1.0
-         model scenario region        variable   unit  year  value warning_level
-    0  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error
+       model scenario region        variable   unit  year  value warning_level
+  0  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error
 
   Criteria: variable: ['Primary Energy'], year: [2010], upper_bound: 2.5, lower_bound: 1.0
-         model scenario region        variable   unit  year  value warning_level
-    0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    3.0           low"""
+       model scenario region        variable   unit  year  value warning_level
+  0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    3.0           low"""
 
     with pytest.raises(ValueError, match="Data validation failed"):
         data_validator.apply(simple_df)

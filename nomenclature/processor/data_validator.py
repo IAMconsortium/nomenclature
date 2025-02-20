@@ -230,7 +230,7 @@ class DataValidator(Processor):
                             "  Criteria: " + str(item) + ", " + str(criterion)
                         )
                         fail_list.append(
-                            textwrap.indent(str(failed_validation), prefix="    ")
+                            textwrap.indent(failed_validation.to_string(), prefix="  ")
                             + "\n"
                         )
 
