@@ -4,6 +4,7 @@ from enum import Enum
 from pathlib import Path
 
 import yaml
+import pandas as pd
 from pyam import IamDataFrame
 from pyam.logging import adjust_log_level
 from pydantic import (
@@ -35,6 +36,13 @@ class DataValidationCriteria(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     warning_level: WarningEnum = WarningEnum.error
+
+    @property
+    def criteria(self):
+        pass
+
+    def __str__(self):
+        return ", ".join([f"{key}: {value}" for key, value in self.criteria.items()])
 
 
 class DataValidationValue(DataValidationCriteria):
@@ -167,6 +175,7 @@ class DataValidationItem(IamcDataFilter):
     def __str__(self):
         return ", ".join([f"{key}: {value}" for key, value in self.filter_args.items()])
 
+
 class DataValidator(Processor):
     """Processor for validating IAMC datapoints"""
 
@@ -207,25 +216,24 @@ class DataValidator(Processor):
                         **criterion.validation_args
                     )
                     if failed_validation is not None:
-                        criteria_msg = (
-                            "  Criteria: " + str(item) + ", "
-                            + ", ".join(
-                                [
-                                    f"{key}: {value}"
-                                    for key, value in criterion.criteria.items()
-                                ]
-                            )
+                        per_item_df = IamDataFrame(
+                            pd.concat(
+                                [per_item_df.data, failed_validation]
+                            ).drop_duplicates(keep=False)
                         )
                         failed_validation["warning_level"] = (
                             criterion.warning_level.value
                         )
                         if criterion.warning_level == WarningEnum.error:
                             error = True
-                        fail_list.append(criteria_msg)
+                        fail_list.append(
+                            "  Criteria: " + str(item) + ", " + str(criterion)
+                        )
                         fail_list.append(
                             textwrap.indent(str(failed_validation), prefix="    ")
                             + "\n"
                         )
+
             fail_msg = "(file %s):\n" % get_relative_path(self.file)
             if error:
                 fail_msg = (
