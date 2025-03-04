@@ -5,7 +5,7 @@ version = "0.0.0"
 description = "Package for managing codelists & attributes for IAMC-format datasets"
 license = "APACHE-2.0"
 readme = "README.md"
-packages = [{include = "nomenclature"}]
+packages = [{include = "nomenclature"}, { include = "nomenclature/py.typed" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10, <3.13"
