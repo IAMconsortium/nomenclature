@@ -1,6 +1,6 @@
 import logging
 import textwrap
-from enum import Enum
+from enum import IntEnum
 from pathlib import Path
 
 import yaml
@@ -25,17 +25,29 @@ from nomenclature.processor.utils import get_relative_path
 logger = logging.getLogger(__name__)
 
 
-class WarningEnum(str, Enum):
-    error = "error"
-    high = "high"
-    medium = "medium"
-    low = "low"
+class WarningEnum(IntEnum):
+    error = 50
+    high = 40
+    medium = 30
+    low = 20
 
 
 class DataValidationCriteria(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     warning_level: WarningEnum = WarningEnum.error
+
+    @field_validator("warning_level", mode="before")
+    def validate_warning_level(cls, value):
+        if isinstance(value, str):
+            try:
+                return WarningEnum[value]
+            except KeyError:
+                raise ValueError(
+                    f"Invalid warning level: {value}. Expected one of:"
+                    f" {', '.join(level.name for level in WarningEnum)}"
+                )
+        return value
 
     @property
     def criteria(self):
@@ -157,7 +169,9 @@ class DataValidationItem(IamcDataFilter):
     @model_validator(mode="after")
     def check_warnings_order(self):
         """Check if warnings are set in descending order of severity."""
-        if self.validation != sorted(self.validation, key=lambda c: c.warning_level):
+        if self.validation != sorted(
+            self.validation, key=lambda c: c.warning_level, reverse=True
+        ):
             raise ValueError(
                 f"Validation criteria for {self.criteria} not sorted"
                 " in descending order of severity."
@@ -174,6 +188,30 @@ class DataValidationItem(IamcDataFilter):
 
     def __str__(self):
         return ", ".join([f"{key}: {value}" for key, value in self.filter_args.items()])
+
+    def apply(self, df: IamDataFrame, fail_list: list) -> IamDataFrame:
+        error = False
+        per_item_df = df.filter(**self.filter_args)
+        for criterion in self.validation:
+            failed_validation = per_item_df.validate(**criterion.validation_args)
+            if failed_validation is not None:
+                per_item_df = IamDataFrame(
+                    pd.concat([per_item_df.data, failed_validation]).drop_duplicates(
+                        keep=False
+                    )
+                )
+                failed_validation["warning_level"] = criterion.warning_level.name
+                failed_validation["criteria"] = str(criterion)
+                if criterion.warning_level == WarningEnum.error:
+                    error = True
+                fail_list.append("  Criteria: " + str(self) + ", " + str(criterion))
+                fail_list.append(
+                    textwrap.indent(
+                        failed_validation.iloc[:, :-1].to_string(), prefix="  "
+                    )
+                    + "\n"
+                )
+        return error
 
 
 class DataValidator(Processor):
@@ -224,34 +262,9 @@ class DataValidator(Processor):
         """
 
         fail_list = []
-        error = False
 
         with adjust_log_level():
-            for item in self.criteria_items:
-                per_item_df = df.filter(**item.filter_args)
-                for criterion in item.validation:
-                    failed_validation = per_item_df.validate(
-                        **criterion.validation_args
-                    )
-                    if failed_validation is not None:
-                        per_item_df = IamDataFrame(
-                            pd.concat(
-                                [per_item_df.data, failed_validation]
-                            ).drop_duplicates(keep=False)
-                        )
-                        failed_validation["warning_level"] = (
-                            criterion.warning_level.value
-                        )
-                        if criterion.warning_level == WarningEnum.error:
-                            error = True
-                        fail_list.append(
-                            "  Criteria: " + str(item) + ", " + str(criterion)
-                        )
-                        fail_list.append(
-                            textwrap.indent(failed_validation.to_string(), prefix="  ")
-                            + "\n"
-                        )
-
+            error = any([item.apply(df, fail_list) for item in self.criteria_items])
             fail_msg = "(file %s):\n" % get_relative_path(self.file)
             if error:
                 fail_msg = (
