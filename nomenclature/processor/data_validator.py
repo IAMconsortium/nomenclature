@@ -189,7 +189,9 @@ class DataValidationItem(IamcDataFilter):
     def __str__(self):
         return ", ".join([f"{key}: {value}" for key, value in self.filter_args.items()])
 
-    def apply(self, df: IamDataFrame, fail_list: list) -> IamDataFrame:
+    def apply(
+        self, df: IamDataFrame, fail_list: list, output_list: list
+    ) -> IamDataFrame:
         error = False
         per_item_df = df.filter(**self.filter_args)
         for criterion in self.validation:
@@ -202,6 +204,7 @@ class DataValidationItem(IamcDataFilter):
                 )
                 failed_validation["warning_level"] = criterion.warning_level.name
                 failed_validation["criteria"] = str(criterion)
+                output_list.append(failed_validation)
                 if criterion.warning_level == WarningEnum.error:
                     error = True
                 fail_list.append("  Criteria: " + str(self) + ", " + str(criterion))
@@ -242,7 +245,7 @@ class DataValidator(Processor):
             criteria_items.append(item)
         return cls(file=file, criteria_items=criteria_items)  # type: ignore
 
-    def apply(self, df: IamDataFrame) -> IamDataFrame:
+    def apply(self, df: IamDataFrame, output_path: Path | str = None) -> IamDataFrame:
         """Validates data in IAMC format according to specified criteria.
 
         Logs warning/error messages for each criterion that is not met.
@@ -251,6 +254,8 @@ class DataValidator(Processor):
         ----------
         df : IamDataFrame
             Data in IAMC format to be validated
+        output_path : Path | str
+            (Optional) Output file path for spreadsheet with failed validation data
 
         Returns
         -------
@@ -262,9 +267,16 @@ class DataValidator(Processor):
         """
 
         fail_list = []
+        output_list = []
 
         with adjust_log_level():
-            error = any([item.apply(df, fail_list) for item in self.criteria_items])
+            error = any(
+                [item.apply(df, fail_list, output_list) for item in self.criteria_items]
+            )
+            if output_path is not None:
+                if not isinstance(output_path, Path):
+                    output_path = Path(output_path)
+                pd.concat(output_list).to_excel(output_path)
             fail_msg = "(file %s):\n" % get_relative_path(self.file)
             if error:
                 fail_msg = (
