@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+import pandas as pd
 from conftest import TEST_DATA_DIR
 
 from nomenclature import DataStructureDefinition
@@ -189,3 +190,19 @@ def test_DataValidator_warning_order_fail():
         DataValidator.from_file(
             DATA_VALIDATION_TEST_DIR / "error_warning_level_asc.yaml"
         )
+
+
+def test_DataValidator_xlsx_output(tmp_path, simple_df):
+    """Outputs xlsx file of failed validation data."""
+    filepath = tmp_path / "test.xlsx"
+    data_validator = DataValidator.from_file(
+        DATA_VALIDATION_TEST_DIR / "validate_warning_joined.yaml", filepath
+    )
+
+    with pytest.raises(ValueError):
+        data_validator.apply(simple_df)
+
+    assert all(pd.read_excel(filepath)["warning_level"].isin(["error"]))
+    assert all(
+        pd.read_excel(filepath)["criteria"].isin(["upper_bound: 5.0, lower_bound: 1.0"])
+    )
