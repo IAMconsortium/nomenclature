@@ -1,24 +1,30 @@
-[tool.poetry]
+[project]
 name = "nomenclature-iamc"
-authors = ["Scenario Services team, ECE program, IIASA"]
-version = "0.0.0"
+authors = [
+    { name = "Scenario Services team, ECE program, IIASA"},
+]
 description = "Package for managing codelists & attributes for IAMC-format datasets"
 license = "APACHE-2.0"
 readme = "README.md"
-packages = [{include = "nomenclature"}, { include = "nomenclature/py.typed" }]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "click>=8",
+    "pyam-iamc (>=2.1,<4.0)",
+    "openpyxl (>=3.1.2,<4.0)",
+    "pydantic (>=2,<3)",
+    "PyYAML (>=6.0.1,<7.0)",
+    "pandas (>=1.5.2,<3.0)",
+    "pycountry==23.12.11",  # pin to guard against "silent" changes in country names
+    "pysquirrel (>=1.1,<2.0)",
+    "gitpython (>=3.1.40,<4.0)",
+    "numpy (>=1.23.0,<3.0)",
+]
+dynamic = ["version"]
 
-[tool.poetry.dependencies]
-python = ">=3.10, <3.13"
-click = ">= 8"
-pyam-iamc = ">= 2.1"
-openpyxl = "^3.1.2"
-pydantic = "^2"
-PyYAML = "^6.0.1"
-pandas = ">=1.5.2"
-pycountry = "23.12.11"  # pin to guard against "silent" changes in country names
-pysquirrel = "^1.1"
-gitpython = "^3.1.40"
-numpy = ">=1.23.0"
+[tool.poetry]
+packages = [{include = "nomenclature"}, { include = "nomenclature/py.typed" }]
+requires-poetry = ">=2.0,<3.0"
+version = "0.0.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.6.2"
@@ -32,7 +38,7 @@ sphinx = "^7.2.6"
 sphinx-click = "^5.1.0"
 numpydoc = "^1.6.0"
 
-[tool.poetry.scripts]
+[project.scripts]
 nomenclature = 'nomenclature.cli:cli'
 
 [tool.poetry-dynamic-versioning]
@@ -45,5 +51,5 @@ vcs = "git"
 max_line_length = 88
 
 [build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.7,<2.0.0"]
 build-backend = "poetry_dynamic_versioning.backend"
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
