@@ -194,13 +194,13 @@ def test_DataValidator_warning_order_fail():
 
 def test_DataValidator_xlsx_output(tmp_path, simple_df):
     """Outputs xlsx file of failed validation data."""
-    data_validator = DataValidator.from_file(
-        DATA_VALIDATION_TEST_DIR / "validate_warning_joined.yaml"
-    )
     filepath = tmp_path / "test.xlsx"
+    data_validator = DataValidator.from_file(
+        DATA_VALIDATION_TEST_DIR / "validate_warning_joined.yaml", filepath
+    )
 
     with pytest.raises(ValueError):
-        data_validator.apply(simple_df, filepath)
+        data_validator.apply(simple_df)
 
     assert all(pd.read_excel(filepath)["warning_level"].isin(["error"]))
     assert all(
