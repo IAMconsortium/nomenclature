@@ -228,9 +228,6 @@ class DataValidator(Processor):
     def from_file(
         cls, file: Path | str, output_path: Path | str = None
     ) -> "DataValidator":
-        if output_path is not None:
-            if not isinstance(output_path, Path):
-                output_path = Path(output_path)
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
         criteria_items = []
