@@ -191,7 +191,7 @@ class DataValidationItem(IamcDataFilter):
 
     def apply(
         self, df: IamDataFrame, fail_list: list, output_list: list
-    ) -> IamDataFrame:
+    ) -> tuple[bool, list, list]:
         error = False
         per_item_df = df.filter(**self.filter_args)
         for criterion in self.validation:
@@ -214,7 +214,7 @@ class DataValidationItem(IamcDataFilter):
                     )
                     + "\n"
                 )
-        return error
+        return error, fail_list, output_list
 
 
 class DataValidator(Processor):
@@ -222,9 +222,15 @@ class DataValidator(Processor):
 
     criteria_items: list[DataValidationItem]
     file: Path
+    output_path: Path | None = None
 
     @classmethod
-    def from_file(cls, file: Path | str) -> "DataValidator":
+    def from_file(
+        cls, file: Path | str, output_path: Path | str = None
+    ) -> "DataValidator":
+        if output_path is not None:
+            if not isinstance(output_path, Path):
+                output_path = Path(output_path)
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
         criteria_items = []
@@ -243,9 +249,9 @@ class DataValidator(Processor):
                 ]
                 item = dict(**filter_args, validation=criteria_args)
             criteria_items.append(item)
-        return cls(file=file, criteria_items=criteria_items)  # type: ignore
+        return cls(file=file, criteria_items=criteria_items, output_path=output_path)  # type: ignore
 
-    def apply(self, df: IamDataFrame, output_path: Path | str = None) -> IamDataFrame:
+    def apply(self, df: IamDataFrame) -> IamDataFrame:
         """Validates data in IAMC format according to specified criteria.
 
         Logs warning/error messages for each criterion that is not met.
@@ -254,8 +260,6 @@ class DataValidator(Processor):
         ----------
         df : IamDataFrame
             Data in IAMC format to be validated
-        output_path : Path | str
-            (Optional) Output file path for spreadsheet with failed validation data
 
         Returns
         -------
@@ -266,19 +270,18 @@ class DataValidator(Processor):
             `ValueError` if any criterion has a warning level of `error`
         """
 
+        error_list = []
         fail_list = []
         output_list = []
 
         with adjust_log_level():
-            error = any(
-                [item.apply(df, fail_list, output_list) for item in self.criteria_items]
-            )
-            if output_path is not None:
-                if not isinstance(output_path, Path):
-                    output_path = Path(output_path)
-                pd.concat(output_list).to_excel(output_path)
+            for item in self.criteria_items:
+                error, fail_list, output_list = item.apply(df, fail_list, output_list)
+                error_list.append(error)
+            if self.output_path:
+                pd.concat(output_list).to_excel(self.output_path)
             fail_msg = "(file %s):\n" % get_relative_path(self.file)
-            if error:
+            if any(error_list):
                 fail_msg = (
                     "Data validation with error(s)/warning(s) "
                     + fail_msg
