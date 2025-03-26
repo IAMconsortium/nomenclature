@@ -1,7 +1,10 @@
 import pytest
+import nomenclature
 from nomenclature import DataStructureDefinition
+from pyam import IamDataFrame
 
 from conftest import TEST_DATA_DIR
+import nomenclature.config
 
 
 MATCH_FAIL_VALIDATION = "The validation failed. Please check the log for details."
@@ -108,3 +111,55 @@ def test_wildcard_match(simple_df):
 
     with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         definition.validate(simple_df.rename(scenario={"scen_a": "foo"}))
+
+
+@pytest.mark.parametrize(
+    "subannual, status",
+    [
+        ("01-01 00:00+01:00", True),
+        ("01-01 00:00", False),
+        ("01-01 00:00+02:00", False),
+        ("01-32 00:00+01:00", False),
+    ],
+)
+def test_validate_datetime(simple_df, subannual, status):
+    definition = DataStructureDefinition(
+        TEST_DATA_DIR / "data_structure_definition" / "subannual"
+    )
+    definition.config.time = nomenclature.config.TimeConfig(
+        year=True,
+        datetime="UTC+01:00",
+    )
+    df = IamDataFrame(simple_df._data, subannual=subannual)
+    if status:
+        definition.validate_datetime(df)
+    else:
+        with pytest.raises(ValueError):
+            definition.validate_datetime(df)
+
+
+@pytest.mark.parametrize(
+    "rename_mapping, status",
+    [
+        ({2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"}, True),
+        ({2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"}, False),
+        ({2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"}, False),
+    ],
+)
+def test_validate_time_entry(simple_df, rename_mapping, status):
+    # test that validation works as expected with datetime-domain
+    definition = DataStructureDefinition(
+        TEST_DATA_DIR / "data_structure_definition" / "subannual"
+    )
+    definition.config.time = nomenclature.config.TimeConfig(
+        year=False,
+        datetime="UTC+01:00",
+    )
+    _df = IamDataFrame(
+        simple_df.data.rename(columns={"year": "time"}).replace(rename_mapping)
+    )
+    if status:
+        definition.validate_datetime(_df)
+    else:
+        with pytest.raises(ValueError):
+            definition.validate_datetime(_df)
