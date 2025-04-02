@@ -14,6 +14,7 @@ from pydantic import (
     ConfigDict,
 )
 from nomenclature.code import Code
+from nomenclature.utils import filter_codes
 from pyam.str import escape_regexp
 
 
@@ -22,60 +23,8 @@ class CodeListFromRepository(BaseModel):
     include: list[dict[str, Any]] = [{"name": "*"}]
     exclude: list[dict[str, Any]] = Field(default_factory=list)
 
-    def filter_function(self, code: Code, filter: dict[str, Any], keep: bool):
-        # if is list -> recursive
-        # if is str -> escape all special characters except "*" and use a regex
-        # if is int -> match exactly
-        # if is None -> Attribute does not exist therefore does not match
-        def check_attribute_match(code_value, filter_value):
-            if isinstance(filter_value, int):
-                return code_value == filter_value
-            if isinstance(filter_value, str):
-                pattern = re.compile(escape_regexp(filter_value) + "$")
-                return re.match(pattern, code_value) is not None
-            if isinstance(filter_value, list):
-                return any(
-                    check_attribute_match(code_value, value) for value in filter_value
-                )
-            if filter_value is None:
-                return False
-            raise ValueError("Something went wrong with the filtering")
-
-        filter_match = all(
-            check_attribute_match(getattr(code, attribute, None), value)
-            for attribute, value in filter.items()
-        )
-        if keep:
-            return filter_match
-        else:
-            return not filter_match
-
     def filter_list_of_codes(self, list_of_codes: list[Code]) -> list[Code]:
-        # include first
-        filter_result = [
-            code
-            for code in list_of_codes
-            if any(
-                self.filter_function(
-                    code,
-                    filter,
-                    keep=True,
-                )
-                for filter in self.include
-            )
-        ]
-
-        if self.exclude:
-            filter_result = [
-                code
-                for code in filter_result
-                if any(
-                    self.filter_function(code, filter, keep=False)
-                    for filter in self.exclude
-                )
-            ]
-
-        return filter_result
+        return filter_codes(list_of_codes, self.include, self.exclude)
 
 
 class CodeListConfig(BaseModel):

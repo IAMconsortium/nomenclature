@@ -16,6 +16,7 @@ from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import CodeListConfig, NomenclatureConfig
 from nomenclature.error import ErrorCollector, custom_pydantic_errors, log_error
 from nomenclature.nuts import nuts
+from nomenclature.utils import filter_codes
 
 
 here = Path(__file__).parent.absolute()
@@ -484,20 +485,11 @@ class CodeList(BaseModel):
         CodeList
             CodeList with Codes that match attribute-value pairs.
         """
-
-        # Returns True if code satisfies all filter parameters
-        def _match_attribute(code, kwargs):
-            return all(
-                hasattr(code, attribute) and getattr(code, attribute) == value
-                for attribute, value in kwargs.items()
-            )
-
         filtered_codelist = self.__class__(
             name=self.name,
             mapping={
                 code.name: code
-                for code in self.mapping.values()
-                if _match_attribute(code, kwargs)
+                for code in filter_codes(self.mapping.values(), [kwargs])
             },
         )
 
