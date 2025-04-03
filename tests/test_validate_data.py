@@ -35,6 +35,36 @@ def test_DataValidator_simple_from_file():
     assert obs.validate_with_definition(dsd) is None
 
 
+def test_DataValidator_structured_from_file():
+    exp = DataValidator(
+        **{
+            "criteria_items": [
+                {
+                    "variable": "Final Energy",
+                    "year": [2010],
+                    "validation": [
+                        {
+                            "upper_bound": 2.5,
+                            "lower_bound": 1.0,
+                        },
+                        {
+                            "upper_bound": 2.5,
+                            "warning_level": "low",
+                            "lower_bound": 2.0,
+                        },
+                    ],
+                }
+            ],
+            "file": DATA_VALIDATION_TEST_DIR / "validation_structured.yaml",
+        }
+    )
+    obs = DataValidator.from_file(DATA_VALIDATION_TEST_DIR / "validation_structured.yaml")
+    assert obs == exp
+
+    dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definitions")
+    assert obs.validate_with_definition(dsd) is None
+
+
 @pytest.mark.parametrize(
     "name, match",
     [
