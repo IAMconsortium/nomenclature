@@ -10,7 +10,7 @@ from nomenclature.processor.data_validator import DataValidator
 DATA_VALIDATION_TEST_DIR = TEST_DATA_DIR / "validation" / "validate_data"
 
 
-def test_DataValidator_from_file():
+def test_DataValidator_simple_from_file():
     exp = DataValidator(
         **{
             "criteria_items": [
@@ -25,10 +25,10 @@ def test_DataValidator_from_file():
                     ],
                 }
             ],
-            "file": DATA_VALIDATION_TEST_DIR / "validation_pass.yaml",
+            "file": DATA_VALIDATION_TEST_DIR / "validation_simple.yaml",
         }
     )
-    obs = DataValidator.from_file(DATA_VALIDATION_TEST_DIR / "validation_pass.yaml")
+    obs = DataValidator.from_file(DATA_VALIDATION_TEST_DIR / "validation_simple.yaml")
     assert obs == exp
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definitions")
@@ -80,7 +80,7 @@ def test_DataValidator_validate_with_definition_raises(dimension, match):
 
 def test_DataValidator_apply_no_matching_data(simple_df):
     data_validator = DataValidator.from_file(
-        DATA_VALIDATION_TEST_DIR / "validation_pass.yaml"
+        DATA_VALIDATION_TEST_DIR / "validation_simple.yaml"
     )
     # no data matches validation criteria, `apply()` passes and returns unchanged object
     assert data_validator.apply(simple_df) == simple_df
