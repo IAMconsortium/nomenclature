@@ -58,7 +58,9 @@ def test_DataValidator_structured_from_file():
             "file": DATA_VALIDATION_TEST_DIR / "validation_structured.yaml",
         }
     )
-    obs = DataValidator.from_file(DATA_VALIDATION_TEST_DIR / "validation_structured.yaml")
+    obs = DataValidator.from_file(
+        DATA_VALIDATION_TEST_DIR / "validation_structured.yaml"
+    )
     assert obs == exp
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definitions")
