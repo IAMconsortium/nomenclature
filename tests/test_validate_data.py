@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 import pandas as pd
+import pandas.testing as pdt
 from conftest import TEST_DATA_DIR
 
 from nomenclature import DataStructureDefinition
@@ -202,7 +203,18 @@ def test_DataValidator_xlsx_output(tmp_path, simple_df):
     with pytest.raises(ValueError):
         data_validator.apply(simple_df)
 
-    assert all(pd.read_excel(filepath)["warning_level"].isin(["error"]))
-    assert all(
-        pd.read_excel(filepath)["criteria"].isin(["upper_bound: 5.0, lower_bound: 1.0"])
+    obs = pd.read_excel(filepath)
+    exp = pd.DataFrame(
+        {
+            "model": ["model_a", "model_a"],
+            "scenario": ["scen_a", "scen_b"],
+            "region": ["World", "World"],
+            "variable": ["Primary Energy", "Primary Energy"],
+            "unit": ["EJ/yr", "EJ/yr"],
+            "year": [2010, 2010],
+            "value": [6.0, 7.0],
+            "warning_level": ["error", "error"],
+            "criteria": ["upper_bound: 5.0, lower_bound: 1.0"] * 2
+        }
     )
+    pdt.assert_frame_equal(obs, exp, check_dtype=False)
