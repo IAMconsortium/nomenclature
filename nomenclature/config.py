@@ -245,6 +245,11 @@ class RegionMappingConfig(BaseModel):
         return v
 
 
+class TimeConfig(BaseModel):
+    year: bool = True
+    datetime: str = Field(pattern=r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$")
+
+
 class DimensionEnum(str, Enum):
     model = "model"
     scenario = "scenario"
@@ -259,6 +264,7 @@ class NomenclatureConfig(BaseModel):
     definitions: DataStructureConfig = Field(default_factory=DataStructureConfig)
     mappings: RegionMappingConfig = Field(default_factory=RegionMappingConfig)
     illegal_characters: list[str] = [":", ";", '"']
+    time: None | TimeConfig = None
 
     model_config = ConfigDict(use_enum_values=True)
 
