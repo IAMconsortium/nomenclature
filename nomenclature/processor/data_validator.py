@@ -276,7 +276,7 @@ class DataValidator(Processor):
                 error, fail_list, output_list = item.apply(df, fail_list, output_list)
                 error_list.append(error)
             if self.output_path:
-                pd.concat(output_list).to_excel(self.output_path)
+                pd.concat(output_list).to_excel(self.output_path, index=False)
             fail_msg = "(file %s):\n" % get_relative_path(self.file)
             if any(error_list):
                 fail_msg = (
