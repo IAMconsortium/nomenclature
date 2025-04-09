@@ -258,7 +258,9 @@ class NomenclatureConfig(BaseModel):
     repositories: dict[str, Repository] = Field(default_factory=dict)
     definitions: DataStructureConfig = Field(default_factory=DataStructureConfig)
     mappings: RegionMappingConfig = Field(default_factory=RegionMappingConfig)
-    illegal_characters: list[str] = Field([":", ";", '"'], alias="illegal-characters")
+    illegal_characters: list[str] = Field(
+        default_factory=lambda: [":", ";", '"'], alias="illegal-characters"
+    )
 
     model_config = ConfigDict(use_enum_values=True)
 
