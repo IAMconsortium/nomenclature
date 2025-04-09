@@ -3,4 +3,4 @@ dimensions:
 definitions:
   region:
     country: true
-illegal_characters: [";", ":"]
+illegal-characters: [";", ":"]
