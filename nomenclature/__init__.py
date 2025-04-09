@@ -85,9 +85,6 @@ def parse_model_registration(
             header=2,
             usecols=[native, constituents],
         )
-        region_country_mapping = region_country_mapping.where(
-            pd.notnull(region_country_mapping), None
-        )
         region_country_mapping = (
             region_country_mapping.dropna().groupby(native)[constituents].apply(list)
         )
