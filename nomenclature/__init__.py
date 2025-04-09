@@ -101,14 +101,15 @@ def parse_model_registration(
         }
     ]:
         if not region_country_mapping.empty:
+
+            def construct_region_mapping(region):
+                countries = region_country_mapping.get(region.name, None)
+                if countries:
+                    return {region.target_native_region: {"countries": countries}}
+                return region.target_native_region
+
             native_regions = [
-                {
-                    region.target_native_region: {
-                        "countries": region_country_mapping.get(region.name, None)
-                    }
-                }
-                if region_country_mapping.get(region.name, None)
-                else region.target_native_region
+                construct_region_mapping(region)
                 for region in region_aggregation_mapping.native_regions
             ]
             native_regions = [{region_aggregation_mapping.model[0]: native_regions}]
