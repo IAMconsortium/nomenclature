@@ -34,7 +34,7 @@ def test_parse_model_registration(tmp_path):
     exp_model_regions = [
         {
             "Model 1.1": [
-                {"Model 1.1|Region 1": {"countries": ["Country 1"]}},
+                {"Model 1.1|Region 1": {"countries": ["Country 1", "Country 2"]}},
                 "Region 2",
                 "Model 1.1|Region 3",
             ]
