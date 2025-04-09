@@ -3,6 +3,7 @@ from importlib.metadata import version
 from pathlib import Path
 import json
 import yaml
+import pandas as pd
 
 from nomenclature.cli import cli  # noqa
 from nomenclature.codelist import CodeList  # noqa
@@ -63,24 +64,54 @@ def parse_model_registration(
     """
     if not isinstance(output_directory, Path):
         output_directory = Path(output_directory)
-
-    region_aggregregation_mapping = RegionAggregationMapping.from_file(
+    # parse Common-Region-Mapping
+    region_aggregation_mapping = RegionAggregationMapping.from_file(
         model_registration_file
     )
     file_model_name = "".join(
         x if (x.isalnum() or x in "._- ") else "_"
-        for x in region_aggregregation_mapping.model[0]
+        for x in region_aggregation_mapping.model[0]
     )
-    region_aggregregation_mapping.to_yaml(
+    region_aggregation_mapping.to_yaml(
         output_directory / f"{file_model_name}_mapping.yaml"
     )
+    # parse Region-Country-Mapping
+    native = "Native region (as reported by the model)"
+    constituents = "Country name"
+    try:
+        region_country_mapping = pd.read_excel(
+            model_registration_file,
+            sheet_name="Region-Country-Mapping",
+            header=2,
+            usecols=[native, constituents],
+        )
+        region_country_mapping = region_country_mapping.where(
+            pd.notnull(region_country_mapping), None
+        )
+        region_country_mapping = (
+            region_country_mapping.dropna().groupby(native)[constituents].apply(list)
+        )
+    except ValueError:
+        region_country_mapping = pd.DataFrame()
     if native_regions := [
         {
-            region_aggregregation_mapping.model[
+            region_aggregation_mapping.model[
                 0
-            ]: region_aggregregation_mapping.upload_native_regions
+            ]: region_aggregation_mapping.upload_native_regions
         }
     ]:
+        if not region_country_mapping.empty:
+            native_regions = [
+                {
+                    region.target_native_region: {
+                        "countries": region_country_mapping.get(region.name, None)
+                    }
+                }
+                if region_country_mapping.get(region.name, None)
+                else region.target_native_region
+                for region in region_aggregation_mapping.native_regions
+            ]
+            native_regions = [{region_aggregation_mapping.model[0]: native_regions}]
         with open(
             (output_directory / f"{file_model_name}_regions.yaml"),
             "w",
