@@ -76,9 +76,9 @@ def parse_model_registration(
         output_directory / f"{file_model_name}_mapping.yaml"
     )
     # parse Region-Country-Mapping
-    native = "Native region (as reported by the model)"
-    constituents = "Country name"
-    try:
+    if "Region-Country-Mapping" in pd.ExcelFile(model_registration_file).sheet_names:
+        native = "Native region (as reported by the model)"
+        constituents = "Country name"
         region_country_mapping = pd.read_excel(
             model_registration_file,
             sheet_name="Region-Country-Mapping",
@@ -88,7 +88,10 @@ def parse_model_registration(
         region_country_mapping = (
             region_country_mapping.dropna().groupby(native)[constituents].apply(list)
         )
-    except ValueError:
+    else:
+        logger.info(
+            "No 'Region-Country-Mapping' sheet found in model registration spreadsheet."
+        )
         region_country_mapping = pd.DataFrame()
     if native_regions := [
         {
