@@ -19,6 +19,13 @@ Consider the example below:
       - warning_level: low
         upper_bound: 2.5
         lower_bound: 1
+  - variable: Primary Energy|Gas
+    year: 2010
+    lower_bound: 0
+    validation:
+      - upper_bound: 5
+      - warning_level: low
+        upper_bound: 2.5
   - variable: Primary Energy|Coal
     year: 2010
     value: 5
@@ -46,9 +53,12 @@ Flagged datapoints are skipped for lower severity warnings in the same criteria
 item (e.g.: if datapoints are flagged for the ``error`` level, they will not be
 checked again for ``low``).
 
-The second criteria item (for variable *Primary Energy|Coal*) uses the old notation.
-Its use is deprecated for being more verbose (requires each warning level to be
-a separate criteria item) and slower to process.
+Validation arguments that are identical for all warning levels can be set once as part
+of the filter arguments. This is illustrated in the second criteria item.
+
+The third criteria item (for variable *Primary Energy|Coal*) uses short-hand notation
+where all filter and validation arguments are given as a simple dictionary.
+This notation can be used if there are no multiple warning levels for the same filters.
 
 Standard usage
 --------------
