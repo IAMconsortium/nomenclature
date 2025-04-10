@@ -238,14 +238,14 @@ class DataValidator(Processor):
 
             # if some criteria args are given at top-level, add to "validation" list
             criteria = [
-                k
-                for k in item
-                if k not in IamcDataFilter.model_fields and k != "validation"
+                criterion
+                for criterion in item
+                if criterion not in list(IamcDataFilter.model_fields) + ["validation"]
             ]
-            for k in criteria:
-                value = item.pop(k)
+            for criterion in criteria:
+                value = item.pop(criterion)
                 for criteria_item in item["validation"]:
-                    criteria_item[k] = value
+                    criteria_item[criterion] = value
             criteria_items.append(item)
 
         return cls(file=file, criteria_items=criteria_items, output_path=output_path)  # type: ignore
