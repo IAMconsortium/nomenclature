@@ -257,7 +257,7 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
     "model_name, region_names",
     [("model_a", ("region_A", "region_B")), ("model_b", ("region_A", "region_b"))],
 )
-def test_region_processing_skip_aggregation(model_name, region_names, caplog):
+def test_region_processing_skip_aggregation(model_name, region_names):
     # Testing two cases:
     # * model "model_a" renames native regions and the world region is skipped
     # * model "model_b" aggregates single constituent common regions, which are skipped
@@ -291,9 +291,9 @@ def test_region_processing_skip_aggregation(model_name, region_names, caplog):
         TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
     )
     if model_name == "model_b":
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) as excinfo:
             obs = process(test_df, dsd, processor=processor)
-            assert "returned an empty dataset" in caplog.text
+        assert "returned an empty dataset" in str(excinfo.value)
     else:
         obs = process(test_df, dsd, processor=processor)
         assert_iamframe_equal(obs, exp)
