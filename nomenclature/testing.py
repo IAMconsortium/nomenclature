@@ -120,7 +120,7 @@ def assert_valid_structure(
         Name of the folder for required data, defaults to "required_data"
         (if this folder exists)
     validate_data : str, optional
-        Name of the folder for data validation criteria, defaults to "validate_date"
+        Name of the folder for data validation criteria, defaults to "validate_data"
         (if this folder exists)
     dimensions : list[str], optional
         Dimensions to be checked, defaults to all sub-folders of `definitions`
