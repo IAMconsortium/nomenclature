@@ -257,10 +257,10 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
     "model_name, region_names",
     [("model_a", ("region_A", "region_B")), ("model_b", ("region_A", "region_b"))],
 )
-def test_region_processing_skip_aggregation(model_name, region_names):
+def test_region_processing_skip_aggregation(model_name, region_names, caplog):
     # Testing two cases:
     # * model "model_a" renames native regions and the world region is skipped
-    # * model "model_b" renames single constituent common regions
+    # * model "model_b" aggregates single constituent common regions, which are skipped
 
     test_df = IamDataFrame(
         pd.DataFrame(
@@ -284,16 +284,19 @@ def test_region_processing_skip_aggregation(model_name, region_names):
     )
     add_meta(exp)
 
-    obs = process(
-        test_df,
-        dsd := DataStructureDefinition(
-            TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
-        ),
-        processor=RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
-        ),
+    dsd = DataStructureDefinition(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
     )
-    assert_iamframe_equal(obs, exp)
+    processor = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
+    )
+    if model_name == "model_b":
+        with pytest.raises(ValueError):
+            obs = process(test_df, dsd, processor=processor)
+            assert "returned an empty dataset" in caplog.text
+    else:
+        obs = process(test_df, dsd, processor=processor)
+        assert_iamframe_equal(obs, exp)
 
 
 @pytest.mark.parametrize(
