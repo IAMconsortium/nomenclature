@@ -21,15 +21,14 @@ Consider the example below:
         lower_bound: 1
   - variable: Primary Energy|Gas
     year: 2010
-    lower_bound: 0
+    value: 2
     validation:
-      - upper_bound: 5
+      - rtol: 0.5
       - warning_level: low
-        upper_bound: 2.5
+        rtol: 0.1
   - variable: Primary Energy|Coal
     year: 2010
-    value: 5
-    rtol: 2
+    value: 2
     atol: 1
 
 Each criteria item contains **data filter arguments** and **validation arguments**.
@@ -48,17 +47,22 @@ can be set. These must be listed in descending order of severity, otherwise a
 ``ValidationError`` is raised.
 In the example, for the first criteria item, the validation arguments are set
 for warning level ``error`` (by default, in case of omission) and ``low``,
-using bounds.
+using explicit upper and lower bounds.
 Flagged datapoints are skipped for lower severity warnings in the same criteria
 item (e.g.: if datapoints are flagged for the ``error`` level, they will not be
 checked again for ``low``).
 
 Validation arguments that are identical for all warning levels can be set once as part
-of the filter arguments. This is illustrated in the second criteria item.
+of the filter arguments. This is illustrated in the second criteria item, where the
+relevant data values must be within a 50% range to ``value`` (i.e., between 1 and 3)
+with warning level ``error`` and within a 10% range (i.e., between 1.8 and 2.2) with
+warning level ``low``.
 
 The third criteria item (for variable *Primary Energy|Coal*) uses short-hand notation
 where all filter and validation arguments are given as a simple dictionary.
 This notation can be used if there are no multiple warning levels for the same filters.
+The specific example indicates that the relevant data values must be within an absolute
+tolerance of 1 to the value of 2, with warning level ``error`` by default.
 
 Standard usage
 --------------
