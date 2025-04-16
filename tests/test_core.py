@@ -260,7 +260,8 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
 def test_region_processing_skip_aggregation(model_name, region_names):
     # Testing two cases:
     # * model "model_a" renames native regions and the world region is skipped
-    # * model "model_b" aggregates single constituent common regions, which are skipped
+    # * model "model_b" aggregates single constituent common regions, which raises
+    # a ValueError due to an empty dataset
 
     test_df = IamDataFrame(
         pd.DataFrame(
