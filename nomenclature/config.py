@@ -13,8 +13,6 @@ from pydantic import (
     model_validator,
     ConfigDict,
 )
-from nomenclature.code import Code
-from nomenclature.utils import filter_codes
 from pyam.str import escape_regexp
 
 
@@ -22,9 +20,6 @@ class CodeListFromRepository(BaseModel):
     name: str
     include: list[dict[str, Any]] = [{"name": "*"}]
     exclude: list[dict[str, Any]] = Field(default_factory=list)
-
-    def filter_list_of_codes(self, list_of_codes: list[Code]) -> list[Code]:
-        return filter_codes(list_of_codes, self.include, self.exclude)
 
 
 class CodeListConfig(BaseModel):

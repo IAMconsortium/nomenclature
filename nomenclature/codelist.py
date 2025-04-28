@@ -1,4 +1,5 @@
 import logging
+import re
 from pathlib import Path
 from textwrap import indent
 from typing import ClassVar
@@ -7,6 +8,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from pyam import IamDataFrame
+from pyam.str import escape_regexp
 from pyam.utils import is_list_like, write_sheet, pattern_match
 from pydantic import BaseModel, ValidationInfo, field_validator
 from pydantic_core import PydanticCustomError
@@ -16,7 +18,6 @@ from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import CodeListConfig, NomenclatureConfig
 from nomenclature.error import ErrorCollector, custom_pydantic_errors, log_error
 from nomenclature.nuts import nuts
-from nomenclature.utils import filter_codes
 
 
 here = Path(__file__).parent.absolute()
@@ -210,7 +211,9 @@ class CodeList(BaseModel):
                 file_glob_pattern,
                 repo.name,
             )
-            code_list.extend(repo.filter_list_of_codes(repository_code_list))
+            code_list.extend(
+                cls.filter_codes(repository_code_list, repo.include, repo.exclude)
+            )
         errors = ErrorCollector()
         mapping: dict[str, Code] = {}
         for code in code_list:
@@ -489,13 +492,75 @@ class CodeList(BaseModel):
             name=self.name,
             mapping={
                 code.name: code
-                for code in filter_codes(self.mapping.values(), [kwargs])
+                for code in self.filter_codes(self.mapping.values(), [kwargs])
             },
         )
 
         if not filtered_codelist.mapping:
             logging.warning(f"Filtered {self.__class__.__name__} is empty!")
         return filtered_codelist
+
+    @staticmethod
+    def filter_codes(
+        codes: list[Code], include: dict | None = None, exclude: dict | None = None
+    ) -> list[Code]:
+        """
+        Filter a list of codes based on include and exclude filters.
+
+        Parameters
+        ----------
+        codes : list[Code]
+            List of Code objects to filter.
+        include : list[dict[str, Any]], optional
+            List of attribute-value mappings to include.
+        exclude : list[dict[str, Any]], optional
+            List of attribute-value mappings to exclude.
+
+        Returns
+        -------
+        list[Code]
+            Filtered list of Code objects.
+        """
+
+        def matches_filter(code, filters, keep):
+            def check_attribute_match(code_value, filter_value):
+                # if is list -> recursive
+                # if is str -> escape all special characters except "*" and use a regex
+                # if is int -> match exactly
+                # if is None -> Attribute does not exist therefore does not match
+                if isinstance(filter_value, int):
+                    return code_value == filter_value
+                if isinstance(filter_value, str):
+                    pattern = re.compile(escape_regexp(filter_value) + "$")
+                    return re.match(pattern, code_value) is not None
+                if isinstance(filter_value, list):
+                    return any(
+                        check_attribute_match(code_value, value)
+                        for value in filter_value
+                    )
+                if filter_value is None:
+                    return False
+                raise ValueError("Invalid filter value type")
+
+            return (
+                any(
+                    all(
+                        check_attribute_match(getattr(code, attr, None), value)
+                        for attr, value in filter.items()
+                    )
+                    for filter in filters
+                )
+                if filters
+                else keep
+            )
+
+        filtered_codes = [
+            code
+            for code in codes
+            if matches_filter(code, include, True)
+            and not matches_filter(code, exclude, False)
+        ]
+        return filtered_codes
 
 
 class VariableCodeList(CodeList):
@@ -754,7 +819,9 @@ class RegionCodeList(CodeList):
             repo_list_of_codes = cls._parse_and_replace_tags(
                 repo_list_of_codes, repo_path, file_glob_pattern
             )
-            code_list.extend(repo.filter_list_of_codes(repo_list_of_codes))
+            code_list.extend(
+                cls.filter_codes(repo_list_of_codes, repo.include, repo.exclude)
+            )
 
         # parse from current repository
         local_code_list = cls._parse_region_code_dir(path, file_glob_pattern)
