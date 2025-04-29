@@ -249,6 +249,12 @@ class TimeConfig(BaseModel):
     year: bool = True
     datetime: str = Field(pattern=r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$")
 
+    @property
+    def datetime_format(self) -> str:
+        # if year is a separate column, exclude it from format
+        # if not, datetime is coerced in IamDataFrame, and include seconds
+        return "%m-%d %H:%M" if self.year else "%Y-%m-%d %H:%M:%S"
+
 
 class DimensionEnum(str, Enum):
     model = "model"
