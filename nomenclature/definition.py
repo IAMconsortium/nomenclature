@@ -130,30 +130,28 @@ class DataStructureDefinition:
         ValueError
             If `df` fails validation against the required datetime format.
         """
+        if self.config.time is None:
+            return
         errors = ErrorCollector()
-        if self.config.time:
-            year = "2020-" if self.config.time.year else ""
-            dt = "subannual" if self.config.time.year else "time"
+        time_column_name = "subannual" if self.config.time.year else "time"
 
-            if dt in df.dimensions:
-                # collect datetime items not covered by subannual codelist
-                _datetime = [s for s in df[dt] if s not in self.subannual]
-                # if datetime is coerced in IamDataFrame, include seconds
-                dt_format = "%Y-%m-%d %H:%M" if year else "%Y-%m-%d %H:%M:%S"
-                for d in _datetime:
-                    try:
-                        _dt = datetime.strptime(f"{year}{d}", dt_format + "%z")
-                        # casting to datetime with timezone was successful
-                        if not _dt.tzname() == self.config.time.datetime:
-                            errors.append(ValueError(f"Invalid timezone: {d}"))
-                    except ValueError:
-                        try:
-                            _dt = datetime.strptime(f"{year}{d}", dt_format)
-                        except ValueError:
-                            errors.append(
-                                ValueError(f"Invalid subannual timeslice: {d}")
-                            )
-                        errors.append(ValueError(f"Missing timezone: {d}"))
+        if time_column_name not in df.dimensions:
+            return
+        # collect datetime items not covered by subannual codelist
+        _datetime = [s for s in df[time_column_name] if s not in self.subannual]
+        for d in _datetime:
+            try:
+                _dt = datetime.strptime(str(d), self.config.time.datetime_format + "%z")
+                # casting to datetime with timezone was successful
+                if not _dt.tzname() == self.config.time.datetime:
+                    errors.append(ValueError(f"Invalid timezone: {d}"))
+            except ValueError:
+                try:
+                    datetime.strptime(str(d), self.config.time.datetime_format)
+                except ValueError:
+                    errors.append(ValueError(f"Invalid subannual timeslice: {d}"))
+                    continue
+                errors.append(ValueError(f"Missing timezone: {d}"))
         if errors:
             raise ValueError(errors)
 
