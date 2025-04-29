@@ -114,15 +114,15 @@ def test_wildcard_match(simple_df):
 
 
 @pytest.mark.parametrize(
-    "subannual, status",
+    "subannual, expected_error",
     [
-        ("01-01 00:00+01:00", True),
-        ("01-01 00:00", False),
-        ("01-01 00:00+02:00", False),
-        ("01-32 00:00+01:00", False),
+        ("01-01 00:00+01:00", False),
+        ("01-01 00:00", True),
+        ("01-01 00:00+02:00", True),
+        ("01-32 00:00+01:00", True),
     ],
 )
-def test_validate_datetime(simple_df, subannual, status):
+def test_validate_datetime(simple_df, subannual, expected_error):
     definition = DataStructureDefinition(
         TEST_DATA_DIR / "data_structure_definition" / "subannual"
     )
@@ -131,22 +131,22 @@ def test_validate_datetime(simple_df, subannual, status):
         datetime="UTC+01:00",
     )
     df = IamDataFrame(simple_df._data, subannual=subannual)
-    if status:
-        definition.validate_datetime(df)
+    if not expected_error:
+        assert definition.validate_datetime(df) is None
     else:
         with pytest.raises(ValueError):
             definition.validate_datetime(df)
 
 
 @pytest.mark.parametrize(
-    "rename_mapping, status",
+    "rename_mapping, expected_error",
     [
-        ({2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"}, True),
-        ({2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"}, False),
-        ({2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"}, False),
+        ({2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"}, False),
+        ({2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"}, True),
+        ({2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"}, True),
     ],
 )
-def test_validate_time_entry(simple_df, rename_mapping, status):
+def test_validate_time_entry(simple_df, rename_mapping, expected_error):
     # test that validation works as expected with datetime-domain
     definition = DataStructureDefinition(
         TEST_DATA_DIR / "data_structure_definition" / "subannual"
@@ -155,11 +155,11 @@ def test_validate_time_entry(simple_df, rename_mapping, status):
         year=False,
         datetime="UTC+01:00",
     )
-    _df = IamDataFrame(
+    df = IamDataFrame(
         simple_df.data.rename(columns={"year": "time"}).replace(rename_mapping)
     )
-    if status:
-        definition.validate_datetime(_df)
+    if not expected_error:
+        assert definition.validate_datetime(df) is None
     else:
         with pytest.raises(ValueError):
-            definition.validate_datetime(_df)
+            definition.validate_datetime(df)
