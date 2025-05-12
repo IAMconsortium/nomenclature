@@ -55,7 +55,7 @@ def test_aggregator_from_file():
         ),
         (
             "aggregation_mapping_rename_conflict.yaml",
-            "Aggregation items overlapping renaming items \['Primary Energy'\] in aggregation-",
+            "Aggregation items in renaming items \['Primary Energy'\] in aggregation-",
         ),
     ],
 )
