@@ -31,6 +31,9 @@ def test_aggregator_from_file():
                 "components": ["Final Energy|Electricity", "Final Energy|Heat"],
             },
         ],
+        "rename": [
+            {"name": "Resource|Extraction|Petrol", "rename": "Resource|Extraction|Oil"}
+        ],
     }
     assert obs.model_dump() == exp
 
@@ -49,6 +52,10 @@ def test_aggregator_from_file():
         (
             "aggregation_mapping_target_component_conflict.yaml",
             "Non-unique target and component \['Primary Energy'\] in aggregation-",
+        ),
+        (
+            "aggregation_mapping_rename_conflict.yaml",
+            "Aggregation items overlapping renaming items \['Primary Energy'\] in aggregation-",
         ),
     ],
 )
@@ -98,6 +105,7 @@ def test_aggregator_apply():
                 ["Primary Energy|Biomass", "EJ/yr", 2, 7],
                 ["Final Energy|Electricity", "EJ/yr", 2.5, 3],
                 ["Final Energy|Heat", "EJ/yr", 3, 6],
+                ["Resource|Extraction|Petrol", "EJ/yr", 4, 8],
             ],
             columns=["variable", "unit", 2005, 2010],
         ),
@@ -108,6 +116,7 @@ def test_aggregator_apply():
             [
                 ["Primary Energy", "EJ/yr", 2.5, 10],
                 ["Final Energy", "EJ/yr", 5.5, 9],
+                ["Resource|Extraction|Oil", "EJ/yr", 4, 8],
             ],
             columns=["variable", "unit", 2005, 2010],
         ),
