@@ -119,17 +119,16 @@ def test_wildcard_match(simple_df):
         ({2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"}, False),
         (
             {2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"},
-            "Invalid timezone",
+            "invalid timezone",
         ),
-        ({2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"}, "Missing timezone"),
+        ({2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"}, "missing timezone"),
     ],
 )
-def test_validate_time_entry(simple_df, rename_mapping, expected_error, caplog):
+def test_validate_time_entry(
+    simple_df, simple_definition, rename_mapping, expected_error, caplog
+):
     # test that validation works as expected with datetime-domain
-    definition = DataStructureDefinition(
-        TEST_DATA_DIR / "data_structure_definition" / "subannual"
-    )
-    definition.config.time = nomenclature.config.TimeDomainConfig(
+    simple_definition.config.time = nomenclature.config.TimeDomainConfig(
         year=False,
         datetime="UTC+01:00",
     )
@@ -137,8 +136,8 @@ def test_validate_time_entry(simple_df, rename_mapping, expected_error, caplog):
         simple_df.data.rename(columns={"year": "time"}).replace(rename_mapping)
     )
     if not expected_error:
-        assert definition.validate_datetime(df) is None
+        assert simple_definition.validate(df) is None
     else:
-        with pytest.raises(ValueError) as excinfo:
-            definition.validate_datetime(df)
-        assert expected_error in str(excinfo.value)
+        with pytest.raises(ValueError):
+            simple_definition.validate(df)
+        assert expected_error in caplog.text

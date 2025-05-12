@@ -322,4 +322,3 @@ def cli_validate_scenarios(input_file: Path, definitions: Path, dimensions: list
     df = IamDataFrame(input_file)
     dsd = DataStructureDefinition(definitions, dimensions)
     dsd.validate(df)
-    dsd.validate_datetime(df)

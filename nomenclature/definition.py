@@ -16,7 +16,6 @@ from nomenclature.codelist import (
     MetaCodeList,
 )
 from nomenclature.config import NomenclatureConfig
-from nomenclature.error import ErrorCollector
 
 logger = logging.getLogger(__name__)
 SPECIAL_CODELIST = {
@@ -102,60 +101,54 @@ class DataStructureDefinition:
             If `df` fails validation against any codelist.
         """
 
-        if any(
-            getattr(self, dimension).validate_data(
-                df,
-                dimension,
-                self.project,
+        def validate_datetime(df: IamDataFrame) -> bool:
+            """Validate datetime coordinates against allowed format and/or timezone."""
+            if self.config.time is None or self.config.time.datetime_format is None:
+                return True
+
+            # 'year' and 'mixed' time domains include years
+            if self.config.time.year and df.time_domain not in ["year", "mixed"]:
+                logging.error("Invalid time domain: expected `year` column not found.")
+                return False
+            elif not self.config.time.year and df.time_domain in ["year", "mixed"]:
+                logging.error(
+                    "Invalid time domain: `year` column found but not expected."
+                )
+                return False
+
+            error_list = []
+            _datetime = [d for d in df.time if isinstance(d, datetime)]
+            for d in _datetime:
+                try:
+                    _dt = datetime.strptime(
+                        str(d), self.config.time.datetime_format + "%z"
+                    )
+                    # casting to datetime with timezone was successful
+                    if not _dt.tzname() == self.config.time.datetime:
+                        error_list.append(f"{d} - invalid timezone")
+                except ValueError:
+                    error_list.append(f"{d} - missing timezone")
+            if error_list:
+                logging.error(
+                    "The following datetimes are invalid:\n - "
+                    + "\n - ".join(error_list)
+                )
+                return False
+            return True
+
+        if (
+            any(
+                getattr(self, dimension).validate_data(
+                    df,
+                    dimension,
+                    self.project,
+                )
+                is False
+                for dimension in (dimensions or self.dimensions)
             )
-            is False
-            for dimension in (dimensions or self.dimensions)
+            or validate_datetime(df) is False
         ):
             raise ValueError("The validation failed. Please check the log for details.")
-
-    def validate_datetime(self, df: IamDataFrame) -> None:
-        """Validate datetime coordinates against allowed format and/or timezone.
-
-        Parameters
-        ----------
-        df : :class:`pyam.IamDataFrame`
-            Scenario data to be validated against the datetime format.
-
-        Returns
-        -------
-        None
-
-        Raises
-        ------
-        ValueError
-            If `df` fails validation against the required datetime format.
-        """
-        if self.config.time is None:
-            return
-
-        # 'year' and 'mixed' time domains include years
-        if self.config.time.year and df.time_domain not in ["year", "mixed"]:
-            raise ValueError("Invalid time domain: expected `year` column not found.")
-        elif not self.config.time.year and df.time_domain in ["year", "mixed"]:
-            raise ValueError(
-                "Invalid time domain: `year` column found but not expected."
-            )
-
-        if self.config.time.datetime_format is None:
-            return
-
-        errors = ErrorCollector()
-        _datetime = [d for d in df.time if isinstance(d, datetime)]
-        for d in _datetime:
-            try:
-                _dt = datetime.strptime(str(d), self.config.time.datetime_format + "%z")
-                # casting to datetime with timezone was successful
-                if not _dt.tzname() == self.config.time.datetime:
-                    errors.append(ValueError(f"Invalid timezone: {d}"))
-            except ValueError:
-                errors.append(ValueError(f"Missing timezone: {d}"))
-        if errors:
-            raise ValueError(errors)
 
     def check_aggregate(self, df: IamDataFrame, **kwargs) -> None:
         """Check for consistency of scenario data along the variable hierarchy
