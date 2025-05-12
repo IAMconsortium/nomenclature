@@ -113,7 +113,7 @@ class Aggregator(Processor):
         agg_components = [comp for item in self.aggregate for comp in item.components]
         agg_targets = [item.name for item in self.aggregate]
         rename_sources = [item.name for item in self.rename]
-        rename_targets = [item.rename for item in self.rename]
+        rename_targets = list({item.rename for item in self.rename})
         _validate_items(
             agg_components + agg_targets + rename_sources + rename_targets,
             self.file,
