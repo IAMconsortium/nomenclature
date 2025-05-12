@@ -114,44 +114,22 @@ def test_wildcard_match(simple_df):
 
 
 @pytest.mark.parametrize(
-    "subannual, expected_error",
-    [
-        ("01-01 00:00+01:00", False),
-        ("01-01 00:00", True),
-        ("01-01 00:00+02:00", True),
-        ("01-32 00:00+01:00", True),
-    ],
-)
-def test_validate_datetime(simple_df, subannual, expected_error):
-    definition = DataStructureDefinition(
-        TEST_DATA_DIR / "data_structure_definition" / "subannual"
-    )
-    definition.config.time = nomenclature.config.TimeConfig(
-        year=True,
-        datetime="UTC+01:00",
-    )
-    df = IamDataFrame(simple_df._data, subannual=subannual)
-    if not expected_error:
-        assert definition.validate_datetime(df) is None
-    else:
-        with pytest.raises(ValueError):
-            definition.validate_datetime(df)
-
-
-@pytest.mark.parametrize(
     "rename_mapping, expected_error",
     [
         ({2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"}, False),
-        ({2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"}, True),
-        ({2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"}, True),
+        (
+            {2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"},
+            "Invalid timezone",
+        ),
+        ({2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"}, "Missing timezone"),
     ],
 )
-def test_validate_time_entry(simple_df, rename_mapping, expected_error):
+def test_validate_time_entry(simple_df, rename_mapping, expected_error, caplog):
     # test that validation works as expected with datetime-domain
     definition = DataStructureDefinition(
         TEST_DATA_DIR / "data_structure_definition" / "subannual"
     )
-    definition.config.time = nomenclature.config.TimeConfig(
+    definition.config.time = nomenclature.config.TimeDomainConfig(
         year=False,
         datetime="UTC+01:00",
     )
@@ -161,5 +139,6 @@ def test_validate_time_entry(simple_df, rename_mapping, expected_error):
     if not expected_error:
         assert definition.validate_datetime(df) is None
     else:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) as excinfo:
             definition.validate_datetime(df)
+        assert expected_error in str(excinfo.value)

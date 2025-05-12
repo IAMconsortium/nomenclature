@@ -245,15 +245,17 @@ class RegionMappingConfig(BaseModel):
         return v
 
 
-class TimeConfig(BaseModel):
+class TimeDomainConfig(BaseModel):
     year: bool = True
-    datetime: str = Field(pattern=r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$")
+    datetime: str = Field(
+        pattern=r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$", default=None
+    )
 
     @property
     def datetime_format(self) -> str:
         # if year is a separate column, exclude it from format
         # if not, datetime is coerced in IamDataFrame, and include seconds
-        return "%m-%d %H:%M" if self.year else "%Y-%m-%d %H:%M:%S"
+        return "%Y-%m-%d %H:%M:%S" if self.datetime else None
 
 
 class DimensionEnum(str, Enum):
@@ -270,7 +272,7 @@ class NomenclatureConfig(BaseModel):
     definitions: DataStructureConfig = Field(default_factory=DataStructureConfig)
     mappings: RegionMappingConfig = Field(default_factory=RegionMappingConfig)
     illegal_characters: list[str] = [":", ";", '"']
-    time: None | TimeConfig = None
+    time: None | TimeDomainConfig = None
 
     model_config = ConfigDict(use_enum_values=True)
 

@@ -132,13 +132,20 @@ class DataStructureDefinition:
         """
         if self.config.time is None:
             return
-        errors = ErrorCollector()
-        time_column_name = "subannual" if self.config.time.year else "time"
 
-        if time_column_name not in df.dimensions:
+        # 'year' and 'mixed' time domains include years
+        if self.config.time.year and df.time_domain not in ["year", "mixed"]:
+            raise ValueError("Invalid time domain: expected `year` column not found.")
+        elif not self.config.time.year and df.time_domain in ["year", "mixed"]:
+            raise ValueError(
+                "Invalid time domain: `year` column found but not expected."
+            )
+
+        if self.config.time.datetime_format is None:
             return
-        # collect datetime items not covered by subannual codelist
-        _datetime = [s for s in df[time_column_name] if s not in self.subannual]
+
+        errors = ErrorCollector()
+        _datetime = [d for d in df.time if isinstance(d, datetime)]
         for d in _datetime:
             try:
                 _dt = datetime.strptime(str(d), self.config.time.datetime_format + "%z")
@@ -146,11 +153,6 @@ class DataStructureDefinition:
                 if not _dt.tzname() == self.config.time.datetime:
                     errors.append(ValueError(f"Invalid timezone: {d}"))
             except ValueError:
-                try:
-                    datetime.strptime(str(d), self.config.time.datetime_format)
-                except ValueError:
-                    errors.append(ValueError(f"Invalid subannual timeslice: {d}"))
-                    continue
                 errors.append(ValueError(f"Missing timezone: {d}"))
         if errors:
             raise ValueError(errors)
