@@ -540,7 +540,11 @@ def test_variablecodelist_list_missing_variables_to_new_file(simple_df, tmp_path
     assert obs.mapping == exp
 
 
-def test_variable_code_list_external_repo_with_filters():
+@pytest.mark.parametrize(
+    "codelist_filter",
+    [None, {"name": ["Primary Energy*", "Final Energy*"], "tier": 2}],
+)
+def test_variable_code_list_external_repo_with_filters(codelist_filter):
     nomenclature_config = NomenclatureConfig.from_file(
         TEST_DATA_DIR / "config" / "external_repo_filters.yaml"
     )
@@ -567,6 +571,18 @@ def test_variable_code_list_external_repo_with_filters():
         )
     finally:
         clean_up_external_repos(nomenclature_config.repositories)
+
+    if codelist_filter:
+        filtered_codelist = variable_code_list.filter(**codelist_filter)
+        assert all(code.tier == 2 for code in filtered_codelist.mapping.values())
+        assert any(
+            code.name.startswith(("Primary Energy", "Final Energy"))
+            for code in filtered_codelist.mapping.values()
+        )
+        assert not any(
+            code.name.startswith("Population")
+            for code in filtered_codelist.mapping.values()
+        )
 
 
 def test_region_code_list_external_repo_with_filters():
