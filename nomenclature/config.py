@@ -1,19 +1,19 @@
+import re
 from enum import Enum
 from pathlib import Path
 from typing import Any
-import re
 
 import yaml
 from git import Repo
+from pyam.str import escape_regexp
 from pydantic import (
     BaseModel,
+    ConfigDict,
     Field,
     ValidationInfo,
     field_validator,
     model_validator,
-    ConfigDict,
 )
-from pyam.str import escape_regexp
 
 
 class CodeListFromRepository(BaseModel):
@@ -90,6 +90,10 @@ class Repository(BaseModel):
     @property
     def revision(self):
         return self.hash or self.release or "main"
+
+    @property
+    def has_auto_update(self) -> bool:
+        return self.hash is None and self.release is None
 
     def fetch_repo(self, to_path):
         to_path = to_path if isinstance(to_path, Path) else Path(to_path)
@@ -231,7 +235,7 @@ class NomenclatureConfig(BaseModel):
             repo.fetch_repo(target_folder / repo_name)
 
     @classmethod
-    def from_file(cls, file: Path):
+    def from_file(cls, file: Path, dry_run: bool = False):
         """Read a DataStructureConfig from a file
 
         Parameters
@@ -243,5 +247,6 @@ class NomenclatureConfig(BaseModel):
         with open(file, "r", encoding="utf-8") as stream:
             config = yaml.safe_load(stream)
         instance = cls(**config)
-        instance.fetch_repos(file.parent)
+        if not dry_run:
+            instance.fetch_repos(file.parent)
         return instance
