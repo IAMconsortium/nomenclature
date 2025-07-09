@@ -235,7 +235,7 @@ class NomenclatureConfig(BaseModel):
             repo.fetch_repo(target_folder / repo_name)
 
     @classmethod
-    def from_file(cls, file: Path):
+    def from_file(cls, file: Path, dry_run: bool = False):
         """Read a DataStructureConfig from a file
 
         Parameters
@@ -247,5 +247,6 @@ class NomenclatureConfig(BaseModel):
         with open(file, "r", encoding="utf-8") as stream:
             config = yaml.safe_load(stream)
         instance = cls(**config)
-        instance.fetch_repos(file.parent)
+        if not dry_run:
+            instance.fetch_repos(file.parent)
         return instance
