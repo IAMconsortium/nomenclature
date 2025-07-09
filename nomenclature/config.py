@@ -1,81 +1,25 @@
+import re
 from enum import Enum
 from pathlib import Path
 from typing import Any
-import re
 
 import yaml
 from git import Repo
+from pyam.str import escape_regexp
 from pydantic import (
     BaseModel,
+    ConfigDict,
     Field,
     ValidationInfo,
     field_validator,
     model_validator,
-    ConfigDict,
 )
-from nomenclature.code import Code
-from pyam.str import escape_regexp
 
 
 class CodeListFromRepository(BaseModel):
     name: str
     include: list[dict[str, Any]] = [{"name": "*"}]
     exclude: list[dict[str, Any]] = Field(default_factory=list)
-
-    def filter_function(self, code: Code, filter: dict[str, Any], keep: bool):
-        # if is list -> recursive
-        # if is str -> escape all special characters except "*" and use a regex
-        # if is int -> match exactly
-        # if is None -> Attribute does not exist therefore does not match
-        def check_attribute_match(code_value, filter_value):
-            if isinstance(filter_value, int):
-                return code_value == filter_value
-            if isinstance(filter_value, str):
-                pattern = re.compile(escape_regexp(filter_value) + "$")
-                return re.match(pattern, code_value) is not None
-            if isinstance(filter_value, list):
-                return any(
-                    check_attribute_match(code_value, value) for value in filter_value
-                )
-            if filter_value is None:
-                return False
-            raise ValueError("Something went wrong with the filtering")
-
-        filter_match = all(
-            check_attribute_match(getattr(code, attribute, None), value)
-            for attribute, value in filter.items()
-        )
-        if keep:
-            return filter_match
-        else:
-            return not filter_match
-
-    def filter_list_of_codes(self, list_of_codes: list[Code]) -> list[Code]:
-        # include first
-        filter_result = [
-            code
-            for code in list_of_codes
-            if any(
-                self.filter_function(
-                    code,
-                    filter,
-                    keep=True,
-                )
-                for filter in self.include
-            )
-        ]
-
-        if self.exclude:
-            filter_result = [
-                code
-                for code in filter_result
-                if any(
-                    self.filter_function(code, filter, keep=False)
-                    for filter in self.exclude
-                )
-            ]
-
-        return filter_result
 
 
 class CodeListConfig(BaseModel):
@@ -146,6 +90,10 @@ class Repository(BaseModel):
     @property
     def revision(self):
         return self.hash or self.release or "main"
+
+    @property
+    def has_auto_update(self) -> bool:
+        return self.hash is None and self.release is None
 
     def fetch_repo(self, to_path):
         to_path = to_path if isinstance(to_path, Path) else Path(to_path)
@@ -271,7 +219,9 @@ class NomenclatureConfig(BaseModel):
     repositories: dict[str, Repository] = Field(default_factory=dict)
     definitions: DataStructureConfig = Field(default_factory=DataStructureConfig)
     mappings: RegionMappingConfig = Field(default_factory=RegionMappingConfig)
-    illegal_characters: list[str] = [":", ";", '"']
+    illegal_characters: list[str] = Field(
+        default_factory=lambda: [":", ";", '"'], alias="illegal-characters"
+    )
     time: None | TimeDomainConfig = None
 
     model_config = ConfigDict(use_enum_values=True)
@@ -299,7 +249,7 @@ class NomenclatureConfig(BaseModel):
             repo.fetch_repo(target_folder / repo_name)
 
     @classmethod
-    def from_file(cls, file: Path):
+    def from_file(cls, file: Path, dry_run: bool = False):
         """Read a DataStructureConfig from a file
 
         Parameters
@@ -311,5 +261,6 @@ class NomenclatureConfig(BaseModel):
         with open(file, "r", encoding="utf-8") as stream:
             config = yaml.safe_load(stream)
         instance = cls(**config)
-        instance.fetch_repos(file.parent)
+        if not dry_run:
+            instance.fetch_repos(file.parent)
         return instance

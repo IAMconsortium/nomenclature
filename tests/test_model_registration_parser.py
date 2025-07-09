@@ -32,6 +32,12 @@ def test_parse_model_registration(tmp_path):
     with open(tmp_path / "Model 1.1_regions.yaml", "r", encoding="utf-8") as file:
         obs_model_regions = yaml.safe_load(file)
     exp_model_regions = [
-        {"Model 1.1": ["Model 1.1|Region 1", "Region 2", "Model 1.1|Region 3"]}
+        {
+            "Model 1.1": [
+                {"Model 1.1|Region 1": {"countries": ["Country 1", "Country 2"]}},
+                "Region 2",
+                "Model 1.1|Region 3",
+            ]
+        }
     ]
     assert obs_model_regions == exp_model_regions

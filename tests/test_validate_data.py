@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 import pandas as pd
+import pandas.testing as pdt
 from conftest import TEST_DATA_DIR
 
 from nomenclature import DataStructureDefinition
@@ -10,7 +11,7 @@ from nomenclature.processor.data_validator import DataValidator
 DATA_VALIDATION_TEST_DIR = TEST_DATA_DIR / "validation" / "validate_data"
 
 
-def test_DataValidator_from_file():
+def test_DataValidator_simple_from_file():
     exp = DataValidator(
         **{
             "criteria_items": [
@@ -25,10 +26,42 @@ def test_DataValidator_from_file():
                     ],
                 }
             ],
-            "file": DATA_VALIDATION_TEST_DIR / "validation_pass.yaml",
+            "file": DATA_VALIDATION_TEST_DIR / "validation_simple.yaml",
         }
     )
-    obs = DataValidator.from_file(DATA_VALIDATION_TEST_DIR / "validation_pass.yaml")
+    obs = DataValidator.from_file(DATA_VALIDATION_TEST_DIR / "validation_simple.yaml")
+    assert obs == exp
+
+    dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definitions")
+    assert obs.validate_with_definition(dsd) is None
+
+
+def test_DataValidator_structured_from_file():
+    exp = DataValidator(
+        **{
+            "criteria_items": [
+                {
+                    "variable": "Final Energy",
+                    "year": [2010],
+                    "validation": [
+                        {
+                            "upper_bound": 2.5,
+                            "lower_bound": 1.0,
+                        },
+                        {
+                            "upper_bound": 2.5,
+                            "warning_level": "low",
+                            "lower_bound": 2.0,
+                        },
+                    ],
+                }
+            ],
+            "file": DATA_VALIDATION_TEST_DIR / "validation_structured.yaml",
+        }
+    )
+    obs = DataValidator.from_file(
+        DATA_VALIDATION_TEST_DIR / "validation_structured.yaml"
+    )
     assert obs == exp
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definitions")
@@ -80,7 +113,7 @@ def test_DataValidator_validate_with_definition_raises(dimension, match):
 
 def test_DataValidator_apply_no_matching_data(simple_df):
     data_validator = DataValidator.from_file(
-        DATA_VALIDATION_TEST_DIR / "validation_pass.yaml"
+        DATA_VALIDATION_TEST_DIR / "validation_simple.yaml"
     )
     # no data matches validation criteria, `apply()` passes and returns unchanged object
     assert data_validator.apply(simple_df) == simple_df
@@ -202,7 +235,18 @@ def test_DataValidator_xlsx_output(tmp_path, simple_df):
     with pytest.raises(ValueError):
         data_validator.apply(simple_df)
 
-    assert all(pd.read_excel(filepath)["warning_level"].isin(["error"]))
-    assert all(
-        pd.read_excel(filepath)["criteria"].isin(["upper_bound: 5.0, lower_bound: 1.0"])
+    obs = pd.read_excel(filepath)
+    exp = pd.DataFrame(
+        {
+            "model": ["model_a", "model_a"],
+            "scenario": ["scen_a", "scen_b"],
+            "region": ["World", "World"],
+            "variable": ["Primary Energy", "Primary Energy"],
+            "unit": ["EJ/yr", "EJ/yr"],
+            "year": [2010, 2010],
+            "value": [6.0, 7.0],
+            "warning_level": ["error", "error"],
+            "criteria": ["upper_bound: 5.0, lower_bound: 1.0"] * 2
+        }
     )
+    pdt.assert_frame_equal(obs, exp, check_dtype=False)

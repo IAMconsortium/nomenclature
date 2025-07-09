@@ -232,20 +232,22 @@ class DataValidator(Processor):
             content = yaml.safe_load(f)
         criteria_items = []
         for item in content:
-            # handling of simple case where filter and criteria args are given at the same level
+            # simple case where filter and criteria args are all given at top level
             if "validation" not in item:
-                filter_args = {
-                    k: item[k] for k in item if k in IamcDataFilter.model_fields
-                }
-                criteria_args = [
-                    {
-                        k: item[k]
-                        for k in item
-                        if k not in IamcDataFilter.model_fields and k != "validation"
-                    }
-                ]
-                item = dict(**filter_args, validation=criteria_args)
+                item["validation"] = [dict()]
+
+            # if some criteria args are given at top-level, add to "validation" list
+            criteria = [
+                criterion
+                for criterion in item
+                if criterion not in list(IamcDataFilter.model_fields) + ["validation"]
+            ]
+            for criterion in criteria:
+                value = item.pop(criterion)
+                for criteria_item in item["validation"]:
+                    criteria_item[criterion] = value
             criteria_items.append(item)
+
         return cls(file=file, criteria_items=criteria_items, output_path=output_path)  # type: ignore
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
@@ -276,7 +278,7 @@ class DataValidator(Processor):
                 error, fail_list, output_list = item.apply(df, fail_list, output_list)
                 error_list.append(error)
             if self.output_path:
-                pd.concat(output_list).to_excel(self.output_path)
+                pd.concat(output_list).to_excel(self.output_path, index=False)
             fail_msg = "(file %s):\n" % get_relative_path(self.file)
             if any(error_list):
                 fail_msg = (
