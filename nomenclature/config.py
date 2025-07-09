@@ -91,6 +91,10 @@ class Repository(BaseModel):
     def revision(self):
         return self.hash or self.release or "main"
 
+    @property
+    def has_auto_update(self) -> bool:
+        return self.hash is None and self.release is None
+
     def fetch_repo(self, to_path):
         to_path = to_path if isinstance(to_path, Path) else Path(to_path)
 
