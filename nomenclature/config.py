@@ -1,19 +1,19 @@
+import re
 from enum import Enum
 from pathlib import Path
 from typing import Any
-import re
 
 import yaml
 from git import Repo
+from pyam.str import escape_regexp
 from pydantic import (
     BaseModel,
+    ConfigDict,
     Field,
     ValidationInfo,
     field_validator,
     model_validator,
-    ConfigDict,
 )
-from pyam.str import escape_regexp
 
 
 class CodeListFromRepository(BaseModel):
