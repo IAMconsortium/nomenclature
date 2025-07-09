@@ -1,10 +1,10 @@
 from pathlib import Path
+
 import pytest
+from conftest import TEST_DATA_DIR, clean_up_external_repos
 from pytest import raises
 
-from nomenclature.config import Repository, NomenclatureConfig, MappingRepository
-
-from conftest import TEST_DATA_DIR, clean_up_external_repos
+from nomenclature.config import MappingRepository, NomenclatureConfig, Repository
 
 MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "config"
 
@@ -104,3 +104,11 @@ def test_config_external_repo_mapping_filter():
         assert config.mappings.repositories[0] == exp
     finally:
         clean_up_external_repos(config.repositories)
+
+
+def test_auto_update_property():
+    repo_with_auto_update = Repository(url="test_repo")
+    repo_without_auto_update = Repository(url="test_repo", hash="1234")
+
+    assert repo_with_auto_update.has_auto_update is True
+    assert repo_without_auto_update.has_auto_update is False
