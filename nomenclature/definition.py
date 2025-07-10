@@ -103,9 +103,18 @@ class DataStructureDefinition:
 
         def validate_datetime(df: IamDataFrame) -> bool:
             """Validate datetime coordinates against allowed format and/or timezone."""
-            if self.config.time is None or self.config.time.datetime_format is None:
+            has_datetime_format = (
+                self.config.time is not None
+                and self.config.time.datetime_format is not None
+            )
+            # by default, raise in case of non-year time domain
+            if not has_datetime_format:
+                if df.time_domain != "year":
+                    logging.error(
+                        "Invalid time domain: expected `year` column not found."
+                    )
+                    return False
                 return True
-
             # 'year' and 'mixed' time domains include years
             if self.config.time.year and df.time_domain not in ["year", "mixed"]:
                 logging.error("Invalid time domain: expected `year` column not found.")
