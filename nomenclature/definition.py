@@ -132,8 +132,11 @@ class DataStructureDefinition:
                     _dt = datetime.strptime(
                         str(d), self.config.time.datetime_format + "%z"
                     )
-                    # casting to datetime with timezone was successful
-                    if not _dt.tzname() == self.config.time.datetime:
+                    # Only check timezone if a specific timezone is required
+                    if (
+                        self.config.time.datetime is not True
+                        and not _dt.tzname() == self.config.time.datetime
+                    ):
                         error_list.append(f"{d} - invalid timezone")
                 except ValueError:
                     error_list.append(f"{d} - missing timezone")

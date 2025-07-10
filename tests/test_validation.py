@@ -129,7 +129,7 @@ def test_validate_datetime_default(
         TEST_DATA_DIR / "config" / "dimensions.yaml"
     )
     if rename:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
             simple_definition.validate(df)
         assert expected_error in caplog.text
     else:
@@ -137,29 +137,57 @@ def test_validate_datetime_default(
 
 
 @pytest.mark.parametrize(
-    "rename_mapping, expected_error",
+    "rename_mapping, datetime_setting, should_pass, error_substring",
     [
-        ({2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"}, False),
+        # Default config (timezone='+01:00')
+        (
+            {2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"},
+            False,
+            True,
+            None,
+        ),
         (
             {2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"},
+            False,
+            False,
             "invalid timezone",
         ),
-        ({2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"}, "missing timezone"),
+        (
+            {2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"},
+            False,
+            False,
+            "missing timezone",
+        ),
+        # With datetime=True, any timezone is allowed
+        (
+            {2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"},
+            True,
+            True,
+            None,
+        ),
     ],
 )
 def test_validate_time_entry(
-    simple_df, simple_definition, rename_mapping, expected_error, caplog
+    simple_df,
+    simple_definition,
+    rename_mapping,
+    datetime_setting,
+    should_pass,
+    error_substring,
+    caplog,
 ):
-    """Check datetime validation by timezone"""
+    """Check datetime validation with different timezone configurations"""
     simple_definition.config = nomenclature.config.NomenclatureConfig.from_file(
         TEST_DATA_DIR / "config" / "datetime.yaml"
     )
+    if datetime_setting:
+        simple_definition.config.time.datetime = True
     df = IamDataFrame(
         simple_df.data.rename(columns={"year": "time"}).replace(rename_mapping)
     )
-    if not expected_error:
+    if should_pass:
         assert simple_definition.validate(df) is None
     else:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
             simple_definition.validate(df)
-        assert expected_error in caplog.text
+        assert error_substring in caplog.text
