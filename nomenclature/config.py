@@ -195,8 +195,8 @@ class RegionMappingConfig(BaseModel):
 
 class TimeDomainConfig(BaseModel):
     year: bool = True
-    datetime: str = Field(
-        pattern=r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$", default=None
+    datetime: str | bool = Field(
+        pattern=r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$", default=False
     )
 
     @property
