@@ -114,6 +114,29 @@ def test_wildcard_match(simple_df):
 
 
 @pytest.mark.parametrize(
+    "rename, expected_error", [(False, None), (True, "Invalid time domain")]
+)
+def test_validate_datetime_default(
+    simple_df, simple_definition, rename, expected_error, caplog
+):
+    """Check datetime validation defaults to raise if non-year time domain"""
+    df = (
+        IamDataFrame(simple_df.data.rename(columns={"year": "time"}))
+        if rename
+        else simple_df
+    )
+    simple_definition.config = nomenclature.config.NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "config" / "dimensions.yaml"
+    )
+    if rename:
+        with pytest.raises(ValueError):
+            simple_definition.validate(df)
+        assert expected_error in caplog.text
+    else:
+        assert simple_definition.validate(df) is None
+
+
+@pytest.mark.parametrize(
     "rename_mapping, expected_error",
     [
         ({2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"}, False),
@@ -127,10 +150,9 @@ def test_wildcard_match(simple_df):
 def test_validate_time_entry(
     simple_df, simple_definition, rename_mapping, expected_error, caplog
 ):
-    # test that validation works as expected with datetime-domain
-    simple_definition.config.time = nomenclature.config.TimeDomainConfig(
-        year=False,
-        datetime="UTC+01:00",
+    """Check datetime validation by timezone"""
+    simple_definition.config = nomenclature.config.NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "config" / "datetime.yaml"
     )
     df = IamDataFrame(
         simple_df.data.rename(columns={"year": "time"}).replace(rename_mapping)
