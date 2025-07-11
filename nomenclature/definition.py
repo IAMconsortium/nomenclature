@@ -111,17 +111,19 @@ class DataStructureDefinition:
             if not has_datetime_format:
                 if df.time_domain != "year":
                     logging.error(
-                        "Invalid time domain: expected `year` column not found."
+                        f"Invalid time domain - expected `year`, found `{df.time_domain}`."
                     )
                     return False
                 return True
             # 'year' and 'mixed' time domains include years
             if self.config.time.year and df.time_domain not in ["year", "mixed"]:
-                logging.error("Invalid time domain: expected `year` column not found.")
+                logging.error(
+                    f"Invalid time domain - expected `year`, found `{df.time_domain}`."
+                )
                 return False
             elif not self.config.time.year and df.time_domain in ["year", "mixed"]:
                 logging.error(
-                    "Invalid time domain: `year` column found but not expected."
+                    f"Invalid time domain - expected `year`, found `{df.time_domain}`."
                 )
                 return False
 
@@ -142,7 +144,7 @@ class DataStructureDefinition:
                     error_list.append(f"{d} - missing timezone")
             if error_list:
                 logging.error(
-                    "The following datetimes are invalid:\n - "
+                    "The following datetime values are invalid:\n - "
                     + "\n - ".join(error_list)
                 )
                 return False
