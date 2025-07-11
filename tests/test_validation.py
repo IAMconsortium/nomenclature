@@ -114,56 +114,40 @@ def test_wildcard_match(simple_df):
 
 
 @pytest.mark.parametrize(
-    "rename, expected_error", [(False, None), (True, "Invalid time domain")]
-)
-def test_validate_datetime_default(
-    simple_df, simple_definition, rename, expected_error, caplog
-):
-    """Check datetime validation defaults to raise if non-year time domain"""
-    df = (
-        IamDataFrame(simple_df.data.rename(columns={"year": "time"}))
-        if rename
-        else simple_df
-    )
-    simple_definition.config = nomenclature.config.NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "config" / "dimensions.yaml"
-    )
-    if rename:
-        with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
-            simple_definition.validate(df)
-        assert expected_error in caplog.text
-    else:
-        assert simple_definition.validate(df) is None
-
-
-@pytest.mark.parametrize(
-    "rename_mapping, datetime_setting, should_pass, error_substring",
+    "rename_mapping, config, should_pass, error_substring",
     [
-        # Default config (timezone='+01:00')
+        # default config values
         (
             {2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"},
+            "datetime_year",
             False,
+            "Invalid time domain",
+        ),
+        # with datetime=True, any timezone is allowed
+        (
+            {2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"},
+            "datetime_true",
+            True,
+            None,
+        ),
+        # timezone config
+        (
+            {2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"},
+            "datetime_utc",
             True,
             None,
         ),
         (
             {2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"},
-            False,
+            "datetime_utc",
             False,
             "invalid timezone",
         ),
         (
             {2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"},
-            False,
+            "datetime_utc",
             False,
             "missing timezone",
-        ),
-        # With datetime=True, any timezone is allowed
-        (
-            {2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"},
-            True,
-            True,
-            None,
         ),
     ],
 )
@@ -171,17 +155,18 @@ def test_validate_time_entry(
     simple_df,
     simple_definition,
     rename_mapping,
-    datetime_setting,
+    config,
     should_pass,
     error_substring,
     caplog,
 ):
-    """Check datetime validation with different timezone configurations"""
+    """Check datetime validation with different timezone configurations:
+    - default config (allow year time domain)
+    - datetime=True (allow any timezone)
+    - datetime=UTC (allow specific timezone)"""
     simple_definition.config = nomenclature.config.NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "config" / "datetime.yaml"
+        TEST_DATA_DIR / "config" / f"{config}.yaml"
     )
-    if datetime_setting:
-        simple_definition.config.time.datetime = True
     df = IamDataFrame(
         simple_df.data.rename(columns={"year": "time"}).replace(rename_mapping)
     )
