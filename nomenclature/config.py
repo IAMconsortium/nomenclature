@@ -195,9 +195,24 @@ class RegionMappingConfig(BaseModel):
 
 class TimeDomainConfig(BaseModel):
     year: bool = True
-    datetime: str | bool = Field(
-        pattern=r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$", default=False
-    )
+    datetime: bool | str = False
+
+    @field_validator("datetime", mode="before")
+    @classmethod
+    def validate_datetime_timezone(cls, v):
+        # accept bool or str matching UTC pattern
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, str):
+            pattern = r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$"
+            if re.match(pattern, v):
+                return v
+            raise ValueError(
+                "Invalid timezone format for 'datetime'. Expected format: 'UTC±HH:MM'."
+            )
+        raise ValueError(
+            "Field 'datetime' must be a bool or a valid UTC offset string."
+        )
 
     @property
     def datetime_format(self) -> str:
