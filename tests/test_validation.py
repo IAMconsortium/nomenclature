@@ -130,6 +130,13 @@ def test_wildcard_match(simple_df):
             True,
             None,
         ),
+        # with datetime=False and timezone, raise
+        (
+            {2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"},
+            "datetime_false",
+            False,
+            "Timezone is set",
+        ),
         # timezone config
         (
             {2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"},
@@ -163,7 +170,14 @@ def test_validate_time_entry(
     """Check datetime validation with different timezone configurations:
     - default config (allow year time domain)
     - datetime=True (allow any timezone)
-    - datetime=UTC (allow specific timezone)"""
+    - datetime=False (don't allow timezones)
+    - timezone=UTC (allow specific timezone)"""
+    if error_substring == "Timezone is set":
+        with pytest.raises(ValueError, match=error_substring):
+            nomenclature.config.NomenclatureConfig.from_file(
+                TEST_DATA_DIR / "config" / f"{config}.yaml"
+            )
+        return
     simple_definition.config = nomenclature.config.NomenclatureConfig.from_file(
         TEST_DATA_DIR / "config" / f"{config}.yaml"
     )

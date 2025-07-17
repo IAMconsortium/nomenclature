@@ -101,55 +101,6 @@ class DataStructureDefinition:
             If `df` fails validation against any codelist.
         """
 
-        def validate_datetime(df: IamDataFrame) -> bool:
-            """Validate datetime coordinates against allowed format and/or timezone."""
-            has_datetime_format = (
-                self.config.time is not None
-                and self.config.time.datetime_format is not None
-            )
-            # by default, raise in case of non-year time domain
-            if not has_datetime_format:
-                if df.time_domain != "year":
-                    logging.error(
-                        f"Invalid time domain - expected `year`, found `{df.time_domain}`."
-                    )
-                    return False
-                return True
-            # 'year' and 'mixed' time domains include years
-            if self.config.time.year and df.time_domain not in ["year", "mixed"]:
-                logging.error(
-                    f"Invalid time domain - expected `year`, found `{df.time_domain}`."
-                )
-                return False
-            elif not self.config.time.year and df.time_domain in ["year", "mixed"]:
-                logging.error(
-                    f"Invalid time domain - expected `year`, found `{df.time_domain}`."
-                )
-                return False
-
-            error_list = []
-            _datetime = [d for d in df.time if isinstance(d, datetime)]
-            for d in _datetime:
-                try:
-                    _dt = datetime.strptime(
-                        str(d), self.config.time.datetime_format + "%z"
-                    )
-                    # Only check timezone if a specific timezone is required
-                    if (
-                        self.config.time.datetime is not True
-                        and not _dt.tzname() == self.config.time.datetime
-                    ):
-                        error_list.append(f"{d} - invalid timezone")
-                except ValueError:
-                    error_list.append(f"{d} - missing timezone")
-            if error_list:
-                logging.error(
-                    "The following datetime values are invalid:\n - "
-                    + "\n - ".join(error_list)
-                )
-                return False
-            return True
-
         if (
             any(
                 getattr(self, dimension).validate_data(
@@ -160,7 +111,7 @@ class DataStructureDefinition:
                 is False
                 for dimension in (dimensions or self.dimensions)
             )
-            or validate_datetime(df) is False
+            or self.config.time.validate_datetime(df) is False
         ):
             raise ValueError("The validation failed. Please check the log for details.")
 

@@ -1,4 +1,4 @@
 time:
    year: false
-   datetime: true
+   datetime: false
    timezone: UTC+01:00

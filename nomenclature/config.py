@@ -1,10 +1,13 @@
 import re
+import logging
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
 import yaml
+from datetime import datetime
 from git import Repo
+from pyam import IamDataFrame
 from pyam.str import escape_regexp
 from pydantic import (
     BaseModel,
@@ -194,31 +197,72 @@ class RegionMappingConfig(BaseModel):
 
 
 class TimeDomainConfig(BaseModel):
-    year: bool = True
-    datetime: bool | str = False
+    year_allowed: bool = Field(default=True, alias="year")
+    datetime_allowed: bool = Field(default=False, alias="datetime")
+    timezone: str | None = Field(
+        default=None,
+        pattern=r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$",
+        # pattern_msg="Invalid timezone format. Expected format: 'UTC±HH:MM'."
+    )
 
-    @field_validator("datetime", mode="before")
+    @model_validator(mode="after")
     @classmethod
-    def validate_datetime_timezone(cls, v):
-        # accept bool or str matching UTC pattern
-        if isinstance(v, bool):
-            return v
-        if isinstance(v, str):
-            pattern = r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$"
-            if re.match(pattern, v):
-                return v
-            raise ValueError(
-                "Invalid timezone format for 'datetime'. Expected format: 'UTC±HH:MM'."
-            )
-        raise ValueError(
-            "Field 'datetime' must be a bool or a valid UTC offset string."
-        )
+    def validate_datetime_and_timezone(
+        cls, v: "TimeDomainConfig"
+    ) -> "TimeDomainConfig":
+        if v.timezone is not None and not v.datetime_allowed:
+            raise ValueError("Timezone is set but datetime is not allowed")
+        return v
+
+    @property
+    def mixed_allowed(self) -> bool:
+        return self.year_allowed and self.datetime_allowed
 
     @property
     def datetime_format(self) -> str:
         # if year is a separate column, exclude it from format
         # if not, datetime is coerced in IamDataFrame, and include seconds
-        return "%Y-%m-%d %H:%M:%S" if self.datetime else None
+        return "%Y-%m-%d %H:%M:%S" if self.datetime_allowed else None
+
+    def check_datetime_format(self, df: IamDataFrame) -> bool:
+        """Validate that datetime values conform to the configured format and timezone."""
+        error_list = []
+        _datetime = [d for d in df.time if isinstance(d, datetime)]
+        for d in _datetime:
+            try:
+                _dt = datetime.strptime(str(d), self.datetime_format + "%z")
+                # only check timezone if a specific timezone is required
+                if self.timezone and not _dt.tzname() == self.timezone:
+                    error_list.append(f"{d} - invalid timezone")
+            except ValueError:
+                error_list.append(f"{d} - missing timezone")
+        if error_list:
+            logging.error(
+                "The following datetime values are invalid:\n - "
+                + "\n - ".join(error_list)
+            )
+            return False
+        return True
+
+    def validate_datetime(self, df: IamDataFrame) -> bool:
+        """Validate datetime coordinates against allowed format and/or timezone."""
+        if df.time_domain == "year":
+            if not self.year_allowed:
+                logging.error("Invalid time domain - `year` found, but not allowed.")
+                return False
+            return True
+        if df.time_domain == "mixed":
+            if not self.mixed_allowed:
+                logging.error("Invalid time domain - `mixed` found, but not allowed.")
+                return False
+            return self.check_datetime_format(df)
+        if df.time_domain == "datetime":
+            if not self.datetime_allowed:
+                logging.error(
+                    "Invalid time domain - `datetime` found, but not allowed."
+                )
+                return False
+            return self.check_datetime_format(df)
 
 
 class DimensionEnum(str, Enum):
@@ -237,7 +281,7 @@ class NomenclatureConfig(BaseModel):
     illegal_characters: list[str] = Field(
         default_factory=lambda: [":", ";", '"'], alias="illegal-characters"
     )
-    time: None | TimeDomainConfig = None
+    time: TimeDomainConfig = Field(default_factory=TimeDomainConfig)
 
     model_config = ConfigDict(use_enum_values=True)
 
