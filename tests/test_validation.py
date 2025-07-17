@@ -1,7 +1,10 @@
 import pytest
+import nomenclature
 from nomenclature import DataStructureDefinition
+from pyam import IamDataFrame
 
 from conftest import TEST_DATA_DIR
+import nomenclature.config
 
 
 MATCH_FAIL_VALIDATION = "The validation failed. Please check the log for details."
@@ -108,3 +111,82 @@ def test_wildcard_match(simple_df):
 
     with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
         definition.validate(simple_df.rename(scenario={"scen_a": "foo"}))
+
+
+@pytest.mark.parametrize(
+    "rename_mapping, config, should_pass, error_substring",
+    [
+        # default config values
+        (
+            {2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"},
+            "datetime_year",
+            False,
+            "Invalid time domain",
+        ),
+        # with datetime=True, any timezone is allowed
+        (
+            {2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"},
+            "datetime_true",
+            True,
+            None,
+        ),
+        # with datetime=False and timezone, raise
+        (
+            {2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"},
+            "datetime_false",
+            False,
+            "Timezone is set",
+        ),
+        # timezone config
+        (
+            {2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"},
+            "datetime_utc",
+            True,
+            None,
+        ),
+        (
+            {2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"},
+            "datetime_utc",
+            False,
+            "invalid timezone",
+        ),
+        (
+            {2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"},
+            "datetime_utc",
+            False,
+            "missing timezone",
+        ),
+    ],
+)
+def test_validate_time_entry(
+    simple_df,
+    simple_definition,
+    rename_mapping,
+    config,
+    should_pass,
+    error_substring,
+    caplog,
+):
+    """Check datetime validation with different timezone configurations:
+    - default config (allow year time domain)
+    - datetime=True (allow any timezone)
+    - datetime=False (don't allow timezones)
+    - timezone=UTC (allow specific timezone)"""
+    if error_substring == "Timezone is set":
+        with pytest.raises(ValueError, match=error_substring):
+            nomenclature.config.NomenclatureConfig.from_file(
+                TEST_DATA_DIR / "config" / f"{config}.yaml"
+            )
+        return
+    simple_definition.config = nomenclature.config.NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "config" / f"{config}.yaml"
+    )
+    df = IamDataFrame(
+        simple_df.data.rename(columns={"year": "time"}).replace(rename_mapping)
+    )
+    if should_pass:
+        assert simple_definition.validate(df) is None
+    else:
+        with pytest.raises(ValueError, match=MATCH_FAIL_VALIDATION):
+            simple_definition.validate(df)
+        assert error_substring in caplog.text

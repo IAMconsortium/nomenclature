@@ -101,14 +101,17 @@ class DataStructureDefinition:
             If `df` fails validation against any codelist.
         """
 
-        if any(
-            getattr(self, dimension).validate_data(
-                df,
-                dimension,
-                self.project,
+        if (
+            any(
+                getattr(self, dimension).validate_data(
+                    df,
+                    dimension,
+                    self.project,
+                )
+                is False
+                for dimension in (dimensions or self.dimensions)
             )
-            is False
-            for dimension in (dimensions or self.dimensions)
+            or self.config.time.validate_datetime(df) is False
         ):
             raise ValueError("The validation failed. Please check the log for details.")
 
