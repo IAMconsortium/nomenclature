@@ -319,6 +319,4 @@ def cli_validate_scenarios(input_file: Path, definitions: Path, dimensions: list
     ValueError
         If input_file validation fails against specified codelist(s).
     """
-    df = IamDataFrame(input_file)
-    dsd = DataStructureDefinition(definitions, dimensions)
-    dsd.validate(df)
+    DataStructureDefinition(definitions, dimensions).validate(IamDataFrame(input_file))
