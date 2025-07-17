@@ -294,13 +294,23 @@ def test_stray_tag_fails(subfolder, match):
         code_list.check_illegal_characters(NomenclatureConfig(dimensions=["variable"]))
 
 
-def test_illegal_char_fails():
-    """Check that illegal character raises expected error."""
+def test_illegal_chars_raise():
+    """Check that illegal characters raise error if found."""
     match = r"Illegal character\(s\) '\"' in info of variable 'Primary Energy\|Coal'"
     with raises(ValueError, match=match):
         DataStructureDefinition(
             MODULE_TEST_DATA_DIR / "illegal_chars" / "char_in_str" / "definitions"
         )
+
+
+def test_illegal_chars_ignore():
+    """Check that illegal characters are ignored (don't raise) if not listed in config."""
+    assert (
+        DataStructureDefinition(
+            MODULE_TEST_DATA_DIR / "illegal_chars" / "no_chars" / "definitions"
+        ).config.illegal_characters
+        == []
+    )
 
 
 def test_illegal_char_ignores_external_repo():
