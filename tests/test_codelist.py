@@ -294,25 +294,23 @@ def test_stray_tag_fails(subfolder, match):
         code_list.check_illegal_characters(NomenclatureConfig(dimensions=["variable"]))
 
 
-@pytest.mark.parametrize("subfolder", ["char_in_str", "no_chars"])
-def test_illegal_chars_raise_or_ignore(subfolder):
-    """Check that illegal characters raise error if listed, ignored if unlisted."""
-    if subfolder == "char_in_str":
-        match = (
-            r"Illegal character\(s\) '\"' in info of variable 'Primary Energy\|Coal'"
+def test_illegal_chars_raise():
+    """Check that illegal characters raise error if found."""
+    match = r"Illegal character\(s\) '\"' in info of variable 'Primary Energy\|Coal'"
+    with raises(ValueError, match=match):
+        DataStructureDefinition(
+            MODULE_TEST_DATA_DIR / "illegal_chars" / "char_in_str" / "definitions"
         )
-        with raises(ValueError, match=match):
-            DataStructureDefinition(
-                MODULE_TEST_DATA_DIR / "illegal_chars" / subfolder / "definitions"
-            )
-    else:
-        # if no illegal characters configured, don't raise validation error
-        assert (
-            DataStructureDefinition(
-                MODULE_TEST_DATA_DIR / "illegal_chars" / subfolder / "definitions"
-            ).config.illegal_characters
-            == []
-        )
+
+
+def test_illegal_chars_ignore():
+    """Check that illegal characters are ignored (don't raise) if not listed in config."""
+    assert (
+        DataStructureDefinition(
+            MODULE_TEST_DATA_DIR / "illegal_chars" / "no_chars" / "definitions"
+        ).config.illegal_characters
+        == []
+    )
 
 
 def test_illegal_char_ignores_external_repo():
