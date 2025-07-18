@@ -38,6 +38,7 @@ class DataValidationCriteria(BaseModel):
     warning_level: WarningEnum = WarningEnum.error
 
     @field_validator("warning_level", mode="before")
+    @classmethod
     def validate_warning_level(cls, value):
         if isinstance(value, str):
             try:
@@ -129,6 +130,7 @@ class DataValidationRange(DataValidationCriteria):
     range: list[float] = Field(..., min_length=2, max_length=2)
 
     @field_validator("range", mode="after")
+    @classmethod
     def check_range_is_valid(cls, value: list[float]):
         if value[0] > value[1]:
             raise ValueError(

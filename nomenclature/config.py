@@ -190,6 +190,7 @@ class RegionMappingConfig(BaseModel):
         ]
 
     @field_validator("repositories", mode="before")
+    @classmethod
     def convert_to_set_of_repos(cls, v):
         if not isinstance(v, list):
             return [v]

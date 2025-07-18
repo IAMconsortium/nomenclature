@@ -123,6 +123,7 @@ class RegionAggregationMapping(BaseModel):
         return pyam.utils.to_list(v)
 
     @field_validator("native_regions")
+    @classmethod
     def validate_native_regions_name(cls, v, info: ValidationInfo):
         native_names = [nr.name for nr in v]
         if duplicates := [
@@ -140,6 +141,7 @@ class RegionAggregationMapping(BaseModel):
         return v
 
     @field_validator("native_regions")
+    @classmethod
     def validate_native_regions_target(cls, v, info: ValidationInfo):
         target_names = [nr.target_native_region for nr in v]
         duplicates = [
@@ -158,6 +160,7 @@ class RegionAggregationMapping(BaseModel):
         return v
 
     @field_validator("common_regions")
+    @classmethod
     def validate_common_regions(cls, v, info: ValidationInfo):
         names = [cr.name for cr in v]
         duplicates = [item for item, count in Counter(names).items() if count > 1]

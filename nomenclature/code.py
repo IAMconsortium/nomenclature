@@ -211,6 +211,7 @@ class VariableCode(Code):
             return v
 
     @field_validator("unit", mode="before")
+    @classmethod
     def convert_none_to_empty_string(cls, v):
         return v if v is not None else ""
 
@@ -223,6 +224,7 @@ class VariableCode(Code):
         return self
 
     @field_validator("components", mode="before")
+    @classmethod
     def cast_variable_components_args(cls, v):
         """Cast "components" list of dicts to a codelist"""
 
@@ -296,6 +298,7 @@ class RegionCode(Code):
     iso3_codes: list[str] | str | None = None
 
     @field_validator("countries", mode="before")
+    @classmethod
     def check_countries(cls, v: list[str], info: ValidationInfo) -> list[str]:
         """Verifies that each country name is defined in `nomenclature.countries`."""
         v = to_list(v)
@@ -309,6 +312,7 @@ class RegionCode(Code):
         return v
 
     @field_validator("iso3_codes")
+    @classmethod
     def check_iso3_codes(cls, v: list[str], info: ValidationInfo) -> list[str]:
         """Verifies that each ISO3 code is valid according to pycountry library."""
         errors = ErrorCollector()
