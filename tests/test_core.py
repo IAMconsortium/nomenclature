@@ -21,7 +21,7 @@ def test_region_processing_rename(model_name):
     # 3. All regions which are explicitly named should be dropped
     # Testing strategy:
     # 1. Rename region_a -> region_A
-    # 2. Leave region_B untouched
+    # 2. Leave region_B untouched (or skip/drop if native equals common)
     # 3. Drop region_C
 
     test_df = IamDataFrame(
@@ -37,7 +37,10 @@ def test_region_processing_rename(model_name):
     add_meta(test_df)
 
     exp = copy.deepcopy(test_df)
-    exp.filter(region=["region_a", "region_B"], inplace=True)
+    if model_name == "model_a":
+        exp.filter(region=["region_a", "region_B"], inplace=True)
+    else:
+        exp.filter(region=["region_a"], inplace=True)
     exp.rename(region={"region_a": "region_A"}, inplace=True)
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd")
@@ -253,21 +256,13 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
         assert logmsg in caplog.text
 
 
-@pytest.mark.parametrize(
-    "model_name, region_names",
-    [("model_a", ("region_A", "region_B")), ("model_b", ("region_A", "region_b"))],
-)
-def test_region_processing_skip_aggregation(model_name, region_names):
-    # Testing two cases:
-    # * model "model_a" renames native regions and the world region is skipped
-    # * model "model_b" aggregates single constituent common regions, which raises
-    # a ValueError due to an empty dataset
-
+def test_region_processing_skip_aggregation():
+    # Testing "model_a" renames native regions and the world region is skipped
     test_df = IamDataFrame(
         pd.DataFrame(
             [
-                [model_name, "s_a", region_names[0], "Primary Energy", "EJ/yr", 1, 2],
-                [model_name, "s_a", region_names[1], "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
             ],
             columns=IAMC_IDX + [2005, 2010],
         )
@@ -277,8 +272,8 @@ def test_region_processing_skip_aggregation(model_name, region_names):
     exp = IamDataFrame(
         pd.DataFrame(
             [
-                [model_name, "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
-                [model_name, "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
             ],
             columns=IAMC_IDX + [2005, 2010],
         )
@@ -291,13 +286,72 @@ def test_region_processing_skip_aggregation(model_name, region_names):
     processor = RegionProcessor.from_directory(
         TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
     )
-    if model_name == "model_b":
-        with pytest.raises(ValueError) as excinfo:
-            obs = process(test_df, dsd, processor=processor)
-        assert "returned an empty dataset" in str(excinfo.value)
-    else:
-        obs = process(test_df, dsd, processor=processor)
-        assert_iamframe_equal(obs, exp)
+
+    obs = process(test_df, dsd, processor=processor)
+    assert_iamframe_equal(obs, exp)
+
+
+def test_region_processing_skip_aggregation_raises():
+    # Testing "model_b" aggregates single constituent common regions, which raises
+    # a ValueError due to an empty dataset
+
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_b", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_b", "s_a", "region_b", "Primary Energy", "EJ/yr", 3, 4],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    add_meta(test_df)
+
+    dsd = DataStructureDefinition(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
+    )
+    processor = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
+    )
+    with pytest.raises(ValueError) as excinfo:
+        process(test_df, dsd, processor=processor)
+    assert "returned an empty dataset" in str(excinfo.value)
+
+
+def test_region_processing_skip_native_equals_common():
+    # Testing "model_c" skips region_A aggregation and returns only region_B
+    # because common regions with only one subregion with the same name are skipped
+
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_c", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_c", "s_a", "region_b", "Primary Energy", "EJ/yr", 3, 4],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    add_meta(test_df)
+
+    exp = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_c", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    add_meta(exp)
+
+    dsd = DataStructureDefinition(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
+    )
+    processor = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
+    )
+    # allow aggregation to not skip region_b
+    dsd.variable.mapping["Primary Energy"].skip_region_aggregation = False
+    obs = process(test_df, dsd, processor=processor)
+    assert_iamframe_equal(obs, exp)
 
 
 @pytest.mark.parametrize(

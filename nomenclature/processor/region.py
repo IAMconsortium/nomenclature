@@ -653,16 +653,14 @@ class RegionProcessor(Processor):
             # aggregate common regions
             native_equals_common = []
             for common_region in self.mappings[model].common_regions:
-                # if a common region consists of a single native region, rename
-                if common_region.is_single_constituent_region:
-                    _df = model_df.filter(
-                        region=common_region.constituent_regions[0]
-                    ).rename(region=common_region.rename_dict)
-                    if common_region.name == common_region.constituent_regions[0]:
-                        native_equals_common += [common_region.name]
-                    regions = [common_region.name, common_region.constituent_regions]
-                else:
-                    regions = [common_region.name, common_region.constituent_regions]
+                # if common region consists of single native region, skip
+                if (
+                    common_region.is_single_constituent_region
+                    and common_region.name == common_region.constituent_regions[0]
+                ):
+                    native_equals_common.append(common_region.name)
+                    continue
+                regions = [common_region.name, common_region.constituent_regions]
 
                 # first, perform 'simple' aggregation (no arguments)
                 simple_vars = [
