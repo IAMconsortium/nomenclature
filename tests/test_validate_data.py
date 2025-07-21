@@ -136,10 +136,17 @@ def test_DataValidator_apply_no_matching_data(simple_df):
             "value: 3.0",
             "value: 1.5, rtol: 0.2",
         ),
+        (
+            "range",
+            "year: [2010], range: [1.0, 5.0]",
+            None,
+            None,
+        )
     ],
 )
 def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, caplog):
-    data_file = DATA_VALIDATION_TEST_DIR / f"validation_fails_{file}.yaml"
+    """Checks that failed validation rows are printed in log."""
+    data_file = DATA_VALIDATION_TEST_DIR / f"validate_fail_{file}.yaml"
     data_validator = DataValidator.from_file(data_file)
 
     failed_validation_message = (
@@ -148,17 +155,19 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
   Criteria: variable: ['Primary Energy'], {item_1}
        model scenario region        variable   unit  year  value warning_level
   0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0         error
-  1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error
-
+  1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error\n"""
+    )
+    if item_2 is not None:
+        failed_validation_message += f"""
   Criteria: variable: ['Primary Energy|Coal'], {item_2}
        model scenario region             variable   unit  year  value warning_level
-  0  model_a   scen_a  World  Primary Energy|Coal  EJ/yr  2005    0.5         error
-
+  0  model_a   scen_a  World  Primary Energy|Coal  EJ/yr  2005    0.5         error\n"""
+    if item_3 is not None:
+        failed_validation_message += f"""
   Criteria: variable: ['Primary Energy'], year: [2005], {item_3}
        model scenario region        variable   unit  year  value warning_level
   0  model_a   scen_a  World  Primary Energy  EJ/yr  2005    1.0         error
   1  model_a   scen_b  World  Primary Energy  EJ/yr  2005    2.0         error"""
-    )
 
     with pytest.raises(ValueError, match="Data validation failed"):
         data_validator.apply(simple_df)
@@ -169,18 +178,18 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
 
 @pytest.mark.parametrize(
     "file, value",
-    [("joined", 6.0), ("joined", 3.0), ("legacy", 6.0), ("range", 6.0)],
+    [("joined", 6.0), ("joined", 3.0), ("legacy", 6.0)],
 )
 def test_DataValidator_validate_fail_with_warning(file, value, simple_df, caplog):
     """Checks that failed validation rows are printed in log."""
     simple_df._data.iloc[1] = value
     data_validator = DataValidator.from_file(
-        DATA_VALIDATION_TEST_DIR / f"validate_warning_{file}.yaml"
+        DATA_VALIDATION_TEST_DIR / f"validate_fail_warning_{file}.yaml"
     )
 
     failed_validation_message = (
         "Data validation with error(s)/warning(s) "
-        f"""(file {(DATA_VALIDATION_TEST_DIR / f"validate_warning_{file}.yaml").relative_to(Path.cwd())}):
+        f"""(file {(DATA_VALIDATION_TEST_DIR / f"validate_fail_warning_{file}.yaml").relative_to(Path.cwd())}):
   Criteria: variable: ['Primary Energy'], year: [2010], upper_bound: 5.0, lower_bound: 1.0
        model scenario region        variable   unit  year  value warning_level
   0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0         error

@@ -1,4 +1,5 @@
- - variable: Primary Energy
+ - name: Primary Energy Vetting
+   variable: Primary Energy
    year: 2010
    validation:
     - upper_bound: 5
