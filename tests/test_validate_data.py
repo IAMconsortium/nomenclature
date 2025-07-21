@@ -242,7 +242,7 @@ def test_DataValidator_xlsx_output(tmp_path, simple_df):
     """Outputs xlsx file of failed validation data."""
     filepath = tmp_path / "test.xlsx"
     data_validator = DataValidator.from_file(
-        DATA_VALIDATION_TEST_DIR / "validate_warning_joined.yaml", filepath
+        DATA_VALIDATION_TEST_DIR / "validate_fail_warning_joined.yaml", filepath
     )
 
     with pytest.raises(ValueError):
