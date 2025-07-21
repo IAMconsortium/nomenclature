@@ -155,12 +155,15 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
   Criteria: variable: ['Primary Energy'], {item_1}
        model scenario region        variable   unit  year  value warning_level
   0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0         error
-  1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error
-
+  1  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0         error\n"""
+    )
+    if item_2 is not None:
+        failed_validation_message += f"""
   Criteria: variable: ['Primary Energy|Coal'], {item_2}
        model scenario region             variable   unit  year  value warning_level
-  0  model_a   scen_a  World  Primary Energy|Coal  EJ/yr  2005    0.5         error
-
+  0  model_a   scen_a  World  Primary Energy|Coal  EJ/yr  2005    0.5         error\n"""
+    if item_3 is not None:
+        failed_validation_message += f"""
   Criteria: variable: ['Primary Energy'], year: [2005], {item_3}
        model scenario region        variable   unit  year  value warning_level
   0  model_a   scen_a  World  Primary Energy  EJ/yr  2005    1.0         error
