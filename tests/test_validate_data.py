@@ -16,6 +16,7 @@ def test_DataValidator_simple_from_file():
         **{
             "criteria_items": [
                 {
+                    "name": "Simple Validation",
                     "variable": "Final Energy",
                     "year": [2010],
                     "validation": [
@@ -41,6 +42,7 @@ def test_DataValidator_structured_from_file():
         **{
             "criteria_items": [
                 {
+                    "name": "Structured Validation",
                     "variable": "Final Energy",
                     "year": [2010],
                     "validation": [
