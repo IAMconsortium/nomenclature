@@ -171,7 +171,7 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
     "file, value",
     [("joined", 6.0), ("joined", 3.0), ("legacy", 6.0), ("range", 6.0)],
 )
-def test_DataValidator_validate_with_warning(file, value, simple_df, caplog):
+def test_DataValidator_validate_fail_with_warning(file, value, simple_df, caplog):
     """Checks that failed validation rows are printed in log."""
     simple_df._data.iloc[1] = value
     data_validator = DataValidator.from_file(
@@ -215,6 +215,8 @@ def test_DataValidator_validate_with_warning(file, value, simple_df, caplog):
 
     with pytest.raises(ValueError, match="Data validation failed"):
         data_validator.apply(simple_df)
+        
+    # check if the log message contains the correct information
     assert failed_validation_message in caplog.text
 
 
