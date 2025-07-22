@@ -21,7 +21,7 @@ def test_region_processing_rename(model_name):
     # 3. All regions which are explicitly named should be dropped
     # Testing strategy:
     # 1. Rename region_a -> region_A
-    # 2. Leave region_B untouched (or skip/drop if native equals common)
+    # 2. Leave region_B untouched
     # 3. Drop region_C
 
     test_df = IamDataFrame(
@@ -37,10 +37,7 @@ def test_region_processing_rename(model_name):
     add_meta(test_df)
 
     exp = copy.deepcopy(test_df)
-    if model_name == "model_a":
-        exp.filter(region=["region_a", "region_B"], inplace=True)
-    else:
-        exp.filter(region=["region_a"], inplace=True)
+    exp.filter(region=["region_a", "region_B"], inplace=True)
     exp.rename(region={"region_a": "region_A"}, inplace=True)
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd")
@@ -257,12 +254,21 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
 
 
 def test_region_processing_skip_aggregation():
-    # Testing "model_a" renames native regions and the world region is skipped
+    """Checks variables flagged for skipping aggregation are skipped and native regions are renamed"""
     test_df = IamDataFrame(
         pd.DataFrame(
             [
                 ["model_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
-                ["model_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "s_a", "region_b", "Primary Energy", "EJ/yr", 3, 4],
+                [
+                    "model_a",
+                    "s_a",
+                    "region_A",
+                    "Capital Cost|Electricity",
+                    "USD/kWh",
+                    1,
+                    2,
+                ],
             ],
             columns=IAMC_IDX + [2005, 2010],
         )
@@ -274,6 +280,16 @@ def test_region_processing_skip_aggregation():
             [
                 ["model_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
                 ["model_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+                [
+                    "model_a",
+                    "s_a",
+                    "region_A",
+                    "Capital Cost|Electricity",
+                    "USD/kWh",
+                    1,
+                    2,
+                ],
             ],
             columns=IAMC_IDX + [2005, 2010],
         )
@@ -291,10 +307,8 @@ def test_region_processing_skip_aggregation():
     assert_iamframe_equal(obs, exp)
 
 
-def test_region_processing_skip_aggregation_raises():
-    # Testing "model_b" aggregates single constituent common regions, which raises
-    # a ValueError due to an empty dataset
-
+def test_region_processing_rename_single_common():
+    """Checks renaming of single-constituent common regions"""
     test_df = IamDataFrame(
         pd.DataFrame(
             [
@@ -306,36 +320,11 @@ def test_region_processing_skip_aggregation_raises():
     )
     add_meta(test_df)
 
-    dsd = DataStructureDefinition(
-        TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
-    )
-    processor = RegionProcessor.from_directory(
-        TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
-    )
-    with pytest.raises(ValueError) as excinfo:
-        process(test_df, dsd, processor=processor)
-    assert "returned an empty dataset" in str(excinfo.value)
-
-
-def test_region_processing_skip_native_equals_common():
-    # Testing "model_c" skips region_A aggregation and returns only region_B
-    # because common regions with only one subregion with the same name are skipped
-
-    test_df = IamDataFrame(
-        pd.DataFrame(
-            [
-                ["model_c", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
-                ["model_c", "s_a", "region_b", "Primary Energy", "EJ/yr", 3, 4],
-            ],
-            columns=IAMC_IDX + [2005, 2010],
-        )
-    )
-    add_meta(test_df)
-
     exp = IamDataFrame(
         pd.DataFrame(
             [
-                ["model_c", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["model_b", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_b", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
             ],
             columns=IAMC_IDX + [2005, 2010],
         )
@@ -348,8 +337,6 @@ def test_region_processing_skip_native_equals_common():
     processor = RegionProcessor.from_directory(
         TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
     )
-    # allow aggregation to not skip region_b
-    dsd.variable.mapping["Primary Energy"].skip_region_aggregation = False
     obs = process(test_df, dsd, processor=processor)
     assert_iamframe_equal(obs, exp)
 

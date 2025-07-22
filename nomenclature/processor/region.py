@@ -651,14 +651,12 @@ class RegionProcessor(Processor):
                 )
 
             # aggregate common regions
-            native_equals_common = []
             for common_region in self.mappings[model].common_regions:
-                # if common region consists of single native region, skip
+                # if common region consists of single native region with same name, treat as passthrough
                 if (
                     common_region.is_single_constituent_region
                     and common_region.name == common_region.constituent_regions[0]
                 ):
-                    native_equals_common.append(common_region.name)
                     continue
                 regions = [common_region.name, common_region.constituent_regions]
 
@@ -703,9 +701,7 @@ class RegionProcessor(Processor):
 
             # exclude common regions confused for same name constituent native region
             common_region_df = model_df.filter(
-                region=set(self.mappings[model].common_region_names).difference(
-                    native_equals_common
-                ),
+                region=self.mappings[model].common_region_names,
                 variable=self.variable_codelist,
             )
 
