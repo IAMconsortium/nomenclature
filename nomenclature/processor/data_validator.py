@@ -197,6 +197,12 @@ class DataValidationItem(IamcDataFilter):
     ) -> tuple[bool, list, list]:
         error = False
         per_item_df = df.filter(**self.filter_args)
+
+        # set a meta indicator for the item being processed if name is given
+        if self.name is not None:
+            meta_index = per_item_df.index.copy()
+            df.set_meta(name=self.name, meta="ok", index=meta_index)
+
         for criterion in self.validation:
             failed_validation = per_item_df.validate(**criterion.validation_args)
             if failed_validation is not None:
@@ -205,6 +211,22 @@ class DataValidationItem(IamcDataFilter):
                         keep=False
                     )
                 )
+
+                # mark failing scenarios with a meta indicator and warning level
+                failed_index = failed_validation.set_index(
+                    ["model", "scenario"]
+                ).index.drop_duplicates()
+
+                if self.name is not None:
+                    df.set_meta(
+                        name=self.name,
+                        meta=criterion.warning_level.name,
+                        index=meta_index.intersection(failed_index),
+                    )
+                    # remove failed scenarios from the meta index to avoid
+                    # that lower warnings override higher warnings in meta indicators
+                    meta_index = meta_index.difference(failed_index)
+
                 failed_validation["warning_level"] = criterion.warning_level.name
                 failed_validation["criteria"] = str(criterion)
                 output_list.append(failed_validation)
@@ -243,7 +265,8 @@ class DataValidator(Processor):
             criteria = [
                 criterion
                 for criterion in item
-                if criterion not in list(IamcDataFilter.model_fields) + ["validation", "name"]
+                if criterion
+                not in list(IamcDataFilter.model_fields) + ["validation", "name"]
             ]
             for criterion in criteria:
                 value = item.pop(criterion)
