@@ -13,7 +13,7 @@
    validation:
     - warning_level: medium
       upper_bound: 1.5
- # Scenario without datapoints is assigned "np.nan"
+ # Scenario without relevant datapoints is assigned "np.nan"
  - name: Vetting|Coal [2010]
    variable: Primary Energy|Coal
    year: 2010

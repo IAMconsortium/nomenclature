@@ -229,6 +229,36 @@ def test_DataValidator_validate_fail_with_warning(file, value, simple_df, caplog
     assert failed_validation_message in caplog.text
 
 
+def test_DataValidator_pass_with_warning(simple_df, caplog):
+
+    data_validator = DataValidator.from_file(
+        DATA_VALIDATION_TEST_DIR / "validate_pass_warning.yaml"
+    )
+    warning_message = (
+        "Data validation with warning(s) "
+        f"""(file {(DATA_VALIDATION_TEST_DIR / "validate_pass_warning.yaml").relative_to(Path.cwd())}):
+  Criteria: variable: ['Primary Energy'], upper_bound: 6.5
+       model scenario region        variable   unit  year  value warning_level
+  0  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0          high
+
+  Criteria: variable: ['Primary Energy'], upper_bound: 1.5
+       model scenario region        variable   unit  year  value warning_level
+  0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0           low
+  1  model_a   scen_b  World  Primary Energy  EJ/yr  2005    2.0           low"""
+    )
+
+    data_validator.apply(simple_df)
+
+    assert warning_message in caplog.text
+    # Highest warning level is assigned as meta indicator
+    assert all(simple_df["Vetting|Primary Energy [All]"].values == ["low", "high"])
+    # Scenario passing validation is assigned "ok"
+    assert all(simple_df["Vetting|Primary Energy [2005]"].values == ["ok", "medium"])
+    # scenario without relevant datapoints is assigned "np.nan"
+    assert simple_df.meta["Vetting|Coal [2010]"].values[0] == "medium"
+    assert np.isnan(simple_df.meta["Vetting|Coal [2010]"].values[1])
+
+
 def test_DataValidator_warning_order_fail():
     """Raises validation error if warnings for same criteria not in descending order."""
     match = "Validation criteria for .* not sorted in descending order of severity."
