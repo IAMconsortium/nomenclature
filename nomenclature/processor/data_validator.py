@@ -166,6 +166,7 @@ class DataValidationRange(DataValidationCriteria):
 
 
 class DataValidationItem(IamcDataFilter):
+    name: str | None = None
     validation: list[DataValidationValue | DataValidationRange | DataValidationBounds]
 
     @model_validator(mode="after")
@@ -185,7 +186,7 @@ class DataValidationItem(IamcDataFilter):
     def filter_args(self):
         """Attributes used for validation (as specified in the file)."""
         return self.model_dump(
-            exclude_none=True, exclude_unset=True, exclude=["validation"]
+            exclude_none=True, exclude_unset=True, exclude=["validation", "name"]
         )
 
     def __str__(self):
@@ -242,7 +243,7 @@ class DataValidator(Processor):
             criteria = [
                 criterion
                 for criterion in item
-                if criterion not in list(IamcDataFilter.model_fields) + ["validation"]
+                if criterion not in list(IamcDataFilter.model_fields) + ["validation", "name"]
             ]
             for criterion in criteria:
                 value = item.pop(criterion)

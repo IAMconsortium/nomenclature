@@ -1,4 +1,4 @@
-  # 2005 value passes the validation, fails validation for 2010 for both scenarios
+# 2005 value passes the validation, fails validation for 2010 for both scenarios
  - variable: Primary Energy
    upper_bound: 5.
 # variable exists only for 'scen_a'

@@ -1,4 +1,0 @@
- - variable: Primary Energy
-   year: 2010
-   validation:
-    - range: [ 1, 5 ]
