@@ -205,6 +205,7 @@ class TimeDomainConfig(BaseModel):
         pattern=r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$",
         # pattern_msg="Invalid timezone format. Expected format: 'UTC±HH:MM'."
     )
+    model_config = ConfigDict(populate_by_name=True)
 
     @model_validator(mode="after")
     @classmethod
@@ -282,9 +283,11 @@ class NomenclatureConfig(BaseModel):
     illegal_characters: list[str] = Field(
         default=[":", ";", '"'], alias="illegal-characters"
     )
-    time: TimeDomainConfig = Field(default_factory=TimeDomainConfig)
+    time_domain: TimeDomainConfig = Field(
+        default_factory=TimeDomainConfig, alias="time-domain"
+    )
 
-    model_config = ConfigDict(use_enum_values=True)
+    model_config = ConfigDict(use_enum_values=True, populate_by_name=True)
 
     @field_validator("illegal_characters", mode="before")
     @classmethod
