@@ -205,6 +205,7 @@ class TimeDomainConfig(BaseModel):
         pattern=r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$",
         # pattern_msg="Invalid timezone format. Expected format: 'UTC±HH:MM'."
     )
+    model_config = ConfigDict(populate_by_name=True)
 
     @model_validator(mode="after")
     @classmethod
