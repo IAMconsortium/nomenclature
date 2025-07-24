@@ -248,15 +248,21 @@ def test_DataValidator_pass_with_warning(simple_df, caplog):
     )
 
     data_validator.apply(simple_df)
-
     assert warning_message in caplog.text
-    # Highest warning level is assigned as meta indicator
-    assert all(simple_df["Vetting|Primary Energy [All]"].values == ["low", "high"])
-    # Scenario passing validation is assigned "ok"
-    assert all(simple_df["Vetting|Primary Energy [2005]"].values == ["ok", "medium"])
-    # scenario without relevant datapoints is assigned "np.nan"
-    assert simple_df.meta["Vetting|Coal [2010]"].values[0] == "medium"
-    assert np.isnan(simple_df.meta["Vetting|Coal [2010]"].values[1])
+
+    columns = [
+            "Vetting|Primary Energy [All]",
+            "Vetting|Primary Energy [2005]",
+            "Vetting|Coal [2010]",
+        ]
+    exp_meta = pd.DataFrame(
+        [["low", "ok", "medium"], ["high", "medium", np.nan]],
+        columns=columns,
+        index=pd.Index(
+            [("model_a", "scen_a"), ("model_a", "scen_b")], name=("model", "scenario")
+        ),
+    )
+    pdt.assert_frame_equal(simple_df.meta[columns], exp_meta)
 
 
 def test_DataValidator_warning_order_fail():
