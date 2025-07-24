@@ -111,7 +111,7 @@ class DataStructureDefinition:
                 is False
                 for dimension in (dimensions or self.dimensions)
             )
-            or self.config.time.validate_datetime(df) is False
+            or self.config.time_domain.validate_datetime(df) is False
         ):
             raise ValueError("The validation failed. Please check the log for details.")
 

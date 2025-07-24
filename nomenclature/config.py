@@ -282,7 +282,9 @@ class NomenclatureConfig(BaseModel):
     illegal_characters: list[str] = Field(
         default=[":", ";", '"'], alias="illegal-characters"
     )
-    time: TimeDomainConfig = Field(default_factory=TimeDomainConfig)
+    time_domain: TimeDomainConfig = Field(
+        default_factory=TimeDomainConfig, alias="time-domain"
+    )
 
     model_config = ConfigDict(use_enum_values=True)
 
