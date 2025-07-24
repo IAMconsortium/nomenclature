@@ -152,7 +152,7 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
     data_validator = DataValidator.from_file(data_file)
 
     failed_validation_message = (
-        f"Data validation with error(s)/warning(s) "
+        "Data validation with error(s)/warning(s) "
         f"""(file {data_file.relative_to(Path.cwd())}):
   Criteria: variable: ['Primary Energy'], {item_1}
        model scenario region        variable   unit  year  value warning_level
