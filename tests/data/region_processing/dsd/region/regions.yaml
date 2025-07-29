@@ -3,6 +3,7 @@
   - common_region_A
   - common_region_B
 - model_native:
+  - region_a
   - region_A
   - region_B
   - region_C

@@ -13,17 +13,15 @@ from pyam.utils import IAMC_IDX
 from conftest import TEST_DATA_DIR, add_meta
 
 
-@pytest.mark.parametrize(
-    "model_name, filter", [("model_a", ["region_B"]), ("model_b", [])]
-)
-def test_region_processing_rename(model_name, filter):
+@pytest.mark.parametrize("model_name", ["model_a", "model_b"])
+def test_region_processing_rename(model_name):
     # Test **only** the renaming aspect, i.e. 3 things:
     # 1. All native regions **with** a renaming property should be renamed correctly
     # 2. All native regions **without** a renaming property should be passed through
     # 3. All regions which are explicitly named should be dropped
     # Testing strategy:
     # 1. Rename region_a -> region_A
-    # 2. Leave region_B untouched or drop
+    # 2. Leave region_B untouched
     # 3. Drop region_C
 
     test_df = IamDataFrame(
@@ -39,7 +37,7 @@ def test_region_processing_rename(model_name, filter):
     add_meta(test_df)
 
     exp = copy.deepcopy(test_df)
-    exp.filter(region=["region_a"] + filter, inplace=True)
+    exp.filter(region=["region_a", "region_B"], inplace=True)
     exp.rename(region={"region_a": "region_A"}, inplace=True)
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "region_processing/dsd")
