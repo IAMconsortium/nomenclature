@@ -125,16 +125,20 @@ class RegionAggregationMapping(BaseModel):
     @field_validator("native_regions")
     @classmethod
     def validate_native_regions_name(cls, v, info: ValidationInfo):
-        native_names = [nr.name for nr in v]
-        if duplicates := [
-            item for item, count in Counter(native_names).items() if count > 1
-        ]:
-            # Raise a RegionNameCollisionError with parameters duplicates and file.
+        """Checks if a native region occurs a maximum of two ways:
+        * at most once in both keep name AND rename format
+        * only once in either keep name OR rename format"""
+        keep = [nr.name for nr in v if nr.rename is None]
+        rename = [nr.name for nr in v if nr.rename is not None]
+        keep_dups = [item for item, count in Counter(keep).items() if count > 1]
+        rename_dups = [item for item, count in Counter(rename).items() if count > 1]
+        if keep_dups or rename_dups:
+            # raise a RegionNameCollisionError with parameters duplicates and file.
             raise PydanticCustomError(
                 *custom_pydantic_errors.RegionNameCollisionError,
                 {
                     "location": "native regions (names)",
-                    "duplicates": duplicates,
+                    "duplicates": list(set(keep_dups + rename_dups)),
                     "file": info.data["file"],
                 },
             )
@@ -162,14 +166,17 @@ class RegionAggregationMapping(BaseModel):
     @field_validator("common_regions")
     @classmethod
     def validate_common_regions(cls, v, info: ValidationInfo):
+        """Check for duplicate common (target) regions and self-referencing
+        (source in target) regions."""
         names = [cr.name for cr in v]
+        self_referencing = [cr.name for cr in v if cr.name in cr.constituent_regions]
         duplicates = [item for item, count in Counter(names).items() if count > 1]
-        if duplicates:
+        if duplicates or self_referencing:
             raise PydanticCustomError(
                 *custom_pydantic_errors.RegionNameCollisionError,
                 {
                     "location": "common regions",
-                    "duplicates": duplicates,
+                    "duplicates": list(set(duplicates + self_referencing)),
                     "file": info.data["file"],
                 },
             )
@@ -646,21 +653,39 @@ class RegionProcessor(Processor):
 
         # silence pyam's empty filter warnings
         with adjust_log_level(logger="pyam", level="ERROR"):
-            # rename native regions
-            _df = model_df.filter(region=self.mappings[model].model_native_region_names)
-            if not _df.empty:
+            # add unchanged native regions to processed data
+            keep = [
+                r.name for r in self.mappings[model].native_regions if r.rename is None
+            ]
+            keep_df = model_df.filter(region=keep)
+            if not keep_df.empty:
+                _processed_data.append(keep_df._data)
+            # add renamed native regions and to processed data
+            rename = [
+                r.name
+                for r in self.mappings[model].native_regions
+                if r.rename is not None
+            ]
+            rename_df = model_df.filter(region=rename)
+            if not rename_df.empty:
                 _processed_data.append(
-                    _df.rename(region=self.mappings[model].rename_mapping)._data
+                    rename_df.rename(region=self.mappings[model].rename_mapping)._data
                 )
 
             # aggregate common regions
             for common_region in self.mappings[model].common_regions:
-                # if common region consists of single native region with same name, treat as passthrough
-                if (
-                    common_region.is_single_constituent_region
-                    and common_region.name == common_region.constituent_regions[0]
-                ):
-                    continue
+                # if common region consists of single native region
+                # treat as rename that filters skip-region-aggregation variables
+                non_skip_vars = [
+                    var.name
+                    for var in self.variable_codelist.values()
+                    if not var.skip_region_aggregation
+                ]
+                if common_region.is_single_constituent_region:
+                    _df = model_df.filter(
+                        region=common_region.constituent_regions[0],
+                        variable=non_skip_vars,
+                    ).rename(region=common_region.rename_dict)
                 regions = [common_region.name, common_region.constituent_regions]
 
                 # first, perform 'simple' aggregation (no arguments)
@@ -702,7 +727,7 @@ class RegionProcessor(Processor):
                                         _df.rename(variable={var.name: _rename})._data
                                     )
 
-            # exclude common regions confused for same name constituent native region
+            # add pre-aggregated common region data to processed data
             common_region_df = model_df.filter(
                 region=self.mappings[model].common_region_names,
                 variable=self.variable_codelist,
