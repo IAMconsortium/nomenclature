@@ -243,7 +243,8 @@ class DataValidator(Processor):
             criteria = [
                 criterion
                 for criterion in item
-                if criterion not in list(IamcDataFilter.model_fields) + ["validation", "name"]
+                if criterion
+                not in list(IamcDataFilter.model_fields) + ["validation", "name"]
             ]
             for criterion in criteria:
                 value = item.pop(criterion)

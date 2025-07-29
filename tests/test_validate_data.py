@@ -141,7 +141,7 @@ def test_DataValidator_apply_no_matching_data(simple_df):
             "range: [1.0, 5.0]",
             "range: [2.0, 5.0]",
             "range: [1.1, 1.9]",
-        )
+        ),
     ],
 )
 def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, caplog):
@@ -221,7 +221,7 @@ def test_DataValidator_validate_fail_with_warning(file, value, simple_df, caplog
 
     with pytest.raises(ValueError, match="Data validation failed"):
         data_validator.apply(simple_df)
-        
+
     # check if the log message contains the correct information
     assert failed_validation_message in caplog.text
 
@@ -256,7 +256,7 @@ def test_DataValidator_xlsx_output(tmp_path, simple_df):
             "year": [2010, 2010],
             "value": [6.0, 7.0],
             "warning_level": ["error", "error"],
-            "criteria": ["upper_bound: 5.0, lower_bound: 1.0"] * 2
+            "criteria": ["upper_bound: 5.0, lower_bound: 1.0"] * 2,
         }
     )
     pdt.assert_frame_equal(obs, exp, check_dtype=False)

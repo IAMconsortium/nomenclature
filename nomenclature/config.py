@@ -286,6 +286,7 @@ class NomenclatureConfig(BaseModel):
     )
     time_domain: TimeDomainConfig = Field(
         default_factory=TimeDomainConfig, alias="time-domain"
+    )
 
     model_config = ConfigDict(use_enum_values=True, populate_by_name=True)
 
