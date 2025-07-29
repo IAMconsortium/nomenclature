@@ -2,4 +2,4 @@
 model: model_a
 native_regions:
   - region_a: alternative_name_a
-  - region_a
+  - region_a: alternative_name_a

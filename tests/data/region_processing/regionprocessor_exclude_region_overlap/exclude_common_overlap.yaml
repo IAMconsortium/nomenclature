@@ -1,6 +1,6 @@
 model: model_a
 common_regions:
   - region_a:
-    - region_a
+    - region_A
 exclude_regions:
   - region_a

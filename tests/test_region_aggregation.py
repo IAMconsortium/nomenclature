@@ -56,7 +56,11 @@ def test_mapping():
             "Name collision in native and common regions.*common_region_1",
         ),
         (
-            "illegal_mapping_native_duplicate_key.yaml",
+            "illegal_mapping_native_duplicate_key_rename.yaml",
+            "Name collision in native regions .names.*region_a",
+        ),
+        (
+            "illegal_mapping_native_duplicate_key_keep.yaml",
             "Name collision in native regions .names.*region_a",
         ),
         (
