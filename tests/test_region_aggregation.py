@@ -204,7 +204,7 @@ def test_region_processor_wrong_args():
 
 def test_region_processor_multiple_wrong_mappings(simple_definition):
     # Read in the entire region_aggregation directory and return **all** errors
-    msg = "Collected 10 errors"
+    msg = "Collected 11 errors"
 
     with pytest.raises(ValueError, match=msg):
         RegionProcessor.from_directory(
