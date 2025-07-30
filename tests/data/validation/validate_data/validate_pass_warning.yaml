@@ -1,0 +1,22 @@
+# Highest warning level is assigned as meta indicator
+ - name: Vetting|Primary Energy [All]
+   variable: Primary Energy
+   validation:
+    - warning_level: high
+      upper_bound: 6.5
+    - warning_level: low
+      upper_bound: 1.5
+# Scenario passing validation is assigned "ok"
+ - name: Vetting|Primary Energy [2005]
+   variable: Primary Energy
+   year: 2005
+   validation:
+    - warning_level: medium
+      upper_bound: 1.5
+ # Scenario without relevant datapoints is assigned "np.nan"
+ - name: Vetting|Coal [2010]
+   variable: Primary Energy|Coal
+   year: 2010
+   validation:
+     - warning_level: medium
+       upper_bound: 2.5

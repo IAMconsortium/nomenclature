@@ -1,8 +1,10 @@
 from pathlib import Path
 
+import numpy as np
 import pytest
 import pandas as pd
 import pandas.testing as pdt
+
 from conftest import TEST_DATA_DIR
 
 from nomenclature import DataStructureDefinition
@@ -141,7 +143,7 @@ def test_DataValidator_apply_no_matching_data(simple_df):
             "range: [1.0, 5.0]",
             "range: [2.0, 5.0]",
             "range: [1.1, 1.9]",
-        )
+        ),
     ],
 )
 def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, caplog):
@@ -221,9 +223,44 @@ def test_DataValidator_validate_fail_with_warning(file, value, simple_df, caplog
 
     with pytest.raises(ValueError, match="Data validation failed"):
         data_validator.apply(simple_df)
-        
+
     # check if the log message contains the correct information
     assert failed_validation_message in caplog.text
+
+
+def test_DataValidator_pass_with_warning(simple_df, caplog):
+    data_validator = DataValidator.from_file(
+        DATA_VALIDATION_TEST_DIR / "validate_pass_warning.yaml"
+    )
+    warning_message = (
+        "Data validation with warning(s) "
+        f"""(file {(DATA_VALIDATION_TEST_DIR / "validate_pass_warning.yaml").relative_to(Path.cwd())}):
+  Criteria: variable: ['Primary Energy'], upper_bound: 6.5
+       model scenario region        variable   unit  year  value warning_level
+  0  model_a   scen_b  World  Primary Energy  EJ/yr  2010    7.0          high
+
+  Criteria: variable: ['Primary Energy'], upper_bound: 1.5
+       model scenario region        variable   unit  year  value warning_level
+  0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0           low
+  1  model_a   scen_b  World  Primary Energy  EJ/yr  2005    2.0           low"""
+    )
+
+    data_validator.apply(simple_df)
+    assert warning_message in caplog.text
+
+    columns = [
+        "Vetting|Primary Energy [All]",
+        "Vetting|Primary Energy [2005]",
+        "Vetting|Coal [2010]",
+    ]
+    exp_meta = pd.DataFrame(
+        [["low", "ok", "medium"], ["high", "medium", np.nan]],
+        columns=columns,
+        index=pd.Index(
+            [("model_a", "scen_a"), ("model_a", "scen_b")], name=("model", "scenario")
+        ),
+    )
+    pdt.assert_frame_equal(simple_df.meta[columns], exp_meta)
 
 
 def test_DataValidator_warning_order_fail():
@@ -256,7 +293,7 @@ def test_DataValidator_xlsx_output(tmp_path, simple_df):
             "year": [2010, 2010],
             "value": [6.0, 7.0],
             "warning_level": ["error", "error"],
-            "criteria": ["upper_bound: 5.0, lower_bound: 1.0"] * 2
+            "criteria": ["upper_bound: 5.0, lower_bound: 1.0"] * 2,
         }
     )
     pdt.assert_frame_equal(obs, exp, check_dtype=False)
