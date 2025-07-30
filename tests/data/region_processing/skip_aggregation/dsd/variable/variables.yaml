@@ -1,4 +1,7 @@
 - Primary Energy:
     definition: Total primary energy consumption
     unit: EJ/yr
+- Capital Cost|Electricity:
+    definition: Capital cost for newly installed power generation capacity
+    unit: USD/kWh
     skip-region-aggregation: true

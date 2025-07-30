@@ -13,7 +13,7 @@ from pyam.utils import IAMC_IDX
 from conftest import TEST_DATA_DIR, add_meta
 
 
-@pytest.mark.parametrize("model_name", ["model_a", "model_c"])
+@pytest.mark.parametrize("model_name", ["model_a", "model_b"])
 def test_region_processing_rename(model_name):
     # Test **only** the renaming aspect, i.e. 3 things:
     # 1. All native regions **with** a renaming property should be renamed correctly
@@ -55,7 +55,6 @@ def test_region_processing_rename(model_name):
 def test_region_processing_empty_raises(rp_dir):
     # Test that an empty result of the region-processing raises
     # see also https://github.com/IAMconsortium/pyam/issues/631
-
     test_df = IamDataFrame(
         pd.DataFrame(
             [
@@ -253,20 +252,22 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
         assert logmsg in caplog.text
 
 
-@pytest.mark.parametrize(
-    "model_name, region_names",
-    [("model_a", ("region_A", "region_B")), ("model_b", ("region_A", "region_b"))],
-)
-def test_region_processing_skip_aggregation(model_name, region_names):
-    # Testing two cases:
-    # * model "model_a" renames native regions and the world region is skipped
-    # * model "model_b" renames single constituent common regions
-
+def test_region_processing_skip_aggregation():
+    """Checks variables flagged for skipping aggregation are skipped and native regions are renamed"""
     test_df = IamDataFrame(
         pd.DataFrame(
             [
-                [model_name, "s_a", region_names[0], "Primary Energy", "EJ/yr", 1, 2],
-                [model_name, "s_a", region_names[1], "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_a", "s_a", "region_b", "Primary Energy", "EJ/yr", 3, 4],
+                [
+                    "model_a",
+                    "s_a",
+                    "region_A",
+                    "Capital Cost|Electricity",
+                    "USD/kWh",
+                    1,
+                    2,
+                ],
             ],
             columns=IAMC_IDX + [2005, 2010],
         )
@@ -276,24 +277,95 @@ def test_region_processing_skip_aggregation(model_name, region_names):
     exp = IamDataFrame(
         pd.DataFrame(
             [
-                [model_name, "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
-                [model_name, "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                [
+                    "model_a",
+                    "s_a",
+                    "region_A",
+                    "Capital Cost|Electricity",
+                    "USD/kWh",
+                    1,
+                    2,
+                ],
+                ["model_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6],
             ],
             columns=IAMC_IDX + [2005, 2010],
         )
     )
     add_meta(exp)
 
-    obs = process(
-        test_df,
-        dsd := DataStructureDefinition(
-            TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
-        ),
-        processor=RegionProcessor.from_directory(
-            TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
-        ),
+    dsd = DataStructureDefinition(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
     )
+    processor = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
+    )
+
+    obs = process(test_df, dsd, processor=processor)
     assert_iamframe_equal(obs, exp)
+
+
+def test_region_processing_rename_single_common():
+    """Checks single-constituent common regions aggregation: rename regions, exclude
+    aggregation-skipped variables"""
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_b", "s_a", "region_a", "Primary Energy", "EJ/yr", 1, 2],
+                [
+                    "model_b",
+                    "s_a",
+                    "region_b",
+                    "Capital Cost|Electricity",
+                    "USD/kWh",
+                    3,
+                    4,
+                ],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    add_meta(test_df)
+
+    exp = copy.deepcopy(test_df)
+    # region_a is renamed, rows with Capital Cost|Electricity are excluded
+    exp.filter(region=["region_a"], inplace=True)
+    exp.rename(region={"region_a": "region_A"}, inplace=True)
+
+    dsd = DataStructureDefinition(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
+    )
+    processor = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
+    )
+    obs = process(test_df, dsd, processor=processor)
+    assert_iamframe_equal(obs, exp)
+
+
+def test_region_processing_self_referencing_common_raises():
+    """Checks common regions with source region(s) with same name as target raise."""
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_c", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_c", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    add_meta(test_df)
+
+    with pytest.raises(ValueError, match=r"Name collision in common region"):
+        process(
+            test_df,
+            dsd := DataStructureDefinition(
+                TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
+            ),
+            RegionProcessor.from_directory(
+                TEST_DATA_DIR / "region_processing/skip_aggregation/raises", dsd
+            ),
+        )
 
 
 @pytest.mark.parametrize(

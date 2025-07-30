@@ -56,7 +56,11 @@ def test_mapping():
             "Name collision in native and common regions.*common_region_1",
         ),
         (
-            "illegal_mapping_native_duplicate_key.yaml",
+            "illegal_mapping_native_duplicate_key_rename.yaml",
+            "Name collision in native regions .names.*region_a",
+        ),
+        (
+            "illegal_mapping_native_duplicate_key_keep.yaml",
             "Name collision in native regions .names.*region_a",
         ),
         (
@@ -200,7 +204,7 @@ def test_region_processor_wrong_args():
 
 def test_region_processor_multiple_wrong_mappings(simple_definition):
     # Read in the entire region_aggregation directory and return **all** errors
-    msg = "Collected 10 errors"
+    msg = "Collected 11 errors"
 
     with pytest.raises(ValueError, match=msg):
         RegionProcessor.from_directory(
