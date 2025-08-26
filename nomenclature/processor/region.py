@@ -664,7 +664,8 @@ class RegionProcessor(Processor):
             keep_df = model_df.filter(region=keep)
             if not keep_df.empty:
                 _processed_data.append(keep_df._data)
-            # add renamed native regions and to processed data
+
+            # add renamed native regions to processed data
             rename = [
                 r.name
                 for r in self.mappings[model].native_regions
