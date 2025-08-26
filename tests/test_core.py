@@ -343,6 +343,30 @@ def test_region_processing_rename_single_common():
     assert_iamframe_equal(obs, exp)
 
 
+def test_region_processing_keep_and_rename_native():
+    """Checks that duplicating a native region and renaming it works as expected."""
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_c", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    add_meta(test_df)
+
+    exp = test_df.append(test_df.rename(region={"region_A": "region_B"}))
+
+    dsd = DataStructureDefinition(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
+    )
+    processor = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
+    )
+    obs = process(test_df, dsd, processor=processor)
+    assert_iamframe_equal(obs, exp)
+
+
 def test_region_processing_self_referencing_common_raises():
     """Checks common regions with source region(s) with same name as target raise."""
     test_df = IamDataFrame(
