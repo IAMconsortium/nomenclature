@@ -380,7 +380,11 @@ class RegionAggregationMapping(BaseModel):
 
     @property
     def rename_mapping(self) -> dict[str, str]:
-        return {r.name: r.target_native_region for r in self.native_regions or []}
+        return {
+            r.name: r.target_native_region
+            for r in self.native_regions or []
+            if r.rename is not None
+        }
 
     @property
     def upload_native_regions(self) -> list[str]:
