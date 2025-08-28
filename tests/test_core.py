@@ -257,11 +257,11 @@ def test_region_processing_skip_aggregation():
     test_df = IamDataFrame(
         pd.DataFrame(
             [
-                ["model_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
-                ["model_a", "s_a", "region_b", "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "scen_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_a", "scen_a", "region_b", "Primary Energy", "EJ/yr", 3, 4],
                 [
                     "model_a",
-                    "s_a",
+                    "scen_a",
                     "region_A",
                     "Capital Cost|Electricity",
                     "USD/kWh",
@@ -279,16 +279,16 @@ def test_region_processing_skip_aggregation():
             [
                 [
                     "model_a",
-                    "s_a",
+                    "scen_a",
                     "region_A",
                     "Capital Cost|Electricity",
                     "USD/kWh",
                     1,
                     2,
                 ],
-                ["model_a", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
-                ["model_a", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
-                ["model_a", "s_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+                ["model_a", "scen_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_a", "scen_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 4, 6],
             ],
             columns=IAMC_IDX + [2005, 2010],
         )
@@ -312,10 +312,10 @@ def test_region_processing_rename_single_common():
     test_df = IamDataFrame(
         pd.DataFrame(
             [
-                ["model_b", "s_a", "region_a", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_b", "scen_a", "region_a", "Primary Energy", "EJ/yr", 1, 2],
                 [
                     "model_b",
-                    "s_a",
+                    "scen_a",
                     "region_b",
                     "Capital Cost|Electricity",
                     "USD/kWh",
@@ -332,6 +332,30 @@ def test_region_processing_rename_single_common():
     # region_a is renamed, rows with Capital Cost|Electricity are excluded
     exp.filter(region=["region_a"], inplace=True)
     exp.rename(region={"region_a": "region_A"}, inplace=True)
+
+    dsd = DataStructureDefinition(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
+    )
+    processor = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing/skip_aggregation/mappings", dsd
+    )
+    obs = process(test_df, dsd, processor=processor)
+    assert_iamframe_equal(obs, exp)
+
+
+def test_region_processing_keep_and_rename_native():
+    """Checks that duplicating a native region and renaming it works as expected."""
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_c", "scen_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    add_meta(test_df)
+
+    exp = test_df.append(test_df.rename(region={"region_A": "region_B"}))
 
     dsd = DataStructureDefinition(
         TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"

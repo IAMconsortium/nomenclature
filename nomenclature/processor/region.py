@@ -380,7 +380,11 @@ class RegionAggregationMapping(BaseModel):
 
     @property
     def rename_mapping(self) -> dict[str, str]:
-        return {r.name: r.target_native_region for r in self.native_regions or []}
+        return {
+            r.name: r.target_native_region
+            for r in self.native_regions or []
+            if r.rename is not None
+        }
 
     @property
     def upload_native_regions(self) -> list[str]:
@@ -660,7 +664,8 @@ class RegionProcessor(Processor):
             keep_df = model_df.filter(region=keep)
             if not keep_df.empty:
                 _processed_data.append(keep_df._data)
-            # add renamed native regions and to processed data
+
+            # add renamed native regions to processed data
             rename = [
                 r.name
                 for r in self.mappings[model].native_regions
