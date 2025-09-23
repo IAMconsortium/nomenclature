@@ -1,25 +1,40 @@
 import logging
+import logging.config
+import sys
 from importlib.metadata import version
 from pathlib import Path
-import json
-import yaml
+
 import pandas as pd
+import yaml
 
 from nomenclature.cli import cli  # noqa
 from nomenclature.codelist import CodeList  # noqa
 from nomenclature.core import process  # noqa
 from nomenclature.countries import countries  # noqa
-from nomenclature.nuts import nuts  # noqa
 from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition  # noqa
-from nomenclature.processor import RegionAggregationMapping  # noqa
-from nomenclature.processor import RegionProcessor, RequiredDataValidator  # noqa
-
+from nomenclature.nuts import nuts  # noqa
+from nomenclature.processor import (  # noqa
+    RegionAggregationMapping,  # noqa
+    RegionProcessor,
+    RequiredDataValidator,
+)
 
 here = Path(__file__).parent
 
-# set up logging
-with open(here / "logging.json") as file:
-    logging.config.dictConfig(json.load(file))
+try:
+    __IPYTHON__  # type: ignore
+    _in_ipython_session = True
+except NameError:
+    _in_ipython_session = False
+
+_sys_has_ps1 = hasattr(sys, "ps1")
+
+
+# Logging is only configured by default when used in an interactive environment.
+# This follows the setup in ixmp4 and pyam.
+if _in_ipython_session or _sys_has_ps1:
+    with open(here / "logging.yaml") as file:
+        logging.config.dictConfig(yaml.safe_load(file))
 
 logger = logging.getLogger(__name__)
 
