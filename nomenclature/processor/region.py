@@ -8,7 +8,7 @@ import pandas as pd
 import pyam
 import yaml
 from pyam import IamDataFrame
-from pyam.logging import adjust_log_level
+from pyam.utils import adjust_log_level
 from pydantic import (
     AfterValidator,
     BaseModel,
