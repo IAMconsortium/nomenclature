@@ -6,8 +6,7 @@ import pandas as pd
 import git
 from pyam import IamDataFrame
 from pyam.index import replace_index_labels
-from pyam.logging import adjust_log_level
-from pyam.utils import write_sheet
+from pyam.utils import adjust_log_level, write_sheet
 
 from nomenclature.codelist import (
     CodeList,

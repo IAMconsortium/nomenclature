@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 import pandas as pd
 from pyam import IamDataFrame
-from pyam.logging import adjust_log_level
+from pyam.utils import adjust_log_level
 from pydantic import (
     BaseModel,
     ConfigDict,
