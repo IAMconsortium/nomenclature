@@ -1,11 +1,11 @@
-import re
 import logging
+import re
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
 import yaml
-from datetime import datetime
 from git import Repo
 from pyam import IamDataFrame
 from pyam.str import escape_regexp
