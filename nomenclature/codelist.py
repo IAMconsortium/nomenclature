@@ -9,7 +9,7 @@ import pandas as pd
 import yaml
 from pyam import IamDataFrame
 from pyam.str import escape_regexp
-from pyam.utils import is_list_like, write_sheet, pattern_match
+from pyam.utils import is_list_like, pattern_match, write_sheet
 from pydantic import BaseModel, ValidationInfo, field_validator
 from pydantic_core import PydanticCustomError
 
