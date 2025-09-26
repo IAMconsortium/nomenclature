@@ -253,21 +253,24 @@ class TimeDomainConfig(BaseModel):
         """Validate datetime coordinates against allowed format and/or timezone."""
         if df.time_domain == "year":
             if not self.year_allowed:
-                logging.error("Invalid time domain - `year` found, but not allowed.")
+                logger.error("Invalid time domain - `year` found, but not allowed.")
                 return False
             return True
-        if df.time_domain == "mixed":
+        elif df.time_domain == "mixed":
             if not self.mixed_allowed:
-                logging.error("Invalid time domain - `mixed` found, but not allowed.")
+                logger.error("Invalid time domain - `mixed` found, but not allowed.")
                 return False
             return self.check_datetime_format(df)
-        if df.time_domain == "datetime":
+        elif df.time_domain == "datetime":
             if not self.datetime_allowed:
-                logging.error(
-                    "Invalid time domain - `datetime` found, but not allowed."
-                )
+                logger.error("Invalid time domain - `datetime` found, but not allowed.")
                 return False
             return self.check_datetime_format(df)
+        else:
+            raise ValueError(
+                "IamDataFrame.time_domain must be one of ['year', 'mixed', datetime'],"
+                f" found '{df.time_domain}'"
+            )
 
 
 class DimensionEnum(str, Enum):
