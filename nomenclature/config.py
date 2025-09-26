@@ -18,6 +18,8 @@ from pydantic import (
     model_validator,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class CodeListFromRepository(BaseModel):
     name: str
@@ -240,7 +242,7 @@ class TimeDomainConfig(BaseModel):
             except ValueError:
                 error_list.append(f"{d} - missing timezone")
         if error_list:
-            logging.error(
+            logger.error(
                 "The following datetime values are invalid:\n - "
                 + "\n - ".join(error_list)
             )

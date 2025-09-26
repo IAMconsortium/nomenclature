@@ -19,8 +19,10 @@ from nomenclature.config import CodeListConfig, NomenclatureConfig
 from nomenclature.error import ErrorCollector, custom_pydantic_errors, log_error
 from nomenclature.nuts import nuts
 
-
 here = Path(__file__).parent.absolute()
+
+
+logger = logging.getLogger(__name__)
 
 
 class CodeList(BaseModel):
@@ -497,7 +499,7 @@ class CodeList(BaseModel):
         )
 
         if not filtered_codelist.mapping:
-            logging.warning(f"Filtered {self.__class__.__name__} is empty!")
+            logger.warning(f"Filtered {self.__class__.__name__} is empty!")
         return filtered_codelist
 
     @staticmethod
@@ -686,7 +688,7 @@ class VariableCodeList(CodeList):
             ]
             msg = "The following variable(s) are reported with the wrong unit:"
             file_service_address = "https://files.ece.iiasa.ac.at"
-            logging.error(
+            logger.error(
                 "\n - ".join([msg] + lst)
                 + (
                     f"\n\nPlease refer to {file_service_address}/{project}/"
