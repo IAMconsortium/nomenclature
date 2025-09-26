@@ -2,6 +2,8 @@ import logging
 import textwrap
 from collections import namedtuple
 
+logger = logging.getLogger(__name__)
+
 pydantic_custom_error_config = {
     "RegionNameCollisionError": (
         "region_name_collision",
@@ -58,7 +60,7 @@ class ErrorCollector:
     errors: list[Exception]
     description: str | None = None
 
-    def __init__(self, description: str = None) -> None:
+    def __init__(self, description: str | None = None) -> None:
         self.errors = []
         self.description = description
 
@@ -90,7 +92,7 @@ def log_error(
     file_service_address = "https://files.ece.iiasa.ac.at"
     msg = f"The following {dimension}(s) are not defined in the {dimension} codelist:"
 
-    logging.error(
+    logger.error(
         "\n - ".join(map(str, [msg] + error_list))
         + (
             f"\n\nPlease refer to {file_service_address}/{project}/{project}"
