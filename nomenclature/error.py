@@ -60,7 +60,7 @@ class ErrorCollector:
     errors: list[Exception]
     description: str | None = None
 
-    def __init__(self, description: str = None) -> None:
+    def __init__(self, description: str | None = None) -> None:
         self.errors = []
         self.description = description
 
