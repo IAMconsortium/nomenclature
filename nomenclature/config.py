@@ -1,11 +1,11 @@
-import re
 import logging
+import re
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
 import yaml
-from datetime import datetime
 from git import Repo
 from pyam import IamDataFrame
 from pyam.str import escape_regexp
@@ -17,6 +17,8 @@ from pydantic import (
     field_validator,
     model_validator,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class CodeListFromRepository(BaseModel):
@@ -240,7 +242,7 @@ class TimeDomainConfig(BaseModel):
             except ValueError:
                 error_list.append(f"{d} - missing timezone")
         if error_list:
-            logging.error(
+            logger.error(
                 "The following datetime values are invalid:\n - "
                 + "\n - ".join(error_list)
             )
@@ -251,21 +253,24 @@ class TimeDomainConfig(BaseModel):
         """Validate datetime coordinates against allowed format and/or timezone."""
         if df.time_domain == "year":
             if not self.year_allowed:
-                logging.error("Invalid time domain - `year` found, but not allowed.")
+                logger.error("Invalid time domain - `year` found, but not allowed.")
                 return False
             return True
-        if df.time_domain == "mixed":
+        elif df.time_domain == "mixed":
             if not self.mixed_allowed:
-                logging.error("Invalid time domain - `mixed` found, but not allowed.")
+                logger.error("Invalid time domain - `mixed` found, but not allowed.")
                 return False
             return self.check_datetime_format(df)
-        if df.time_domain == "datetime":
+        elif df.time_domain == "datetime":
             if not self.datetime_allowed:
-                logging.error(
-                    "Invalid time domain - `datetime` found, but not allowed."
-                )
+                logger.error("Invalid time domain - `datetime` found, but not allowed.")
                 return False
             return self.check_datetime_format(df)
+        else:
+            raise ValueError(
+                "IamDataFrame.time_domain must be one of ['year', 'mixed', datetime'],"
+                f" found '{df.time_domain}'"
+            )
 
 
 class DimensionEnum(str, Enum):
