@@ -91,7 +91,7 @@ class CodeList(BaseModel):
     def values(self):
         return self.mapping.values()
 
-    def validate_data(
+    def validate_df(
         self,
         df: IamDataFrame,
         dimension: str,
@@ -700,14 +700,14 @@ class VariableCodeList(CodeList):
             return False
         return True
 
-    def validate_data(
+    def validate_df(
         self,
         df: IamDataFrame,
         dimension: str,
         project: str | None = None,
     ) -> bool:
         # validate variables
-        all_variables_valid = super().validate_data(df, dimension, project)
+        all_variables_valid = super().validate_df(df, dimension, project)
         all_units_valid = self.validate_units(df.unit_mapping, project)
         return all_variables_valid and all_units_valid
 
