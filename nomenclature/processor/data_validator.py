@@ -25,6 +25,16 @@ from nomenclature.processor.utils import get_relative_path
 logger = logging.getLogger(__name__)
 
 
+VALIDATION_ARGS = [
+    "upper_bound",
+    "lower_bound",
+    "value",
+    "rtol",
+    "atol",
+    "range",
+]
+
+
 class WarningEnum(IntEnum):
     error = 50
     high = 40
@@ -246,12 +256,12 @@ class DataValidator(Processor):
     """Processor for validating IAMC datapoints"""
 
     criteria_items: list[DataValidationItem]
-    file: Path
+    file: Path | str
     output_path: Path | None = None
 
     @classmethod
     def from_file(
-        cls, file: Path | str, output_path: Path | str = None
+        cls, file: Path | str, output_path: Path | str | None = None
     ) -> "DataValidator":
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
@@ -275,6 +285,32 @@ class DataValidator(Processor):
             criteria_items.append(item)
 
         return cls(file=file, criteria_items=criteria_items, output_path=output_path)  # type: ignore
+
+    @classmethod
+    def from_definition(
+        cls, definition: DataStructureDefinition, output_path: Path | str | None = None
+    ) -> "DataValidator":
+        criteria_items = []
+
+        for name, variable in definition.variable.items():
+            if any([i in VALIDATION_ARGS for i in variable.extra_attributes]):
+                criteria_items.append(
+                    dict(
+                        variable=name,
+                        validation=[
+                            dict(
+                                [
+                                    (key, value)
+                                    for key, value in variable.extra_attributes.items()
+                                    if key in VALIDATION_ARGS
+                                ]
+                            )
+                        ],
+                    )
+                )
+        return cls(
+            file="definition", criteria_items=criteria_items, output_path=output_path
+        )  # type: ignore
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
         """Validates data in IAMC format according to specified criteria.
