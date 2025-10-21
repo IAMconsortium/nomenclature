@@ -315,7 +315,7 @@ class DataValidator(Processor):
                     )
                 )
         return cls(
-            file="definition", criteria_items=criteria_items, output_path=output_path
+            file="definitions", criteria_items=criteria_items, output_path=output_path
         )  # type: ignore
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:

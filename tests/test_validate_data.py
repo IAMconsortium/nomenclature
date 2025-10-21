@@ -87,7 +87,7 @@ def test_DataValidator_from_codelist():
                     "validation": [{"range": (0, 100)}],
                 },
             ],
-            "file": "definition",
+            "file": "definitions",
         }
     )
 
