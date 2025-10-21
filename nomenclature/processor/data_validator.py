@@ -293,7 +293,7 @@ class DataValidator(Processor):
     ) -> "DataValidator":
         criteria_items = []
 
-        for name, variable in codelist.items():
+        for variable in codelist.values():
             if any(
                 [
                     attribute in VALIDATION_ARGS
@@ -302,7 +302,7 @@ class DataValidator(Processor):
             ):
                 criteria_items.append(
                     dict(
-                        variable=name,
+                        variable=variable.name,
                         validation=[
                             dict(
                                 [
