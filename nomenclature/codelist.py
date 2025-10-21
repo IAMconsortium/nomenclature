@@ -581,6 +581,16 @@ class VariableCodeList(CodeList):
     code_basis: ClassVar = VariableCode
     validation_schema: ClassVar[str] = "variable"
 
+    _data_validator = None
+
+    @property
+    def data_validator(self):
+        from nomenclature.processor import DataValidator
+
+        if self._data_validator is None:
+            self._data_validator = DataValidator.from_codelist(self)
+        return self._data_validator
+
     @property
     def variables(self) -> list[str]:
         return list(self.keys())
