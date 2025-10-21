@@ -16,6 +16,7 @@ from pydantic import (
     Field,
 )
 
+from nomenclature.codelist import VariableCodeList
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error import ErrorCollector
 from nomenclature.processor import Processor
@@ -287,13 +288,18 @@ class DataValidator(Processor):
         return cls(file=file, criteria_items=criteria_items, output_path=output_path)  # type: ignore
 
     @classmethod
-    def from_definition(
-        cls, definition: DataStructureDefinition, output_path: Path | str | None = None
+    def from_codelist(
+        cls, codelist: VariableCodeList, output_path: Path | str | None = None
     ) -> "DataValidator":
         criteria_items = []
 
-        for name, variable in definition.variable.items():
-            if any([i in VALIDATION_ARGS for i in variable.extra_attributes]):
+        for name, variable in codelist.items():
+            if any(
+                [
+                    attribute in VALIDATION_ARGS
+                    for attribute in variable.extra_attributes
+                ]
+            ):
                 criteria_items.append(
                     dict(
                         variable=name,
