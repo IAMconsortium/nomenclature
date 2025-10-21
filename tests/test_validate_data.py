@@ -8,9 +8,11 @@ import pandas.testing as pdt
 from conftest import TEST_DATA_DIR
 
 from nomenclature import DataStructureDefinition
+from nomenclature.codelist import VariableCodeList
 from nomenclature.processor.data_validator import DataValidator
 
 DATA_VALIDATION_TEST_DIR = TEST_DATA_DIR / "validation" / "validate_data"
+PROCESSOR_TEST_DIR = TEST_DATA_DIR / "processor" / "data_validator"
 
 
 def test_DataValidator_simple_from_file():
@@ -70,6 +72,29 @@ def test_DataValidator_structured_from_file():
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definitions")
     assert obs.validate_with_definition(dsd) is None
+
+
+def test_DataValidator_from_codelist():
+    exp = DataValidator(
+        **{
+            "criteria_items": [
+                {
+                    "variable": "Final Energy",
+                    "validation": [{"lower_bound": 0.0}],
+                },
+                {
+                    "variable": "Final Energy|Electricity [Share]",
+                    "validation": [{"range": (0, 100)}],
+                },
+            ],
+            "file": "definition",
+        }
+    )
+
+    variable_codelist = VariableCodeList.from_directory(
+            ".", PROCESSOR_TEST_DIR / "init_from_codelist"
+    )
+    assert variable_codelist.data_validator == exp
 
 
 @pytest.mark.parametrize(
