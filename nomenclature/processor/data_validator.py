@@ -262,7 +262,7 @@ class DataValidator(Processor):
 
     @classmethod
     def from_file(
-        cls, file: Path | str, output_path: Path | str | None = None
+        cls, file: Path | str, output_path: Path | None = None
     ) -> "DataValidator":
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
@@ -289,7 +289,7 @@ class DataValidator(Processor):
 
     @classmethod
     def from_codelist(
-        cls, codelist: VariableCodeList, output_path: Path | str | None = None
+        cls, codelist: VariableCodeList, output_path: Path | None = None
     ) -> "DataValidator":
         criteria_items = []
 
