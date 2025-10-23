@@ -21,6 +21,17 @@ from nomenclature.error import ErrorCollector
 from .countries import countries
 
 
+# this must be kept in sync with the subtypes of `DataValidationCriteria`
+VALIDATION_ARGS = [
+    "upper_bound",
+    "lower_bound",
+    "value",
+    "rtol",
+    "atol",
+    "range",
+]
+
+
 class Code(BaseModel):
     """A simple class for a mapping of a "code" to its attributes"""
 
@@ -275,6 +286,20 @@ class VariableCode(Code):
             if self.region_aggregation is not None
             else self.pyam_agg_kwargs
         )
+
+    @property
+    def has_validation_args(self) -> bool:
+        return any(
+            [attribute in VALIDATION_ARGS for attribute in self.extra_attributes]
+        )
+
+    @property
+    def validation_args(self) -> dict:
+        return {
+            key: value
+            for key, value in self.extra_attributes.items()
+            if key in VALIDATION_ARGS
+        }
 
 
 class RegionCode(Code):

@@ -26,16 +26,6 @@ from nomenclature.processor.utils import get_relative_path
 logger = logging.getLogger(__name__)
 
 
-VALIDATION_ARGS = [
-    "upper_bound",
-    "lower_bound",
-    "value",
-    "rtol",
-    "atol",
-    "range",
-]
-
-
 class WarningEnum(IntEnum):
     error = 50
     high = 40
