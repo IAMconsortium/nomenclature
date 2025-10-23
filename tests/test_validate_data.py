@@ -92,7 +92,7 @@ def test_DataValidator_from_codelist():
     )
 
     variable_codelist = VariableCodeList.from_directory(
-            ".", PROCESSOR_TEST_DIR / "init_from_codelist"
+        ".", PROCESSOR_TEST_DIR / "init_from_codelist"
     )
     assert variable_codelist.data_validator == exp
 
