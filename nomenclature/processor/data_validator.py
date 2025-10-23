@@ -281,29 +281,14 @@ class DataValidator(Processor):
     def from_codelist(
         cls, codelist: VariableCodeList, output_path: Path | None = None
     ) -> "DataValidator":
-        criteria_items = []
-
-        for variable in codelist.values():
-            if any(
-                [
-                    attribute in VALIDATION_ARGS
-                    for attribute in variable.extra_attributes
-                ]
-            ):
-                criteria_items.append(
-                    dict(
-                        variable=variable.name,
-                        validation=[
-                            dict(
-                                [
-                                    (key, value)
-                                    for key, value in variable.extra_attributes.items()
-                                    if key in VALIDATION_ARGS
-                                ]
-                            )
-                        ],
-                    )
-                )
+        criteria_items = [
+            {
+                "variable": variable.name,
+                "validation": [variable.validation_args],
+            }
+            for variable in codelist.values()
+            if variable.has_validation_args
+        ]
         return cls(
             file="definitions", criteria_items=criteria_items, output_path=output_path
         )  # type: ignore
