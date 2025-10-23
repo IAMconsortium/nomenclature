@@ -6,3 +6,6 @@
     description: Share of electricity in total final energy consumption
     unit: "%"
     range: [ 0,100 ]
+- Emissions|CO2:
+    description: Emissions of carbon dioxide (CO2)
+    unit: Mt CO2/yr
