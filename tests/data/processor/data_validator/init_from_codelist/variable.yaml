@@ -1,0 +1,11 @@
+- Final Energy:
+    description: Total final energy consumption
+    unit: EJ/yr
+    lower_bound: 0
+- Final Energy|Electricity [Share]:
+    description: Share of electricity in total final energy consumption
+    unit: "%"
+    range: [ 0,100 ]
+- Emissions|CO2:
+    description: Emissions of carbon dioxide (CO2)
+    unit: Mt CO2/yr

@@ -16,6 +16,7 @@ from pydantic import (
     Field,
 )
 
+from nomenclature.codelist import VariableCodeList
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.error import ErrorCollector
 from nomenclature.processor import Processor
@@ -246,12 +247,12 @@ class DataValidator(Processor):
     """Processor for validating IAMC datapoints"""
 
     criteria_items: list[DataValidationItem]
-    file: Path
+    file: Path | str
     output_path: Path | None = None
 
     @classmethod
     def from_file(
-        cls, file: Path | str, output_path: Path | str = None
+        cls, file: Path | str, output_path: Path | None = None
     ) -> "DataValidator":
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
@@ -275,6 +276,22 @@ class DataValidator(Processor):
             criteria_items.append(item)
 
         return cls(file=file, criteria_items=criteria_items, output_path=output_path)  # type: ignore
+
+    @classmethod
+    def from_codelist(
+        cls, codelist: VariableCodeList, output_path: Path | None = None
+    ) -> "DataValidator":
+        criteria_items = [
+            {
+                "variable": variable.name,
+                "validation": [variable.validation_args],
+            }
+            for variable in codelist.values()
+            if variable.has_validation_args
+        ]
+        return cls(
+            file="definitions", criteria_items=criteria_items, output_path=output_path
+        )
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
         """Validates data in IAMC format according to specified criteria.

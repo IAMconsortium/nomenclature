@@ -102,7 +102,7 @@ class DataStructureDefinition:
 
         if (
             any(
-                getattr(self, dimension).validate_data(
+                getattr(self, dimension).validate_df(
                     df,
                     dimension,
                     self.project,
