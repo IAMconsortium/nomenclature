@@ -290,7 +290,7 @@ class VariableCode(Code):
     @property
     def has_validation_args(self) -> bool:
         return any(
-            [attribute in VALIDATION_ARGS for attribute in self.extra_attributes]
+            attribute in VALIDATION_ARGS for attribute in self.extra_attributes
         )
 
     @property
