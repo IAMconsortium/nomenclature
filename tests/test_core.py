@@ -624,3 +624,66 @@ def test_region_aggregation_unknown_region(simple_df, simple_definition, caplog)
         text in caplog.text
         for text in ["not defined in the region codelist", "unknown region"]
     )
+
+
+def test_region_aggregation_overlapping_instructions_case_1():
+    # region-aggregation variable is provided
+    res = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing" / "overlapping_instructions",
+        DataStructureDefinition(TEST_DATA_DIR / "region_processing" / "dsd"),
+    ).apply(
+        IamDataFrame(
+            pd.DataFrame(
+                [
+                    ["m_a", "s_a", "region_A", "Variable A", "EJ/yr", 1],
+                    ["m_a", "s_a", "region_B", "Variable A", "EJ/yr", 1],
+                    ["m_a", "s_a", "region_A", "Variable A (max)", "EJ/yr", 1],
+                    ["m_a", "s_a", "region_B", "Variable A (max)", "EJ/yr", 1],
+                ],
+                columns=IAMC_IDX + [2020],
+            )
+        )
+    )
+    assert False
+
+
+def test_region_aggregation_overlapping_instructions_case_2():
+    # region-aggregation variable is provided at base and aggregation level for
+    # aggregation region -> takes priority
+    res = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing" / "overlapping_instructions",
+        DataStructureDefinition(TEST_DATA_DIR / "region_processing" / "dsd"),
+    ).apply(
+        IamDataFrame(
+            pd.DataFrame(
+                [
+                    ["m_a", "s_a", "region_A", "Variable A", "EJ/yr", 1],
+                    ["m_a", "s_a", "region_B", "Variable A", "EJ/yr", 1],
+                    ["m_a", "s_a", "region_C", "Variable A (max)", "EJ/yr", 2],
+                ],
+                columns=IAMC_IDX + [2020],
+            )
+        )
+    )
+    print(res.data)
+    assert False
+
+
+def test_region_aggregation_overlapping_instructions_case_3():
+    # only base variable is provided -> all good
+    res = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing" / "overlapping_instructions",
+        DataStructureDefinition(TEST_DATA_DIR / "region_processing" / "dsd"),
+    ).apply(
+        IamDataFrame(
+            pd.DataFrame(
+                [
+                    ["m_a", "s_a", "region_A", "Variable A", "EJ/yr", 1],
+                    ["m_a", "s_a", "region_B", "Variable A", "EJ/yr", 2],
+                ],
+                columns=IAMC_IDX + [2020],
+            )
+        )
+    )
+    print(res.data)
+    assert False
