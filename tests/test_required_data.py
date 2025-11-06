@@ -1,9 +1,11 @@
 from copy import deepcopy
+
 import pytest
 from conftest import TEST_DATA_DIR
-
 from pyam import assert_iamframe_equal
+
 from nomenclature import DataStructureDefinition, RequiredDataValidator
+from nomenclature.exceptions import NoTracebackException, NoTracebackExceptionGroup
 from nomenclature.processor.required_data import RequiredMeasurand
 
 REQUIRED_DATA_TEST_DIR = TEST_DATA_DIR / "required_data" / "required_data"
@@ -71,8 +73,11 @@ def test_RequiredDataValidator_validate_with_definition_raises(requiredDataFile,
         dimensions=["region", "variable"],
     )
 
-    with pytest.raises(ValueError, match=match):
+    with pytest.raises(
+        NoTracebackExceptionGroup, match="Error in RequiredDataValidator"
+    ) as excinfo:
         required_data_validator.validate_with_definition(dsd)
+    assert excinfo.group_contains(NoTracebackException, match=match)
 
 
 @pytest.mark.parametrize(

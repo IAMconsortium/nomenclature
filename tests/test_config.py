@@ -16,7 +16,7 @@ def test_hash_and_release_raises():
 
 def test_setting_local_path_raises():
     with raises(ValueError, match="`local_path` must not be set"):
-        Repository(local_path=Path("."))
+        Repository(url="some url", local_path=Path("."))
 
 
 def test_unknown_repo_raises():
@@ -112,3 +112,10 @@ def test_auto_update_property():
 
     assert repo_with_auto_update.has_auto_update is True
     assert repo_without_auto_update.has_auto_update is False
+
+
+def test_config_year_and_datetime_false_raises():
+    with pytest.raises(
+        ValueError, match=r"'timezone' is set but 'datetime' is not allowed"
+    ):
+        NomenclatureConfig.from_file(TEST_DATA_DIR / "config" / "datetime_false.yaml")

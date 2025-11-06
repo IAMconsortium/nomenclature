@@ -3,17 +3,18 @@ from pathlib import Path
 import pandas as pd
 import pydantic
 import pytest
+from conftest import TEST_DATA_DIR, clean_up_external_repos
+from pyam import IamDataFrame, assert_iamframe_equal
+from pyam.utils import IAMC_IDX
+from pydantic import ValidationError
+
 from nomenclature import (
     DataStructureDefinition,
     RegionAggregationMapping,
     RegionProcessor,
     process,
 )
-from nomenclature.processor.region import NativeRegion, CommonRegion
-from pyam import IamDataFrame, assert_iamframe_equal
-from pyam.utils import IAMC_IDX
-
-from conftest import TEST_DATA_DIR, clean_up_external_repos
+from nomenclature.processor.region import CommonRegion, NativeRegion
 
 TEST_FOLDER_REGION_PROCESSING = TEST_DATA_DIR / "region_processing"
 TEST_FOLDER_REGION_AGGREGATION = TEST_FOLDER_REGION_PROCESSING / "region_aggregation"
@@ -175,12 +176,15 @@ def test_region_processor_not_defined(simple_definition):
 
 
 def test_region_processor_duplicate_model_mapping(simple_definition):
-    error_msg = ".*model_a.*mapping_(1|2).yaml.*mapping_(1|2).yaml"
-    with pytest.raises(ValueError, match=error_msg):
+    with pytest.RaisesGroup(
+        ValueError, match="Found errors in RegionProcessor"
+    ) as excinfo:
         RegionProcessor.from_directory(
             TEST_FOLDER_REGION_PROCESSING / "regionprocessor_duplicate",
             simple_definition,
         )
+    match = ".*model_a.*mapping_(1|2).yaml.*mapping_(1|2).yaml"
+    assert excinfo.group_contains(ValueError, match=match)
 
 
 def test_region_processor_wrong_args():
@@ -204,29 +208,39 @@ def test_region_processor_wrong_args():
 
 def test_region_processor_multiple_wrong_mappings(simple_definition):
     # Read in the entire region_aggregation directory and return **all** errors
-    msg = "Collected 11 errors"
 
-    with pytest.raises(ValueError, match=msg):
+    with pytest.raises(ExceptionGroup) as excinfo:
         RegionProcessor.from_directory(
             TEST_FOLDER_REGION_AGGREGATION,
             simple_definition,
         )
+    assert len(excinfo.value.exceptions) == 11
 
 
 def test_region_processor_exclude_model_native_overlap_raises(simple_definition):
     # Test that exclude regions in either native or common regions raise errors
 
-    with pytest.raises(
-        ValueError,
-        match=(
-            "'region_a'.* ['native_regions'|'common_regions'].*\n.*\n.*'region_a'.*"
-            "['native_regions'|'common_regions']"
-        ),
-    ):
+    with pytest.RaisesGroup(
+        ValidationError,
+        ValidationError,
+        match="Found errors in RegionProcessor",
+    ) as excinfo:
         RegionProcessor.from_directory(
             TEST_FOLDER_REGION_PROCESSING / "regionprocessor_exclude_region_overlap",
             simple_definition,
         )
+    assert excinfo.group_contains(
+        ValidationError,
+        match=(
+            "{'region_a'} can only be present in 'exclude_regions' or 'native_regions'"
+        ),
+    )
+    assert excinfo.group_contains(
+        ValidationError,
+        match=(
+            "{'region_a'} can only be present in 'exclude_regions' or 'common_regions'"
+        ),
+    )
 
 
 def test_region_processor_unexpected_region_raises():
