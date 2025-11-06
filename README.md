@@ -7,7 +7,7 @@ the [LICENSE](LICENSE) for details.
 
 [![license](https://img.shields.io/badge/License-Apache%202.0-black)](https://github.com/IAMconsortium/nomenclature/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/375724610.svg)](https://zenodo.org/badge/latestdoi/375724610)
-[![python](https://img.shields.io/badge/python-≥3.10,<3.14-blue?logo=python&logoColor=white)](https://github.com/IAMconsortium/nomenclature)
+[![python](https://img.shields.io/badge/python-≥3.11,<3.14-blue?logo=python&logoColor=white)](https://github.com/IAMconsortium/nomenclature)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![pytest](https://img.shields.io/github/actions/workflow/status/iamconsortium/nomenclature/pytest.yml?logo=GitHub&label=pytest)](https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml)
 [![ReadTheDocs](https://readthedocs.org/projects/nomenclature-iamc/badge)](https://nomenclature-iamc.readthedocs.io)
