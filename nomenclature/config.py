@@ -218,7 +218,7 @@ class TimeDomainConfig(BaseModel):
         cls, v: "TimeDomainConfig"
     ) -> "TimeDomainConfig":
         if v.timezone is not None and not v.datetime_allowed:
-            raise ValueError("Timezone is set but datetime is not allowed")
+            raise ValueError("'timezone' is set but 'datetime' is not allowed")
         return v
 
     @property
