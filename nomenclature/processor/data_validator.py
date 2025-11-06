@@ -3,22 +3,22 @@ import textwrap
 from enum import IntEnum
 from pathlib import Path
 
-import yaml
 import pandas as pd
+import yaml
 from pyam import IamDataFrame
 from pyam.utils import adjust_log_level
 from pydantic import (
     BaseModel,
     ConfigDict,
+    Field,
     computed_field,
     field_validator,
     model_validator,
-    Field,
 )
 
 from nomenclature.codelist import VariableCodeList
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.error import ErrorCollector
+from nomenclature.exceptions import NoTracebackExceptionGroup
 from nomenclature.processor import Processor
 from nomenclature.processor.iamc import IamcDataFilter
 from nomenclature.processor.utils import get_relative_path
@@ -252,7 +252,7 @@ class DataValidator(Processor):
 
     @classmethod
     def from_file(
-        cls, file: Path | str, output_path: Path | None = None
+        cls, file: Path | str, output_path: Path | str | None = None
     ) -> "DataValidator":
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
@@ -341,11 +341,14 @@ class DataValidator(Processor):
         return df
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
-        errors = ErrorCollector(description=f"in file '{self.file}'")
+        errors: list[Exception] = []
         for criterion in self.criteria_items:
             try:
                 criterion.validate_with_definition(dsd)
-            except ValueError as value_error:
-                errors.append(value_error)
+            except NoTracebackExceptionGroup as exception:
+                errors.extend(exception.exceptions)
         if errors:
-            raise ValueError(errors)
+            raise NoTracebackExceptionGroup(
+                f"Error in DataValidator (file {get_relative_path(self.file)})",
+                errors,
+            )

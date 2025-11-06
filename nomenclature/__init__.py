@@ -7,6 +7,7 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
+import nomenclature.exceptions  # noqa
 from nomenclature.cli import cli  # noqa
 from nomenclature.codelist import CodeList  # noqa
 from nomenclature.core import process  # noqa

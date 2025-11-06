@@ -1,8 +1,9 @@
-from pydantic import BaseModel, ConfigDict, field_validator
-
 from pyam import IAMC_IDX
+from pydantic import BaseModel, ConfigDict, field_validator
+from toolkit.exceptions import NoTracebackException
 
 from nomenclature.definition import DataStructureDefinition
+from nomenclature.exceptions import NoTracebackExceptionGroup
 
 
 class IamcDataFilter(BaseModel):
@@ -25,7 +26,7 @@ class IamcDataFilter(BaseModel):
         return self.model_dump(exclude_none=True, exclude_unset=True)
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
-        error_msg = ""
+        errors = []
 
         # check for filter-items that are not defined in the codelists
         for dimension in IAMC_IDX:
@@ -34,10 +35,14 @@ class IamcDataFilter(BaseModel):
             if codelist is None or getattr(self, dimension) is None:
                 continue
             if invalid := codelist.validate_items(getattr(self, dimension)):
-                error_msg += (
-                    f"The following {dimension}s are not defined in the "
-                    "DataStructureDefinition:\n   " + ", ".join(invalid) + "\n"
+                errors.append(
+                    NoTracebackException(
+                        f"The following {dimension}s are not defined in the "
+                        "DataStructureDefinition:\n   " + ", ".join(invalid)
+                    )
                 )
 
-        if error_msg:
-            raise ValueError(error_msg)
+        if errors:
+            raise NoTracebackExceptionGroup(
+                f"Errors in {self.__class__.__name__}", errors
+            )

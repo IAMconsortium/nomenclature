@@ -1,21 +1,22 @@
 import logging
 from pathlib import Path
-from typing import Any, Annotated
+from typing import Annotated, Any
 
 import pandas as pd
-import yaml
 import pyam
+import yaml
 from pyam import IamDataFrame
 from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    Field,
     field_validator,
     model_validator,
-    BaseModel,
-    Field,
-    BeforeValidator,
 )
+from toolkit.exceptions import NoTracebackException
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.error import ErrorCollector
+from nomenclature.exceptions import NoTracebackExceptionGroup, WrongUnitError
 from nomenclature.processor import Processor
 from nomenclature.processor.utils import get_relative_path
 
@@ -71,7 +72,8 @@ class RequiredData(BaseModel):
         return values
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
-        error_msg = ""
+
+        errors = []
 
         # check for undefined regions and variables
         for dimension, attribute_name in (
@@ -81,22 +83,19 @@ class RequiredData(BaseModel):
             if invalid := getattr(dsd, dimension).validate_items(
                 getattr(self, attribute_name) or []
             ):
-                error_msg += (
-                    f"The following {dimension}(s) were not found in the "
-                    f"DataStructureDefinition:\n{invalid}\n"
+                errors.append(
+                    NoTracebackException(
+                        f"The following {dimension}(s) were not found in the "
+                        f"DataStructureDefinition:\n{invalid}"
+                    )
                 )
 
         # check for defined variables with wrong units
-        if wrong_unit_variables := self._wrong_unit_variables(dsd):
-            error_msg += (
-                "The following variables were found in the "
-                "DataStructureDefinition but have the wrong unit "
-                "(affected variable, wrong unit, expected unit):\n"
-                f"{wrong_unit_variables}"
-            )
+        if invalid_units := self._wrong_unit_variables(dsd):
+            errors.append(WrongUnitError(invalid_units))
 
-        if error_msg:
-            raise ValueError(error_msg)
+        if errors:
+            raise NoTracebackExceptionGroup("Found error(s) in RequiredData", errors)
 
     @property
     def variables(self) -> list[str]:
@@ -240,11 +239,14 @@ class RequiredDataValidator(Processor):
         return missing_data
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
-        errors = ErrorCollector()
+        errors: list[Exception] = []
         for data in self.required_data:
             try:
                 data.validate_with_definition(dsd)
-            except ValueError as value_error:
-                errors.append(value_error)
+            except NoTracebackExceptionGroup as exception:
+                errors.extend(exception.exceptions)
         if errors:
-            raise ValueError(f"In file {get_relative_path(self.file)}:\n{errors}")
+            raise NoTracebackExceptionGroup(
+                f"Error in RequiredDataValidator (file {get_relative_path(self.file)})",
+                errors,
+            )
