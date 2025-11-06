@@ -318,7 +318,7 @@ class RegionCode(Code):
 
     """
 
-    hierarchy: str = None
+    hierarchy: str | None = None
     countries: list[str] | None = None
     iso3_codes: list[str] | str | None = None
 
