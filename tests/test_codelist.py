@@ -532,10 +532,7 @@ def test_multiple_external_repos():
 
 @pytest.mark.parametrize("CodeList", [VariableCodeList, CodeList])
 def test_variable_codelist_with_duplicates_raises(CodeList):
-    error_string = (
-        "2 errors:\n.*Identical.*'Some Variable'.*\n.*\n.*\n.*Conflicting."
-        "*'Some other Variable'"
-    )
+
     with RaisesGroup(
         ValueError, ValueError, match="Found errors in codelist"
     ) as excinfo:
