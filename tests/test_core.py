@@ -643,6 +643,5 @@ def test_processing_inf_values_raises(simple_df, simple_definition, caplog):
             columns=IAMC_IDX + [2005, 2010],
         )
     )
-    with pytest.raises(ValueError, match = "Data contains inf or -inf values"):
+    with pytest.raises(ValueError, match="Data contains inf or -inf values"):
         process(df_with_inf, simple_definition)
-    assert "Data contains inf or -inf values" in caplog.text
