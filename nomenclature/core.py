@@ -2,6 +2,7 @@ import logging
 
 import pyam
 from pydantic import validate_call
+from numpy import isinf
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor import Processor, RegionProcessor
@@ -22,6 +23,7 @@ def process(
     the following operations:
 
     * Validation against the codelists of a DataStructureDefinition
+    * Checking for infinite values in the data
     * Region-processing, which can consist of three parts:
         1. Model native regions not listed in the model mapping will be dropped
         2. Model native regions can be renamed
@@ -63,6 +65,11 @@ def process(
         dimensions.remove("region")
 
     dsd.validate(df, dimensions=dimensions)
+
+    # check for infinite values in data
+    if any(isinf(df.data["value"])):
+        logger.error("Data contains inf or -inf values")
+        raise ValueError("The validation failed. Please check the log for details.")
 
     for p in processor:
         df = p.apply(df)

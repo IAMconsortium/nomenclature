@@ -624,3 +624,25 @@ def test_region_aggregation_unknown_region(simple_df, simple_definition, caplog)
         text in caplog.text
         for text in ["not defined in the region codelist", "unknown region"]
     )
+
+
+def test_processing_inf_values_raises(simple_df, simple_definition, caplog):
+    df_with_inf = simple_df.append(
+        pd.DataFrame(
+            [
+                [
+                    "model_a",
+                    "scen_b",
+                    "World",
+                    "Primary Energy|Coal",
+                    "EJ/yr",
+                    float("-inf"),
+                    float("inf"),
+                ],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+    with pytest.raises(ValueError):
+        process(df_with_inf, simple_definition)
+    assert "Data contains inf or -inf values" in caplog.text
