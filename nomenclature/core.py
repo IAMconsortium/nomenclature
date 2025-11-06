@@ -67,7 +67,7 @@ def process(
     dsd.validate(df, dimensions=dimensions)
 
     # check for infinite values in data
-    if any(isinf(df.data["value"])):
+    if isinf(df.data["value"]).any():
         logger.error("Data contains inf or -inf values")
         raise ValueError("The validation failed. Please check the log for details.")
 
