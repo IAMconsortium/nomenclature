@@ -18,19 +18,13 @@ from nomenclature.config import CodeListConfig, NomenclatureConfig
 from nomenclature.exceptions import (
     CodeListErrorGroup,
     MissingWeightError,
+    UnknownCodeError,
+    UnknownRegionError,
     UnknownScenarioError,
+    UnknownVariableError,
     VariableRenameArgError,
     VariableRenameTargetError,
     WrongUnitError,
-)
-from nomenclature.exceptions import (
-    UnknownCodeError as UnknownCodeError,
-)
-from nomenclature.exceptions import (
-    UnknownRegionError as UnknownRegionError,
-)
-from nomenclature.exceptions import (
-    UnknownVariableError as UnknownVariableError,
 )
 from nomenclature.nuts import nuts
 
@@ -114,7 +108,7 @@ class CodeList(BaseModel):
         project: str | None = None,
     ) -> None:
         if invalid := self.validate_items(getattr(df, dimension)):
-            raise self.unknown_code_error(dimension, invalid, project)
+            raise self.unknown_code_error(invalid, dimension=dimension, project=project)
 
     def validate_items(self, items: list[str]) -> list[str]:
         """Validate that a list of items are valid codes
@@ -716,7 +710,7 @@ class VariableCodeList(CodeList):
         project: str | None = None,
     ) -> None:
         # validate variables
-        super().validate_data(df, dimension, project)
+        super().validate_df(df, dimension, project)
         # validate units
         self.validate_units(df.unit_mapping, project)
 
