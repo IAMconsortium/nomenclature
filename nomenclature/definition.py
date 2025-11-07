@@ -125,7 +125,7 @@ class DataStructureDefinition:
         if exceptions:
             raise NomenclatureValidationError("Validation failed, details:", exceptions)
 
-    def check_aggregate(self, df: IamDataFrame, **kwargs) -> None:
+    def check_aggregate(self, df: IamDataFrame, **kwargs) -> pd.DataFrame:
         """Check for consistency of scenario data along the variable hierarchy
 
         Parameters
@@ -137,7 +137,7 @@ class DataStructureDefinition:
 
         Returns
         -------
-        :class:`pandas.DataFrame` or None
+        :class:`pandas.DataFrame`
             Data where a variable and its computed aggregate does not match.
 
         Raises
@@ -179,8 +179,8 @@ class DataStructureDefinition:
 
         if lst:
             # there may be empty dataframes due to `dropna()` above
-            error = pd.concat(lst)
-            return error if not error.empty else None
+            return pd.concat(lst)
+        return pd.DataFrame()
 
     def to_excel(self, excel_writer, **kwargs):
         """Write the codelists to an xlsx spreadsheet

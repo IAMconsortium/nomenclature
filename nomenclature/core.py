@@ -69,8 +69,9 @@ def process(
 
     # check consistency across the variable hierarchy
     error = dsd.check_aggregate(df)
-    if error is not None:
-        logger.error(f"These variables are not the sum of their components:\n{error}")
-        raise ValueError("The validation failed. Please check the log for details.")
+    if not error.empty:
+        raise ValueError(
+            f"These variables are not the sum of their components:\n{error}"
+        )
 
     return df
