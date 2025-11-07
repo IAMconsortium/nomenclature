@@ -597,7 +597,7 @@ class RegionProcessor(Processor):
 
         res = pyam.concat(processed_dfs)
         if not_defined_regions := self.region_codelist.validate_items(res.region):
-            raise UnknownRegionError("region", not_defined_regions)
+            raise UnknownRegionError(not_defined_regions)
 
         return res
 
