@@ -3,8 +3,10 @@ from conftest import TEST_DATA_DIR
 from yaml.scanner import ScannerError
 
 from nomenclature.exceptions import (
-    NoTracebackException,
     ProcessorErrorGroup,
+    UnknownRegionError,
+    UnknownVariableError,
+    WrongUnitError,
     YamlErrorGroup,
 )
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
@@ -47,13 +49,13 @@ def test_assert_valid_structure_requiredData_raises():
     # assert that all issues with requiredData files are reported correctly
     assert len(excinfo.value.exceptions) == 5
     assert excinfo.group_contains(
-        NoTracebackException, match=r"region\(s\) were not found.*\n.*Asia"
+        UnknownRegionError, match=r"region\(s\) are not defined.*\n.*Asia"
     )
     assert excinfo.group_contains(
-        NoTracebackException,
-        match=r"wrong unit.*\n.*\[\('Final Energy', 'Mtoe\/yr', 'EJ\/yr'\)",
+        WrongUnitError,
+        match=r"wrong unit:\n - 'Final Energy' - expected: 'EJ/yr', found: 'Mtoe/yr'",
     )
     assert excinfo.group_contains(
-        NoTracebackException,
-        match=r"variable\(s\) were not found.*\n.*\['Final Energy\|Industry'\]",
+        UnknownVariableError,
+        match=r"variable\(s\) are not defined.*\n - Final Energy\|Industry",
     )
