@@ -10,7 +10,7 @@ from pydantic.types import FilePath
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.exceptions import AggregationMappingConflict
 from nomenclature.processor import Processor
-from nomenclature.processor.utils import get_relative_path
+from nomenclature.utils import get_relative_path
 
 logger = logging.getLogger(__name__)
 

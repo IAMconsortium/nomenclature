@@ -21,7 +21,7 @@ from nomenclature.definition import DataStructureDefinition
 from nomenclature.exceptions import NoTracebackExceptionGroup
 from nomenclature.processor import Processor
 from nomenclature.processor.iamc import IamcDataFilter
-from nomenclature.processor.utils import get_relative_path
+from nomenclature.utils import get_relative_path
 
 logger = logging.getLogger(__name__)
 
