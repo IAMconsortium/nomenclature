@@ -78,23 +78,17 @@ class RequiredData(BaseModel):
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
 
-        errors = []
+        errors: list[Exception] = []
 
         # check for undefined regions and variables
-        for dimension, attribute_name in (
-            ("region", "region"),
-            ("variable", "variables"),
+        if invalid_regions := getattr(dsd, "region").validate_items(
+            getattr(self, "region") or []
         ):
-            if invalid := getattr(dsd, dimension).validate_items(
-                getattr(self, attribute_name) or []
-            ):
-                errors.append(
-                    NoTracebackException(
-                        f"The following {dimension}(s) were not found in the "
-                        f"DataStructureDefinition:\n{invalid}"
-                    )
-                )
-
+            errors.append(UnknownRegionError(invalid_regions))
+        if invalid_variables := getattr(dsd, "variable").validate_items(
+            getattr(self, "variables") or []
+        ):
+            errors.append(UnknownVariableError(invalid_variables))
         # check for defined variables with wrong units
         if invalid_units := self._wrong_unit_variables(dsd):
             errors.append(WrongUnitError(invalid_units))
