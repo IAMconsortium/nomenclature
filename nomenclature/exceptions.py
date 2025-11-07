@@ -1,12 +1,11 @@
-import logging
 from functools import partial
+from pathlib import Path
 from typing import Any
 
 from pydantic_core import PydanticCustomError
 from toolkit.exceptions import NoTracebackException
 
-logger = logging.getLogger(__name__)
-
+from nomenclature.utils import get_relative_path
 
 RegionNameCollisionError = partial(
     PydanticCustomError,
@@ -77,13 +76,15 @@ class UnknownCodeError(NoTracebackException):
         "The following {}(s) are not defined in the {} codelist:\n - {}{}"
     )
     _file_service_address: str = "https://files.ece.iiasa.ac.at"
+    dimension: str = "code"
 
     def __init__(
         self,
-        dimension: str,
         invalid_code_names: list[str],
+        dimension: str | None = None,
         project: str | None = None,
     ) -> None:
+        dimension = dimension or self.dimension
         complete_message = self.message_template.format(
             dimension,
             dimension,
@@ -159,3 +160,14 @@ class ProcessorErrorGroup(NoTracebackExceptionGroup):
 
 class CodeListErrorGroup(NoTracebackExceptionGroup):
     pass
+
+
+class RequiredDataMissingError(ValueError):
+
+    def __init__(self, missing_data_info: str, file: Path) -> None:
+
+        message = (
+            f"Missing required data (file: {get_relative_path(file)}):\n"
+            f"{missing_data_info}"
+        )
+        super().__init__(message)
