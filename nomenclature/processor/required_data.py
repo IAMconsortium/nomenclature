@@ -189,28 +189,27 @@ class RequiredDataValidator(Processor):
             for model in models_to_check
             if list(self.check_required_data_per_model(df, model))
         }:
-            missing_data_log_info = ""
+            missing_data_info = ""
             for model, data_list in missing_data.items():
-                missing_data_log_info += f"Missing for '{model}':\n"
+                missing_data_info += f"Missing for '{model}':\n"
                 for data in data_list:
-                    missing_data_log_info += (
+                    missing_data_info += (
                         data.to_string(
                             index=False,
                             justify="left",
                         )
                         + "\n\n"
                     )
-            logger.error(
-                "Missing required data.\nFile: %s\n\n%s",
-                get_relative_path(self.file),
-                missing_data_log_info,
+
+            raise RequiredDataMissingError(
+                missing_data_info=missing_data_info, file=self.file
             )
-            raise ValueError("Required data missing. Please check the log for details.")
+
         return df
 
     def check_required_data_per_model(
         self, df: IamDataFrame, model: str
-    ) -> list[pyam.IamDataFrame]:
+    ) -> list[pd.DataFrame]:
         model_df = df.filter(model=model)
         missing_data = []
         for requirement in self.required_data:
