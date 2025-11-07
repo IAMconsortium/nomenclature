@@ -111,7 +111,7 @@ class DataStructureDefinition:
         exceptions: list[Exception] = []
         for dimension in dimensions or self.dimensions:
             try:
-                getattr(self, dimension).validate_data(
+                getattr(self, dimension).validate_df(
                     df,
                     dimension,
                     self.project,
