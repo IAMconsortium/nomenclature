@@ -52,7 +52,7 @@ def test_check_aggregate_passing(components, components_type):
     # check that components is returned as a basic type (not a codelist)
     assert isinstance(dsd.variable.mapping["Final Energy"].components, components_type)
 
-    # aggregation check returns None if no inconsistencies are found
+    # aggregation check returns an empty data frame if no inconsistencies are found
     assert dsd.check_aggregate(TEST_DF).empty
 
 
