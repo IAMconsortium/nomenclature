@@ -258,7 +258,7 @@ class TimeDomainConfig(BaseModel):
 
         elif df.time_domain == "mixed":
             if not self.mixed_allowed:
-                TimeDomainError("Invalid time domain - `mixed` found, but not allowed.")
+                raise TimeDomainError("Invalid time domain - `mixed` found, but not allowed.")
 
             self.check_datetime_format(df)
         elif df.time_domain == "datetime":
