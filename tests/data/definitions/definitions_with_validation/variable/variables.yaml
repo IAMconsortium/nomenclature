@@ -1,0 +1,7 @@
+- Primary Energy:
+    description: Total primary energy consumption
+    unit: EJ/yr
+    lower_bound: 0
+- Primary Energy|Coal:
+    description: Primary energy consumption of coal
+    unit: EJ/yr
