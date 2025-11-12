@@ -1,11 +1,11 @@
 from pathlib import Path
 
 import numpy as np
-import pytest
 import pandas as pd
 import pandas.testing as pdt
-
+import pytest
 from conftest import TEST_DATA_DIR
+from toolkit.exceptions import NoTracebackException
 
 from nomenclature import DataStructureDefinition
 from nomenclature.codelist import VariableCodeList
@@ -129,9 +129,9 @@ def test_DataValidator_validate_with_definition_raises(dimension, match):
 
     # validating against a DataStructure with all dimensions raises
     dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definitions")
-    with pytest.raises(ValueError, match=match):
+    with pytest.RaisesGroup(NoTracebackException) as excinfo:
         data_validator.validate_with_definition(dsd)
-
+    assert excinfo.group_contains(NoTracebackException, match=match)
     # validating against a DataStructure without the offending dimension passes
     dsd = DataStructureDefinition(
         TEST_DATA_DIR / "validation" / "definitions",

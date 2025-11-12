@@ -1,20 +1,20 @@
-from pytest import raises
+import logging
+
 import pandas as pd
 import pandas.testing as pdt
 import pytest
-import logging
+from conftest import TEST_DATA_DIR, clean_up_external_repos
+from pytest import RaisesGroup, raises
 
-from nomenclature.code import Code, RegionCode, MetaCode, VariableCode
+from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.codelist import (
     CodeList,
-    VariableCodeList,
-    RegionCodeList,
     MetaCodeList,
+    RegionCodeList,
+    VariableCodeList,
 )
 from nomenclature.config import NomenclatureConfig
 from nomenclature.definition import DataStructureDefinition
-
-from conftest import TEST_DATA_DIR, clean_up_external_repos
 
 MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "codelist"
 
@@ -70,11 +70,14 @@ def test_codelist_to_yaml():
 
 def test_duplicate_code_raises():
     """Check that code conflicts across different files raises"""
-    match = "Conflicting duplicate items in 'variable' codelist: 'Some Variable'"
-    with raises(ValueError, match=match):
+
+    with RaisesGroup(ValueError, match="Found errors in codelist") as excinfo:
         VariableCodeList.from_directory(
             "variable", MODULE_TEST_DATA_DIR / "duplicate_code_raises"
         )
+    assert excinfo.group_contains(
+        ValueError, match="duplicate items in 'variable' codelist: 'Some Vari"
+    )
 
 
 def test_duplicate_tag_raises():
@@ -273,34 +276,39 @@ def test_to_csv():
     [
         (
             "tag_in_str",
-            r"Illegal character\(s\) '{', '}' in name of variable 'Primary Energy\|{Feul}'",
+            (
+                "Illegal character\\(s\\) '{', '}' in 'name' of variable "
+                "'Primary Energy|\\{Feul\\}'"
+            ),
         ),
         (
             "tag_in_list",
-            r"Illegal character\(s\) '{' in info of variable 'Share\|Coal'",
+            "Illegal character\\(s\\) '{' in 'info' of variable 'Share|Coal'",
         ),
         (
             "tag_in_dict",
-            r"Illegal character\(s\) '}' in invalid of variable 'Primary Energy'",
+            "Illegal character\\(s\\) '}' in 'invalid' of variable 'Primary Energy'",
         ),
     ],
 )
 def test_stray_tag_fails(subfolder, match):
     """Check that stray brackets from, e.g. typos in a tag, raises expected error"""
-    with raises(ValueError, match=match):
-        code_list = VariableCodeList.from_directory(
-            "variable", MODULE_TEST_DATA_DIR / "stray_tag" / subfolder
-        )
+    code_list = VariableCodeList.from_directory(
+        "variable", MODULE_TEST_DATA_DIR / "stray_tag" / subfolder
+    )
+    with pytest.raises(ExceptionGroup, match="Found illegal characters") as excinfo:
         code_list.check_illegal_characters(NomenclatureConfig(dimensions=["variable"]))
+    assert excinfo.group_contains(ValueError, match=match)
 
 
 def test_illegal_chars_raise():
     """Check that illegal characters raise error if found."""
-    match = r"Illegal character\(s\) '\"' in info of variable 'Primary Energy\|Coal'"
-    with raises(ValueError, match=match):
+    match = "Illegal character(s) '\"' in info of variable 'Primary Energy|Coal'"
+    with RaisesGroup(ValueError) as excinfo:
         DataStructureDefinition(
             MODULE_TEST_DATA_DIR / "illegal_chars" / "char_in_str" / "definitions"
         )
+    assert excinfo.group_contains(ValueError, match=match)
 
 
 def test_illegal_chars_ignore():
@@ -524,14 +532,18 @@ def test_multiple_external_repos():
 
 @pytest.mark.parametrize("CodeList", [VariableCodeList, CodeList])
 def test_variable_codelist_with_duplicates_raises(CodeList):
-    error_string = (
-        "2 errors:\n.*Identical.*'Some Variable'.*\n.*\n.*\n.*Conflicting."
-        "*'Some other Variable'"
-    )
-    with raises(ValueError, match=error_string):
+
+    with RaisesGroup(
+        ValueError, ValueError, match="Found errors in codelist"
+    ) as excinfo:
         CodeList.from_directory(
             "variable", MODULE_TEST_DATA_DIR / "duplicate-code-list" / "variable"
         )
+
+    assert excinfo.group_contains(ValueError, match="Identical.*'Some Variable'")
+    assert excinfo.group_contains(
+        ValueError, match="Conflicting." "*'Some other Variable'"
+    )
 
 
 def test_variablecodelist_list_missing_variables_to_new_file(simple_df, tmp_path):

@@ -2,24 +2,32 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-import pandas as pd
 import git
+import pandas as pd
 from pyam import IamDataFrame
 from pyam.index import replace_index_labels
 from pyam.utils import adjust_log_level, write_sheet
 
 from nomenclature.codelist import (
     CodeList,
-    RegionCodeList,
-    VariableCodeList,
     MetaCodeList,
+    RegionCodeList,
+    ScenarioCodeList,
+    VariableCodeList,
 )
 from nomenclature.config import NomenclatureConfig
+from nomenclature.exceptions import (
+    NomenclatureValidationError,
+    TimeDomainError,
+    UnknownCodeError,
+    WrongUnitError,
+)
 
 logger = logging.getLogger(__name__)
 SPECIAL_CODELIST = {
     "variable": VariableCodeList,
     "region": RegionCodeList,
+    "scenario": ScenarioCodeList,
     "meta": MetaCodeList,
 }
 
@@ -100,21 +108,24 @@ class DataStructureDefinition:
             If `df` fails validation against any codelist.
         """
 
-        if (
-            any(
+        exceptions: list[Exception] = []
+        for dimension in dimensions or self.dimensions:
+            try:
                 getattr(self, dimension).validate_df(
                     df,
                     dimension,
                     self.project,
                 )
-                is False
-                for dimension in (dimensions or self.dimensions)
-            )
-            or self.config.time_domain.validate_datetime(df) is False
-        ):
-            raise ValueError("The validation failed. Please check the log for details.")
+            except (UnknownCodeError, WrongUnitError) as e:
+                exceptions.append(e)
+        try:
+            self.config.time_domain.validate_datetime(df)
+        except* TimeDomainError as e:
+            exceptions.append(e)
+        if exceptions:
+            raise NomenclatureValidationError("Validation failed, details:", exceptions)
 
-    def check_aggregate(self, df: IamDataFrame, **kwargs) -> None:
+    def check_aggregate(self, df: IamDataFrame, **kwargs) -> pd.DataFrame:
         """Check for consistency of scenario data along the variable hierarchy
 
         Parameters
@@ -126,7 +137,7 @@ class DataStructureDefinition:
 
         Returns
         -------
-        :class:`pandas.DataFrame` or None
+        :class:`pandas.DataFrame`
             Data where a variable and its computed aggregate does not match.
 
         Raises
@@ -168,8 +179,8 @@ class DataStructureDefinition:
 
         if lst:
             # there may be empty dataframes due to `dropna()` above
-            error = pd.concat(lst)
-            return error if not error.empty else None
+            return pd.concat(lst)
+        return pd.DataFrame()
 
     def to_excel(self, excel_writer, **kwargs):
         """Write the codelists to an xlsx spreadsheet

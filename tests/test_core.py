@@ -1,16 +1,17 @@
 import copy
-import pytest
 
 import numpy as np
 import pandas as pd
+import pytest
+from conftest import TEST_DATA_DIR, add_meta
 from pandas.testing import assert_frame_equal
-from nomenclature.core import process
-from nomenclature.definition import DataStructureDefinition
-from nomenclature.processor.region import RegionProcessor
 from pyam import IamDataFrame, assert_iamframe_equal
 from pyam.utils import IAMC_IDX
 
-from conftest import TEST_DATA_DIR, add_meta
+from nomenclature.core import process
+from nomenclature.definition import DataStructureDefinition
+from nomenclature.exceptions import UnknownRegionError
+from nomenclature.processor.region import RegionProcessor
 
 
 @pytest.mark.parametrize("model_name", ["model_a", "model_b"])
@@ -369,27 +370,17 @@ def test_region_processing_keep_and_rename_native():
 
 def test_region_processing_self_referencing_common_raises():
     """Checks common regions with source region(s) with same name as target raise."""
-    test_df = IamDataFrame(
-        pd.DataFrame(
-            [
-                ["model_c", "s_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
-                ["model_c", "s_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
-            ],
-            columns=IAMC_IDX + [2005, 2010],
-        )
-    )
-    add_meta(test_df)
-
-    with pytest.raises(ValueError, match=r"Name collision in common region"):
-        process(
-            test_df,
-            dsd := DataStructureDefinition(
+    with pytest.RaisesGroup(
+        ValueError, match="Found errors in RegionProcessor"
+    ) as excinfo:
+        RegionProcessor.from_directory(
+            TEST_DATA_DIR / "region_processing/skip_aggregation/raises",
+            DataStructureDefinition(
                 TEST_DATA_DIR / "region_processing/skip_aggregation/dsd"
             ),
-            RegionProcessor.from_directory(
-                TEST_DATA_DIR / "region_processing/skip_aggregation/raises", dsd
-            ),
         )
+
+    assert excinfo.group_contains(ValueError, match="Name collision in common region")
 
 
 @pytest.mark.parametrize(
@@ -616,11 +607,10 @@ def test_region_aggregation_unknown_region(simple_df, simple_definition, caplog)
             columns=IAMC_IDX + [2005, 2010],
         )
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        UnknownRegionError,
+        match=r"region\(s\) are not defined in the region codelist:\n - unknown region",
+    ):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "region_processing" / "no_mapping", simple_definition
         ).apply(df_with_unknown_region)
-    assert all(
-        text in caplog.text
-        for text in ["not defined in the region codelist", "unknown region"]
-    )

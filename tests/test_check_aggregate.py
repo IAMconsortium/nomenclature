@@ -1,12 +1,12 @@
-import pytest
+import numpy as np
 import pandas as pd
 import pandas.testing as pdt
-import numpy as np
-from nomenclature.core import process
-from nomenclature.definition import DataStructureDefinition
+import pytest
+from conftest import TEST_DATA_DIR
 from pyam import IamDataFrame
 
-from conftest import TEST_DATA_DIR
+from nomenclature.core import process
+from nomenclature.definition import DataStructureDefinition
 
 TEST_DF = IamDataFrame(
     pd.DataFrame(
@@ -52,8 +52,8 @@ def test_check_aggregate_passing(components, components_type):
     # check that components is returned as a basic type (not a codelist)
     assert isinstance(dsd.variable.mapping["Final Energy"].components, components_type)
 
-    # aggregation check returns None if no inconsistencies are found
-    assert dsd.check_aggregate(TEST_DF) is None
+    # aggregation check returns an empty data frame if no inconsistencies are found
+    assert dsd.check_aggregate(TEST_DF).empty
 
 
 @pytest.mark.parametrize(
@@ -78,5 +78,7 @@ def test_check_aggregate_failing(components, exp):
     pdt.assert_frame_equal(dsd.check_aggregate(df), exp)
 
     # process raises an error (and writes to log, not tested explicitly)
-    with pytest.raises(ValueError, match="The validation failed. Please "):
+    with pytest.raises(
+        ValueError, match="These variables are not the sum of their components"
+    ):
         process(df, dsd)

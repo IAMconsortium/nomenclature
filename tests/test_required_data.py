@@ -1,9 +1,17 @@
 from copy import deepcopy
+
 import pytest
 from conftest import TEST_DATA_DIR
-
 from pyam import assert_iamframe_equal
+
 from nomenclature import DataStructureDefinition, RequiredDataValidator
+from nomenclature.exceptions import (
+    NoTracebackExceptionGroup,
+    RequiredDataMissingError,
+    UnknownRegionError,
+    UnknownVariableError,
+    WrongUnitError,
+)
 from nomenclature.processor.required_data import RequiredMeasurand
 
 REQUIRED_DATA_TEST_DIR = TEST_DATA_DIR / "required_data" / "required_data"
@@ -44,20 +52,28 @@ def test_RequiredDataValidator_validate_with_definition():
 
 
 @pytest.mark.parametrize(
-    "requiredDataFile, match",
+    "requiredDataFile, match, exception_type",
     [
-        ("requiredData_unknown_region.yaml", r"region\(s\).*not found.*\n.*Asia"),
+        (
+            "requiredData_unknown_region.yaml",
+            r"region\(s\).*not defined.*\n.*Asia",
+            UnknownRegionError,
+        ),
         (
             "requiredData_unknown_variable.yaml",
-            r"variable\(s\).*not found.*\n.*Final Energy\|Industry",
+            r"variable\(s\).*not defined.*\n.*Final Energy\|Industry",
+            UnknownVariableError,
         ),
         (
             "requiredData_unknown_unit.yaml",
-            r"wrong unit.*\n.*'Final Energy', 'Mtoe\/yr', 'EJ\/yr'",
+            r"wrong unit:\n - 'Final Energy' - expected: 'EJ\/yr', found: 'Mtoe\/yr'",
+            WrongUnitError,
         ),
     ],
 )
-def test_RequiredDataValidator_validate_with_definition_raises(requiredDataFile, match):
+def test_RequiredDataValidator_validate_with_definition_raises(
+    requiredDataFile, match, exception_type
+):
     # Testing three different failure cases
     # 1. Undefined region
     # 2. Undefined variable
@@ -71,8 +87,11 @@ def test_RequiredDataValidator_validate_with_definition_raises(requiredDataFile,
         dimensions=["region", "variable"],
     )
 
-    with pytest.raises(ValueError, match=match):
+    with pytest.raises(
+        NoTracebackExceptionGroup, match="Error in RequiredDataValidator"
+    ) as excinfo:
         required_data_validator.validate_with_definition(dsd)
+    assert excinfo.group_contains(exception_type, match=match)
 
 
 @pytest.mark.parametrize(
@@ -91,12 +110,14 @@ def test_RequiredData_apply(simple_df, required_data_file):
     assert_iamframe_equal(required_data_validator.apply(simple_df), simple_df)
 
 
-def test_RequiredData_apply_raises(simple_df, caplog):
+def test_RequiredData_apply_raises(simple_df):
     required_data_validator = RequiredDataValidator.from_file(
         REQUIRED_DATA_TEST_DIR / "requiredData_apply_error.yaml"
     )
     # assert that the correct error is raised
-    with pytest.raises(ValueError, match="Required data missing"):
+    with pytest.raises(
+        RequiredDataMissingError, match="Missing required data"
+    ) as excinfo:
         required_data_validator.apply(simple_df)
 
     missing_data = [
@@ -115,11 +136,8 @@ scen_b   Emissions|CO2 Mt CO2/yr""",
         """scen_a   World  Final Energy
 scen_b   World  Final Energy""",
     ]
-    # check if the log message contains the correct information
-    assert all(
-        x in caplog.text
-        for x in ["ERROR", "Missing required data", "File"] + missing_data
-    )
+
+    assert all(line in str(excinfo.value) for line in missing_data)
 
 
 def test_per_model_RequiredData(simple_df):

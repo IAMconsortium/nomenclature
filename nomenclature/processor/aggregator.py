@@ -4,14 +4,13 @@ from pathlib import Path
 
 import yaml
 from pyam import IamDataFrame
-from pydantic import BaseModel, field_validator, model_validator, ValidationInfo
+from pydantic import BaseModel, ValidationInfo, field_validator, model_validator
 from pydantic.types import FilePath
-from pydantic_core import PydanticCustomError
 
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.error import custom_pydantic_errors
+from nomenclature.exceptions import AggregationMappingConflict
 from nomenclature.processor import Processor
-from nomenclature.processor.utils import get_relative_path
+from nomenclature.utils import get_relative_path
 
 logger = logging.getLogger(__name__)
 
@@ -190,11 +189,6 @@ class Aggregator(Processor):
 def _validate_items(items: list, file: str, _type: str):
     duplicates = [item for item, count in Counter(items).items() if count > 1]
     if duplicates:
-        raise PydanticCustomError(
-            *custom_pydantic_errors.AggregationMappingConflict,
-            {
-                "type": _type,
-                "duplicates": duplicates,
-                "file": file,
-            },
+        raise AggregationMappingConflict(
+            {"type": _type, "duplicates": duplicates, "file": file}
         )

@@ -2,15 +2,20 @@ import logging
 from pathlib import Path
 
 import yaml
+from yaml import parser, scanner
 
 from nomenclature.definition import DataStructureDefinition
+from nomenclature.exceptions import (
+    NoTracebackExceptionGroup,
+    ProcessorErrorGroup,
+    YamlErrorGroup,
+)
 from nomenclature.processor import (
     DataValidator,
+    Processor,
     RegionProcessor,
     RequiredDataValidator,
-    Processor,
 )
-from nomenclature.error import ErrorCollector
 
 logger = logging.getLogger(__name__)
 
@@ -23,14 +28,13 @@ def assert_valid_yaml(path: Path):
     special_characters = ""
 
     # iterate over the yaml files in all sub-folders and try loading each
-    error = False
+    exceptions: list[Exception] = []
     for file in (f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}):
         try:
             with open(file, "r", encoding="utf-8") as stream:
                 yaml.safe_load(stream)
-        except (yaml.scanner.ScannerError, yaml.parser.ParserError) as e:
-            error = True
-            logger.error(f"Error parsing file {e}")
+        except (scanner.ScannerError, parser.ParserError) as error:
+            exceptions.append(error)
 
         with open(file, "r", encoding="utf-8") as all_lines:
             # check if any special character is found in the file
@@ -42,13 +46,13 @@ def assert_valid_yaml(path: Path):
                         )
 
     if special_characters:
-        raise AssertionError(f"Unexpected special character(s): {special_characters}")
+        exceptions.append(
+            AssertionError(f"Unexpected special character(s): {special_characters}")
+        )
 
     # test fails if any file cannot be parsed, raise error with list of these files
-    if error:
-        raise AssertionError(
-            "Parsing the yaml files failed. Please check the log for details."
-        )
+    if exceptions:
+        raise YamlErrorGroup("Parsing yaml files failed", exceptions)
 
 
 def _check_mappings(
@@ -70,14 +74,14 @@ def _collect_processor_errors(
     processor: type[RequiredDataValidator] | type[DataValidator],
     dsd: DataStructureDefinition,
 ) -> None:
-    errors = ErrorCollector(description=f"files for '{processor.__name__}' ({path})")
+    errors: list[NoTracebackExceptionGroup] = []
     for file in path.iterdir():
         try:
             processor.from_file(file).validate_with_definition(dsd)
-        except ValueError as error:
-            errors.append(error)
+        except Exception as exception:
+            errors.append(exception)
     if errors:
-        raise ValueError(errors)
+        raise ProcessorErrorGroup(f"Error(s) checking '{processor.__name__}'", errors)
 
 
 def _check_processor_directory(

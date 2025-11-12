@@ -16,9 +16,7 @@ from pydantic import (
 )
 from typing_extensions import Self
 
-from nomenclature.error import ErrorCollector
-
-from .countries import countries
+from nomenclature.countries import countries
 
 
 # this must be kept in sync with the subtypes of `DataValidationCriteria`
@@ -318,7 +316,7 @@ class RegionCode(Code):
 
     """
 
-    hierarchy: str = None
+    hierarchy: str | None = None
     countries: list[str] | None = None
     iso3_codes: list[str] | str | None = None
 
@@ -340,20 +338,16 @@ class RegionCode(Code):
     @classmethod
     def check_iso3_codes(cls, v: list[str], info: ValidationInfo) -> list[str]:
         """Verifies that each ISO3 code is valid according to pycountry library."""
-        errors = ErrorCollector()
         if invalid_iso3_codes := [
             iso3_code
             for iso3_code in to_list(v)
             if countries.get(alpha_3=iso3_code) is None
         ]:
-            errors.append(
-                ValueError(
-                    f"Region '{info.data['name']}' has invalid ISO3 country code(s): "
-                    + ", ".join(invalid_iso3_codes)
-                )
+            raise ValueError(
+                f"Region '{info.data['name']}' has invalid ISO3 country code(s): "
+                + ", ".join(invalid_iso3_codes)
             )
-        if errors:
-            raise ValueError(errors)
+
         return v
 
     @property

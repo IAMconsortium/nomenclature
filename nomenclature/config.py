@@ -18,6 +18,8 @@ from pydantic import (
     model_validator,
 )
 
+from nomenclature.exceptions import TimeDomainError, TimeDomainErrorGroup
+
 logger = logging.getLogger(__name__)
 
 
@@ -216,7 +218,7 @@ class TimeDomainConfig(BaseModel):
         cls, v: "TimeDomainConfig"
     ) -> "TimeDomainConfig":
         if v.timezone is not None and not v.datetime_allowed:
-            raise ValueError("Timezone is set but datetime is not allowed")
+            raise ValueError("'timezone' is set but 'datetime' is not allowed")
         return v
 
     @property
@@ -229,47 +231,46 @@ class TimeDomainConfig(BaseModel):
         # if not, datetime is coerced in IamDataFrame, and include seconds
         return "%Y-%m-%d %H:%M:%S" if self.datetime_allowed else None
 
-    def check_datetime_format(self, df: IamDataFrame) -> bool:
-        """Validate that datetime values conform to the configured format and timezone."""
-        error_list = []
+    def check_datetime_format(self, df: IamDataFrame) -> None:
+        """Validate that datetime values conform to configured format and timezone."""
+        errors = []
         _datetime = [d for d in df.time if isinstance(d, datetime)]
         for d in _datetime:
             try:
                 _dt = datetime.strptime(str(d), self.datetime_format + "%z")
                 # only check timezone if a specific timezone is required
                 if self.timezone and not _dt.tzname() == self.timezone:
-                    error_list.append(f"{d} - invalid timezone")
+                    errors.append(TimeDomainError(f"{d} - invalid timezone"))
             except ValueError:
-                error_list.append(f"{d} - missing timezone")
-        if error_list:
-            logger.error(
-                "The following datetime values are invalid:\n - "
-                + "\n - ".join(error_list)
+                errors.append(TimeDomainError(f"{d} - missing timezone"))
+        if errors:
+            raise TimeDomainErrorGroup(
+                "The following datetime values are invalid:", errors
             )
-            return False
-        return True
 
-    def validate_datetime(self, df: IamDataFrame) -> bool:
+    def validate_datetime(self, df: IamDataFrame) -> None:
         """Validate datetime coordinates against allowed format and/or timezone."""
         if df.time_domain == "year":
             if not self.year_allowed:
-                logger.error("Invalid time domain - `year` found, but not allowed.")
-                return False
-            return True
+                raise TimeDomainError(
+                    "Invalid time domain - `year` found, but not allowed."
+                )
+
         elif df.time_domain == "mixed":
             if not self.mixed_allowed:
-                logger.error("Invalid time domain - `mixed` found, but not allowed.")
-                return False
-            return self.check_datetime_format(df)
+                raise TimeDomainError("Invalid time domain - `mixed` found, but not allowed.")
+
+            self.check_datetime_format(df)
         elif df.time_domain == "datetime":
             if not self.datetime_allowed:
-                logger.error("Invalid time domain - `datetime` found, but not allowed.")
-                return False
-            return self.check_datetime_format(df)
+                raise TimeDomainError(
+                    "Invalid time domain - `datetime` found, but not allowed."
+                )
+            self.check_datetime_format(df)
         else:
-            raise ValueError(
-                "IamDataFrame.time_domain must be one of ['year', 'mixed', datetime'],"
-                f" found '{df.time_domain}'"
+            raise TimeDomainError(
+                "IamDataFrame.time_domain must be one of ['year', 'mixed', "
+                f"datetime'], found '{df.time_domain}'"
             )
 
 

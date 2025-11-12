@@ -11,12 +11,21 @@ from pyam import IamDataFrame
 from pyam.str import escape_regexp
 from pyam.utils import is_list_like, pattern_match, write_sheet
 from pydantic import BaseModel, ValidationInfo, field_validator
-from pydantic_core import PydanticCustomError
 
 import nomenclature
 from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import CodeListConfig, NomenclatureConfig
-from nomenclature.error import ErrorCollector, custom_pydantic_errors, log_error
+from nomenclature.exceptions import (
+    CodeListErrorGroup,
+    MissingWeightError,
+    UnknownCodeError,
+    UnknownRegionError,
+    UnknownScenarioError,
+    UnknownVariableError,
+    VariableRenameArgError,
+    VariableRenameTargetError,
+    WrongUnitError,
+)
 from nomenclature.nuts import nuts
 
 here = Path(__file__).parent.absolute()
@@ -43,6 +52,7 @@ class CodeList(BaseModel):
     # class variable
     validation_schema: ClassVar[str] = "generic"
     code_basis: ClassVar = Code
+    unknown_code_error: ClassVar[type[UnknownCodeError]] = UnknownCodeError
 
     def __eq__(self, other):
         return self.name == other.name and self.mapping == other.mapping
@@ -96,11 +106,9 @@ class CodeList(BaseModel):
         df: IamDataFrame,
         dimension: str,
         project: str | None = None,
-    ) -> bool:
+    ) -> None:
         if invalid := self.validate_items(getattr(df, dimension)):
-            log_error(dimension, invalid, project)
-            return False
-        return True
+            raise self.unknown_code_error(invalid, dimension=dimension, project=project)
 
     def validate_items(self, items: list[str]) -> list[str]:
         """Validate that a list of items are valid codes
@@ -216,7 +224,7 @@ class CodeList(BaseModel):
             code_list.extend(
                 cls.filter_codes(repository_code_list, repo.include, repo.exclude)
             )
-        errors = ErrorCollector()
+        errors: list[Exception] = []
         mapping: dict[str, Code] = {}
         for code in code_list:
             if code.name in mapping:
@@ -231,7 +239,7 @@ class CodeList(BaseModel):
                 )
             mapping[code.name] = code
         if errors:
-            raise ValueError(errors)
+            raise CodeListErrorGroup("Found errors in codelist", errors)
         return cls(name=name, mapping=mapping)
 
     @classmethod
@@ -340,10 +348,10 @@ class CodeList(BaseModel):
 
         return cls(name=name, mapping=mapp)
 
-    def check_illegal_characters(self, config: NomenclatureConfig) -> dict[str, Code]:
+    def check_illegal_characters(self, config: NomenclatureConfig) -> None:
         """Check that no illegal characters are left in codes after tag replacement"""
         illegal = ["{", "}"] + config.illegal_characters
-        errors = ErrorCollector()
+        errors: list[Exception] = []
 
         def _check_string(attr, value):
             if isinstance(value, str):
@@ -351,7 +359,8 @@ class CodeList(BaseModel):
                     found = "', '".join(sorted(found))
                     errors.append(
                         ValueError(
-                            f"Illegal character(s) '{found}' in {attr} of {self.name} '{code.name}'."
+                            f"Illegal character(s) '{found}' in '{attr}' of {self.name}"
+                            f" '{code.name}'."
                         )
                     )
             elif isinstance(value, dict):
@@ -367,7 +376,7 @@ class CodeList(BaseModel):
                 for attr, value in code.model_dump(exclude="file").items():
                     _check_string(attr, value)
         if errors:
-            raise ValueError(errors)
+            raise CodeListErrorGroup("Found illegal characters", errors)
 
     def to_yaml(self, path=None):
         """Write mapping to yaml file or return as stream
@@ -580,6 +589,7 @@ class VariableCodeList(CodeList):
     # class variables
     code_basis: ClassVar = VariableCode
     validation_schema: ClassVar[str] = "variable"
+    unknown_code_error: ClassVar[type[UnknownCodeError]] = UnknownVariableError
 
     _data_validator = None
 
@@ -623,8 +633,7 @@ class VariableCodeList(CodeList):
             # pyam-aggregation-kwargs and a 'region-aggregation' attribute
             if var.region_aggregation is not None:
                 if conflict_args := list(var.pyam_agg_kwargs.keys()):
-                    raise PydanticCustomError(
-                        *custom_pydantic_errors.VariableRenameArgError,
+                    raise VariableRenameArgError(
                         {"variable": var.name, "file": var.file, "args": conflict_args},
                     )
 
@@ -633,8 +642,7 @@ class VariableCodeList(CodeList):
                 for inst in var.region_aggregation:
                     invalid.extend(var for var in inst if var not in v)
                 if invalid:
-                    raise PydanticCustomError(
-                        *custom_pydantic_errors.VariableRenameTargetError,
+                    raise VariableRenameTargetError(
                         {"variable": var.name, "file": var.file, "target": invalid},
                     )
         return v
@@ -648,8 +656,7 @@ class VariableCodeList(CodeList):
             for var in v.values()
             if var.weight is not None and var.weight not in v
         ]:
-            raise PydanticCustomError(
-                *custom_pydantic_errors.MissingWeightError,
+            raise MissingWeightError(
                 {
                     "missing_weights": "".join(
                         f"'{weight}' used for '{var}' in: {file}\n"
@@ -685,41 +692,27 @@ class VariableCodeList(CodeList):
         self,
         unit_mapping,
         project: None | str = None,
-    ) -> bool:
+    ) -> None:
         if invalid_units := [
             (variable, unit, self.mapping[variable].unit)
             for variable, unit in unit_mapping.items()
             if variable in self.variables and unit not in self.mapping[variable].units
         ]:
-            lst = [
-                f"'{v}' - expected: {'one of ' if isinstance(e, list) else ''}"
-                f"'{e}', found: '{u}'"
-                for v, u, e in invalid_units
-            ]
-            msg = "The following variable(s) are reported with the wrong unit:"
-            file_service_address = "https://files.ece.iiasa.ac.at"
-            logger.error(
-                "\n - ".join([msg] + lst)
-                + (
-                    f"\n\nPlease refer to {file_service_address}/{project}/"
-                    f"{project}-template.xlsx for the list of allowed units."
-                    if project is not None
-                    else ""
-                )
+            raise WrongUnitError(
+                invalid_units=invalid_units,
+                project=project,
             )
-            return False
-        return True
 
     def validate_df(
         self,
         df: IamDataFrame,
         dimension: str,
         project: str | None = None,
-    ) -> bool:
+    ) -> None:
         # validate variables
-        all_variables_valid = super().validate_df(df, dimension, project)
-        all_units_valid = self.validate_units(df.unit_mapping, project)
-        return all_variables_valid and all_units_valid
+        super().validate_df(df, dimension, project)
+        # validate units
+        self.validate_units(df.unit_mapping, project)
 
     def list_missing_variables(
         self, df: IamDataFrame, file: Path | str | None = None
@@ -756,6 +749,7 @@ class RegionCodeList(CodeList):
     # class variable
     code_basis: ClassVar = RegionCode
     validation_schema: ClassVar[str] = "region"
+    unknown_code_error: ClassVar[type[UnknownCodeError]] = UnknownRegionError
 
     @classmethod
     def from_directory(
@@ -791,16 +785,18 @@ class RegionCodeList(CodeList):
         # adding all countries
         config = config or NomenclatureConfig()
         if config.definitions.region.country is True:
-            for c in nomenclature.countries:
+            for country in nomenclature.countries:
                 try:
                     code_list.append(
                         RegionCode(
-                            name=c.name, iso3_codes=c.alpha_3, hierarchy="Country"
+                            name=country.name,
+                            iso3_codes=country.alpha_3,
+                            hierarchy="Country",
                         )
                     )
                 # special handling for countries that do not have an alpha_3 code
                 except AttributeError:
-                    code_list.append(RegionCode(name=c.name, hierarchy="Country"))
+                    code_list.append(RegionCode(name=country.name, hierarchy="Country"))
 
         # adding nuts regions
         if config.definitions.region.nuts:
@@ -844,7 +840,7 @@ class RegionCodeList(CodeList):
         # translate to mapping
         mapping: dict[str, RegionCode] = {}
 
-        errors = ErrorCollector()
+        errors: list[ValueError] = []
         for code in code_list:
             if code.name in mapping:
                 errors.append(
@@ -859,7 +855,7 @@ class RegionCodeList(CodeList):
             mapping[code.name] = code
 
         if errors:
-            raise ValueError(errors)
+            raise CodeListErrorGroup("Found errors in RegionCodeList", errors)
         return cls(name=name, mapping=mapping)
 
     @field_validator("mapping")
@@ -936,3 +932,8 @@ class MetaCodeList(CodeList):
 
     code_basis: ClassVar = MetaCode
     validation_schema: ClassVar[str] = "generic"
+
+
+class ScenarioCodeList(CodeList):
+
+    unknown_code_error = UnknownScenarioError
