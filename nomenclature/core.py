@@ -63,6 +63,8 @@ def process(
         dimensions.remove("region")
 
     dsd.validate(df, dimensions=dimensions)
+    if "variable" in dimensions:
+        dsd.variable.data_validator.apply(df)
 
     for p in processor:
         df = p.apply(df)
