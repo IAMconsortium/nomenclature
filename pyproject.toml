@@ -18,7 +18,7 @@ dependencies = [
     "pysquirrel (>=1.1,<2.0)",
     "gitpython (>=3.1.40,<4.0)",
     "numpy (>=1.23.0,<3.0)",
-    "scse-toolkit (>=0.14.0,<0.15.0)",
+    "scse-toolkit (>=0.14.0,<0.16.0)",
 ]
 dynamic = ["version"]
 
