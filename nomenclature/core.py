@@ -21,7 +21,7 @@ def process(
     This function is the recommended way of using the nomenclature package. It performs
     the following operations:
 
-    * Validation against the codelists of a DataStructureDefinition
+    * Validation against the codelists and criteria of a DataStructureDefinition
     * Region-processing, which can consist of three parts:
         1. Model native regions not listed in the model mapping will be dropped
         2. Model native regions can be renamed
@@ -62,8 +62,12 @@ def process(
     ):
         dimensions.remove("region")
 
+    # validate against the codelists and the validation-criteria
     dsd.validate(df, dimensions=dimensions)
+    if "variable" in dimensions:
+        dsd.variable.data_validator.apply(df)
 
+    # run the processors
     for p in processor:
         df = p.apply(df)
 
