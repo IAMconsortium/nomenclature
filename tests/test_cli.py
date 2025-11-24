@@ -175,6 +175,20 @@ def test_cli_wrong_definitions_name():
     assert result.exit_code == 1
 
 
+
+def test_cli_variable_validation_item_invalid():
+    """Check that CLI raises expected error when a non-existing non-default directory
+    is given"""
+    result = runner.invoke(
+        cli,
+        [
+            "validate-project",
+            str(MODULE_TEST_DATA_DIR / "variable_invalid_validation_item"),
+        ],
+    )
+    assert result.exit_code == 2
+
+
 def test_cli_custom_dimensions_runs():
     """Check that CLI runs through when specifying a non-default dimension"""
 
