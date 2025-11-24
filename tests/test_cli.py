@@ -175,7 +175,6 @@ def test_cli_wrong_definitions_name():
     assert result.exit_code == 1
 
 
-
 def test_cli_variable_validation_item_invalid():
     """Check that CLI raises expected error when a non-existing non-default directory
     is given"""
