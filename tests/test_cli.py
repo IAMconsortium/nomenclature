@@ -185,7 +185,9 @@ def test_cli_variable_validation_item_invalid():
             str(MODULE_TEST_DATA_DIR / "variable_invalid_validation_item"),
         ],
     )
-    assert result.exit_code == 2
+    assert result.exit_code == 1
+    assert isinstance(result.exception, ValueError)
+    assert "Extra inputs are not permitted" in str(result.exception)
 
 
 def test_cli_custom_dimensions_runs():
