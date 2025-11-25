@@ -62,10 +62,8 @@ def process(
     ):
         dimensions.remove("region")
 
-    # validate against the codelists and the validation-criteria
+    # validate against the codelists
     dsd.validate(df, dimensions=dimensions)
-    if "variable" in dimensions:
-        dsd.variable.data_validator.apply(df)
 
     # run the processors
     for p in processor:
