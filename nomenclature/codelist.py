@@ -713,6 +713,8 @@ class VariableCodeList(CodeList):
         super().validate_df(df, dimension, project)
         # validate units
         self.validate_units(df.unit_mapping, project)
+        # validate timeseries data values
+        self.data_validator.apply(df)
 
     def list_missing_variables(
         self, df: IamDataFrame, file: Path | str | None = None
