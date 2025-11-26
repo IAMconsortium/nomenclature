@@ -176,8 +176,7 @@ def test_cli_wrong_definitions_name():
 
 
 def test_cli_variable_validation_item_invalid():
-    """Check that CLI raises expected error when a non-existing non-default directory
-    is given"""
+    """Check that CLI raises expected error when malformatted validation item is given"""
     result = runner.invoke(
         cli,
         [
