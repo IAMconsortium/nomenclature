@@ -8,7 +8,6 @@ license = "APACHE-2.0"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [
-    "click (>=8,<8.2)",
     "pyam-iamc (>=3.1,<4.0)",
     "openpyxl (>=3.1.2,<4.0)",
     "pydantic (>=2,<3)",
@@ -19,6 +18,7 @@ dependencies = [
     "gitpython (>=3.1.40,<4.0)",
     "numpy (>=1.23.0,<3.0)",
     "scse-toolkit (>=0.14.0,<0.16.0)",
+    "typer (>=0.20.0,<0.21.0)",
 ]
 dynamic = ["version"]
 
@@ -43,7 +43,7 @@ numpydoc = "^1.6.0"
 target-version="py311"
 
 [project.scripts]
-nomenclature = 'nomenclature.cli:cli'
+nomenclature = 'nomenclature.cli:app'
 
 [tool.poetry-dynamic-versioning]
 bump = true
