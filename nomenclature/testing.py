@@ -144,6 +144,8 @@ def assert_valid_structure(
         )
 
     dsd = DataStructureDefinition(path / definitions, dimensions)
+    if "variable" in dsd.dimensions:
+        dsd.variable.data_validator
     _check_mappings(path, dsd, mappings)
     _check_processor_directory(
         path, dsd, RequiredDataValidator, "required_data", required_data

@@ -1,0 +1,4 @@
+- Primary Energy:
+    definition: Total primary energy consumption
+    unit: EJ/yr
+    range: 0, 100  # invalid "range" validation item (must be a list with two values)
