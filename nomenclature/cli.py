@@ -35,7 +35,7 @@ def validate_project(
     validate_data: Annotated[str | None, typer.Option()] = None,
     dimensions: Annotated[List[str] | None, typer.Option("--dimension")] = None,
 ):
-    """Assert that `path` is a valid project nomenclature.
+    """Assert that `path` is a valid nomenclature-compatible project folder.
 
     Parameters
     ----------
