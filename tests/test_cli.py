@@ -5,12 +5,12 @@ import traceback
 import pandas as pd
 import pydantic
 import pytest
-from click.testing import CliRunner
 from conftest import TEST_DATA_DIR
 from pandas.testing import assert_frame_equal
 from pyam import IAMC_IDX, IamDataFrame, assert_iamframe_equal
+from typer.testing import CliRunner
 
-from nomenclature import cli
+from nomenclature import app
 from nomenclature.codelist import VariableCodeList
 from nomenclature.testing import assert_valid_structure
 
@@ -24,13 +24,9 @@ runner = CliRunner()
     reason="Command to invoke the cli does not work on Windows",
 )
 def test_cli_installed():
-    command = "poetry run nomenclature"
+
     result = subprocess.run(
-        command,
-        capture_output=True,
-        text=True,
-        shell=True,
-        check=True,
+        ["poetry", "run", "nomenclature"], capture_output=True, text=True
     )
     assert all(
         command in result.stdout
@@ -46,7 +42,7 @@ def test_cli_installed():
 def test_cli_valid_yaml_path():
     """Check that CLI throws an error when the `path` is incorrect"""
     result = runner.invoke(
-        cli, ["validate-yaml", str(TEST_DATA_DIR / "incorrect_path")]
+        app, ["validate-yaml", str(TEST_DATA_DIR / "incorrect_path")]
     )
     assert result.exit_code == 2
 
@@ -55,7 +51,7 @@ def test_cli_valid_yaml():
     """Check that CLI runs through, when all yaml files in `path`
     can be parsed without errors"""
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-yaml",
             str(TEST_DATA_DIR / "codelist" / "duplicate_code_raises"),
@@ -67,7 +63,7 @@ def test_cli_valid_yaml():
 def test_cli_valid_yaml_fails():
     """Check that CLI raises expected error when parsing an invalid yaml"""
     result = runner.invoke(
-        cli, ["validate-yaml", str(MODULE_TEST_DATA_DIR / "invalid_yaml")]
+        app, ["validate-yaml", str(MODULE_TEST_DATA_DIR / "invalid_yaml")]
     )
     error_message = "Parsing yaml files failed"
     assert result.exit_code == 1
@@ -78,7 +74,7 @@ def test_cli_valid_yaml_fails():
 def test_cli_valid_project_path():
     """Check that CLI throws an error when the `path` is incorrect"""
     path = str(TEST_DATA_DIR / "incorrect_path")
-    result = runner.invoke(cli, ["validate-project", path])
+    result = runner.invoke(app, ["validate-project", path])
     assert result.exit_code == 2
 
 
@@ -86,7 +82,7 @@ def test_cli_valid_project():
     """Check that CLI runs through with existing "definitions" and "mappings"
     directory"""
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-project",
             str(
@@ -100,7 +96,7 @@ def test_cli_valid_project():
 def test_cli_invalid_region():
     """Test that errors are correctly propagated"""
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-project",
             str(MODULE_TEST_DATA_DIR / "structure_validation_fails"),
@@ -115,7 +111,7 @@ def test_cli_valid_project_fails():
     """Check that CLI expected error when "definitions" directory doesn't exist"""
     path = TEST_DATA_DIR / "invalid_yaml" / "definitions"
     result = runner.invoke(
-        cli, ["validate-project", str(MODULE_TEST_DATA_DIR / "invalid_yaml")]
+        app, ["validate-project", str(MODULE_TEST_DATA_DIR / "invalid_yaml")]
     )
     assert result.exit_code == 1
 
@@ -132,7 +128,7 @@ def test_cli_non_default_folders():
     """Check that CLI runs through with non-default but existing "definitions" and
     "mappings" directory when the correct names are given"""
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-project",
             str(MODULE_TEST_DATA_DIR / "non-default_folders"),
@@ -149,7 +145,7 @@ def test_cli_non_default_folders_fails():
     """Check that CLI raises expected error when non-default "definitions" and
     "mappings" directory names are not given"""
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-project",
             str(
@@ -164,7 +160,7 @@ def test_cli_wrong_definitions_name():
     """Check that CLI raises expected error when a non-existing non-default directory
     is given"""
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-project",
             str(MODULE_TEST_DATA_DIR / "structure_validation"),
@@ -178,7 +174,7 @@ def test_cli_wrong_definitions_name():
 def test_cli_variable_validation_item_invalid():
     """Check that CLI raises expected error when malformatted validation item is given"""
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-project",
             str(MODULE_TEST_DATA_DIR / "variable_invalid_validation_item"),
@@ -193,7 +189,7 @@ def test_cli_custom_dimensions_runs():
     """Check that CLI runs through when specifying a non-default dimension"""
 
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-project",
             str(MODULE_TEST_DATA_DIR / "non-default_dimensions"),
@@ -213,7 +209,7 @@ def test_cli_custom_dimensions_fails():
     directory ('foo')"""
 
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-project",
             str(MODULE_TEST_DATA_DIR / "non-default_dimensions"),
@@ -231,7 +227,7 @@ def test_cli_empty_dimensions_run():
     custom dimensions"""
 
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-project",
             str(MODULE_TEST_DATA_DIR / "non-default_dimensions_one_empty"),
@@ -248,7 +244,7 @@ def test_cli_empty_dimensions_fails():
     """Check that CLI raises an error on an empty directory with default command"""
 
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-project",
             str(MODULE_TEST_DATA_DIR / "non-default_dimensions_one_empty"),
@@ -265,7 +261,7 @@ def test_cli_missing_mappings_runs():
 
     assert (
         runner.invoke(
-            cli,
+            app,
             [
                 "validate-project",
                 str(MODULE_TEST_DATA_DIR / "structure_validation_no_mappings"),
@@ -279,7 +275,7 @@ def test_cli_missing_mappings_fails():
     """Assert that when a mappings folder is specified it needs to exist"""
 
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-project",
             str(MODULE_TEST_DATA_DIR / "structure_validation_no_mappings"),
@@ -296,7 +292,7 @@ def test_cli_missing_mappings_fails():
 def test_cli_validate_data_fails():
     """Assert that validating invalid yaml fails"""
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-project",
             str(TEST_DATA_DIR / "validation"),
@@ -315,7 +311,7 @@ def test_cli_empty_definitions_dir():
     """Assert that an error is raised when the `definitions` directory is empty"""
 
     result = runner.invoke(
-        cli,
+        app,
         ["validate-project", str(MODULE_TEST_DATA_DIR / "empty_definitions_dir")],
     )
 
@@ -336,7 +332,7 @@ def test_check_region_aggregation(tmp_path):
         )
     ).to_excel(tmp_path / "data.xlsx")
     runner.invoke(
-        cli,
+        app,
         [
             "check-region-aggregation",
             str(tmp_path / "data.xlsx"),
@@ -380,7 +376,7 @@ def test_cli_export_to_excel(tmpdir):
 
     assert (
         runner.invoke(
-            cli,
+            app,
             [
                 "export-definitions",
                 str(TEST_DATA_DIR / "config" / "general-config"),
@@ -400,7 +396,7 @@ def test_cli_add_missing_variables(simple_definition, tmp_path):
     simple_definition.variable.to_yaml(variable_code_list_path / "variables.yaml")
 
     runner.invoke(
-        cli,
+        app,
         [
             "list-missing-variables",
             str(MODULE_TEST_DATA_DIR / "add-missing-variables" / "data.xlsx"),
@@ -423,7 +419,7 @@ def test_cli_run_workflow(tmp_path, simple_df):
     simple_df.to_excel(tmp_path / "input.xlsx")
 
     runner.invoke(
-        cli,
+        app,
         [
             "run-workflow",
             str(tmp_path / "input.xlsx"),
@@ -462,7 +458,7 @@ def test_cli_valid_scenarios(status, unit, exit_code, dimensions, tmp_path):
         dimension_args.append(dim)
 
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-scenarios",
             str(tmp_path / f"{status}_data.xlsx"),
@@ -485,7 +481,7 @@ def test_cli_valid_scenarios_implicit_dimensions(tmp_path):
         )
     ).to_excel(tmp_path / "valid_data.xlsx")
     result = runner.invoke(
-        cli,
+        app,
         [
             "validate-scenarios",
             str(tmp_path / "valid_data.xlsx"),

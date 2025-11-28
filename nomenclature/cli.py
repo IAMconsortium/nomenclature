@@ -1,65 +1,41 @@
-from pathlib import Path
 import importlib.util
 import sys
+from pathlib import Path
+from typing import Annotated, List
 
-import click
-
+import typer
 from pyam import IamDataFrame
-from nomenclature.definition import DataStructureDefinition
+
 from nomenclature.codelist import VariableCodeList
+from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor import RegionProcessor
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 
-cli = click.Group()
+app = typer.Typer(no_args_is_help=True)
 
 
-@cli.command("validate-yaml")
-@click.argument("path", type=click.Path(exists=True, path_type=Path))
-def cli_valid_yaml(path: Path):
+# ---------------------------------------------------------
+# validate-yaml
+# ---------------------------------------------------------
+@app.command()
+def validate_yaml(path: Annotated[Path, typer.Argument(..., exists=True)]):
     """Assert that all yaml files in `path` are syntactically valid."""
     assert_valid_yaml(path)
 
 
-@cli.command("validate-project")
-@click.argument("path", type=click.Path(exists=True, path_type=Path))
-@click.option(
-    "--definitions",
-    help="Optional name for definitions folder",
-    type=str,
-    default="definitions",
-)
-@click.option(
-    "--mappings", help="Optional name for mappings folder", type=str, default=None
-)
-@click.option(
-    "--required-data",
-    help="Optional name for required data folder",
-    type=str,
-    default=None,
-)
-@click.option(
-    "--validate_data",
-    help="Optional name for validation folder",
-    type=str,
-    default=None,
-)
-@click.option(
-    "--dimension",
-    "dimensions",
-    help="Optional list of dimensions",
-    type=str,
-    multiple=True,
-    default=None,
-)
-def cli_valid_project(
-    path: Path,
-    definitions: str,
-    mappings: str | None,
-    required_data: str | None,
-    validate_data: str | None,
-    dimensions: list[str] | None,
+# ---------------------------------------------------------
+# validate-project
+# ---------------------------------------------------------
+@app.command()
+def validate_project(
+    path: Annotated[Path, typer.Argument(..., exists=True)],
+    definitions: Annotated[str, typer.Option()] = "definitions",
+    mappings: Annotated[str | None, typer.Option()] = None,
+    required_data: Annotated[str | None, typer.Option()] = None,
+    validate_data: Annotated[str | None, typer.Option()] = None,
+    dimensions: Annotated[List[str] | None, typer.Option("--dimension")] = None,
 ):
-    """Assert that `path` is a valid project nomenclature
+    """Assert that `path` is a valid nomenclature-compatible project folder.
 
     Parameters
     ----------
@@ -69,11 +45,11 @@ def cli_valid_project(
         Name of 'definitions' folder, defaults to "definitions"
     mappings : str, optional
         Name of 'mappings' folder, defaults to "mappings"
-    required_data: str, optional
+    required_data : str, optional
         Name of folder for 'required data' criteria, default to "required_data"
-    validate_data: str, optional
+    validate_data : str, optional
         Name of folder for data validation criteria, default to "validate_data"
-    dimensions : list[str], optional
+    dimensions : List[str], optional
         Dimensions to be checked, defaults to all sub-folders of `definitions`
 
     Example
@@ -105,27 +81,19 @@ def cli_valid_project(
     )
 
 
-@cli.command("check-region-aggregation")
-@click.argument("input_data_file", type=click.Path(exists=True, path_type=Path))
-@click.option(
-    "-w",
-    "--workflow-directory",
-    type=click.Path(exists=True, path_type=Path),
-    default=".",
-)
-@click.option("-d", "--definitions", type=str, default="definitions")
-@click.option("-m", "--mappings", type=str, default="mappings")
-@click.option(
-    "--processed-data", type=click.Path(path_type=Path), default="results.xlsx"
-)
-@click.option("--differences", type=click.Path(path_type=Path), default=None)
+# ---------------------------------------------------------
+# check-region-aggregation
+# ---------------------------------------------------------
+@app.command()
 def check_region_aggregation(
-    input_data_file: Path,
-    workflow_directory: Path,
-    definitions: str,
-    mappings: str,
-    processed_data: Path | None,
-    differences: Path | None,
+    input_data_file: Annotated[Path, typer.Argument(..., exists=True)],
+    workflow_directory: Annotated[Path, typer.Option(exists=True)] = Path.cwd(),
+    definitions: Annotated[str, typer.Option()] = "definitions",
+    mappings: Annotated[str, typer.Option()] = "mappings",
+    processed_data: Annotated[Path | None, typer.Option()] = (
+        Path.cwd() / "results.xlsx"
+    ),
+    differences: Annotated[Path | None, typer.Option()] = None,
 ):
     """Perform region processing and compare aggregated and original data
 
@@ -163,41 +131,33 @@ def check_region_aggregation(
         workflow_directory / mappings,
         DataStructureDefinition(workflow_directory / definitions),
     ).check_region_aggregation(IamDataFrame(input_data_file))
+
     if processed_data:
         results_df.to_excel(processed_data)
     if differences:
         differences_df.reset_index().to_excel(differences, index=False)
 
 
-@cli.command("export-definitions")
-@click.argument("path", type=click.Path(exists=True, path_type=Path))
-@click.argument("target", type=click.Path(path_type=Path))
-def cli_export_definitions_to_excel(
-    path: Path,
-    target: Path,
+# ---------------------------------------------------------
+# export-definitions
+# ---------------------------------------------------------
+@app.command("export-definitions")
+def export_definitions_to_excel(
+    path: Annotated[Path, typer.Argument(..., exists=True)],
+    target: Annotated[Path, typer.Argument(...)],
 ):
-    """Assert that `path` is a valid project nomenclature
-
-    Parameters
-    ----------
-    path : Path
-        Project directory to be exported
-    target : Path
-        Path and file name for the exported file
-    """
+    """Export project definitions to Excel."""
     DataStructureDefinition(path / "definitions").to_excel(target)
 
 
-@cli.command("list-missing-variables")
-@click.argument("data", type=click.Path(exists=True, path_type=Path))
-@click.option(
-    "--workflow-directory",
-    default=lambda: Path.cwd(),
-    type=Path,
-)
-@click.option("--target-file", type=str)
-def cli_list_missing_variables(
-    data: Path, workflow_directory: Path, target_file: Path | None
+# ---------------------------------------------------------
+# list-missing-variables
+# ---------------------------------------------------------
+@app.command()
+def list_missing_variables(
+    data: Annotated[Path, typer.Argument(..., exists=True)],
+    workflow_directory: Annotated[Path, typer.Option()] = Path.cwd(),
+    target_file: Annotated[str | None, typer.Option()] = None,
 ):
     """Create a list of variables that are not part of the variable codelist
 
@@ -221,27 +181,25 @@ def cli_list_missing_variables(
 
     """
     codelist_path = workflow_directory / "definitions" / "variable"
-    target_file = target_file if target_file is None else codelist_path / target_file
+    final_target = None if target_file is None else codelist_path / target_file
+
     VariableCodeList.from_directory(
         "variable",
         codelist_path,
-    ).list_missing_variables(IamDataFrame(data), target_file)
+    ).list_missing_variables(IamDataFrame(data), final_target)
 
 
-@cli.command("run-workflow")
-@click.argument("input_file", type=click.Path(exists=True, path_type=Path))
-@click.option(
-    "--workflow-file",
-    default=lambda: Path.cwd() / "workflow.py",
-    type=click.Path(exists=True, path_type=Path),
-)
-@click.option("--workflow-function", default="main")
-@click.option("--output-file", type=click.Path())
-def cli_run_workflow(
-    input_file: Path,
-    workflow_file: Path,
-    workflow_function: str,
-    output_file: Path | None,
+# ---------------------------------------------------------
+# run-workflow
+# ---------------------------------------------------------
+@app.command()
+def run_workflow(
+    input_file: Annotated[Path, typer.Argument(..., exists=True)],
+    workflow_file: Annotated[Path, typer.Option(exists=True)] = (
+        Path.cwd() / "workflow.py"
+    ),
+    workflow_function: Annotated[str, typer.Option()] = "main",
+    output_file: Annotated[Path | None, typer.Option()] = None,
 ):
     """Run a given input file through a workflow function defined in a workflow.py
 
@@ -263,7 +221,6 @@ def cli_run_workflow(
     ValueError
         If the workflow_file does not have the specified workflow_function
     """
-
     module_name = workflow_file.stem
     spec = importlib.util.spec_from_file_location(module_name, workflow_file)
     workflow = importlib.util.module_from_spec(spec)
@@ -278,23 +235,15 @@ def cli_run_workflow(
         df.to_excel(output_file)
 
 
-@cli.command("validate-scenarios")
-@click.argument("input_file", type=click.Path(exists=True, path_type=Path))
-@click.option(
-    "--definitions",
-    help="Optional name for definitions folder",
-    type=click.Path(exists=True, path_type=Path),
-    default="definitions",
-)
-@click.option(
-    "--dimension",
-    "dimensions",
-    help="Optional list of dimensions",
-    type=str,
-    multiple=True,
-    default=None,
-)
-def cli_validate_scenarios(input_file: Path, definitions: Path, dimensions: list[str]):
+# ---------------------------------------------------------
+# validate-scenarios
+# ---------------------------------------------------------
+@app.command()
+def validate_scenarios(
+    input_file: Annotated[Path, typer.Argument(..., exists=True)],
+    definitions: Annotated[Path, typer.Option(exists=True)] = Path("definitions"),
+    dimensions: Annotated[List[str] | None, typer.Option("--dimension")] = None,
+):
     """Validate a scenario file against the codelists of a project
 
     Example

@@ -333,14 +333,14 @@ files = [
 
 [[package]]
 name = "click"
-version = "8.1.8"
+version = "8.3.1"
 description = "Composable command line interface toolkit"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.10"
 groups = ["main", "docs"]
 files = [
-    {file = "click-8.1.8-py3-none-any.whl", hash = "sha256:63c132bbbed01578a06712a2d1f497bb62d9c1c0d329b7903a866228027263b2"},
-    {file = "click-8.1.8.tar.gz", hash = "sha256:ed53c9d8990d83c2a27deae68e4ee337473f6330c040a31d4225c9574d16096a"},
+    {file = "click-8.3.1-py3-none-any.whl", hash = "sha256:981153a64e25f12d547d3426c367a4857371575ee7ad18df2a6183ab0545b2a6"},
+    {file = "click-8.3.1.tar.gz", hash = "sha256:12ff4785d337a1bb490bb7e9c2b1ee5da3112e94a8622f26a6c77f5d2fc6842a"},
 ]
 
 [package.dependencies]
@@ -2716,14 +2716,14 @@ test = ["Cython", "array-api-strict (>=2.3.1)", "asv", "gmpy2", "hypothesis (>=6
 
 [[package]]
 name = "scse-toolkit"
-version = "0.14.0"
+version = "0.15.1"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "scse_toolkit-0.14.0-py3-none-any.whl", hash = "sha256:95c0360be07271e8bd708105cfdfeb3fc5000ac675a3e5b966926dfe6b886cd3"},
-    {file = "scse_toolkit-0.14.0.tar.gz", hash = "sha256:4d1b310f2c5ccf48d4e4cd7c1c3e8076ec52a00543e4f26deddc87e8cfb98bbb"},
+    {file = "scse_toolkit-0.15.1-py3-none-any.whl", hash = "sha256:252ce7f6266d2a7361aeb505cfbdf9f20c670d1a271e9b40c8ebc2281179f7c3"},
+    {file = "scse_toolkit-0.15.1.tar.gz", hash = "sha256:b090b074db4f6094f2bf02171b3121e7ae409ad5d51ed84b042ce23cea4f2b65"},
 ]
 
 [package.dependencies]
@@ -2736,7 +2736,7 @@ pydantic-settings = ">=2.4.0,<3.0.0"
 pyjwt = ">=2.9.0,<3.0.0"
 rich = ">=13.8.0,<14.0.0"
 sqlalchemy = ">=2.0.32,<3.0.0"
-typer = ">=0.12.5,<0.13.0"
+typer = ">=0.19.2"
 
 [[package]]
 name = "seaborn"
@@ -3146,14 +3146,14 @@ typing_extensions = ">=4.14.0"
 
 [[package]]
 name = "typer"
-version = "0.12.5"
+version = "0.20.0"
 description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "typer-0.12.5-py3-none-any.whl", hash = "sha256:62fe4e471711b147e3365034133904df3e235698399bc4de2b36c8579298d52b"},
-    {file = "typer-0.12.5.tar.gz", hash = "sha256:f592f089bedcc8ec1b974125d64851029c3b1af145f04aca64d69410f0c9b722"},
+    {file = "typer-0.20.0-py3-none-any.whl", hash = "sha256:5b463df6793ec1dca6213a3cf4c0f03bc6e322ac5e16e13ddd622a889489784a"},
+    {file = "typer-0.20.0.tar.gz", hash = "sha256:1aaf6494031793e4876fb0bacfa6a912b551cf43c1e63c800df8b1a866720c37"},
 ]
 
 [package.dependencies]
@@ -3265,4 +3265,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.14"
-content-hash = "e08ebf8e52dec1b78f86174aee089b4440ce31eb81a4d6cf74994031664f9e6f"
+content-hash = "f80cb34b0287b04b2f270c0c47cac4e2da05b86ed85c778a067033989d38b04d"

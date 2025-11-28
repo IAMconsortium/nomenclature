@@ -8,7 +8,7 @@ import pandas as pd
 import yaml
 
 import nomenclature.exceptions  # noqa
-from nomenclature.cli import cli  # noqa
+from nomenclature.cli import app  # noqa
 from nomenclature.codelist import CodeList  # noqa
 from nomenclature.core import process  # noqa
 from nomenclature.countries import countries  # noqa
