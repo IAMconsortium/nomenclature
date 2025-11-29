@@ -9,3 +9,4 @@
 - Emissions|CO2:
     description: Emissions of carbon dioxide (CO2)
     unit: Mt CO2/yr
+    upper_bound:
