@@ -287,16 +287,14 @@ class VariableCode(Code):
 
     @property
     def has_validation_args(self) -> bool:
-        return any(
-            attribute in VALIDATION_ARGS for attribute in self.extra_attributes
-        )
+        return True if self.validation_args else False
 
     @property
     def validation_args(self) -> dict:
         return {
             key: value
             for key, value in self.extra_attributes.items()
-            if key in VALIDATION_ARGS
+            if key in VALIDATION_ARGS and value is not None
         }
 
 
