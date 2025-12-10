@@ -1,9 +1,12 @@
-import pytest
-import pandas as pd
-from nomenclature import DataStructureDefinition, create_yaml_from_xlsx
-from nomenclature.code import Code
+from pathlib import Path
 
+import pandas as pd
+import pytest
 from conftest import TEST_DATA_DIR, clean_up_external_repos
+
+from nomenclature import DataStructureDefinition
+from nomenclature.cli import convert_xlsx_codelist_to_yaml
+from nomenclature.code import Code
 
 
 def test_definition_with_custom_dimension(simple_definition):
@@ -122,11 +125,11 @@ def test_to_excel_with_external_repo(tmpdir):
         ),
     ],
 )
-def test_create_yaml_from_xlsx(input_file, attrs, exp_file, tmpdir):
+def test_convert_xlsx_codelist_to_yaml(input_file, attrs, exp_file, tmpdir):
     """Check that creating a yaml codelist from xlsx yields the expected output file"""
     file = tmpdir / "foo.yaml"
 
-    create_yaml_from_xlsx(
+    convert_xlsx_codelist_to_yaml(
         source=TEST_DATA_DIR / "io" / "excel_io" / input_file,
         target=file,
         sheet_name="variable_definitions",
@@ -142,12 +145,12 @@ def test_create_yaml_from_xlsx(input_file, attrs, exp_file, tmpdir):
     assert obs == exp
 
 
-def test_create_yaml_from_xlsx_duplicate():
+def test_convert_xlsx_codelist_to_yaml_duplicate():
     """Check that creating a yaml codelist from xlsx with duplicates raises"""
     with pytest.raises(ValueError, match="Duplicate values in the codelist:"):
-        create_yaml_from_xlsx(
+        convert_xlsx_codelist_to_yaml(
             source=TEST_DATA_DIR / "io" / "excel_io" / "validation_nc_duplicates.xlsx",
-            target="_",
+            target=Path("_"),
             sheet_name="duplicate_index_raises",
             col="Variable",
             attrs=["Unit", "Description"],
