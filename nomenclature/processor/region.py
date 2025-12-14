@@ -451,6 +451,7 @@ class RegionAggregationMapping(BaseModel):
                 self.model_dump(mode="json", exclude_defaults=True, exclude={"file"}),
                 f,
                 sort_keys=False,
+                allow_unicode=True,
             )
 
 
