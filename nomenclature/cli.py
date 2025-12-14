@@ -334,7 +334,7 @@ def parse_model_registration(
         for x in region_aggregation_mapping.model[0]
     ).replace(" ", "_")
     region_aggregation_mapping.to_yaml(
-        mappings_path / f"{file_model_name}_mapping.yaml",
+        mappings_path / f"{file_model_name}.yaml",
     )
     # parse Region-Country-Mapping
     if "Region-Country-Mapping" in pd.ExcelFile(model_registration_file).sheet_names:
@@ -375,7 +375,7 @@ def parse_model_registration(
             ]
             native_regions = [{region_aggregation_mapping.model[0]: native_regions}]
         with open(
-            region_path / f"{file_model_name}_regions.yaml",
+            region_path / f"{file_model_name}.yaml",
             "w",
             encoding="utf-8",
         ) as file:
