@@ -351,6 +351,22 @@ class RegionAggregationMapping(BaseModel):
                 .to_dict()
                 .items()
             ]
+            if "R5" in common_region_groups:
+                consituent_world_regions = sorted(
+                    region
+                    for common_region in common_regions
+                    for region in common_region.constituent_regions
+                    if "R5" in common_region.name
+                )
+                if (
+                    len(consituent_world_regions) == 5
+                    or len(consituent_world_regions) == 6
+                ):
+                    common_regions.append(
+                        CommonRegion(
+                            name="World", constituent_regions=consituent_world_regions
+                        )
+                    )
         except Exception as error:
             raise ValueError(f"{error} in {get_relative_path(file)}") from error
         return cls(
