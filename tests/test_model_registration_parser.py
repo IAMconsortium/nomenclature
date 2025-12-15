@@ -26,7 +26,7 @@ def test_parse_model_registration(tmp_path):
         TEST_DATA_DIR
         / "region_processing"
         / "region_aggregation"
-        / "updated_excel_mapping_reference.yaml",
+        / "excel_mapping_reference.yaml",
         "r",
         encoding="utf-8",
     ) as file:

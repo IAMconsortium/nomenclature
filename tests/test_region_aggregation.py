@@ -333,25 +333,42 @@ def test_reverse_region_aggregation():
 def test_model_mapping_from_excel():
     excel_file = TEST_FOLDER_REGION_AGGREGATION / "excel_model_registration.xlsx"
     obs = RegionAggregationMapping.from_file(excel_file)
-    model = "Model 1.1"
     exp = RegionAggregationMapping(
-        model=model,
+        model=["Model 1.1"],
         file=excel_file,
         native_regions=[
-            NativeRegion(name="Region 1", rename=f"{model}|Region 1"),
+            NativeRegion(name="Region 1", rename="Model 1.1|Region 1"),
             NativeRegion(name="Region 2"),
-            NativeRegion(name="Region 3", rename=f"{model}|Region 3"),
+            NativeRegion(name="Region 3"),
+            NativeRegion(name="Region 4"),
+            NativeRegion(name="Region 5"),
         ],
         common_regions=[
             CommonRegion(
                 name="Common Region 1", constituent_regions=["Region 1", "Region 2"]
             ),
-            CommonRegion(name="Common Region 2", constituent_regions=["Region 3"]),
+            CommonRegion(name="Asia (R5)", constituent_regions=["Region 1"]),
+            CommonRegion(name="Latin America (R5)", constituent_regions=["Region 5"]),
             CommonRegion(
-                name="World", constituent_regions=["Region 1", "Region 2", "Region 3"]
+                name="Middle East & Africa (R5)", constituent_regions=["Region 4"]
+            ),
+            CommonRegion(name="OECD & EU (R5)", constituent_regions=["Region 2"]),
+            CommonRegion(
+                name="Reforming Economies (R5)", constituent_regions=["Region 3"]
+            ),
+            CommonRegion(
+                name="World",
+                constituent_regions=[
+                    "Region 1",
+                    "Region 2",
+                    "Region 3",
+                    "Region 4",
+                    "Region 5",
+                ],
             ),
         ],
     )
+
     assert obs == exp
 
 
