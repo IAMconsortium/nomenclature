@@ -351,7 +351,10 @@ class RegionAggregationMapping(BaseModel):
                 .to_dict()
                 .items()
             ]
-            if "R5" in common_region_groups:
+            common_region_names = [
+                common_region.name for common_region in common_regions
+            ]
+            if "R5" in common_region_groups and "World" not in common_region_names:
                 consituent_world_regions = sorted(
                     region
                     for common_region in common_regions
