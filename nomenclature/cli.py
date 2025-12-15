@@ -323,6 +323,12 @@ def parse_model_registration(
     mappings_path: path
         Path to the model mappings folder, default current working
         directory/definitions/region
+
+    Notes
+    -----
+
+    If the registration file featuers a complete set of R5 region, a "World" region (sum
+    of all R5) will be added.
     """
 
     # parse Common-Region-Mapping
