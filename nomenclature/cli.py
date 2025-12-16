@@ -306,7 +306,7 @@ def convert_xlsx_codelist_to_yaml(
 @app.command()
 def parse_model_registration(
     model_registration_file: Annotated[Path, typer.Argument(..., exists=True)],
-    region_path: Annotated[Path, typer.Option(exists=True)] = (
+    definition_path: Annotated[Path, typer.Option(exists=True)] = (
         Path.cwd() / "definitions" / "region"
     ),
     mappings_path: Annotated[Path, typer.Option(exists=True)] = Path.cwd() / "mappings",
@@ -381,7 +381,7 @@ def parse_model_registration(
             ]
             native_regions = [{region_aggregation_mapping.model[0]: native_regions}]
         with open(
-            region_path / f"{file_model_name}.yaml",
+            definition_path / f"{file_model_name}.yaml",
             "w",
             encoding="utf-8",
         ) as file:

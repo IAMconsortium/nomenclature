@@ -362,12 +362,12 @@ class RegionAggregationMapping(BaseModel):
                     if "R5" in common_region.name
                 )
                 if (
-                    len(consituent_world_regions) == 5
-                    or len(consituent_world_regions) == 6
+                    len(constituent_world_regions) == 5
+                    or len(constituent_world_regions) == 6
                 ):
                     common_regions.append(
                         CommonRegion(
-                            name="World", constituent_regions=consituent_world_regions
+                            name="World", constituent_regions=constituent_world_regions
                         )
                     )
         except Exception as error:
