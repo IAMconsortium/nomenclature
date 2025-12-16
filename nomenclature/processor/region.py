@@ -355,7 +355,7 @@ class RegionAggregationMapping(BaseModel):
                 common_region.name for common_region in common_regions
             ]
             if "R5" in common_region_groups and "World" not in common_region_names:
-                consituent_world_regions = sorted(
+                constituent_world_regions = sorted(
                     region
                     for common_region in common_regions
                     for region in common_region.constituent_regions
