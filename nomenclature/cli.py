@@ -317,7 +317,7 @@ def parse_model_registration(
     ----------
     model_registration_file : path, file-like object
         Path to xlsx model registration file.
-    region_path : path
+    definition_path : path
         Path to the region definitions folder, default: current working
         directory/definitions/region
     mappings_path: path
