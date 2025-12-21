@@ -12,8 +12,7 @@ def test_parse_model_registration(tmp_path):
 
     parse_model_registration(
         TEST_DATA_DIR
-        / "region_processing"
-        / "region_aggregation"
+        / "model_registration"
         / "excel_model_registration.xlsx",
         region_path,
         mapping_path,
@@ -24,8 +23,7 @@ def test_parse_model_registration(tmp_path):
         obs_model_mapping = yaml.safe_load(file)
     with open(
         TEST_DATA_DIR
-        / "region_processing"
-        / "region_aggregation"
+        / "model_registration"
         / "excel_mapping_reference.yaml",
         "r",
         encoding="utf-8",
