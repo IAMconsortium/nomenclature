@@ -5,23 +5,29 @@ native_regions:
   - Region 3
   - Region 4
   - Region 5
+  - Region 6
+  - Region 7
 common_regions:
-  - Common Region 1:
-    - Region 1
-    - Region 2
-  - Asia (R5):
-    - Region 1
-  - Latin America (R5):
-    - Region 5
-  - Middle East & Africa (R5):
-    - Region 4
-  - OECD & EU (R5):
-    - Region 2
-  - Reforming Economies (R5):
-    - Region 3
   - World:
     - Region 1
     - Region 2
     - Region 3
     - Region 4
     - Region 5
+    - Region 6
+    - Region 7
+  - Common Region 1:
+    - Region 1
+    - Region 2
+  - Asia (R5):
+    - Region 1
+  - Latin America (R5):
+    - Region 6
+    - Region 7
+  - Middle East & Africa (R5):
+    - Region 5
+  - OECD & EU (R5):
+    - Region 2
+    - Region 3
+  - Reforming Economies (R5):
+    - Region 4
