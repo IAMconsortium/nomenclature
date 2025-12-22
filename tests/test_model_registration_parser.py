@@ -12,8 +12,7 @@ def test_parse_model_registration(tmp_path):
 
     parse_model_registration(
         TEST_DATA_DIR
-        / "region_processing"
-        / "region_aggregation"
+        / "model_registration"
         / "excel_model_registration.xlsx",
         region_path,
         mapping_path,
@@ -24,8 +23,7 @@ def test_parse_model_registration(tmp_path):
         obs_model_mapping = yaml.safe_load(file)
     with open(
         TEST_DATA_DIR
-        / "region_processing"
-        / "region_aggregation"
+        / "model_registration"
         / "excel_mapping_reference.yaml",
         "r",
         encoding="utf-8",
@@ -38,11 +36,13 @@ def test_parse_model_registration(tmp_path):
     exp_model_regions = [
         {
             "Model 1.1": [
-                {"Model 1.1|Region 1": {"countries": ["Country 1", "Country 2"]}},
-                "Region 2",
+                {"Model 1.1|Region 1": {"countries": ["Country A", "Country B"]}},
+                {"Region 2": {"countries": ["Country C"]}},
                 "Region 3",
                 "Region 4",
                 "Region 5",
+                "Region 6",
+                "Region 7",
             ]
         }
     ]

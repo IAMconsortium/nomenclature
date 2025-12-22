@@ -354,18 +354,20 @@ class RegionAggregationMapping(BaseModel):
             common_region_names = [
                 common_region.name for common_region in common_regions
             ]
+
             if "R5" in common_region_groups and "World" not in common_region_names:
-                constituent_world_regions = sorted(
-                    region
-                    for common_region in common_regions
-                    for region in common_region.constituent_regions
-                    if "R5" in common_region.name
-                )
-                if (
-                    len(constituent_world_regions) == 5
-                    or len(constituent_world_regions) == 6
-                ):
-                    common_regions.append(
+                r5_regions = [
+                    region for region in common_regions if "(R5)" in region.name
+                ]
+                # only add "World" from R5-constituent region if all R5 regions given
+                if len(r5_regions) in [5, 6]:
+                    constituent_world_regions = sorted(
+                        region
+                        for r5_regions in r5_regions
+                        for region in r5_regions.constituent_regions
+                    )
+                    common_regions.insert(
+                        0,
                         CommonRegion(
                             name="World", constituent_regions=constituent_world_regions
                         )
