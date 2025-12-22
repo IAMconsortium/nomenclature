@@ -1,0 +1,33 @@
+model: Model 1.1
+native_regions:
+  - Region 1: Model 1.1|Region 1
+  - Region 2
+  - Region 3
+  - Region 4
+  - Region 5
+  - Region 6
+  - Region 7
+common_regions:
+  - World:
+    - Region 1
+    - Region 2
+    - Region 3
+    - Region 4
+    - Region 5
+    - Region 6
+    - Region 7
+  - Common Region 1:
+    - Region 1
+    - Region 2
+  - Asia (R5):
+    - Region 1
+  - Latin America (R5):
+    - Region 6
+    - Region 7
+  - Middle East & Africa (R5):
+    - Region 5
+  - OECD & EU (R5):
+    - Region 2
+    - Region 3
+  - Reforming Economies (R5):
+    - Region 4

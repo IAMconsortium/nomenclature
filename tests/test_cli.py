@@ -10,7 +10,7 @@ from pandas.testing import assert_frame_equal
 from pyam import IAMC_IDX, IamDataFrame, assert_iamframe_equal
 from typer.testing import CliRunner
 
-from nomenclature import app
+from nomenclature.cli import app
 from nomenclature.codelist import VariableCodeList
 from nomenclature.testing import assert_valid_structure
 

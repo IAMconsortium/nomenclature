@@ -3,12 +3,14 @@ import sys
 from pathlib import Path
 from typing import Annotated, List
 
+import pandas as pd
 import typer
+import yaml
 from pyam import IamDataFrame
 
-from nomenclature.codelist import VariableCodeList
-from nomenclature.definition import DataStructureDefinition
-from nomenclature.processor import RegionProcessor
+from nomenclature.codelist import CodeList, VariableCodeList
+from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition
+from nomenclature.processor import RegionAggregationMapping, RegionProcessor
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 
 app = typer.Typer(no_args_is_help=True)
@@ -269,3 +271,118 @@ def validate_scenarios(
         If input_file validation fails against specified codelist(s).
     """
     DataStructureDefinition(definitions, dimensions).validate(IamDataFrame(input_file))
+
+
+@app.command()
+def convert_xlsx_codelist_to_yaml(
+    source: Annotated[Path, typer.Argument(..., exists=True)],
+    target: Annotated[Path, typer.Argument(...)],
+    sheet_name: Annotated[str, typer.Argument(...)],
+    col: Annotated[str, typer.Argument(...)],
+    attrs: Annotated[list[str] | None, typer.Option()] = None,
+):
+    """Parses an xlsx file with a codelist and writes a yaml file
+
+    Parameters
+    ----------
+    source : str, path, file-like object
+        Path to xlsx file with definitions (codelists).
+    target : str, path, file-like object
+        Path to save the parsed definitions as yaml file.
+    sheet_name : str
+        Sheet name of `source`.
+    col : str
+        Column from `sheet_name` to use as codes.
+    attrs : list, optional
+        Columns from `sheet_name` to use as attributes.
+    """
+    if attrs is None:
+        attrs = []
+    SPECIAL_CODELIST.get(col.lower(), CodeList).read_excel(
+        name="", source=source, sheet_name=sheet_name, col=col, attrs=attrs
+    ).to_yaml(target)
+
+
+@app.command()
+def parse_model_registration(
+    model_registration_file: Annotated[Path, typer.Argument(..., exists=True)],
+    definition_path: Annotated[Path, typer.Option(exists=True)] = (
+        Path.cwd() / "definitions" / "region"
+    ),
+    mappings_path: Annotated[Path, typer.Option(exists=True)] = Path.cwd() / "mappings",
+) -> None:
+    """Parses a model registration file and writes the definitions & mapping yaml files
+
+    Parameters
+    ----------
+    model_registration_file : path, file-like object
+        Path to xlsx model registration file.
+    definition_path : path
+        Path to the region definitions folder, default: current working
+        directory/definitions/region
+    mappings_path: path
+        Path to the model mappings folder, default current working
+        directory/definitions/region
+
+    Notes
+    -----
+
+    If the registration file featuers a complete set of R5 region, a "World" region (sum
+    of all R5) will be added.
+    """
+
+    # parse Common-Region-Mapping
+    region_aggregation_mapping = RegionAggregationMapping.from_file(
+        model_registration_file
+    )
+    file_model_name = "".join(
+        x if (x.isalnum() or x in "._- ") else "_"
+        for x in region_aggregation_mapping.model[0]
+    ).replace(" ", "_")
+    region_aggregation_mapping.to_yaml(
+        mappings_path / f"{file_model_name}.yaml",
+    )
+    # parse Region-Country-Mapping
+    if "Region-Country-Mapping" in pd.ExcelFile(model_registration_file).sheet_names:
+        native = "Native region (as reported by the model)"
+        constituents = "Country name"
+        region_country_mapping = pd.read_excel(
+            model_registration_file,
+            sheet_name="Region-Country-Mapping",
+            header=2,
+            usecols=[native, constituents],
+        )
+        region_country_mapping = (
+            region_country_mapping.dropna().groupby(native)[constituents].apply(list)
+        )
+    else:
+        print(
+            "No 'Region-Country-Mapping' sheet found in model registration spreadsheet."
+        )
+        region_country_mapping = pd.DataFrame()
+    if native_regions := [
+        {
+            region_aggregation_mapping.model[
+                0
+            ]: region_aggregation_mapping.upload_native_regions
+        }
+    ]:
+        if not region_country_mapping.empty:
+
+            def construct_region_mapping(region):
+                countries = region_country_mapping.get(region.name, None)
+                if countries:
+                    return {region.target_native_region: {"countries": countries}}
+                return region.target_native_region
+
+            native_regions = [
+                construct_region_mapping(region)
+                for region in region_aggregation_mapping.native_regions
+            ]
+            native_regions = [{region_aggregation_mapping.model[0]: native_regions}]
+        with open(
+            definition_path / f"{file_model_name}.yaml",
+            "w",
+            encoding="utf-8",
+        ) as file:
+            yaml.dump(native_regions, file, allow_unicode=True)
