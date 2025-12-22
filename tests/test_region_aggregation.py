@@ -331,7 +331,7 @@ def test_reverse_region_aggregation():
 
 
 def test_model_mapping_from_excel():
-    excel_file = TEST_FOLDER_REGION_AGGREGATION / "excel_model_registration.xlsx"
+    excel_file = TEST_DATA_DIR / "model_registration" / "excel_model_registration.xlsx"
     obs = RegionAggregationMapping.from_file(excel_file)
     exp = RegionAggregationMapping(
         model=["Model 1.1"],
@@ -342,20 +342,10 @@ def test_model_mapping_from_excel():
             NativeRegion(name="Region 3"),
             NativeRegion(name="Region 4"),
             NativeRegion(name="Region 5"),
+            NativeRegion(name="Region 6"),
+            NativeRegion(name="Region 7"),
         ],
         common_regions=[
-            CommonRegion(
-                name="Common Region 1", constituent_regions=["Region 1", "Region 2"]
-            ),
-            CommonRegion(name="Asia (R5)", constituent_regions=["Region 1"]),
-            CommonRegion(name="Latin America (R5)", constituent_regions=["Region 5"]),
-            CommonRegion(
-                name="Middle East & Africa (R5)", constituent_regions=["Region 4"]
-            ),
-            CommonRegion(name="OECD & EU (R5)", constituent_regions=["Region 2"]),
-            CommonRegion(
-                name="Reforming Economies (R5)", constituent_regions=["Region 3"]
-            ),
             CommonRegion(
                 name="World",
                 constituent_regions=[
@@ -364,7 +354,25 @@ def test_model_mapping_from_excel():
                     "Region 3",
                     "Region 4",
                     "Region 5",
+                    "Region 6",
+                    "Region 7",
                 ],
+            ),
+            CommonRegion(
+                name="Common Region 1", constituent_regions=["Region 1", "Region 2"]
+            ),
+            CommonRegion(name="Asia (R5)", constituent_regions=["Region 1"]),
+            CommonRegion(
+                name="Latin America (R5)", constituent_regions=["Region 6", "Region 7"]
+            ),
+            CommonRegion(
+                name="Middle East & Africa (R5)", constituent_regions=["Region 5"]
+            ),
+            CommonRegion(
+                name="OECD & EU (R5)", constituent_regions=["Region 2", "Region 3"]
+            ),
+            CommonRegion(
+                name="Reforming Economies (R5)", constituent_regions=["Region 4"]
             ),
         ],
     )
@@ -373,13 +381,13 @@ def test_model_mapping_from_excel():
 
 
 def test_model_mapping_from_excel_to_yaml(tmp_path):
-    excel_file = TEST_FOLDER_REGION_AGGREGATION / "excel_model_registration.xlsx"
+    excel_file = TEST_DATA_DIR / "model_registration" / "excel_model_registration.xlsx"
     # create a yaml mapping from an excel mapping
     RegionAggregationMapping.from_file(excel_file).to_yaml(tmp_path / "mapping.yaml")
 
     obs = RegionAggregationMapping.from_file(tmp_path / "mapping.yaml")
 
     exp = RegionAggregationMapping.from_file(
-        TEST_FOLDER_REGION_AGGREGATION / "excel_mapping_reference.yaml"
+        TEST_DATA_DIR / "model_registration" / "excel_mapping_reference.yaml"
     )
     assert obs == exp
