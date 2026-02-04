@@ -355,13 +355,18 @@ class RegionCode(Code):
     @property
     def destination(self) -> str:
         if not self.is_directional:
-            raise ValueError("Non directional region does not have a destination")
-        return self.name.split(">")[1]
+            raise ValueError("Non-directional region does not have a destination")
+
+        # if model-specific region, append the model-prefix to the destination region
+        if "|" in self.name:
+            return self.name.split("|")[0] + "|" + self.name.split(">")[1]
+        else:
+            return self.name.split(">")[1]
 
     @property
     def origin(self) -> str:
         if not self.is_directional:
-            raise ValueError("Non directional region does not have an origin")
+            raise ValueError("Non-directional region does not have an origin")
         return self.name.split(">")[0]
 
 
