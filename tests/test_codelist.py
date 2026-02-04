@@ -224,7 +224,7 @@ def test_directional_region_codelist_nonexisting_country_name():
 
 def test_directional_model_specific_region_codelist():
     """Check that directional model-specific regions can be parsed"""
-    code = RegionCodeList.from_directory(
+    RegionCodeList.from_directory(
         "region",
         MODULE_TEST_DATA_DIR / "region_codelist" / "directional_model_specific",
     )
