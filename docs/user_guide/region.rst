@@ -22,20 +22,6 @@ Regions can have attributes, for example a description or ISO3-codes. If the att
 `iso3_codes` is provided, the item(s) are validated against a list of valid codes taken
 from the `pycountry <https://github.com/flyingcircusio/pycountry>`_ package.
 
-Directional data
-----------------
-
-For reporting of directional data (e.g., trade flows), "directional regions" can be
-defined using a *>* separator. The region before the separator is the *origin*,
-the region after the separator is the *destination*.
-
-.. code:: yaml
-
-   - Trade Connections:
-     - China>Europe
-
-Both the origin and destination regions must be defined in the region codelist.
-
 Common regions
 --------------
 
@@ -51,7 +37,7 @@ Naming conventions for native model regions
 In contrast to common regions used for comparison or scenario analysis across models,
 each model has a "native region" resolution.
 
-Models with a coarse spatial resolution should add a model-specific identifier to the
+Models with a coarse spatial resolution should add a model-specific *prefix* to the
 native model regions (e.g., `MESSAGEix-GLOBIOM 1.1|North America`) to avoid confusion
 when comparing results to other models with similar-but-different regions.
 
@@ -67,3 +53,27 @@ by the :ref:`model_mapping`.
 
 If a model has a country-level resolution where disambiguation is not a concern,
 we recommend to *not add* a model identifier.
+
+Connections between regions
+---------------------------
+
+For reporting of connections (e.g., trade flows), "directional regions" can be
+defined using a *>* separator. The region before the separator is the *origin*,
+the region after the separator is the *destination*.
+
+.. code:: yaml
+
+   - Trade Connections:
+     - China>Europe
+
+Both the *origin* and *destination* regions must be defined in the region codelist.
+
+For model-specific directional connections, the *prefix* must be added as well.
+
+.. code:: yaml
+
+   - Model A v1.0 [Connection]:
+     - Model A v1.0|Region 1>Region 2
+
+Both origin and destination `Model A v1.0|Region 1` and `Model A v1.0|Region 2` must be
+defined in the region codelist.
