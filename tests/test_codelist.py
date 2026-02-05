@@ -184,20 +184,30 @@ def test_misformatted_tier_fails():
 
 
 def test_region_codelist():
-    """Check replacing top-level hierarchy of yaml file as attribute for regions"""
-    code = RegionCodeList.from_directory(
+    """Check the attributes of a codes in a RegionCodeList (hierarchy, etc.)"""
+    regions = RegionCodeList.from_directory(
         "region", MODULE_TEST_DATA_DIR / "region_codelist" / "simple"
     )
 
-    assert "World" in code
-    assert code["World"].hierarchy == "common"
+    assert "World" in regions
+    assert regions["World"].hierarchy == "common"
 
-    assert "Some Country" in code
-    assert code["Some Country"].hierarchy == "countries"
-    assert code["Some Country"].iso2 == "XY"
+    assert "Some Country" in regions
+    code = regions["Some Country"]
+    assert code.hierarchy == "countries"
+    assert code.iso2 == "XY"
+    assert code.has_prefix == False
+    assert code.prefix == ""
+    assert code.is_directional == False
+    with pytest.raises(ValueError, match="Non-directional region does not have a des"):
+        code.destination
 
-    assert "Some Country>World" in code
-    assert code["Some Country>World"].hierarchy == "directional"
+    assert "Some Country>World" in regions
+    code = regions["Some Country>World"]
+    assert code.is_directional == True
+    assert code.hierarchy == "directional"
+    assert code.origin == "Some Country"
+    assert code.destination == "World"
 
 
 def test_region_codelist_nonexisting_country_name():
@@ -223,11 +233,21 @@ def test_directional_region_codelist_nonexisting_country_name():
 
 
 def test_directional_model_specific_region_codelist():
-    """Check that directional model-specific regions can be parsed"""
-    RegionCodeList.from_directory(
+    """Check that directional model-specific regions are parsed as expected"""
+    regions = RegionCodeList.from_directory(
         "region",
         MODULE_TEST_DATA_DIR / "region_codelist" / "directional_model_specific",
     )
+
+    code = regions["Model A|Region 1"]
+    assert code.has_prefix == True
+    assert code.prefix == "Model A"
+
+    code = regions["Model A|Region 1>Region 2"]
+    assert code.is_directional == True
+    assert code.hierarchy == "Model A [directional]"
+    assert code.origin == "Model A|Region 1"
+    assert code.destination == "Model A|Region 2"
 
 
 def test_region_codelist_str_country_name():
