@@ -196,9 +196,9 @@ def test_region_codelist():
     code = regions["Some Country"]
     assert code.hierarchy == "countries"
     assert code.iso2 == "XY"
-    assert code.has_prefix == False
+    assert not code.has_prefix
     assert code.prefix == ""
-    assert code.is_directional == False
+    assert not code.is_directional
     with pytest.raises(ValueError, match="Non-directional region does not have a des"):
         code.destination
 
@@ -240,11 +240,11 @@ def test_directional_model_specific_region_codelist():
     )
 
     code = regions["Model A|Region 1"]
-    assert code.has_prefix == True
+    assert code.has_prefix
     assert code.prefix == "Model A"
 
     code = regions["Model A|Region 1>Region 2"]
-    assert code.is_directional == True
+    assert code.is_directional
     assert code.hierarchy == "Model A [directional]"
     assert code.origin == "Model A|Region 1"
     assert code.destination == "Model A|Region 2"
