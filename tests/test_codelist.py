@@ -204,7 +204,7 @@ def test_region_codelist():
 
     assert "Some Country>World" in regions
     code = regions["Some Country>World"]
-    assert code.is_directional == True
+    assert code.is_directional
     assert code.hierarchy == "directional"
     assert code.origin == "Some Country"
     assert code.destination == "World"
