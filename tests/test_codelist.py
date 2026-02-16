@@ -369,12 +369,15 @@ def test_illegal_char_ignores_external_repo():
 def test_end_whitespace_fails():
     """Check that typos in a tag raises expected error"""
 
-    match = "Unexpected whitespace at the end of a scenario code: 'scenario2 '"
-    with raises(ValueError, match=match):
+    with RaisesGroup(ValueError, match="Found trailing whitespace") as excinfo:
         CodeList.from_directory(
             "scenario",
             MODULE_TEST_DATA_DIR / "end_whitespace" / "definitions" / "scenario",
         )
+    assert excinfo.group_contains(
+        ValueError,
+        match="Unexpected whitespace at the end of a scenario code: 'scenario2 '",
+    )
 
 
 def test_variable_codelist_units():

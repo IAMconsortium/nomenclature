@@ -63,12 +63,19 @@ class CodeList(BaseModel):
         cls, v: dict[str, Code], info: ValidationInfo
     ) -> dict[str, Code]:
         """Check that no code ends with a whitespace"""
+        errors = []
         for code in v:
             if code.endswith(" "):
-                raise ValueError(
-                    f"Unexpected whitespace at the end of a {info.data['name']}"
-                    f" code: '{code}'."
+                errors.append(
+                    ValueError(
+                        f"Unexpected whitespace at the end of a {info.data['name']}"
+                        f" code: '{code}'."
+                    )
                 )
+        if errors:
+            raise CodeListErrorGroup(
+                f"Found trailing whitespace in {info.data['name']} codes", errors
+            )
         return v
 
     def __setitem__(self, key: str, value: Code) -> None:
