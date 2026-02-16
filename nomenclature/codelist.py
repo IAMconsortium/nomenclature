@@ -783,19 +783,15 @@ class RegionCodeList(CodeList):
         # initializing from general configuration
         # adding all countries
         config = config or NomenclatureConfig()
-        if config.definitions.region.country is True:
+        if config.definitions.region.country:
             for country in nomenclature.countries:
-                try:
-                    code_list.append(
-                        RegionCode(
-                            name=country.name,
-                            iso3_codes=country.alpha_3,
-                            hierarchy="Country",
-                        )
+                code_list.append(
+                    RegionCode(
+                        name=country.name,
+                        iso3_codes=country.alpha_3,
+                        hierarchy="Country",
                     )
-                # special handling for countries that do not have an alpha_3 code
-                except AttributeError:
-                    code_list.append(RegionCode(name=country.name, hierarchy="Country"))
+                )
 
         # adding nuts regions
         if config.definitions.region.nuts:
@@ -934,5 +930,4 @@ class MetaCodeList(CodeList):
 
 
 class ScenarioCodeList(CodeList):
-
     unknown_code_error = UnknownScenarioError
