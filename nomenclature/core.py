@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def process(
     df: pyam.IamDataFrame,
     dsd: DataStructureDefinition,
-    dimensions: list[str] | None = None,
+    dimensions: list[str] | str | None = None,
     processor: Processor | list[Processor] | None = None,
 ) -> pyam.IamDataFrame:
     """Function for validation and region aggregation in one step
@@ -34,7 +34,7 @@ def process(
         Scenario data to be validated and aggregated.
     dsd : :class:`DataStructureDefinition`
         Codelists that are used for validation.
-    dimensions : list, optional
+    dimensions : list of str, str, optional
         Dimensions to be used in the validation, defaults to all dimensions defined in
         `dsd`
     processor : :class:`RegionProcessor`, optional
@@ -54,7 +54,9 @@ def process(
     processor = processor or []
     processor = processor if isinstance(processor, list) else [processor]
 
-    dimensions = dimensions or dsd.dimensions
+    dimensions = (
+        [dimensions] if isinstance(dimensions, str) else dimensions
+    ) or dsd.dimensions
 
     if (
         any(isinstance(p, RegionProcessor) for p in processor)

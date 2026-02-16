@@ -71,7 +71,7 @@ class DataStructureDefinition:
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
         self.dimensions = (
-            dimensions
+            ([dimensions] if isinstance(dimensions, str) else dimensions)
             or self.config.dimensions
             or [x.stem for x in path.iterdir() if x.is_dir()]
         )
@@ -88,14 +88,14 @@ class DataStructureDefinition:
         if empty := [d for d in self.dimensions if not getattr(self, d)]:
             raise ValueError(f"Empty codelist: {', '.join(empty)}")
 
-    def validate(self, df: IamDataFrame, dimensions: list | None = None) -> None:
+    def validate(self, df: IamDataFrame, dimensions: list | str | None = None) -> None:
         """Validate that the coordinates of `df` are defined in the codelists
 
         Parameters
         ----------
         df : :class:`pyam.IamDataFrame`
             Scenario data to be validated against the codelists of this instance.
-        dimensions : list of str, optional
+        dimensions : list of str, str, optional
             Dimensions to perform validation (defaults to all dimensions of self)
 
         Returns
@@ -109,6 +109,7 @@ class DataStructureDefinition:
         """
 
         exceptions: list[Exception] = []
+        dimensions = [dimensions] if isinstance(dimensions, str) else dimensions
         for dimension in dimensions or self.dimensions:
             try:
                 getattr(self, dimension).validate_df(
