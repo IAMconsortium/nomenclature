@@ -349,6 +349,17 @@ class RegionCode(Code):
 
         return v
 
+    @field_validator("name")
+    @classmethod
+    def check_directional_components(cls, v: str) -> str:
+        """Verifies that directional regions have exactly two components."""
+        if ">" in v and len(v.split(">")) != 2:
+            raise ValueError(
+                f"Directional region '{v}' must have exactly two components "
+                f"separated by '>', found {len(v.split(">"))}"
+            )
+        return v
+
     @property
     def is_directional(self) -> bool:
         return ">" in self.name
