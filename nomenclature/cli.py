@@ -13,7 +13,7 @@ from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition
 from nomenclature.processor import RegionAggregationMapping, RegionProcessor
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 
-app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(no_args_is_help=True, pretty_exceptions_show_locals=False)
 
 
 # ---------------------------------------------------------
