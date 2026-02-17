@@ -133,7 +133,7 @@ class Code(BaseModel):
         tag_name : str
             Name of the tag to replace
         tag : Code
-            Tag attributes to replace the original Code values
+            Code with attributes to replace/expand the original attributes
 
         Returns
         -------
