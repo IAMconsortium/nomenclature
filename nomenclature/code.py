@@ -125,43 +125,44 @@ class Code(BaseModel):
     def from_external_repository(self) -> bool:
         return self.repository is not None
 
-    def replace_tag(self, tag: str, target: "Code") -> "Code":
-        """Return a new instance with tag applied
+    def replace_tag(self, tag_name: str, tag: "Code") -> "Code":
+        """Return a new instance with tag replaced
 
         Parameters
         ----------
-        tag : str
-            Name of the tag
-        target : Code
-            Code attributes to be modified by the tag
+        tag_name : str
+            Name of the tag to replace
+        tag : Code
+            Code with attributes to replace/expand the original attributes
 
         Returns
         -------
         Code
-            New Code instance with occurrences of "{tag}" replaced by target
+            New Code instance with occurrences of "{tag}" replaced by tag attributes
         """
 
         def _replace_or_recurse(_attr, _value):
             # if the attribute is a string and contains "{tag}" replace
-            if isinstance(_value, str) and "{" + tag + "}" in _value:
-                # if the target has the attribute, replace the tag with the value
-                if _attr in target.flattened_dict:
-                    return _value.replace("{" + tag + "}", getattr(target, _attr))
-                # otherwise return the name
+            if isinstance(_value, str) and "{" + tag_name + "}" in _value:
+                replacement = getattr(tag, _attr, getattr(tag, "name"))
+                # if the value is exactly "{tag}", use the target's attribute value directly
+                if _value == "{" + tag_name + "}":
+                    return replacement
+                # if the tag has the attribute, replace the tag with the value
                 else:
-                    return _value.replace("{" + tag + "}", getattr(target, "name"))
+                    return _value.replace("{" + tag_name + "}", str(replacement))
             # if the attribute is an integer and "tier"
             elif _attr == "tier" and isinstance(_value, int):
-                # if tier in tag is str formatted as "^1"/"^2"
-                if (tag_tier := getattr(target, _attr, None)) in {"^1", "^2"}:
+                tag_tier = getattr(tag, _attr, None)
+                # if tier in tag is "^1"/"^2", increment tier
+                if tag_tier in {"^1", "^2"}:
                     return _value + int(tag_tier[-1])
-                # if tag doesn't have tier attribute
                 elif not tag_tier:
                     return _value
                 # else misformatted tier in tag
                 else:
                     raise ValueError(
-                        f"Invalid 'tier' attribute in '{tag}' tag '{target.name}': {tag_tier}\n"
+                        f"Invalid 'tier' attribute in '{tag_name}' tag '{tag.name}': {tag_tier}\n"
                         "Allowed values are '^1' or '^2'."
                     )
             # if the attribute is a list, iterate over the items and replace tags

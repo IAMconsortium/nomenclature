@@ -21,21 +21,21 @@ MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "codelist"
 
 def test_simple_codelist():
     """Import a simple codelist"""
-    codelist = VariableCodeList.from_directory(
+    variables = VariableCodeList.from_directory(
         "variable", MODULE_TEST_DATA_DIR / "simple_codelist"
     )
 
-    assert "Some Variable" in codelist
-    assert codelist["Some Variable"].unit == ""  # this is a dimensionless variable
-    assert type(codelist["Some Variable"].bool) is bool  # this is a boolean
+    assert "Some Variable" in variables
+    assert variables["Some Variable"].unit == ""  # this is a dimensionless variable
+    assert type(variables["Some Variable"].bool) is bool  # this is a boolean
 
 
 def test_codelist_adding_duplicate_raises():
-    codelist = VariableCodeList.from_directory(
+    variables = VariableCodeList.from_directory(
         "variable", MODULE_TEST_DATA_DIR / "simple_codelist"
     )
     with raises(ValueError, match="Duplicate item in variable codelist: Some Variable"):
-        codelist["Some Variable"] = ""
+        variables["Some Variable"] = ""
 
 
 def test_codelist_adding_non_code_raises():
@@ -54,11 +54,11 @@ def test_codelist_name_key_mismatch():
 
 def test_codelist_to_yaml():
     """Cast a codelist to yaml format"""
-    code = VariableCodeList.from_directory(
+    variables = VariableCodeList.from_directory(
         "variable", MODULE_TEST_DATA_DIR / "simple_codelist"
     )
 
-    assert code.to_yaml() == (
+    assert variables.to_yaml() == (
         "- Some Variable:\n"
         "    description: Some basic variable\n"
         "    file: simple_codelist/foo.yaml\n"
@@ -91,7 +91,7 @@ def test_duplicate_tag_raises():
 
 def test_tagged_codelist():
     """Check that multiple tags in a code are correctly replaced"""
-    code = VariableCodeList.from_directory(
+    variables = VariableCodeList.from_directory(
         "variable", MODULE_TEST_DATA_DIR / "tagged_codelist"
     )
 
@@ -101,6 +101,7 @@ def test_tagged_codelist():
                 "Final energy consumption of renewables in the industrial sector"
             ),
             "weight": "Final Energy|Industry",
+            "extra": 1,
         },
         "Final Energy|Energy|Renewables": {
             "description": (
@@ -111,14 +112,14 @@ def test_tagged_codelist():
     }
 
     for code_name, attrs in exp.items():
-        assert code_name in code
+        assert code_name in variables
         for attr_name, value in attrs.items():
-            assert getattr(code[code_name], attr_name) == value
+            assert getattr(variables[code_name], attr_name) == value
 
 
 def test_tags_in_list_attributes():
     """Test that tags are replaced correctly in list attributes"""
-    code = VariableCodeList.from_directory(
+    variables = VariableCodeList.from_directory(
         "variable", MODULE_TEST_DATA_DIR / "tagged_codelist"
     )
     # The test should test that the tags in the definitions in the
@@ -146,30 +147,30 @@ def test_tags_in_list_attributes():
     }
 
     for code_name, attrs in exp.items():
-        assert code_name in code
+        assert code_name in variables
         for attr_name, value in attrs.items():
-            assert getattr(code[code_name], attr_name) == value
+            assert getattr(variables[code_name], attr_name) == value
 
 
 def test_tier_attribute_in_tags():
-    """Check for tier attribute functionality ('tier' in tags upgrade CodeList's):
+    """Check for tier attribute functionality ('tier' in tags increment CodeList):
     1) 'tier' is not added when not present in Code or tag;
-    2) 'tier' is/are upgraded when present in Code and matching tag(s)"""
-    code_list = VariableCodeList.from_directory(
+    2) 'tier' is/are incremented when present in Code and matching tag(s)"""
+    variables = VariableCodeList.from_directory(
         "variable", MODULE_TEST_DATA_DIR / "tier_attribute" / "valid"
     )
-    # check tier attribute is upgraded correctly
-    assert code_list["Final Energy|Coal|Industry"].tier == 1
-    assert code_list["Final Energy|Coal|Lignite|Industry"].tier == 2
-    assert code_list["Final Energy|Coal|Industry|Chemicals"].tier == 2
-    assert code_list["Primary Energy|Coal [Share]"].tier == 2
-    assert code_list["Primary Energy|Coal|Lignite [Share]"].tier == 3
+    # check tier attribute is incremented correctly
+    assert variables["Final Energy|Coal|Industry"].tier == 1
+    assert variables["Final Energy|Coal|Lignite|Industry"].tier == 2
+    assert variables["Final Energy|Coal|Industry|Chemicals"].tier == 2
+    assert variables["Primary Energy|Coal [Share]"].tier == 2
+    assert variables["Primary Energy|Coal|Lignite [Share]"].tier == 3
 
-    # check multiple tier attributes upgrade cumulatively
-    assert code_list["Final Energy|Coal|Lignite|Industry|Chemicals"].tier == 3
+    # check multiple tier attributes increment cumulatively
+    assert variables["Final Energy|Coal|Lignite|Industry|Chemicals"].tier == 3
 
     # check codes without tier attributes don't change
-    assert not code_list["Primary Energy"].tier
+    assert not variables["Primary Energy"].tier
 
 
 def test_misformatted_tier_fails():
@@ -252,21 +253,21 @@ def test_directional_model_specific_region_codelist():
 
 def test_region_codelist_str_country_name():
     """Check that country name as string is validated against `nomenclature.countries`"""
-    code = RegionCodeList.from_directory(
+    regions = RegionCodeList.from_directory(
         "region",
         MODULE_TEST_DATA_DIR / "region_codelist" / "countries_attribute_str",
     )
-    assert code["Some region"].countries == ["Austria"]
+    assert regions["Some region"].countries == ["Austria"]
 
 
 def test_norway_as_str():
     """guard against casting of 'NO' to boolean `False` by PyYAML or pydantic"""
-    region = RegionCodeList.from_directory(
+    regions = RegionCodeList.from_directory(
         "region",
         MODULE_TEST_DATA_DIR / "region_codelist" / "norway_as_bool",
     )
-    assert region["Norway"].eu_member is False
-    assert region["Norway"].iso2 == "NO"
+    assert regions["Norway"].eu_member is False
+    assert regions["Norway"].iso2 == "NO"
 
 
 def test_to_excel(tmpdir):
@@ -321,11 +322,11 @@ def test_to_csv():
 )
 def test_stray_tag_fails(subfolder, match):
     """Check that stray brackets from, e.g. typos in a tag, raises expected error"""
-    code_list = VariableCodeList.from_directory(
+    variables = VariableCodeList.from_directory(
         "variable", MODULE_TEST_DATA_DIR / "stray_tag" / subfolder
     )
     with pytest.raises(ExceptionGroup, match="Found illegal characters") as excinfo:
-        code_list.check_illegal_characters(NomenclatureConfig(dimensions=["variable"]))
+        variables.check_illegal_characters(NomenclatureConfig(dimensions=["variable"]))
     assert excinfo.group_contains(ValueError, match=match)
 
 
@@ -378,20 +379,20 @@ def test_end_whitespace_fails():
 
 def test_variable_codelist_units():
     """Check that the units-attribute works as expected"""
-    codelist = VariableCodeList.from_directory(
+    variables = VariableCodeList.from_directory(
         "variable",
         TEST_DATA_DIR / "data_structure_definition" / "validation_nc" / "variable",
     )
-    assert codelist.units == ["", "EJ/yr"]
+    assert variables.units == ["", "EJ/yr"]
 
 
 def test_variable_codelist_multiple_units():
     """Check that multiple units work in a VariableCodeList"""
-    codelist = VariableCodeList.from_directory(
+    variables = VariableCodeList.from_directory(
         "variable", MODULE_TEST_DATA_DIR / "multiple_unit_codelist"
     )
-    assert codelist["Var1"].unit == ["unit1", "unit2"]
-    assert codelist.units == ["unit1", "unit2"]
+    assert variables["Var1"].unit == ["unit1", "unit2"]
+    assert variables.units == ["unit1", "unit2"]
 
 
 def test_to_excel_read_excel_roundtrip(tmpdir):
@@ -433,11 +434,10 @@ def test_RegionCodeList_filter():
     """Test that verifies the hierarchy filter can sort through list of regions and
     give list of regions contained in the given hierarchy"""
 
-    # read RegionCodeList
-    rcl = RegionCodeList.from_directory(
+    regions = RegionCodeList.from_directory(
         "Region", MODULE_TEST_DATA_DIR / "region_to_filter_codelist"
     )
-    obs = rcl.filter(hierarchy="countries")
+    obs = regions.filter(hierarchy="countries")
 
     mapping = {
         "Some Country": RegionCode(
@@ -449,24 +449,24 @@ def test_RegionCodeList_filter():
             hierarchy="countries",
         ),
     }
-    exp = RegionCodeList(name=rcl.name, mapping=mapping)
+    exp = RegionCodeList(name=regions.name, mapping=mapping)
     assert obs == exp
 
 
 def test_RegionCodeList_hierarchy():
     """Verifies that the hierarchy method returns a list"""
 
-    rcl = RegionCodeList.from_directory(
+    regions = RegionCodeList.from_directory(
         "Region", MODULE_TEST_DATA_DIR / "region_to_filter_codelist"
     )
-    assert rcl.hierarchy == ["common", "countries"]
+    assert regions.hierarchy == ["common", "countries"]
 
 
 def test_codelist_general_filter():
-    var = CodeList.from_directory(
+    codelist = CodeList.from_directory(
         "Variable", MODULE_TEST_DATA_DIR / "general_filtering"
     )
-    obs = var.filter(required=True)
+    obs = codelist.filter(required=True)
     mapping = {
         "Big Variable": Code(
             name="Big Variable",
@@ -476,15 +476,15 @@ def test_codelist_general_filter():
             },
         )
     }
-    exp = CodeList(name=var.name, mapping=mapping)
+    exp = CodeList(name=codelist.name, mapping=mapping)
     assert obs == exp
 
 
 def test_codelist_general_filter_multiple_attributes():
-    var = CodeList.from_directory(
+    codelist = CodeList.from_directory(
         "Variable", MODULE_TEST_DATA_DIR / "general_filtering"
     )
-    obs = var.filter(some_attribute=True, another_attribute="This is true")
+    obs = codelist.filter(some_attribute=True, another_attribute="This is true")
     mapping = {
         "Another Variable": Code(
             name="Another Variable",
@@ -495,17 +495,17 @@ def test_codelist_general_filter_multiple_attributes():
             },
         )
     }
-    exp = CodeList(name=var.name, mapping=mapping)
+    exp = CodeList(name=codelist.name, mapping=mapping)
     assert obs == exp
 
 
 def test_codelist_general_filter_No_Elements(caplog):
-    var = CodeList.from_directory(
+    codelist = CodeList.from_directory(
         "Variable", MODULE_TEST_DATA_DIR / "general_filtering"
     )
     caplog.set_level(logging.WARNING)
     with caplog.at_level(logging.WARNING):
-        obs = var.filter(
+        obs = codelist.filter(
             some_attribute=True, another_attribute="This is true", required=False
         )
         assert obs == CodeList(name="Variable", mapping={})
@@ -537,7 +537,7 @@ def test_multiple_external_repos():
         TEST_DATA_DIR / "config" / "multiple_repos_per_dimension.yaml"
     )
     try:
-        variable_code_list = VariableCodeList.from_directory(
+        variables = VariableCodeList.from_directory(
             "variable",
             TEST_DATA_DIR / "config" / "variable",
             nomenclature_config,
@@ -551,9 +551,9 @@ def test_multiple_external_repos():
             repo.local_path.is_dir()
             for repo in nomenclature_config.repositories.values()
         )
-        assert len(variable_code_list) > 2000
-        assert variable_code_list["Final Energy"].repository == "common-definitions"
-        assert variable_code_list["Employment"].repository == "legacy-definitions"
+        assert len(variables) > 2000
+        assert variables["Final Energy"].repository == "common-definitions"
+        assert variables["Employment"].repository == "legacy-definitions"
     finally:
         clean_up_external_repos(nomenclature_config.repositories)
 
@@ -574,8 +574,8 @@ def test_variable_codelist_with_duplicates_raises(CodeList):
 
 
 def test_variablecodelist_list_missing_variables_to_new_file(simple_df, tmp_path):
-    empty_codelist = VariableCodeList(name="variable")
-    empty_codelist.list_missing_variables(
+    empty_variables = VariableCodeList(name="variable")
+    empty_variables.list_missing_variables(
         simple_df,
         tmp_path / "variables.yaml",
     )
@@ -598,7 +598,7 @@ def test_variable_code_list_external_repo_with_filters(codelist_filter):
         TEST_DATA_DIR / "config" / "external_repo_filters.yaml"
     )
     try:
-        variable_code_list = VariableCodeList.from_directory(
+        codelist = VariableCodeList.from_directory(
             "variable",
             TEST_DATA_DIR / "nomenclature_configs" / "variable",
             nomenclature_config,
@@ -612,17 +612,13 @@ def test_variable_code_list_external_repo_with_filters(codelist_filter):
             "Final Energy|Agriculture|Electricity",  # no third level Final Energy
             "Population|Clean Cooking Access",  # only tier 1 Population
         ]
-        assert all(
-            variable in variable_code_list for variable in exp_included_variables
-        )
-        assert all(
-            variable not in variable_code_list for variable in exp_excluded_variables
-        )
+        assert all(variable in codelist for variable in exp_included_variables)
+        assert all(variable not in codelist for variable in exp_excluded_variables)
     finally:
         clean_up_external_repos(nomenclature_config.repositories)
 
     if codelist_filter:
-        filtered_codelist = variable_code_list.filter(**codelist_filter)
+        filtered_codelist = codelist.filter(**codelist_filter)
         assert all(code.tier == 2 for code in filtered_codelist.mapping.values())
         assert any(
             code.name.startswith(("Primary Energy", "Final Energy"))
@@ -639,7 +635,7 @@ def test_region_code_list_external_repo_with_filters():
         TEST_DATA_DIR / "config" / "external_repo_filters.yaml"
     )
     try:
-        region_code_list = RegionCodeList.from_directory(
+        regions = RegionCodeList.from_directory(
             "region",
             TEST_DATA_DIR / "config" / "variable",
             nomenclature_config,
@@ -651,8 +647,8 @@ def test_region_code_list_external_repo_with_filters():
             "Middle East & Africa (R5)",
             "Latin America (R5)",
         ]
-        assert len(region_code_list) == 5
-        assert all(r5_region in region_code_list for r5_region in R5_regions)
-        assert "Other (R5)" not in region_code_list
+        assert len(regions) == 5
+        assert all(r5_region in regions for r5_region in R5_regions)
+        assert "Other (R5)" not in regions
     finally:
         clean_up_external_repos(nomenclature_config.repositories)

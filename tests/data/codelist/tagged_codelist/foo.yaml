@@ -11,3 +11,4 @@
     definition: Final energy consumption of {Source} in the {Sector} sector
     unit: EJ
     weight: Final Energy|{Sector}
+    extra: "{Sector}"
