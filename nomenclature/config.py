@@ -37,7 +37,9 @@ class CodeListConfig(BaseModel):
     repositories: list[CodeListFromRepository] = Field(
         default_factory=list, alias="repository"
     )
-    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
+    model_config = ConfigDict(
+        extra="forbid", validate_by_name=True, validate_by_alias=True
+    )
 
     @field_validator("repositories", mode="before")
     @classmethod
