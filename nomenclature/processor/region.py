@@ -370,7 +370,7 @@ class RegionAggregationMapping(BaseModel):
                         0,
                         CommonRegion(
                             name="World", constituent_regions=constituent_world_regions
-                        )
+                        ),
                     )
         except Exception as error:
             raise ValueError(f"{error} in {get_relative_path(file)}") from error

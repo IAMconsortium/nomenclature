@@ -356,7 +356,7 @@ class RegionCode(Code):
         if ">" in v and len(v.split(">")) != 2:
             raise ValueError(
                 f"Directional region '{v}' must have exactly two components "
-                f"separated by '>', found {len(v.split(">"))}"
+                f"separated by '>', found {len(v.split('>'))}"
             )
         return v
 

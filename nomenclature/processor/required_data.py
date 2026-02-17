@@ -77,7 +77,6 @@ class RequiredData(BaseModel):
         return values
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
-
         errors: list[Exception] = []
 
         # check for undefined regions and variables
