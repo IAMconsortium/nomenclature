@@ -1,8 +1,9 @@
 import logging
 import re
+from os import PathLike
 from pathlib import Path
 from textwrap import indent
-from typing import ClassVar
+from typing import IO, ClassVar
 
 import numpy as np
 import pandas as pd
@@ -199,7 +200,7 @@ class CodeList(BaseModel):
         path: Path,
         config: NomenclatureConfig | None = None,
         file_glob_pattern: str = "**/*",
-    ):
+    ) -> "CodeList":
         """Initialize a CodeList from a directory with codelist files
 
         Parameters
@@ -292,27 +293,36 @@ class CodeList(BaseModel):
         path: Path,
         file_glob_pattern: str = "**/*",
         repository: str | None = None,
-    ):
-        code_list: list[Code] = []
+    ) -> list[Code]:
+        list_of_codes: list[Code] = []
         for yaml_file in (
             f
             for f in path.glob(file_glob_pattern)
             if f.suffix in {".yaml", ".yml"} and not f.name.startswith("tag_")
         ):
             with open(yaml_file, "r", encoding="utf-8") as stream:
-                _code_list = yaml.safe_load(stream)
-            for code_dict in _code_list:
+                _list_of_codes = yaml.safe_load(stream)
+            for code_dict in _list_of_codes:
                 code = cls.code_basis.from_dict(code_dict)
                 code.file = yaml_file.relative_to(path.parent).as_posix()
                 if repository:
                     code.repository = repository
-                code_list.append(code)
+                list_of_codes.append(code)
 
-        code_list = cls._parse_and_replace_tags(code_list, path, file_glob_pattern)
-        return code_list
+        list_of_codes = cls._parse_and_replace_tags(
+            list_of_codes, path, file_glob_pattern
+        )
+        return list_of_codes
 
     @classmethod
-    def read_excel(cls, name, source, sheet_name, col, attrs=None):
+    def read_excel(
+        cls,
+        name: str,
+        source: str | Path | IO[bytes],
+        sheet_name: str,
+        col: str,
+        attrs: list | None = None,
+    ) -> "CodeList":
         """Parses an xlsx file with a codelist
 
         Parameters
@@ -385,7 +395,7 @@ class CodeList(BaseModel):
         if errors:
             raise CodeListErrorGroup("Found illegal characters", errors)
 
-    def to_yaml(self, path=None):
+    def to_yaml(self, path: Path | str | None = None):
         """Write mapping to yaml file or return as stream
 
         Parameters
@@ -434,7 +444,12 @@ class CodeList(BaseModel):
             codelist.sort_values(by=self.name, inplace=True)
         return codelist
 
-    def to_csv(self, path=None, sort_by_code: bool = False, **kwargs):
+    def to_csv(
+        self,
+        path: str | Path | IO[bytes] | None = None,
+        sort_by_code: bool = False,
+        **kwargs,
+    ) -> str | None:
         """Write the codelist to a comma-separated values (csv) file
 
         Parameters
@@ -456,7 +471,11 @@ class CodeList(BaseModel):
         return self.to_pandas(sort_by_code).to_csv(path, index=index, **kwargs)
 
     def to_excel(
-        self, excel_writer, sheet_name=None, sort_by_code: bool = False, **kwargs
+        self,
+        excel_writer: PathLike | IO[bytes] | pd.ExcelWriter,
+        sheet_name: str | None = None,
+        sort_by_code: bool = False,
+        **kwargs,
     ):
         """Write the codelist to an Excel spreadsheet
 
@@ -479,7 +498,7 @@ class CodeList(BaseModel):
             with pd.ExcelWriter(excel_writer, **kwargs) as writer:
                 write_sheet(writer, sheet_name, self.to_pandas(sort_by_code))
 
-    def codelist_repr(self, json_serialized=False) -> dict:
+    def codelist_repr(self, json_serialized: bool = False) -> dict:
         """Cast a CodeList into corresponding dictionary"""
 
         nice_dict = {}
@@ -520,7 +539,9 @@ class CodeList(BaseModel):
 
     @staticmethod
     def filter_codes(
-        codes: list[Code], include: dict | None = None, exclude: dict | None = None
+        codes: list[Code],
+        include: list[dict] | None = None,
+        exclude: list[dict] | None = None,
     ) -> list[Code]:
         """
         Filter a list of codes based on include and exclude filters.
@@ -540,22 +561,22 @@ class CodeList(BaseModel):
             Filtered list of Code objects.
         """
 
-        def matches_filter(code, filters, keep):
+        def matches_filter(code: Code, filters: list[dict], keep: bool):
             def check_attribute_match(code_value, filter_value):
-                # if is list -> recursive
-                # if is str -> escape all special characters except "*" and use a regex
                 # if is int -> match exactly
-                # if is None -> Attribute does not exist therefore does not match
                 if isinstance(filter_value, int):
                     return code_value == filter_value
+                # if is str -> escape all special characters except "*" and use a regex
                 if isinstance(filter_value, str):
                     pattern = re.compile(escape_regexp(filter_value) + "$")
                     return re.match(pattern, code_value) is not None
+                # if is list -> recursive
                 if isinstance(filter_value, list):
                     return any(
                         check_attribute_match(code_value, value)
                         for value in filter_value
                     )
+                # if is None -> attribute does not exist therefore does not match
                 if filter_value is None:
                     return False
                 raise ValueError("Invalid filter value type")
@@ -674,8 +695,10 @@ class VariableCodeList(CodeList):
         return v
 
     def vars_default_args(self, variables: list[str]) -> list[str]:
-        """return subset of variables which does not feature any special pyam
-        aggregation arguments and where skip_region_aggregation is False"""
+        """
+        Return subset of variables which does not feature any special pyam
+        aggregation arguments and where skip_region_aggregation is False
+        """
         return [
             var
             for var in variables
@@ -685,8 +708,10 @@ class VariableCodeList(CodeList):
         ]
 
     def vars_kwargs(self, variables: list[str]) -> list[VariableCode]:
-        # return subset of variables which features special pyam aggregation arguments
-        # and where skip_region_aggregation is False
+        """
+        Return subset of variables which features special pyam aggregation
+        arguments and where skip_region_aggregation is False
+        """
         return [
             self[var]
             for var in variables
@@ -697,8 +722,8 @@ class VariableCodeList(CodeList):
 
     def validate_units(
         self,
-        unit_mapping,
-        project: None | str = None,
+        unit_mapping: dict,
+        project: str | None = None,
     ) -> None:
         if invalid_units := [
             (variable, unit, self.mapping[variable].unit)
@@ -764,7 +789,7 @@ class RegionCodeList(CodeList):
         path: Path,
         config: NomenclatureConfig | None = None,
         file_glob_pattern: str = "**/*",
-    ):
+    ) -> "RegionCodeList":
         """Initialize a RegionCodeList from a directory with codelist files
 
         Parameters
@@ -896,18 +921,19 @@ class RegionCodeList(CodeList):
         file_glob_pattern: str = "**/*",
         repository: str | None = None,
     ) -> list[RegionCode]:
-        """"""
-        code_list: list[RegionCode] = []
+        """Parse region codes from a directory with codelist files"""
+
+        list_of_codes: list[RegionCode] = []
         for yaml_file in (
             f
             for f in path.glob(file_glob_pattern)
             if f.suffix in {".yaml", ".yml"} and not f.name.startswith("tag_")
         ):
             with open(yaml_file, "r", encoding="utf-8") as stream:
-                _code_list = yaml.safe_load(stream)
+                _list_of_codes: list[dict] = yaml.safe_load(stream)
 
             # a "region" codelist assumes a top-level category to be used as attribute
-            for top_level_cat in _code_list:
+            for top_level_cat in _list_of_codes:
                 for top_key, _codes in top_level_cat.items():
                     for item in _codes:
                         code = RegionCode.from_dict(item)
@@ -915,9 +941,9 @@ class RegionCodeList(CodeList):
                         if repository:
                             code.repository = repository
                         code.file = yaml_file.relative_to(path.parent).as_posix()
-                        code_list.append(code)
+                        list_of_codes.append(code)
 
-        return code_list
+        return list_of_codes
 
 
 class MetaCodeList(CodeList):

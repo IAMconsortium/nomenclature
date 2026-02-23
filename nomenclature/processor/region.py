@@ -112,6 +112,8 @@ class RegionAggregationMapping(BaseModel):
         Optionally, list of model native regions to select and potentially rename.
     common_regions: list[CommonRegion], optional
         Optionally, list of common regions where aggregation will be performed.
+    exclude_regions: list[str], optional
+        Optionally, list of model native regions to exclude from processing.
     """
 
     model: list[str]
@@ -242,6 +244,28 @@ class RegionAggregationMapping(BaseModel):
             ).difference([r.name for r in v.native_regions] + v.exclude_regions):
                 raise ConstituentsNotNativeError({"regions": missing, "file": v.file})
         return v
+
+    @field_serializer("model", when_used="json")
+    def serialize_model(self, model: list[str]) -> str | list[str]:
+        return model[0] if len(model) == 1 else model
+
+    @field_serializer("native_regions", when_used="json")
+    def serialize_native_regions(self, native_regions: list[NativeRegion]) -> list:
+        return [
+            (
+                {native_region.name: native_region.rename}
+                if native_region.rename
+                else native_region.name
+            )
+            for native_region in native_regions
+        ]
+
+    @field_serializer("common_regions", when_used="json")
+    def serialize_common_regions(self, common_regions: list[CommonRegion]) -> list:
+        return [
+            {common_region.name: common_region.constituent_regions}
+            for common_region in common_regions
+        ]
 
     @classmethod
     def from_file(cls, file: Path | str) -> "RegionAggregationMapping":
@@ -383,22 +407,23 @@ class RegionAggregationMapping(BaseModel):
 
     @property
     def all_regions(self) -> list[str]:
-        # For the native regions we take the **renamed** (if given) names
+        """List of all regions. Native regions are renamed, if possible."""
         nr_list = [x.target_native_region for x in self.native_regions or []]
         return nr_list + self.common_region_names
 
     @property
     def model_native_region_names(self) -> list[str]:
-        # List of the **original** model native region names
+        """List of the original model native region names"""
         return [x.name for x in self.native_regions or []]
 
     @property
     def common_region_names(self) -> list[str]:
-        # List of the common region names
+        """List of the common region names"""
         return [x.name for x in self.common_regions or []]
 
     @property
     def rename_mapping(self) -> dict[str, str]:
+        """Mapping from original native region names to their renamed targets."""
         return {
             r.name: r.target_native_region
             for r in self.native_regions or []
@@ -406,30 +431,32 @@ class RegionAggregationMapping(BaseModel):
         }
 
     @property
+    def reverse_rename_mapping(self) -> dict[str, str]:
+        """Mapping from native region renamed targets to original names."""
+        return {renamed: original for original, renamed in self.rename_mapping.items()}
+
+    @property
     def upload_native_regions(self) -> list[str]:
+        """List of native regions to upload, with renamed regions applied."""
         return [
             native_region.target_native_region
             for native_region in self.native_regions or []
         ]
 
     @property
-    def reverse_rename_mapping(self) -> dict[str, str]:
-        return {renamed: original for original, renamed in self.rename_mapping.items()}
-
-    @property
     def models(self) -> list[str]:
         return self.model
 
     def check_unexpected_regions(self, df: IamDataFrame) -> None:
-        # Raise error if a region in the input data is not used in the model mapping
+        """Raises if regions in input data are not found in the model mapping"""
 
         if regions_not_found := set(df.region) - set(
             self.model_native_region_names
             + self.common_region_names
             + [
-                const_reg
-                for comm_reg in self.common_regions or []
-                for const_reg in comm_reg.constituent_regions
+                constituent_region
+                for common_region in self.common_regions or []
+                for constituent_region in common_region.constituent_regions
             ]
             + (self.exclude_regions or [])
         ):
@@ -443,28 +470,6 @@ class RegionAggregationMapping(BaseModel):
 
     def __eq__(self, other: "RegionAggregationMapping") -> bool:
         return self.model_dump(exclude={"file"}) == other.model_dump(exclude={"file"})
-
-    @field_serializer("model", when_used="json")
-    def serialize_model(self, model) -> str | list[str]:
-        return model[0] if len(model) == 1 else model
-
-    @field_serializer("native_regions", when_used="json")
-    def serialize_native_regions(self, native_regions) -> list:
-        return [
-            (
-                {native_region.name: native_region.rename}
-                if native_region.rename
-                else native_region.name
-            )
-            for native_region in native_regions
-        ]
-
-    @field_serializer("common_regions", when_used="json")
-    def serialize_common_regions(self, common_regions) -> list:
-        return [
-            {common_region.name: common_region.constituent_regions}
-            for common_region in common_regions
-        ]
 
     def to_yaml(self, file) -> None:
         with open(file, "w", encoding="utf-8") as f:
