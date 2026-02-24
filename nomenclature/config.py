@@ -4,6 +4,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
+from shutil import rmtree
 
 import yaml
 from git import Repo
@@ -109,7 +110,16 @@ class Repository(BaseModel):
             repo = Repo.clone_from(self.url, to_path)
         else:
             repo = Repo(to_path)
-            repo.remotes.origin.fetch()
+            # If the URL has changed, remove existing directory and re-clone
+            if origin_url := repo.remotes.origin.url != self.url:
+                logger.info(
+                    f"Repository URL changed from '{origin_url}' to '{self.url}'. "
+                    f"Re-cloning repository to '{to_path}'..."
+                )
+                rmtree(to_path)
+                repo = Repo.clone_from(self.url, to_path)
+            else:
+                repo.remotes.origin.fetch()
         self.local_path = to_path
         repo.git.reset("--hard")
         repo.git.checkout(self.revision)
@@ -258,7 +268,9 @@ class TimeDomainConfig(BaseModel):
 
         elif df.time_domain == "mixed":
             if not self.mixed_allowed:
-                raise TimeDomainError("Invalid time domain - `mixed` found, but not allowed.")
+                raise TimeDomainError(
+                    "Invalid time domain - `mixed` found, but not allowed."
+                )
 
             self.check_datetime_format(df)
         elif df.time_domain == "datetime":
@@ -307,7 +319,10 @@ class NomenclatureConfig(BaseModel):
         cls, v: "NomenclatureConfig"
     ) -> "NomenclatureConfig":
         mapping_repos = {"mappings": v.mappings.repositories} if v.mappings else {}
-        repos = {**v.definitions.repos, **mapping_repos}
+        repos: dict[str, list[MappingRepository]] = {
+            **v.definitions.repos,
+            **mapping_repos,
+        }
         for use, repositories in repos.items():
             repository_names = [repository.name for repository in repositories]
             if unknown_repos := repository_names - v.repositories.keys():
