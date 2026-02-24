@@ -50,7 +50,7 @@ class CodeList(BaseModel):
     name: str
     mapping: dict[str, Code] = {}
 
-    # class variable
+    # Class variables
     validation_schema: ClassVar[str] = "generic"
     code_basis: ClassVar = Code
     unknown_code_error: ClassVar[type[UnknownCodeError]] = UnknownCodeError
@@ -183,11 +183,11 @@ class CodeList(BaseModel):
                     raise ValueError(f"Duplicate item in tag codelist: {tag_name}")
                 tag_dict[tag_name] = [Code.from_dict(t) for t in tag[tag_name]]
 
-        # start with all non tag codes
+        # Start with all non-tag codes
         codes_without_tags = [code for code in code_list if not code.contains_tags]
         codes_with_tags = [code for code in code_list if code.contains_tags]
 
-        # replace tags by the items of the tag-dictionary
+        # Replace tags by the items of the tag-dictionary
         for tag_name, tags in tag_dict.items():
             codes_with_tags = cls.replace_tags(codes_with_tags, tag_name, tags)
 
@@ -342,19 +342,19 @@ class CodeList(BaseModel):
             attrs = []
         codelist = pd.read_excel(source, sheet_name=sheet_name, usecols=[col] + attrs)
 
-        # replace nan with None
+        # Replace nan with None
         codelist = codelist.replace(np.nan, None)
 
-        # check for duplicates in the codelist
+        # Check for duplicates in the codelist
         duplicate_rows = codelist[col].duplicated(keep=False).values
         if any(duplicate_rows):
             duplicates = codelist[duplicate_rows]
-            # set index to equal the row numbers to simplify identifying the issue
+            # Set index to equal the row numbers to simplify identifying the issue
             duplicates.index = pd.Index([i + 2 for i in duplicates.index])
             msg = f"Duplicate values in the codelist:\n{duplicates.head(20)}"
             raise ValueError(msg + ("\n..." if len(duplicates) > 20 else ""))
 
-        # set `col` as index and cast all attribute-names to lowercase
+        # Set `col` as index and cast all attribute-names to lowercase
         codes = codelist[[col] + attrs].set_index(col)[attrs]
         codes.rename(columns={c: str(c).lower() for c in codes.columns}, inplace=True)
         codes_di = codes.to_dict(orient="index")
@@ -408,7 +408,7 @@ class CodeList(BaseModel):
             def increase_indent(self, flow: bool = False, indentless: bool = False):
                 return super().increase_indent(flow=flow, indentless=indentless)
 
-        # translate to list of nested dicts, replace None by empty field, write to file
+        # Translate to list of nested dicts, replace None by empty field, write to file
         stream = (
             yaml.dump(
                 [{code: attrs} for code, attrs in self.codelist_repr().items()],
@@ -563,20 +563,20 @@ class CodeList(BaseModel):
 
         def matches_filter(code: Code, filters: list[dict], keep: bool):
             def check_attribute_match(code_value, filter_value):
-                # if is int -> match exactly
+                # If int, match exactly
                 if isinstance(filter_value, int):
                     return code_value == filter_value
-                # if is str -> escape all special characters except "*" and use a regex
+                # If str, escape all special characters except "*" and use a regex
                 if isinstance(filter_value, str):
                     pattern = re.compile(escape_regexp(filter_value) + "$")
                     return re.match(pattern, code_value) is not None
-                # if is list -> recursive
+                # If list, recursive
                 if isinstance(filter_value, list):
                     return any(
                         check_attribute_match(code_value, value)
                         for value in filter_value
                     )
-                # if is None -> attribute does not exist therefore does not match
+                # If None, attribute does not exist therefore does not match
                 if filter_value is None:
                     return False
                 raise ValueError("Invalid filter value type")
@@ -614,7 +614,7 @@ class VariableCodeList(CodeList):
 
     """
 
-    # class variables
+    # Class variables
     code_basis: ClassVar = VariableCode
     validation_schema: ClassVar[str] = "variable"
     unknown_code_error: ClassVar[type[UnknownCodeError]] = UnknownVariableError
@@ -638,7 +638,7 @@ class VariableCodeList(CodeList):
         """Get the list of all units"""
         units = set()
 
-        # replace "dimensionless" variables (unit: `None`) with empty string
+        # Replace "dimensionless" variables (unit: `None`) with empty string
         # for consistency with the yaml file format
         def to_dimensionless(u):
             return u or ""
@@ -657,7 +657,7 @@ class VariableCodeList(CodeList):
         """Check that any variable "region-aggregation" mappings are valid"""
 
         for var in v.values():
-            # ensure that a variable does not have both individual
+            # Ensure that a variable does not have both individual
             # pyam-aggregation-kwargs and a 'region-aggregation' attribute
             if var.region_aggregation is not None:
                 if conflict_args := list(var.pyam_agg_kwargs.keys()):
@@ -665,7 +665,7 @@ class VariableCodeList(CodeList):
                         {"variable": var.name, "file": var.file, "args": conflict_args},
                     )
 
-                # ensure that mapped variables are defined in the nomenclature
+                # Ensure that mapped variables are defined in the nomenclature
                 invalid = []
                 for inst in var.region_aggregation:
                     invalid.extend(var for var in inst if var not in v)
@@ -694,7 +694,7 @@ class VariableCodeList(CodeList):
             )
         return v
 
-    def vars_default_args(self, variables: list[str]) -> list[str]:
+    def vars_default_agg_args(self, variables: list[str]) -> list[str]:
         """
         Return subset of variables which does not feature any special pyam
         aggregation arguments and where skip_region_aggregation is False
@@ -707,7 +707,7 @@ class VariableCodeList(CodeList):
             and not self[var].skip_region_aggregation
         ]
 
-    def vars_kwargs(self, variables: list[str]) -> list[VariableCode]:
+    def vars_special_agg_kwargs(self, variables: list[str]) -> list[VariableCode]:
         """
         Return subset of variables which features special pyam aggregation
         arguments and where skip_region_aggregation is False
@@ -738,11 +738,11 @@ class VariableCodeList(CodeList):
         dimension: str,
         project: str | None = None,
     ) -> None:
-        # validate variables
+        # Validate variables
         super().validate_df(df, dimension, project)
-        # validate units
+        # Validate units
         self.validate_units(df.unit_mapping, project)
-        # validate timeseries data values
+        # Validate timeseries data values
         self.data_validator.apply(df)
 
     def list_missing_variables(
@@ -777,7 +777,7 @@ class RegionCodeList(CodeList):
 
     """
 
-    # class variable
+    # Class variables
     code_basis: ClassVar = RegionCode
     validation_schema: ClassVar[str] = "region"
     unknown_code_error: ClassVar[type[UnknownCodeError]] = UnknownRegionError
@@ -812,10 +812,9 @@ class RegionCodeList(CodeList):
 
         code_list: list[RegionCode] = []
 
-        # initializing from general configuration
-        # adding all countries
+        # Initializing from general configuration
         config = config or NomenclatureConfig()
-        if config.definitions.region.country:
+        if config.definitions.region.country:  # Adding all ISO3 countries
             for country in nomenclature.countries:
                 code_list.append(
                     RegionCode(
@@ -825,7 +824,7 @@ class RegionCodeList(CodeList):
                     )
                 )
 
-        # adding nuts regions
+        # Adding NUTS regions
         if config.definitions.region.nuts:
             for level, countries in config.definitions.region.nuts.items():
                 if countries is True:
@@ -840,7 +839,7 @@ class RegionCodeList(CodeList):
                         )
                     )
 
-        # importing from an external repository
+        # Importing from external repositories
         for repo in config.definitions.region.repositories:
             repo_path = (
                 config.repositories[repo.name].local_path / "definitions" / "region"
@@ -858,13 +857,13 @@ class RegionCodeList(CodeList):
                 cls.filter_codes(repo_list_of_codes, repo.include, repo.exclude)
             )
 
-        # parse from current repository
+        # Parse from current repository
         local_code_list = cls._parse_region_code_dir(path, file_glob_pattern)
         code_list.extend(
             cls._parse_and_replace_tags(local_code_list, path, file_glob_pattern)
         )
 
-        # translate to mapping
+        # Translate to mapping
         mapping: dict[str, RegionCode] = {}
 
         errors: list[ValueError] = []
@@ -932,7 +931,7 @@ class RegionCodeList(CodeList):
             with open(yaml_file, "r", encoding="utf-8") as stream:
                 _list_of_codes: list[dict] = yaml.safe_load(stream)
 
-            # a "region" codelist assumes a top-level category to be used as attribute
+            # A region codelist assumes a top-level category to be used as attribute
             for top_level_cat in _list_of_codes:
                 for top_key, _codes in top_level_cat.items():
                     for item in _codes:

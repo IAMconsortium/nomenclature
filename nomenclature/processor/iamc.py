@@ -7,14 +7,14 @@ from nomenclature.exceptions import NoTracebackExceptionGroup
 
 
 class IamcDataFilter(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
     model: list[str] | None = None
     scenario: list[str] | None = None
     region: list[str] | None = None
     variable: list[str] | None = None
     unit: list[str] | None = None
     year: list[int] | None = None
+
+    model_config = ConfigDict(extra="forbid")
 
     @field_validator(*IAMC_IDX + ["year"], mode="before")
     @classmethod
@@ -28,10 +28,10 @@ class IamcDataFilter(BaseModel):
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         errors = []
 
-        # check for filter-items that are not defined in the codelists
+        # Check for filter-items that are not defined in the codelists
         for dimension in IAMC_IDX:
             codelist = getattr(dsd, dimension, None)
-            # no validation if codelist is not defined or filter-item is None
+            # No validation if codelist is not defined or filter-item is None
             if codelist is None or getattr(self, dimension) is None:
                 continue
             if invalid := codelist.validate_items(getattr(self, dimension)):

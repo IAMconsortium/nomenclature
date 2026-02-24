@@ -64,14 +64,14 @@ def process(
     ):
         dimensions.remove("region")
 
-    # validate against the codelists
+    # Validate against the codelists
     dsd.validate(df, dimensions=dimensions)
 
-    # run the processors
+    # Run the processors
     for p in processor:
         df = p.apply(df)
 
-    # check consistency across the variable hierarchy
+    # Check consistency across the variable hierarchy
     error = dsd.check_aggregate(df)
     if not error.empty:
         raise ValueError(

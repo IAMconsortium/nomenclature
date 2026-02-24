@@ -351,7 +351,7 @@ def parse_model_registration(
     of all R5) will be added.
     """
 
-    # parse Common-Region-Mapping
+    # Parse Common-Region-Mapping
     region_aggregation_mapping = RegionAggregationMapping.from_file(
         model_registration_file
     )
@@ -362,7 +362,7 @@ def parse_model_registration(
     region_aggregation_mapping.to_yaml(
         mappings_path / f"{file_model_name}.yaml",
     )
-    # parse Region-Country-Mapping
+    # Parse Region-Country-Mapping
     if "Region-Country-Mapping" in pd.ExcelFile(model_registration_file).sheet_names:
         native = "Native region (as reported by the model)"
         constituents = "Country name"

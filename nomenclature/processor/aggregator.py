@@ -112,7 +112,7 @@ class Aggregator(Processor):
         agg_components = [comp for item in self.aggregate for comp in item.components]
         agg_targets = [item.name for item in self.aggregate]
         rename_sources = [item.name for item in self.rename]
-        # deduplicate rename targets (which are allowed)
+        # Deduplicate rename targets (which are allowed)
         rename_targets = list({item.rename for item in self.rename})
         _validate_items(
             agg_components + agg_targets + rename_sources + rename_targets,
@@ -131,9 +131,9 @@ class Aggregator(Processor):
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         error = None
-        # check for codes that are not defined in the codelists
+        # Check for codes that are not defined in the codelists
         codelist = getattr(dsd, self.dimension, None)
-        # no validation if codelist is not defined or filter-item is None
+        # No validation if codelist is not defined or filter-item is None
         if codelist is None:
             error = f"Dimension '{self.dimension}' not found in DataStructureDefinition"
         elif invalid := codelist.validate_items(self.codes):

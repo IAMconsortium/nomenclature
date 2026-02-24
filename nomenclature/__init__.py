@@ -29,8 +29,8 @@ except NameError:
 _sys_has_ps1 = hasattr(sys, "ps1")
 
 
-# Logging is only configured by default when used in an interactive environment.
-# This follows the setup in ixmp4 and pyam.
+# Logging is only configured by default when used in an interactive environment
+# This follows the setup in ixmp4 and pyam
 if _in_ipython_session or _sys_has_ps1:
     with open(here / "logging.yaml") as file:
         logging.config.dictConfig(yaml.safe_load(file))

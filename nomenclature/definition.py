@@ -160,26 +160,26 @@ class DataStructureDefinition:
                 if attr.check_aggregate:
                     components = attr.components
 
-                    # check if multiple lists of components are given for a code
+                    # Check if multiple lists of components are given for a code
                     if isinstance(components, dict):
                         for name, _components in components.items():
                             error = df.check_aggregate(code, _components, **kwargs)
                             if error is not None:
                                 error.dropna(inplace=True)
-                                # append components-name to variable column
+                                # Append components-name to variable column
                                 error.index = replace_index_labels(
                                     error.index, "variable", [f"{code} [{name}]"]
                                 )
                                 lst.append(error)
 
-                    # else use components provided as single list or pyam-default (None)
+                    # Else, use components provided as single list or pyam-default (None)
                     else:
                         error = df.check_aggregate(code, components, **kwargs)
                         if error is not None:
                             lst.append(error.dropna())
 
         if lst:
-            # there may be empty dataframes due to `dropna()` above
+            # There may be empty dataframes due to `dropna()` above
             return pd.concat(lst)
         return pd.DataFrame()
 
@@ -197,7 +197,7 @@ class DataStructureDefinition:
             kwargs["engine"] = "xlsxwriter"
 
         with pd.ExcelWriter(excel_writer, **kwargs) as writer:
-            # create dataframe with attributes of the DataStructureDefinition
+            # Create dataframe with attributes of the DataStructureDefinition
             project = self.project_folder.absolute().parts[-1]
             arg_dict = {
                 "project": project,
@@ -219,7 +219,7 @@ class DataStructureDefinition:
 
             write_sheet(writer, "project", ret)
 
-            # write codelist for each dimensions to own sheet
+            # Write codelist for each dimensions to own sheet
             for dim in self.dimensions:
                 getattr(self, dim).to_excel(writer, dim, sort_by_code=True)
 

@@ -79,7 +79,7 @@ class RequiredData(BaseModel):
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         errors: list[Exception] = []
 
-        # check for undefined regions and variables
+        # Check for undefined regions and variables
         if invalid_regions := getattr(dsd, "region").validate_items(
             getattr(self, "region") or []
         ):
@@ -88,7 +88,7 @@ class RequiredData(BaseModel):
             getattr(self, "variables") or []
         ):
             errors.append(UnknownVariableError(invalid_variables))
-        # check for defined variables with wrong units
+        # Check for defined variables with wrong units
         if invalid_units := self._wrong_unit_variables(dsd):
             errors.append(WrongUnitError(invalid_units))
 
@@ -136,7 +136,7 @@ class RequiredData(BaseModel):
                 (m.variable, unit, dsd.variable[m.variable].unit)
                 for m in self.measurand
                 for unit in m.unit
-                if m.variable in dsd.variable  # check if the variable exists
+                if m.variable in dsd.variable  # Check if the variable exists
                 and unit not in dsd.variable[m.variable].units
             )
 
@@ -222,7 +222,7 @@ class RequiredDataValidator(Processor):
                         str
                     )
                     missing_data_columns = missing_data_per_variable.columns.to_list()
-                    # flatten out the last dimension for presentation
+                    # Flatten out the last dimension for presentation
                     missing_data.append(
                         missing_data_per_variable.groupby(missing_data_columns[:-1])[
                             missing_data_columns[-1]

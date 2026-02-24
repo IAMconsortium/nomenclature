@@ -34,9 +34,9 @@ class WarningEnum(IntEnum):
 
 
 class DataValidationCriteria(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
     warning_level: WarningEnum = WarningEnum.error
+
+    model_config = ConfigDict(extra="forbid")
 
     @field_validator("warning_level", mode="before")
     @classmethod
@@ -96,11 +96,11 @@ class DataValidationValue(DataValidationCriteria):
 
 
 class DataValidationBounds(DataValidationCriteria):
-    # allow extra but raise error to guard against multiple criteria
-    model_config = ConfigDict(extra="allow")
-
     upper_bound: float | None = None
     lower_bound: float | None = None
+
+    # Allow extra but raise error to guard against multiple criteria
+    model_config = ConfigDict(extra="allow")
 
     @model_validator(mode="after")
     def check_validation_criteria_exist(self):
@@ -199,7 +199,7 @@ class DataValidationItem(IamcDataFilter):
         error = False
         per_item_df = df.filter(**self.filter_args)
 
-        # set a meta indicator for the item being processed if name is given
+        # If name is given, set a meta indicator for the item being processed
         if self.name is not None:
             meta_index = per_item_df.index.copy()
             df.set_meta(name=self.name, meta="ok", index=meta_index)
@@ -213,7 +213,7 @@ class DataValidationItem(IamcDataFilter):
                     )
                 )
 
-                # mark failing scenarios with a meta indicator and warning level
+                # Mark failing scenarios with a meta indicator and warning level
                 failed_index = failed_validation.set_index(
                     ["model", "scenario"]
                 ).index.drop_duplicates()
@@ -224,8 +224,8 @@ class DataValidationItem(IamcDataFilter):
                         meta=criterion.warning_level.name,
                         index=meta_index.intersection(failed_index),
                     )
-                    # remove failed scenarios from the meta index to avoid
-                    # that lower warnings override higher warnings in meta indicators
+                    # Remove failed scenarios from the meta index to avoid
+                    # lower warnings overriding higher warnings in meta indicators
                     meta_index = meta_index.difference(failed_index)
 
                 failed_validation["warning_level"] = criterion.warning_level.name
@@ -258,11 +258,11 @@ class DataValidator(Processor):
             content = yaml.safe_load(f)
         criteria_items = []
         for item in content:
-            # simple case where filter and criteria args are all given at top level
+            # Simple case where filter and criteria args are all given at top level
             if "validation" not in item:
                 item["validation"] = [dict()]
 
-            # if some criteria args are given at top-level, add to "validation" list
+            # If some criteria args are given at top-level, add to "validation" list
             criteria = [
                 criterion
                 for criterion in item
