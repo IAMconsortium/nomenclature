@@ -1,10 +1,10 @@
 # 2005 value passes the validation, fails validation for 2010 for both scenarios
  - variable: Primary Energy
    upper_bound: 5.
-# variable exists only for 'scen_a'
+# Variable exists only for 'scen_a'
  - variable: Primary Energy|Coal
    lower_bound: 2
-# both upper and lower bound fail for both scenarios
+# Both upper and lower bound fail for both scenarios
  - variable: Primary Energy
    year: 2005
    upper_bound: 1.9

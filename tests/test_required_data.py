@@ -103,7 +103,7 @@ def test_RequiredDataValidator_validate_with_definition_raises(
     ],
 )
 def test_RequiredData_apply(simple_df, required_data_file):
-    # all good no warnings
+    # All good no warnings
     required_data_validator = RequiredDataValidator.from_file(
         REQUIRED_DATA_TEST_DIR / required_data_file
     )
@@ -114,7 +114,7 @@ def test_RequiredData_apply_raises(simple_df):
     required_data_validator = RequiredDataValidator.from_file(
         REQUIRED_DATA_TEST_DIR / "requiredData_apply_error.yaml"
     )
-    # assert that the correct error is raised
+    # Assert that the correct error is raised
     with pytest.raises(
         RequiredDataMissingError, match="Missing required data"
     ) as excinfo:
@@ -141,7 +141,7 @@ scen_b   World  Final Energy""",
 
 
 def test_per_model_RequiredData(simple_df):
-    # required data is missing but it's only required for model_a
+    # Required data is missing but it's only required for model_a
     # therefore this should return the dataframe intact
     required_data_validator = RequiredDataValidator.from_file(
         REQUIRED_DATA_TEST_DIR / "requiredData_apply_error.yaml"

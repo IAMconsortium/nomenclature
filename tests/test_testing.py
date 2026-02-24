@@ -20,7 +20,7 @@ def test_assert_yaml():
 def test_assert_yaml_fails():
     """Check that parsing an invalid yaml raises expected error"""
 
-    # assert that the expected error is raised
+    # Assert that the expected error is raised
     with pytest.raises(YamlErrorGroup, match="Parsing yaml files failed") as excinfo:
         assert_valid_yaml(TEST_DATA_DIR / "cli" / "invalid_yaml")
     assert excinfo.group_contains(
@@ -46,7 +46,7 @@ def test_assert_valid_structure_requiredData_raises():
             definitions="definition",
             required_data="required_data",
         )
-    # assert that all issues with requiredData files are reported correctly
+    # Assert that all issues with requiredData files are reported correctly
     assert len(excinfo.value.exceptions) == 5
     assert excinfo.group_contains(
         UnknownRegionError, match=r"region\(s\) are not defined.*\n.*Asia"

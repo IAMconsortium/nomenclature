@@ -159,8 +159,7 @@ def test_region_processor_working(region_processor_path, simple_definition):
 
 
 def test_region_processor_not_defined(simple_definition):
-    # Test a RegionProcessor with regions that are not defined in the data structure
-    # definition
+    # Test a RegionProcessor with regions that are not defined in the DataStructureDefinition
     error_msg = (
         "mappings.model_(a|b).*\n"
         ".*\n.*region_a.*\n.*mapping_(1|2).yaml\n.*region_not_defined.*\n"
@@ -382,7 +381,7 @@ def test_model_mapping_from_excel():
 
 def test_model_mapping_from_excel_to_yaml(tmp_path):
     excel_file = TEST_DATA_DIR / "model_registration" / "excel_model_registration.xlsx"
-    # create a yaml mapping from an excel mapping
+    # Create a yaml mapping from an excel mapping
     RegionAggregationMapping.from_file(excel_file).to_yaml(tmp_path / "mapping.yaml")
 
     obs = RegionAggregationMapping.from_file(tmp_path / "mapping.yaml")

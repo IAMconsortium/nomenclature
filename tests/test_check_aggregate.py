@@ -49,10 +49,10 @@ def test_check_aggregate_passing(components, components_type):
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "check_aggregate" / components)
 
-    # check that components is returned as a basic type (not a codelist)
+    # Check that components is returned as a basic type (not a codelist)
     assert isinstance(dsd.variable.mapping["Final Energy"].components, components_type)
 
-    # aggregation check returns an empty data frame if no inconsistencies are found
+    # Aggregation check returns an empty data frame if no inconsistencies are found
     assert dsd.check_aggregate(TEST_DF).empty
 
 
@@ -68,7 +68,7 @@ def test_check_aggregate_failing(components, exp):
 
     dsd = DataStructureDefinition(TEST_DATA_DIR / "check_aggregate" / components)
 
-    # create a copy where aggregation tests will fail
+    # Create a copy where aggregation tests will fail
     df = TEST_DF.copy()
     df._data.loc[
         ("model_a", "scen_a", "World", "Final Energy|Industry", "EJ/yr", 2005)
@@ -77,7 +77,7 @@ def test_check_aggregate_failing(components, exp):
     # `check_aggregate` returns a dataframe of the inconsistent data
     pdt.assert_frame_equal(dsd.check_aggregate(df), exp)
 
-    # process raises an error (and writes to log, not tested explicitly)
+    # Process raises an error (and writes to log, not tested explicitly)
     with pytest.raises(
         ValueError, match="These variables are not the sum of their components"
     ):

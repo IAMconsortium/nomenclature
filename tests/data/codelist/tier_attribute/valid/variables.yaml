@@ -4,7 +4,7 @@
 - Primary Energy|{Fuel}:
     description: Primary energy consumption of {Fuel}
     unit: EJ/yr
-    # this variable does not have a tier to test that no tier is added at initialization    
+    # This variable does not have a tier to test that no tier is added at initialization    
 
 - Final Energy|{Fuel}|{Sector}:
     description: Final energy consumption of {Fuel} in {Sector}

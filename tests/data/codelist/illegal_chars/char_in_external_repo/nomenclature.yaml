@@ -8,4 +8,4 @@ definitions:
   variable:
     repository:
       - common-definitions
-illegal-characters: ["'"]  # these are known to be present in common-definitions variables
+illegal-characters: ["'"]  # These are known to be present in common-definitions variables

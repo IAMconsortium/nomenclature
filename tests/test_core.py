@@ -55,7 +55,7 @@ def test_region_processing_rename(model_name):
 )
 def test_region_processing_empty_raises(rp_dir):
     # Test that an empty result of the region-processing raises
-    # see also https://github.com/IAMconsortium/pyam/issues/631
+    # See also https://github.com/IAMconsortium/pyam/issues/631
     test_df = IamDataFrame(
         pd.DataFrame(
             [
@@ -198,7 +198,7 @@ def test_region_processing_complete(directory):
             ],
             None,
         ),
-        # check that region-aggregation with missing weights passes (inconsistent index)
+        # Check that region-aggregation with missing weights passes (inconsistent index)
         # TODO check the log output
         (
             "weighted_aggregation",
@@ -211,7 +211,7 @@ def test_region_processing_complete(directory):
     ],
 )
 def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
-    # test a weighed sum
+    # Test a weighed sum
 
     test_df = IamDataFrame(
         pd.DataFrame(
@@ -244,7 +244,7 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
         ),
     )
     assert_iamframe_equal(obs, exp)
-    # check the logs since the presence of args should cause a warning in the logs
+    # Check the logs since the presence of args should cause a warning in the logs
     if args:
         logmsg = (
             "Could not aggregate 'Price|Carbon' for region 'World' "
@@ -590,7 +590,7 @@ def test_aggregation_differences_export(input_data, expected_difference):
 
 
 def test_region_aggregation_unknown_region(simple_df, simple_definition, caplog):
-    # add an unknown region
+    # Add an unknown region
     df_with_unknown_region = simple_df.append(
         pd.DataFrame(
             [

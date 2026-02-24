@@ -103,7 +103,7 @@ def test_validation_with_custom_dimension(simple_df):
         dimensions=["region", "variable", "scenario"],
     )
 
-    # validating against all dimensions fails ("scen_c" not in ["scen_a", "scenario_b"])
+    # Validating against all dimensions fails ("scen_c" not in ["scen_a", "scenario_b"])
     with pytest.raises(
         NomenclatureValidationError, match=MATCH_FAIL_VALIDATION
     ) as excinfo:
@@ -111,13 +111,13 @@ def test_validation_with_custom_dimension(simple_df):
 
     assert excinfo.group_contains(UnknownScenarioError, match=r"scen_c")
 
-    # validating against specific dimensions works (in spite of conflict in "scenario")
+    # Validating against specific dimensions works (in spite of conflict in "scenario")
     definition.validate(
         simple_df.rename(scenario={"scen_a": "scen_c"}),
         dimensions=["region", "variable"],
     )
 
-    # validating against all dimensions works
+    # Validating against all dimensions works
     definition.validate(simple_df)
 
 
@@ -139,12 +139,12 @@ def test_wildcard_match(simple_df):
 @pytest.mark.parametrize(
     "rename_mapping, config_file_name",
     [
-        # with datetime=True, any timezone is allowed
+        # With datetime=True, any timezone is allowed
         (
             {2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"},
             "datetime_true",
         ),
-        # timezone config
+        # Timezone config
         (
             {2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"},
             "datetime_utc",
@@ -172,7 +172,7 @@ def test_validate_time_entry(
 @pytest.mark.parametrize(
     "rename_mapping, config_file_name, match",
     [
-        # default config values
+        # Default config values
         (
             {2005: "2005-06-17 00:00+01:00", 2010: "2010-06-17 00:00+01:00"},
             "datetime_year",

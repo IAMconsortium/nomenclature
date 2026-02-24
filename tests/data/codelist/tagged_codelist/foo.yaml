@@ -1,5 +1,5 @@
 - Final Energy|Sector:
-    # the "Sector" guards against feature regression (conflict with "Sector" tag)
+    # The "Sector" guards against feature regression (conflict with "Sector" tag)
     definition: Final energy consumption in the Sector
     unit: EJ
 
