@@ -111,9 +111,9 @@ class Repository(BaseModel):
         else:
             repo = Repo(to_path)
             # If the URL has changed, remove existing directory and re-clone
-            if origin_url := repo.remotes.origin.url != self.url:
-                logger.info(
-                    f"Repository URL changed from '{origin_url}' to '{self.url}'. "
+            if repo.remotes.origin.url != self.url:
+                logger.warning(
+                    f"Repository URL changed from '{repo.remotes.origin.url}' to '{self.url}'. "
                     f"Re-cloning repository to '{to_path}'..."
                 )
                 rmtree(to_path)
