@@ -11,3 +11,15 @@ def get_relative_path(path: Path):
         if path.is_absolute() and Path.cwd() in path.parents
         else path
     )
+
+
+# Use rmtree with error handler for Windows readonly files
+def handle_remove_readonly(func, path, excinfo):
+    import os
+    import stat
+
+    if not os.access(path, os.W_OK):
+        os.chmod(path, stat.S_IWUSR)
+        func(path)
+    else:
+        raise

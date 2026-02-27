@@ -1,4 +1,5 @@
 import logging
+import gc
 import re
 from datetime import datetime
 from enum import Enum
@@ -20,6 +21,7 @@ from pydantic import (
 )
 
 from nomenclature.exceptions import TimeDomainError, TimeDomainErrorGroup
+from nomenclature.utils import handle_remove_readonly
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +119,10 @@ class Repository(BaseModel):
                     f"Re-cloning repository to '{to_path}'..."
                 )
                 repo.close()  # Close repo before removing directory
-                rmtree(to_path)
+                repo.__del__()  # Force cleanup of git objects
+                gc.collect()  # Force garbage collection to release file handles
+
+                rmtree(to_path, onexc=handle_remove_readonly)
                 repo = Repo.clone_from(self.url, to_path)
             else:
                 repo.remotes.origin.fetch()
