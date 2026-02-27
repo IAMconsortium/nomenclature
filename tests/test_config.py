@@ -1,8 +1,10 @@
 from pathlib import Path
 
+import logging
 import pytest
 from conftest import TEST_DATA_DIR, clean_up_external_repos
 from pytest import raises
+from git import Repo
 
 from nomenclature.config import MappingRepository, NomenclatureConfig, Repository
 
@@ -58,6 +60,28 @@ def test_double_stacked_external_repo_raises(monkeypatch):
     match = "External repos cannot again refer to external repos"
     with raises(ValueError, match=match):
         repo.check_external_repo_double_stacking()
+
+
+def test_fetch_repo_url_changed_reclones(tmp_path, caplog):
+    """Test that fetch_repo re-clones when repository URL has changed."""
+    repo = Repository(url="https://github.com/IAMconsortium/legacy-definitions.git")
+    target_path = tmp_path / "test_repo"
+    repo.fetch_repo(target_path)
+
+    assert target_path.is_dir()
+    original_remote_url = Repo(target_path).remotes.origin.url
+
+    repo.url = "https://github.com/IAMconsortium/common-definitions.git"
+    with caplog.at_level(logging.WARNING):
+        repo.fetch_repo(target_path)
+    assert any("Repository URL changed" in record.message for record in caplog.records)
+
+    assert target_path.is_dir()
+    new_remote_url = Repo(target_path).remotes.origin.url
+    assert new_remote_url != original_remote_url
+    assert repo.url in new_remote_url
+
+    clean_up_external_repos({"test_repo": repo})
 
 
 def test_config_dimensions():
