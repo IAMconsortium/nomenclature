@@ -119,7 +119,7 @@ class Repository(BaseModel):
                     f"Re-cloning repository to '{to_path}'..."
                 )
                 repo.close()  # Close repo before removing directory
-                repo.__del__()  # Force cleanup of git objects
+                del repo  # Delete reference to allow garbage collection
                 gc.collect()  # Force garbage collection to release file handles
 
                 rmtree(to_path, onerror=handle_remove_readonly)
