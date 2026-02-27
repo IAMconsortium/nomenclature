@@ -122,7 +122,7 @@ class Repository(BaseModel):
                 repo.__del__()  # Force cleanup of git objects
                 gc.collect()  # Force garbage collection to release file handles
 
-                rmtree(to_path, onexc=handle_remove_readonly)
+                rmtree(to_path, onerror=handle_remove_readonly)
                 repo = Repo.clone_from(self.url, to_path)
             else:
                 repo.remotes.origin.fetch()
