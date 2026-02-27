@@ -116,6 +116,7 @@ class Repository(BaseModel):
                     f"Repository URL changed from '{repo.remotes.origin.url}' to '{self.url}'. "
                     f"Re-cloning repository to '{to_path}'..."
                 )
+                repo.close()  # Close repo before removing directory
                 rmtree(to_path)
                 repo = Repo.clone_from(self.url, to_path)
             else:
