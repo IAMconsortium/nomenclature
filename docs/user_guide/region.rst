@@ -11,16 +11,18 @@ structure is required:
    - Hierarchy 1:
      - Region 1:
          description: Some short explanation
-         iso3_codes: [ABC, DEF, ...]
+         countries: [Country 1, Country 2, ...]
      - Region 2:
          description: Some short explanation
-         iso3_codes: GHI
+         iso3_codes: ABC
    - Hierarchy 2:
      - ...
 
-Regions can have attributes, for example a description or ISO3-codes. If the attribute
-`iso3_codes` is provided, the item(s) are validated against a list of valid codes taken
-from the `pycountry <https://github.com/flyingcircusio/pycountry>`_ package.
+Regions can have attributes, for example a description, a list of countries, or ISO3 codes.
+If the attributes `countries` and/or `iso3_codes` are provided, the item(s) are 
+validated against a list of valid ISO3 country names/codes taken from the
+`pycountry <https://github.com/flyingcircusio/pycountry>`_ package.
+More details on the list of countries can be found :ref:`here <countries>`.
 
 Common regions
 --------------
