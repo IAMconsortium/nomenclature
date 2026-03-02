@@ -390,7 +390,7 @@ class CodeList(BaseModel):
 
         for code in self.mapping.values():
             if not code.from_external_repository:
-                for attr, value in code.model_dump(exclude="file").items():
+                for attr, value in code.model_dump(exclude={"file"}).items():
                     _check_string(attr, value)
         if errors:
             raise CodeListErrorGroup("Found illegal characters", errors)

@@ -40,7 +40,7 @@ class Code(BaseModel):
     repository: str | None = None
 
     def __eq__(self, other) -> bool:
-        return self.model_dump(exclude="file") == other.model_dump(exclude="file")
+        return self.model_dump(exclude={"file"}) == other.model_dump(exclude={"file"})
 
     @field_validator("extra_attributes")
     @classmethod

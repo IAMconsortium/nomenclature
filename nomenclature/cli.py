@@ -1,7 +1,7 @@
 import importlib.util
 import sys
 from pathlib import Path
-from typing import Annotated, List
+from typing_extensions import Annotated
 
 import pandas as pd
 import typer
@@ -55,7 +55,7 @@ def validate_project(
     mappings: Annotated[str | None, typer.Option()] = None,
     required_data: Annotated[str | None, typer.Option()] = None,
     validate_data: Annotated[str | None, typer.Option()] = None,
-    dimensions: Annotated[List[str] | None, typer.Option("--dimension")] = None,
+    dimensions: Annotated[list[str] | None, typer.Option("--dimension")] = None,
 ):
     """Assert that `path` is a valid nomenclature-compatible project folder.
 
@@ -71,7 +71,7 @@ def validate_project(
         Name of folder for 'required data' criteria, default to "required_data"
     validate_data : str, optional
         Name of folder for data validation criteria, default to "validate_data"
-    dimensions : List[str], optional
+    dimensions : list[str], optional
         Dimensions to be checked, defaults to all sub-folders of `definitions`
 
     Example
@@ -264,7 +264,7 @@ def run_workflow(
 def validate_scenarios(
     input_file: Annotated[Path, typer.Argument(..., exists=True)],
     definitions: Annotated[Path, typer.Option(exists=True)] = Path("definitions"),
-    dimensions: Annotated[List[str] | None, typer.Option("--dimension")] = None,
+    dimensions: Annotated[list[str] | None, typer.Option("--dimension")] = None,
 ):
     """Validate a scenario file against the codelists of a project
 

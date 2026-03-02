@@ -312,9 +312,9 @@ class DataValidator(Processor):
             `ValueError` if any criterion has a warning level of `error`
         """
 
-        error_list = []
-        fail_list = []
-        output_list = []
+        error_list: list[bool] = []
+        fail_list: list[str] = []
+        output_list: list[pd.DataFrame] = []
 
         with adjust_log_level():
             for item in self.criteria_items:

@@ -160,7 +160,7 @@ class RequiredDataValidator(Processor):
     def from_file(cls, file: Path | str) -> "RequiredDataValidator":
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
-        return cls(file=file, **content)
+        return cls(file=Path(file), **content)
 
     def apply(self, df: IamDataFrame) -> IamDataFrame:
         """Validates data in IAMC format according to required models and dimensions.
