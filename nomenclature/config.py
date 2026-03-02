@@ -292,6 +292,14 @@ class TimeDomainConfig(BaseModel):
             )
 
 
+class ProcessorConfig(BaseModel):
+    nuts: list[str] | None = None
+
+    model_config = ConfigDict(
+        validate_by_name=True, validate_by_alias=True, extra="forbid"
+    )
+
+
 class DimensionEnum(str, Enum):
     model = "model"
     scenario = "scenario"
@@ -305,6 +313,9 @@ class NomenclatureConfig(BaseModel):
     repositories: dict[str, Repository] = Field(default_factory=dict)
     definitions: DataStructureConfig = Field(default_factory=DataStructureConfig)
     mappings: RegionMappingConfig = Field(default_factory=RegionMappingConfig)
+    processor: ProcessorConfig = Field(
+        default_factory=ProcessorConfig, alias="processors"
+    )
     illegal_characters: list[str] = Field(
         default=[":", ";", '"'], alias="illegal-characters"
     )
