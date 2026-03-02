@@ -167,7 +167,11 @@ class Aggregator(Processor):
 
             aggregate_list: list[dict[str, list]] = []
             for item in mapping_input.get("aggregate", []):
-                # TODO explicit check that only one key-value pair exists per item
+                if not isinstance(item, dict) or len(item) != 1:
+                    raise ValueError(
+                        "Each aggregate item must have exactly one key-value pair,"
+                        f" found {item} in {get_relative_path(file)}"
+                    )
                 aggregate_list.append(
                     dict(name=list(item)[0], components=list(item.values())[0])
                 )
