@@ -24,6 +24,7 @@ from nomenclature.exceptions import (
 )
 
 logger = logging.getLogger(__name__)
+
 SPECIAL_CODELIST = {
     "variable": VariableCodeList,
     "region": RegionCodeList,
@@ -33,11 +34,16 @@ SPECIAL_CODELIST = {
 
 
 class DataStructureDefinition:
-    """Definition of datastructure codelists for dimensions used in the IAMC format"""
+    """
+    Loads and manages codelists for IAMC data dimensions (e.g., variable, region, scenario).
+
+    This class reads project definitions from a folder, initializes codelists for each dimension,
+    and provides methods to validate scenario data, check aggregation consistency, and export
+    codelists to Excel.
+    """
 
     def __init__(self, path, dimensions=None):
         """
-
         Parameters
         ----------
         path : str or path-like
