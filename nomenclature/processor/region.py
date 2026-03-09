@@ -754,7 +754,7 @@ class NutsProcessor(Processor):
     """NUTS region aggregation mappings for scenario processing"""
 
     variable_codelist: VariableCodeList
-    models = list[str]
+    models: list[str]
 
     model_config = ConfigDict(hide_input_in_errors=True)
 
