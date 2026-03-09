@@ -1,3 +1,5 @@
+import pickle
+
 import pytest
 from conftest import TEST_DATA_DIR
 from pyam import IamDataFrame
@@ -37,7 +39,7 @@ def test_validation_brackets(extras_definition, simple_df):
     extras_definition.validate(simple_df)
 
 
-def test_validation_fails_variable(simple_definition, simple_df, caplog):
+def test_validation_fails_variable(simple_definition, simple_df):
     """Changing a variable name raises"""
     simple_df.rename(variable={"Primary Energy": "foo"}, inplace=True)
 
@@ -56,7 +58,7 @@ def test_validation_fails_variable(simple_definition, simple_df, caplog):
     )
 
 
-def test_validation_fails_unit(simple_definition, simple_df, caplog):
+def test_validation_fails_unit(simple_definition, simple_df):
     """Changing a unit raises"""
     simple_df.rename(unit={"EJ/yr": "GWh/yr"}, inplace=True)
 
@@ -68,9 +70,12 @@ def test_validation_fails_unit(simple_definition, simple_df, caplog):
         WrongUnitError,
         match=r"- 'Primary Energy' - expected: 'EJ/yr', found: 'GWh/yr'",
     )
+    obs = pickle.loads(pickle.dumps(excinfo.value.exceptions[0]))
+    exp = excinfo.value.exceptions[0]
+    assert str(obs) == str(exp)
 
 
-def test_validation_fails_region(simple_definition, simple_df, caplog):
+def test_validation_fails_region(simple_definition, simple_df):
     """Changing a region name raises"""
     simple_df.rename(region={"World": "foo"}, inplace=True)
 
