@@ -698,10 +698,7 @@ class VariableCodeList(CodeList):
             for variable, unit in unit_mapping.items()
             if variable in self.variables and unit not in self.mapping[variable].units
         ]:
-            raise WrongUnitError(
-                invalid_units=invalid_units,
-                project=project,
-            )
+            raise WrongUnitError(invalid_units, project=project)
 
     def validate_df(
         self,
