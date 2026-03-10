@@ -1,4 +1,5 @@
 import logging
+import re
 import pyam
 import pandas as pd
 
@@ -17,6 +18,7 @@ from nomenclature.processor.region import (
 )
 from nomenclature.exceptions import UnknownRegionError
 from nomenclature.countries import countries
+from nomenclature.nuts import nuts
 
 logger = logging.getLogger(__name__)
 
@@ -27,63 +29,32 @@ class NutsProcessor(Processor):
     """NUTS region aggregation mappings for scenario processing"""
 
     variable_codelist: VariableCodeList
-    nuts_codelist: RegionCodeList
+    region_codelist: RegionCodeList
     models: list[str]
 
     model_config = ConfigDict(hide_input_in_errors=True)
 
     @classmethod
     def from_definition(cls, dsd: DataStructureDefinition):
-        nuts_codelist = RegionCodeList(
-            name="NUTS",
-            mapping={
-                code.name: code
-                for code in dsd.region.mapping.values()
-                if "NUTS" in code.hierarchy
-            },
-        )
         models = dsd.config.processor.nuts
         if not models:
             raise ValueError("No models configured for NUTS processor")
-
         return cls(
-            variable_codelist=dsd.variable, nuts_codelist=nuts_codelist, models=models
+            variable_codelist=dsd.variable, region_codelist=dsd.region, models=models
         )
 
     @property
-    def nuts3_codelist(self) -> RegionCodeList:
-        """Return a RegionCodeList of NUTS 3 regions only."""
-        mapping = {
-            name: code
-            for name, code in self.nuts_codelist.mapping.items()
-            if code.hierarchy.startswith("NUTS 3")
-        }
-        return RegionCodeList(name="NUTS 3", mapping=mapping)
-
-    @property
-    def nuts2_codelist(self) -> RegionCodeList:
-        """Return a RegionCodeList of NUTS 2 regions only."""
-        mapping = {
-            name: code
-            for name, code in self.nuts_codelist.mapping.items()
-            if code.hierarchy.startswith("NUTS 2")
-        }
-        return RegionCodeList(name="NUTS 2", mapping=mapping)
-
-    @property
-    def nuts1_codelist(self) -> RegionCodeList:
-        """Return a RegionCodeList of NUTS 1 regions only."""
-        mapping = {
-            name: code
-            for name, code in self.nuts_codelist.mapping.items()
-            if code.hierarchy.startswith("NUTS 1")
-        }
-        return RegionCodeList(name="NUTS 1", mapping=mapping)
+    def nuts_codelist(self):
+        return RegionCodeList(
+            name="NUTS",
+            mapping={
+                code.name: code
+                for code in self.region_codelist.mapping.values()
+                if re.search(r"NUTS \d regions \(2024 edition\)", code.hierarchy)
+            },
+        )
 
     def apply(self, df: IamDataFrame):
-        # dataframe with nuts regions
-        # dsd config on nuts regions
-
         processed_dfs: list[IamDataFrame] = []
 
         for model in df.model:
@@ -98,17 +69,9 @@ class NutsProcessor(Processor):
             else:
                 logger.info(f"Applying region-processing for model '{model}'")
                 processed_dfs.append(self._apply_nuts_processing(model_df)[0])
-                # elif any(set(model_df.region) & set(self.nuts2_codelist)):
-                #     processed_dfs.append(
-                #         self._apply_nuts_processing(model_df, ["NUTS2", "NUTS1"])[0]
-                #     )
-                # elif any(set(model_df.region) & set(self.nuts1_codelist)):
-                #     processed_dfs.append(
-                #         self._apply_nuts_processing(model_df, ["NUTS1"])[0]
-                #     )
 
         res = pyam.concat(processed_dfs)
-        if not_defined_regions := self.nuts_codelist.validate_items(res.region):
+        if not_defined_regions := self.region_codelist.validate_items(res.region):
             raise UnknownRegionError(not_defined_regions)
 
         return res
@@ -116,17 +79,17 @@ class NutsProcessor(Processor):
     def _aggregate_nuts_level(
         self,
         model_df: IamDataFrame,
-        nuts_codelist: RegionCodeList,
+        source_regions: list[str],
         parent_prefix_length: int,
     ) -> list[pd.Series]:
-        """Aggregate NUTS regions to their parent level.
+        """Aggregate source NUTS regions to their parent region.
 
         Parameters
         ----------
         model_df : IamDataFrame
             Input data
-        nuts_codelist : RegionCodeList
-            Codelist of NUTS regions (e.g., NUTS3)
+        source_regions : list[str]
+            List of NUTS region codes to aggregate
         parent_prefix_length : int
             Length of parent region code (4 for NUTS2, 3 for NUTS1, 2 for country)
 
@@ -137,18 +100,17 @@ class NutsProcessor(Processor):
         """
 
         aggregated_data = []
-        nuts_in_data = set(model_df.region) & set(nuts_codelist)
 
         # Group by parent region
         parent_groups = defaultdict(list)
-        for source_region in nuts_in_data:
+        for source_region in source_regions:
             parent = source_region[:parent_prefix_length]
             parent_groups[parent].append(source_region)
 
         # Aggregate each parent from its constituents
         for parent_code, constituents in parent_groups.items():
             parent = (
-                countries.get(parent_code).name
+                countries.get(alpha_2=parent_code).name
                 if len(parent_code) == 2  # If NUTS 1 > country, use name
                 else parent_code
             )
@@ -165,7 +127,6 @@ class NutsProcessor(Processor):
     def _apply_nuts_processing(
         self,
         model_df: IamDataFrame,
-        # nuts: list[str] = ["NUTS3", "NUTS2", "NUTS1"],
         return_aggregation_difference: bool = False,
         rtol_difference: float = 0.01,
     ):
@@ -175,31 +136,37 @@ class NutsProcessor(Processor):
             )
         model = model_df.model[0]
 
+        # Check for NUTS regions not listed in the configuration
+        all_nuts = {r.code for r in nuts.get(level={1, 2, 3})}
+        if unaccounted_nuts := (set(model_df.region) & all_nuts) - set(
+            self.nuts_codelist
+        ):
+            raise ValueError(
+                f"Did not find NUTS region(s) {unaccounted_nuts} in 'region.nuts' configuration."
+            )
+
         _df = model_df.copy()
         _processed_data: list[pd.Series] = []
 
         # Silence pyam's empty filter warnings
         with adjust_log_level(logger="pyam", level="ERROR"):
             # NUTS3 > NUTS2 aggregation
-            nuts2_aggregated = self._aggregate_nuts_level(_df, self.nuts3_codelist, 4)
-            if nuts2_aggregated:
-                _processed_data.extend(nuts2_aggregated)
+            if nuts3_in_data := (set(_df.region) & {r.code for r in nuts.get(level=3)}):
+                _processed_data = self._aggregate_nuts_level(_df, nuts3_in_data, 4)
                 # Remove NUTS3, add aggregated NUTS2
-                _df = _df.filter(region=list(self.nuts3_codelist), keep=False)
-                _df = pyam.concat([_df, IamDataFrame(pd.concat(nuts2_aggregated))])
+                _df = _df.filter(region=nuts3_in_data, keep=False)
+                _df = pyam.concat([_df, IamDataFrame(pd.concat(_processed_data))])
 
             # NUTS2 > NUTS1 aggregation (uses original NUTS2 + aggregated NUTS2)
-            nuts1_aggregated = self._aggregate_nuts_level(_df, self.nuts2_codelist, 3)
-            if nuts1_aggregated:
-                _processed_data.extend(nuts1_aggregated)
+            if nuts2_in_data := (set(_df.region) & {r.code for r in nuts.get(level=2)}):
+                _processed_data = self._aggregate_nuts_level(_df, nuts2_in_data, 3)
                 # Remove NUTS2, add aggregated NUTS1
-                _df = _df.filter(region=list(self.nuts2_codelist), keep=False)
-                _df = pyam.concat([_df, IamDataFrame(pd.concat(nuts1_aggregated))])
+                _df = _df.filter(region=nuts2_in_data, keep=False)
+                _df = pyam.concat([_df, IamDataFrame(pd.concat(_processed_data))])
 
             # NUTS1 > Country aggregation (uses original NUTS1 + aggregated NUTS1)
-            country_aggregated = self._aggregate_nuts_level(_df, self.nuts1_codelist, 2)
-            if country_aggregated:
-                _processed_data.extend(country_aggregated)
+            if nuts1_in_data := (set(_df.region) & {r.code for r in nuts.get(level=1)}):
+                _processed_data = self._aggregate_nuts_level(_df, nuts1_in_data, 2)
 
             # Compare & merge with pre-aggregated data
             _data, difference = merge_with_preaggregated_data(

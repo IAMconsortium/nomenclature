@@ -430,9 +430,9 @@ class RegionAggregationMapping(BaseModel):
             self.model_native_region_names
             + self.common_region_names
             + [
-                const_reg
-                for comm_reg in self.common_regions or []
-                for const_reg in comm_reg.constituent_regions
+                constituent_region
+                for common_region in self.common_regions or []
+                for constituent_region in common_region.constituent_regions
             ]
             + (self.exclude_regions or [])
         ):
