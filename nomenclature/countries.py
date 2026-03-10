@@ -111,10 +111,6 @@ class Countries(pycountry.ExistingCountries):
 
         return country
 
-    @property
-    def names(self) -> list[str]:
-        return [country.name for country in self.objects]
-
     def get_mapping(self, from_attr: str, to_attr: str) -> dict[str, str]:
         """Get a mapping from one country attribute to another
 
@@ -151,6 +147,10 @@ class Countries(pycountry.ExistingCountries):
             for country in self.objects
             if hasattr(country, from_attr) and hasattr(country, to_attr)
         }
+
+    @property
+    def names(self) -> list[str]:
+        return [country.name for country in self.objects]
 
 
 # Initialize `countries` for direct access via API and in codelist module
