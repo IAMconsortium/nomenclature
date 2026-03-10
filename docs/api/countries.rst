@@ -42,4 +42,4 @@ and alpha-3 or alpha-2 codes, as shown in this example.
   alpha_2 = countries.get(name="...").alpha_2
 
 .. autoclass:: Countries
-   :members: get, get_mapping
+   :members: get, get_mapping, names
