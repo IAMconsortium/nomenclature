@@ -162,6 +162,20 @@ class CodeListErrorGroup(NoTracebackExceptionGroup):
     pass
 
 
+class DataValidationError(NoTracebackException):
+    def __init__(
+        self,
+        fail_list: list[str],
+        file: Path,
+    ) -> None:
+        failed_criteria_info = "\n".join(fail_list)
+        message = (
+            f"Data validation failed with error(s) (file: {get_relative_path(file)}):\n"
+            f"{failed_criteria_info}"
+        )
+        super().__init__(message)
+
+
 class RequiredDataMissingError(ValueError):
 
     def __init__(self, missing_data_info: str, file: Path) -> None:

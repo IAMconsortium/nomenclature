@@ -1,3 +1,4 @@
+import pickle
 from pathlib import Path
 
 import numpy as np
@@ -9,6 +10,7 @@ from toolkit.exceptions import NoTracebackException
 
 from nomenclature import DataStructureDefinition
 from nomenclature.codelist import VariableCodeList
+from nomenclature.exceptions import DataValidationError
 from nomenclature.processor.data_validator import DataValidator
 
 DATA_VALIDATION_TEST_DIR = TEST_DATA_DIR / "validation" / "validate_data"
@@ -177,8 +179,8 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
     data_validator = DataValidator.from_file(data_file)
 
     failed_validation_message = (
-        "Data validation with error(s)/warning(s) "
-        f"""(file {data_file.relative_to(Path.cwd())}):
+        "Data validation failed with error(s) "
+        f"""(file: {data_file.relative_to(Path.cwd())}):
   Criteria: variable: ['Primary Energy'], {item_1}
        model scenario region        variable   unit  year  value warning_level
   0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0         error
@@ -193,11 +195,11 @@ def test_DataValidator_apply_fails(simple_df, file, item_1, item_2, item_3, capl
   0  model_a   scen_a  World  Primary Energy  EJ/yr  2005    1.0         error
   1  model_a   scen_b  World  Primary Energy  EJ/yr  2005    2.0         error"""
     )
-    with pytest.raises(ValueError, match="Data validation failed"):
+    with pytest.raises(DataValidationError) as excinfo:
         data_validator.apply(simple_df)
 
     # check if the log message contains the correct information
-    assert failed_validation_message in caplog.text
+    assert failed_validation_message in str(excinfo.value)
 
 
 @pytest.mark.parametrize(
@@ -212,8 +214,8 @@ def test_DataValidator_validate_fail_with_warning(file, value, simple_df, caplog
     )
 
     failed_validation_message = (
-        "Data validation with error(s)/warning(s) "
-        f"""(file {(DATA_VALIDATION_TEST_DIR / f"validate_fail_warning_{file}.yaml").relative_to(Path.cwd())}):
+        "Data validation failed with error(s) "
+        f"""(file: {(DATA_VALIDATION_TEST_DIR / f"validate_fail_warning_{file}.yaml").relative_to(Path.cwd())}):
   Criteria: variable: ['Primary Energy'], year: [2010], upper_bound: 5.0, lower_bound: 1.0
        model scenario region        variable   unit  year  value warning_level
   0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    6.0         error
@@ -246,11 +248,15 @@ def test_DataValidator_validate_fail_with_warning(file, value, simple_df, caplog
        model scenario region        variable   unit  year  value warning_level
   0  model_a   scen_a  World  Primary Energy  EJ/yr  2010    3.0           low"""
 
-    with pytest.raises(ValueError, match="Data validation failed"):
+    with pytest.raises(DataValidationError, match="Data validation failed") as excinfo:
         data_validator.apply(simple_df)
 
     # check if the log message contains the correct information
-    assert failed_validation_message in caplog.text
+    assert failed_validation_message in str(excinfo.value)
+    # assert that pickling works
+
+    excinfo.value.__traceback__ = None
+    assert str(excinfo.value) == str(pickle.loads(pickle.dumps(excinfo.value)))
 
 
 def test_DataValidator_pass_with_warning(simple_df, caplog):
@@ -304,7 +310,7 @@ def test_DataValidator_xlsx_output(tmp_path, simple_df):
         DATA_VALIDATION_TEST_DIR / "validate_fail_warning_joined.yaml", filepath
     )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(DataValidationError):
         data_validator.apply(simple_df)
 
     obs = pd.read_excel(filepath)
