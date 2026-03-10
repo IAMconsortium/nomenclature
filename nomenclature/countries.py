@@ -1,3 +1,5 @@
+"""ISO 3166 country database with community naming conventions."""
+
 import os
 import logging
 
@@ -24,7 +26,7 @@ PYCOUNTRY_NAME_OVERRIDE = {
     "Venezuela, Bolivarian Republic of": "Venezuela",
     "Palestine, State of": "Palestine",
     "Taiwan, Province of China": "Taiwan",
-    "Türkiye": "Turkey",  # revert change in pycountry on Sep 29, 2023
+    "Türkiye": "Turkey",  # Revert change in pycountry on Sep 29, 2023
     "Virgin Islands, British": "British Virgin Islands",
     "Virgin Islands, U.S.": "United States Virgin Islands",
 }
@@ -38,7 +40,7 @@ PYCOUNTRY_NAME_ADD = [
     ),
 ]
 
-# the European Commission uses alternative ISO2 codes
+# The European Commission uses alternative ISO2 codes
 ALTERNATIVE_ALPHA2_CODES = {
     "EL": "GR",
     "UK": "GB",
@@ -56,7 +58,7 @@ class Countries(pycountry.ExistingCountries):
     def __init__(self):
         super().__init__(os.path.join(pycountry.DATABASE_DIR, "iso3166-1.json"))
 
-        # modify country names
+        # Modify country names
         for iso_name, nc_name in PYCOUNTRY_NAME_OVERRIDE.items():
             obj = self.get(name=iso_name)
             obj.name = nc_name
@@ -64,7 +66,7 @@ class Countries(pycountry.ExistingCountries):
             obj.note = "Name changed from ISO 3166 in line with community standards"
             self.indices["name"][nc_name.lower()] = obj
 
-        # add countries that are not officially recognized
+        # Add countries that are not officially recognized
         # but relevant for IAM community
         for entry in PYCOUNTRY_NAME_ADD:
             obj = self.data_class(**entry)
@@ -94,12 +96,12 @@ class Countries(pycountry.ExistingCountries):
 
         Returns
         -------
-        :class:`pycountry.Country`
+        :class:`pycountry.db.Country`
 
         """
         country = super().get(**kwargs)
 
-        # special handling for alpha-2 codes used by the European Commission
+        # Special handling for alpha-2 codes used by the European Commission
         if country is None and "alpha_2" in kwargs:
             country = super().get(alpha_2=ALTERNATIVE_ALPHA2_CODES[kwargs["alpha_2"]])
             if country is not None:
@@ -109,8 +111,45 @@ class Countries(pycountry.ExistingCountries):
 
         return country
 
+    def get_mapping(self, from_attr: str, to_attr: str) -> dict[str, str]:
+        """Get a mapping from one country attribute to another
+
+        Parameters
+        ----------
+        from_attr : str
+            Source attribute (one of "name", "alpha_3", "alpha_2")
+        to_attr : str
+            Target attribute (one of "name", "alpha_3", "alpha_2")
+
+        Returns
+        -------
+        dict
+            Mapping from source attribute to target attribute for all countries
+
+        Examples
+        --------
+        >>> countries.get_mapping("alpha_3", "name")
+        {'USA': 'United States', 'DEU': 'Germany', ...}
+
+        >>> countries.get_mapping("alpha_2", "alpha_3")
+        {'US': 'USA', 'DE': 'DEU', ...}
+        """
+
+        valid_attrs = {"name", "alpha_3", "alpha_2"}
+        if from_attr not in valid_attrs or to_attr not in valid_attrs:
+            raise ValueError(
+                f"Attributes must be one of {valid_attrs}, "
+                f"got from_attr='{from_attr}', to_attr='{to_attr}'"
+            )
+
+        return {
+            getattr(country, from_attr): getattr(country, to_attr)
+            for country in self.objects
+            if hasattr(country, from_attr) and hasattr(country, to_attr)
+        }
+
     @property
-    def names(self):
+    def names(self) -> list[str]:
         return [country.name for country in self.objects]
 
 

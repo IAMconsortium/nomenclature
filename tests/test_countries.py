@@ -31,3 +31,32 @@ def test_countries_add():
 def test_alternative_alpha2(alpha_2_eu, alpha_2):
     """Check that the handling of alternative alpha-2 codes works"""
     assert countries.get(alpha_2=alpha_2_eu).alpha_2 == alpha_2
+
+
+def test_get_mapping():
+    """Check that get_mapping returns correct mappings between country attributes"""
+
+    # Test alpha_3 to name mapping
+    mapping = countries.get_mapping("alpha_3", "name")
+    assert isinstance(mapping, dict)
+    assert mapping["USA"] == "United States"
+    assert mapping["DEU"] == "Germany"
+    assert mapping["BOL"] == "Bolivia"  # Test overridden name
+    assert mapping["KOS"] == "Kosovo"  # Test added country
+
+    # Test alpha_2 to alpha_3 mapping
+    mapping = countries.get_mapping("alpha_2", "alpha_3")
+    assert mapping["US"] == "USA"
+    assert mapping["DE"] == "DEU"
+
+    # Test name to alpha_3 mapping
+    mapping = countries.get_mapping("name", "alpha_3")
+    assert mapping["United States"] == "USA"
+    assert mapping["Bolivia"] == "BOL"
+
+    # Test that invalid attributes raise ValueError
+    with pytest.raises(ValueError, match="Attributes must be one of"):
+        countries.get_mapping("invalid_attr", "name")
+
+    with pytest.raises(ValueError, match="Attributes must be one of"):
+        countries.get_mapping("name", "invalid_attr")
