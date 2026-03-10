@@ -1,3 +1,4 @@
+import pickle
 from pathlib import Path
 
 import numpy as np
@@ -252,6 +253,10 @@ def test_DataValidator_validate_fail_with_warning(file, value, simple_df, caplog
 
     # check if the log message contains the correct information
     assert failed_validation_message in str(excinfo.value)
+    # assert that pickling works
+
+    excinfo.value.__traceback__ = None
+    assert str(excinfo.value) == str(pickle.loads(pickle.dumps(excinfo.value)))
 
 
 def test_DataValidator_pass_with_warning(simple_df, caplog):
