@@ -1,0 +1,3 @@
+- Country:  # Minimal region list - NUTS regions will be auto-imported
+  - Austria
+  - Belgium
