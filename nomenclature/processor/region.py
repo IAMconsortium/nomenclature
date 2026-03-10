@@ -750,15 +750,6 @@ class RegionProcessor(Processor):
         return pyam.concat(model_dfs)
 
 
-class NutsProcessor(Processor):
-    """NUTS region aggregation mappings for scenario processing"""
-
-    variable_codelist: VariableCodeList
-    models: list[str]
-
-    model_config = ConfigDict(hide_input_in_errors=True)
-
-
 def aggregate_region_with_variable_rules(
     df: IamDataFrame,
     target_region: str,
