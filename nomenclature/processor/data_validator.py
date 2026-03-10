@@ -18,7 +18,7 @@ from pydantic import (
 
 from nomenclature.codelist import VariableCodeList
 from nomenclature.definition import DataStructureDefinition
-from nomenclature.exceptions import NoTracebackExceptionGroup, DataValidationError
+from nomenclature.exceptions import DataValidationError, NoTracebackExceptionGroup
 from nomenclature.processor import Processor
 from nomenclature.processor.iamc import IamcDataFilter
 from nomenclature.utils import get_relative_path
@@ -324,7 +324,7 @@ class DataValidator(Processor):
                 pd.concat(output_list).to_excel(self.output_path, index=False)
             fail_msg = "(file %s):\n" % get_relative_path(self.file)
             if any(error_list):
-                raise DataValidationError("\n".join(fail_list), self.file)
+                raise DataValidationError(fail_list, self.file)
             if fail_list:
                 fail_msg = (
                     "Data validation with warning(s) " + fail_msg + "\n".join(fail_list)

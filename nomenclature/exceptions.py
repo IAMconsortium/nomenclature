@@ -165,9 +165,10 @@ class CodeListErrorGroup(NoTracebackExceptionGroup):
 class DataValidationError(NoTracebackException):
     def __init__(
         self,
-        failed_criteria_info: str,
+        fail_list: list[str],
         file: Path,
     ) -> None:
+        failed_criteria_info = "\n".join(fail_list)
         message = (
             f"Data validation failed with error(s) (file: {get_relative_path(file)}):\n"
             f"{failed_criteria_info}"
