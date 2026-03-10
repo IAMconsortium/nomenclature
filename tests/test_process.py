@@ -1,9 +1,11 @@
+import re
 from pathlib import Path
 
 import pytest
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature import process
+from nomenclature.exceptions import DataValidationError
 
 here = Path(__file__).parent
 TEST_DATA_DIR = here / "data" / "definitions"
@@ -19,13 +21,12 @@ def test_process_definitions_data_validation_fails(simple_df, caplog):
     simple_df._data.loc[
         ("model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 2010)
     ] = -1
-    with pytest.raises(ValueError, match="Data validation failed."):
-        process(simple_df, definition)
 
-    message = (
-        "Data validation with error(s)/warning(s) (file definitions):\n"
+    message = re.escape(
+        "Data validation failed with error(s) (file: definitions):\n"
         "  Criteria: variable: ['Primary Energy'], lower_bound: 0.0\n"
         "       model scenario region        variable   unit  year  value warning_level\n"
-        "  0  model_a   scen_a  World  Primary Energy  EJ/yr  2010   -1.0         error"
+        "  0  model_a   scen_a  World  Primary Energy  EJ/yr  2010   -1.0         error\n"
     )
-    assert message in caplog.text
+    with pytest.raises(DataValidationError, match=message):
+        process(simple_df, definition)
