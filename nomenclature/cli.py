@@ -8,12 +8,32 @@ import typer
 import yaml
 from pyam import IamDataFrame
 
+from nomenclature import __version__
 from nomenclature.codelist import CodeList, VariableCodeList
 from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition
 from nomenclature.processor import RegionAggregationMapping, RegionProcessor
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 
 app = typer.Typer(no_args_is_help=True, pretty_exceptions_show_locals=False)
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"nomenclature, version {__version__}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main(
+    version: bool = typer.Option(
+        False,
+        "--version",
+        callback=_version_callback,
+        is_eager=True,
+        help="Show the version and exit.",
+    ),
+) -> None:
+    pass
 
 
 # ---------------------------------------------------------

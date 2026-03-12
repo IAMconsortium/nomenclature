@@ -39,6 +39,14 @@ def test_cli_installed():
     )
 
 
+def test_cli_version():
+    from nomenclature import __version__
+
+    result = runner.invoke(app, ["--version"])
+    assert result.exit_code == 0
+    assert __version__ in result.output
+
+
 def test_cli_valid_yaml_path():
     """Check that CLI throws an error when the `path` is incorrect"""
     result = runner.invoke(
