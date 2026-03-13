@@ -28,3 +28,11 @@ The full list of NUTS regions is accessible via the Eurostat website (`xlsx, 500
   
   # list of NUTS region names
   nuts.names
+
+.. currentmodule:: nomenclature.processor.nuts
+
+**NutsProcessor**
+=================
+
+.. autoclass:: NutsProcessor
+   :members: from_definition, apply
