@@ -325,8 +325,8 @@ class CodeList(BaseModel):
             attrs = []
         codelist = pd.read_excel(source, sheet_name=sheet_name, usecols=[col] + attrs)
 
-        # replace nan with None
-        codelist = codelist.replace(np.nan, None)
+        # replace nan with None (astype(object) required for pandas >= 3.0 compatibility)
+        codelist = codelist.astype(object).replace(np.nan, None)
 
         # check for duplicates in the codelist
         duplicate_rows = codelist[col].duplicated(keep=False).values

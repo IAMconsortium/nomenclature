@@ -291,7 +291,7 @@ def test_DataValidator_pass_with_warning(simple_df, caplog):
             [("model_a", "scen_a"), ("model_a", "scen_b")], name=("model", "scenario")
         ),
     )
-    pdt.assert_frame_equal(simple_df.meta[columns], exp_meta)
+    pdt.assert_frame_equal(simple_df.meta[columns], exp_meta, check_dtype=False)
 
 
 def test_DataValidator_warning_order_fail():
