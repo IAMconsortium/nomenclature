@@ -114,6 +114,8 @@ the nomenclature package will add all countries to the *region* codelist.
 
 More details on the list of countries can be found here: :ref:`countries`.
 
+.. _adding-countries:
+
 Adding NUTS to the region codelist
 ----------------------------------
 
