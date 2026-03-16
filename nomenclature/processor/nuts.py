@@ -283,7 +283,7 @@ class NutsProcessor(Processor):
             _country_df = IamDataFrame(_data, meta=model_df.meta)
             if eu_target_regions := [
                 r
-                for r in ("European Union", "European Union & United Kingdom")
+                for r in ("European Union", "European Union and United Kingdom")
                 if r in self.region_codelist.mapping
             ]:
                 _eu_aggregated = self._aggregate_to_eu27(_country_df)

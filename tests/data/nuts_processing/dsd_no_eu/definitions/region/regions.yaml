@@ -1,4 +1,4 @@
-- Country:  # Minimal region list - NUTS regions will be auto-imported
+- Country:
   - Austria
   - Belgium
   - Bulgaria
@@ -27,6 +27,3 @@
   - Spain
   - Sweden
   - United Kingdom
-- Supranational:
-  - European Union
-  - European Union and United Kingdom
