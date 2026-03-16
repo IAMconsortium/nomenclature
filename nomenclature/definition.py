@@ -164,21 +164,27 @@ class DataStructureDefinition:
                         for name, _components in components.items():
                             error = df.check_aggregate(code, _components, **kwargs)
                             if error is not None:
-                                error.dropna(inplace=True)
-                                # append components-name to variable column
-                                error.index = replace_index_labels(
-                                    error.index, "variable", [f"{code} [{name}]"]
+                                error = _drop_na_aggregate_errors(
+                                    df, error, code, _components
                                 )
-                                lst.append(error)
+                                if not error.empty:
+                                    # append components-name to variable column
+                                    error.index = replace_index_labels(
+                                        error.index, "variable", [f"{code} [{name}]"]
+                                    )
+                                    lst.append(error)
 
                     # else use components provided as single list or pyam-default (None)
                     else:
                         error = df.check_aggregate(code, components, **kwargs)
                         if error is not None:
-                            lst.append(error.dropna())
+                            error = _drop_na_aggregate_errors(
+                                df, error, code, components
+                            )
+                            if not error.empty:
+                                lst.append(error)
 
         if lst:
-            # there may be empty dataframes due to `dropna()` above
             return pd.concat(lst)
         return pd.DataFrame()
 
@@ -221,6 +227,75 @@ class DataStructureDefinition:
             # write codelist for each dimensions to own sheet
             for dim in self.dimensions:
                 getattr(self, dim).to_excel(writer, dim, sort_by_code=True)
+
+
+def _drop_na_aggregate_errors(
+    df: IamDataFrame,
+    error: pd.DataFrame,
+    variable: str,
+    components: list | None,
+) -> pd.DataFrame:
+    """Drop rows from aggregate check results where data is missing (NaN).
+
+    In pandas >= 3.0, NaN values in IamDataFrame._data are preserved and
+    groupby sum converts them to 0.0, causing false positive aggregate
+    failures. This function filters those rows out.
+
+    Parameters
+    ----------
+    df : IamDataFrame
+        The scenario data being checked.
+    error : pd.DataFrame
+        Result from pyam's check_aggregate (with 'variable' and 'components'
+        columns).
+    variable : str
+        The parent variable being checked.
+    components : list or None
+        Explicit component variables, or None to use pyam's auto-detection.
+
+    Returns
+    -------
+    pd.DataFrame
+        Filtered error DataFrame with false positives removed.
+    """
+    # Drop rows with NaN in variable or components columns (pandas 2.x compat)
+    error = error.dropna()
+    if error.empty:
+        return error
+
+    # Filter rows where the original variable value was NaN
+    # (pandas 3.x converts NaN to 0.0 in groupby sum, causing false positives)
+    var_filter = df._apply_filters(variable=variable)
+    var_data = df._data[var_filter]
+    nan_var_idx = var_data[var_data.isna()].index
+    if not nan_var_idx.empty:
+        error = error[~error.index.isin(nan_var_idx)]
+
+    if error.empty:
+        return error
+
+    # Filter rows where all component values were NaN
+    # (their groupby sum becomes 0.0 in pandas 3.x, causing false positives)
+    comp_vars = (
+        list(df._variable_components(variable))
+        if components is None
+        else list(components)
+    )
+    if comp_vars:
+        comp_filter = df._apply_filters(variable=comp_vars)
+        comp_data = df._data[comp_filter]
+        if not comp_data.empty:
+            idx_cols = [
+                n for n in comp_data.index.names if n not in ("variable", "unit")
+            ]
+            # Find groups where all component values are NaN (vectorized)
+            has_data = comp_data.notna().groupby(level=idx_cols).any()
+            all_nan_idx = has_data[~has_data].index
+            if not all_nan_idx.empty:
+                error_reduced = error.index.droplevel(["variable", "unit"])
+                error = error[~error_reduced.isin(all_nan_idx)]
+
+    return error
 
 
 def time_format(x):

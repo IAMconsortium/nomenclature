@@ -243,7 +243,7 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
             TEST_DATA_DIR / "region_processing" / folder / "aggregate", dsd
         ),
     )
-    assert_iamframe_equal(obs, exp)
+    assert_iamframe_equal(obs, exp, equal_nan=True)
     # check the logs since the presence of args should cause a warning in the logs
     if args:
         logmsg = (
