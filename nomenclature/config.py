@@ -170,7 +170,7 @@ class DataStructureConfig(BaseModel):
         return {"dimension": info.field_name, **v}
 
     @property
-    def repos(self) -> dict[str, str]:
+    def repos(self) -> dict[str, list[CodeListFromRepository]]:
         return {
             dimension: getattr(self, dimension).repositories
             for dimension in ("model", "scenario", "region", "variable")
@@ -343,7 +343,7 @@ class NomenclatureConfig(BaseModel):
 
     @classmethod
     def from_file(cls, file: Path, dry_run: bool = False):
-        """Read a DataStructureConfig from a file
+        """Read a NomenclatureConfig from a file
 
         Parameters
         ----------

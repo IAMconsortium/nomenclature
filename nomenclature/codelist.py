@@ -2,7 +2,7 @@ import logging
 import re
 from pathlib import Path
 from textwrap import indent
-from typing import ClassVar
+from typing import Any, ClassVar
 
 import numpy as np
 import pandas as pd
@@ -513,7 +513,9 @@ class CodeList(BaseModel):
 
     @staticmethod
     def filter_codes(
-        codes: list[Code], include: dict | None = None, exclude: dict | None = None
+        codes: list[Code],
+        include: list[dict[str, Any]],
+        exclude: list[dict[str, Any]] = [],
     ) -> list[Code]:
         """
         Filter a list of codes based on include and exclude filters.
@@ -565,12 +567,24 @@ class CodeList(BaseModel):
                 else keep
             )
 
+        errors: list[Exception] = []
+        for inc_filter in include:
+            # Check if any code matches this specific include filter
+            if not any(matches_filter(code, [inc_filter], True) for code in codes):
+                errors.append(
+                    ValueError(f"No codes found for include filter: {inc_filter}")
+                )
+
+        if errors:
+            raise ExceptionGroup("Include filter validation failed", errors)
+
         filtered_codes = [
             code
             for code in codes
             if matches_filter(code, include, True)
             and not matches_filter(code, exclude, False)
         ]
+
         return filtered_codes
 
 
@@ -934,5 +948,4 @@ class MetaCodeList(CodeList):
 
 
 class ScenarioCodeList(CodeList):
-
     unknown_code_error = UnknownScenarioError
