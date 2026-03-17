@@ -5,6 +5,7 @@ from pydantic import validate_call
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor import Processor, RegionProcessor
+from nomenclature.processor.nuts import NutsProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +37,9 @@ def process(
         Codelists that are used for validation.
     dimensions : list, optional
         Dimensions to be used in the validation, defaults to all dimensions defined in
-        `dsd`
-    processor : :class:`RegionProcessor`, optional
-        Region processor to perform region renaming and aggregation (if given)
+        ``dsd``.
+    processor : :class:`Processor` or list of :class:`Processor`, optional
+        One or more processors to apply. Runs before any config-declared processors.
 
     Returns
     -------
@@ -56,8 +57,22 @@ def process(
 
     dimensions = dimensions or dsd.dimensions
 
+    # Auto-instantiate processors declared in nomenclature.yaml under 'processors'
+    # Explicit processors take precedence; config-based ones are appended after.
+    if dsd.config.processor.region_processor and not any(
+        isinstance(p, RegionProcessor) for p in processor
+    ):
+        processor = processor + [
+            RegionProcessor.from_directory(dsd.project_folder / "mappings", dsd)
+        ]
+
+    if dsd.config.processor.nuts is not None and not any(
+        isinstance(p, NutsProcessor) for p in processor
+    ):
+        processor = processor + [NutsProcessor.from_definition(dsd)]
+
     if (
-        any(isinstance(p, RegionProcessor) for p in processor)
+        any(isinstance(p, (RegionProcessor, NutsProcessor)) for p in processor)
         and "region" in dimensions
     ):
         dimensions.remove("region")

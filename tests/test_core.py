@@ -1,4 +1,5 @@
 import copy
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -614,3 +615,76 @@ def test_region_aggregation_unknown_region(simple_df, simple_definition, caplog)
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "region_processing" / "no_mapping", simple_definition
         ).apply(df_with_unknown_region)
+
+
+CONFIG_PROCESSOR_DIR = TEST_DATA_DIR / "processor"
+
+
+def test_config_region_processor_auto_loaded():
+    """
+    Test `region-processor: true` in nomenclature.yaml creates `RegionProcessor`
+    from the default mappings directory.
+    """
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_a", "scen_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "scen_a", "region_C", "Primary Energy", "EJ/yr", 5, 6],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    exp = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    dsd = DataStructureDefinition(CONFIG_PROCESSOR_DIR / "region_processor/definitions")
+    obs = process(test_df, dsd)
+
+    assert_iamframe_equal(obs, exp)
+
+
+def test_config_region_processor_explicit_takes_priority():
+    """
+    Test that when an explicit `RegionProcessor` argument is provided,
+    no config-declared `RegionProcessor` is instantiated.
+    """
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_a", "scen_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "scen_a", "region_C", "Primary Energy", "EJ/yr", 5, 6],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    exp = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    dsd = DataStructureDefinition(CONFIG_PROCESSOR_DIR / "region_processor/definitions")
+    explicit_rp = RegionProcessor.from_directory(
+        CONFIG_PROCESSOR_DIR / "region_processor/mappings", dsd
+    )
+    # Assert that no additional RegionProcessor is built inside process()
+    with patch.object(
+        RegionProcessor, "from_directory", wraps=RegionProcessor.from_directory
+    ) as from_dir:
+        obs = process(test_df, dsd, processor=explicit_rp)
+        from_dir.assert_not_called()
+
+    assert_iamframe_equal(obs, exp)
