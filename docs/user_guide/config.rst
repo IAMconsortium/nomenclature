@@ -176,3 +176,42 @@ the filtering for definitions.
 
 The above example retrieves only the model mapping for *MESSAGEix-GLOBIOM 2.1-M-R12*
 from the common-definitions repository.
+
+Configuring processors
+----------------------
+
+The ``processors`` section of *nomenclature.yaml* allows processors to be declared
+directly in the configuration file, so they are applied automatically when calling
+:func:`process` without passing an explicit ``processor`` argument.
+
+Region processor
+^^^^^^^^^^^^^^^^
+
+Setting *processors.region-processor* as *true* will automatically create a
+:class:`RegionProcessor` from the project's default ``mappings/`` directory:
+
+.. code:: yaml
+
+  processors:
+    region-processor: true
+
+This is equivalent to calling:
+
+.. code:: python
+
+  from nomenclature.processor import RegionProcessor
+  processor = RegionProcessor.from_directory("mappings", dsd)
+
+NUTS processor
+^^^^^^^^^^^^^^
+
+Setting *processors.nuts* to a list of model names will automatically create a
+:class:`NutsProcessor` and apply NUTS hierarchical aggregation (NUTS3 → NUTS2 →
+NUTS1 → Country → EU27) for those models:
+
+.. code:: yaml
+
+  processors:
+    nuts: [ Model A, Model B ]
+
+More details on NUTS aggregation can be found here: :ref:`nuts`.
