@@ -39,13 +39,21 @@ The full list of NUTS regions is accessible via the Eurostat website (`xlsx, 500
 =================
 
 The :class:`NutsProcessor` class provides automated aggregation of scenario data
-across NUTS regions. It enables automated hierarchical aggregation from NUTS3 to NUTS2, 
-NUTS2 to NUTS1, and NUTS1 to country level, using model-specific rules and variable
-code lists.
+across NUTS regions. It performs hierarchical aggregation in the following order:
 
-This processor ensures that regional data is consistently aggregated and validated
-according to the configured NUTS regions, without the need to manually specify
-region aggregation rules.
+1. NUTS3 → NUTS2
+2. NUTS2 → NUTS1
+3. NUTS1 → Country
+4. Country → European Union (if ≥ 23 of the 27 EU member states are present)
+5. Country + UK → European Union and United Kingdom (if the United Kingdom is also present)
+
+The EU-level aggregations (steps 4-5) are only performed if the corresponding
+target regions (``European Union`` and ``European Union and United Kingdom``) are
+defined in the project's region codelist. If fewer than 23 EU member states are
+present in the data, the EU aggregation is skipped silently.
+
+The processor ensures that regional data is consistently aggregated and validated
+according to the configured NUTS regions and variable code lists.
 
 Consider the example below for configuring a project using NUTS aggregation.
 The *nomenclature.yaml* in the project directory is as follows:
@@ -59,27 +67,34 @@ The *nomenclature.yaml* in the project directory is as follows:
     region:
       nuts:
         nuts-3: [ AT ]
+      country: true
   processors:
     nuts: [ Model A ]
 
-To run aggregation, the following script could be used:
+With this configuration, calling :func:`process` will automatically instantiate
+and apply the :class:`NutsProcessor`.
 
 .. code:: python
 
   import pyam
-  from nomenclature import DataStructureDefinition
-  from nomenclature.processor import NutsProcessor
+  from nomenclature import DataStructureDefinition, process
 
   df = pyam.IamDataFrame(data="path/to/file.csv")
   dsd = DataStructureDefinition("definitions")
-  processor = NutsProcessor.from_definition(dsd)
-  aggregated_data = processor.apply(df)
+  aggregated_data = process(df, dsd)
 
 The data is aggregated for the applicable variables, creating the common region
-"Austria" (AT) from its constituent NUTS subregions.
-The final countries must be defined in a region definition file or by setting
+``Austria`` (AT) from its constituent NUTS subregions.
+The country-level regions must be defined in a region definition file or by setting
 *definitions.region.country* as *true* in the configuration file
-(see :ref:`adding-countries`).        
+(see :ref:`adding-countries`).
+
+.. note::
+
+   Only models listed under ``processors.nuts`` in *nomenclature.yaml* are processed
+   by :class:`NutsProcessor`. Data for other models is passed through unchanged.
+   If a NUTS region appears in the data for a listed model but the corresponding
+   country is missing from ``definitions.region.nuts``, a ``ValueError`` is raised.
 
 .. autoclass:: NutsProcessor
    :members: from_definition, apply
