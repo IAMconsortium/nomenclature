@@ -1,4 +1,5 @@
 import copy
+import logging
 from unittest.mock import patch
 
 import numpy as np
@@ -651,10 +652,10 @@ def test_config_region_processor_auto_loaded():
     assert_iamframe_equal(obs, exp)
 
 
-def test_config_region_processor_explicit_takes_priority():
+def test_config_region_processor_explicit_takes_priority(caplog):
     """
     Test that when an explicit `RegionProcessor` argument is provided,
-    no config-declared `RegionProcessor` is instantiated.
+    no config-declared `RegionProcessor` is instantiated, and an info log is emitted.
     """
     test_df = IamDataFrame(
         pd.DataFrame(
@@ -684,7 +685,9 @@ def test_config_region_processor_explicit_takes_priority():
     with patch.object(
         RegionProcessor, "from_directory", wraps=RegionProcessor.from_directory
     ) as from_dir:
-        obs = process(test_df, dsd, processor=explicit_rp)
+        with caplog.at_level(logging.INFO):
+            obs = process(test_df, dsd, processor=explicit_rp)
         from_dir.assert_not_called()
 
+    assert "skipping config-defined processor" in caplog.text
     assert_iamframe_equal(obs, exp)
