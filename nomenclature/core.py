@@ -22,11 +22,13 @@ def process(
     This function is the recommended way of using the nomenclature package. It performs
     the following operations:
 
-    * Validation against the codelists and criteria of a DataStructureDefinition
-    * Region-processing, which can consist of three parts:
-        1. Model native regions not listed in the model mapping will be dropped
-        2. Model native regions can be renamed
-        3. Aggregation from model native regions to "common regions"
+    * Validation against the codelists and criteria of a :class:`DataStructureDefinition`
+    * Region processing, which can occur via one or more :class:`Processor` instances. This can be:
+        * Region aggregation (via :class:`RegionProcessor`), which renames and aggregates based on user-provided mappings.
+            1. Model native regions not listed in the model mapping will be dropped
+            2. Model native regions can be renamed
+            3. Aggregation from model native regions to "common regions"
+        * NUTS aggregation (via :class:`NutsProcessor`), which aggregates NUTS3 -> NUTS2 -> NUTS1 -> Country -> EU27(+UK)
     * Validation of consistency across the variable hierarchy
 
     Parameters
