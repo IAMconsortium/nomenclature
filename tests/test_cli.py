@@ -315,6 +315,24 @@ def test_cli_validate_data_fails():
     assert "Final Energy|Industry" in full_error_message
 
 
+def test_error_group_rendering():
+    result = subprocess.run(
+        [
+            "poetry",
+            "run",
+            "nomenclature",
+            "validate-project",
+            str(TEST_DATA_DIR / "validation"),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 1
+    assert "6 sub-exceptions" in result.stderr
+    assert "Asia" in result.stderr
+    assert "Final Energy|Industry" in result.stderr
+
+
 def test_cli_empty_definitions_dir():
     """Assert that an error is raised when the `definitions` directory is empty"""
 
