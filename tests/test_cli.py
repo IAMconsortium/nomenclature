@@ -326,12 +326,11 @@ def test_error_group_rendering():
         ],
         capture_output=True,
         text=True,
-        stderr=subprocess.STDOUT,
     )
     assert result.returncode == 1
-    assert "6 sub-exceptions" in result.stdout
-    assert "Asia" in result.stdout
-    assert "Final Energy|Industry" in result.stdout
+    assert "6 sub-exceptions" in result.stderr
+    assert "Asia" in result.stderr
+    assert "Final Energy|Industry" in result.stderr
 
 
 def test_cli_empty_definitions_dir():
