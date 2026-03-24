@@ -6,7 +6,6 @@ from conftest import TEST_DATA_DIR, clean_up_external_repos
 from pytest import raises
 from git import Repo
 
-import shutil
 
 from nomenclature.config import MappingRepository, NomenclatureConfig, Repository
 
@@ -99,8 +98,7 @@ def test_invalid_config_dimensions_raises():
     with raises(
         ValueError,
         match=(
-            "Input should be 'model', 'scenario', 'variable',"
-            " 'region' or 'subannual'"
+            "Input should be 'model', 'scenario', 'variable', 'region' or 'subannual'"
         ),
     ):
         NomenclatureConfig(dimensions=["year"])
@@ -147,20 +145,28 @@ def test_config_year_and_datetime_false_raises():
         NomenclatureConfig.from_file(TEST_DATA_DIR / "config" / "datetime_false.yaml")
 
 
-def test_include_nonexistent_mapping_raises():
-    """Test that a mapping include pattern matching no models raises"""
-    try:
-        with pytest.RaisesGroup(
-            ValueError, match="Mapping include pattern validation failed"
-        ) as excinfo:
-            NomenclatureConfig.from_file(
-                MODULE_TEST_DATA_DIR / "include_nonexistent_mapping.yaml"
-            )
-        assert excinfo.group_contains(
-            ValueError,
-            match=r"No models found for include pattern: 'Non-Existent-Model\*'",
+def test_include_nonexistent_mapping_raises(tmp_path, monkeypatch):
+    """
+    Test that a mapping include pattern matching no models raise.
+    Mocks `fetch_repos` to avoid shutil operations with imported repo directory.
+    """
+    mappings_dir = tmp_path / "common-definitions" / "mappings"
+    mappings_dir.mkdir(parents=True)
+    (mappings_dir / "some_model.yaml").write_text("model: Some-Real-Model 1.0\n")
+
+    def mock_fetch_repos(self, target_folder):
+        for repo_name, repo in self.repositories.items():
+            repo.local_path = tmp_path / repo_name
+
+    monkeypatch.setattr(NomenclatureConfig, "fetch_repos", mock_fetch_repos)
+
+    with pytest.RaisesGroup(
+        ValueError, match="Mapping include pattern validation failed"
+    ) as excinfo:
+        NomenclatureConfig.from_file(
+            MODULE_TEST_DATA_DIR / "include_nonexistent_mapping.yaml"
         )
-    finally:
-        repo_dir = MODULE_TEST_DATA_DIR / "common-definitions"
-        if repo_dir.exists():
-            shutil.rmtree(repo_dir)
+    assert excinfo.group_contains(
+        ValueError,
+        match=r"No models found for include pattern: 'Non-Existent-Model\*'",
+    )
