@@ -368,17 +368,36 @@ class NomenclatureConfig(BaseModel):
             repo_mapping_dir = (
                 self.repositories[repository.name].local_path / "mappings"
             )
-            all_models = [
-                model
-                for file in repo_mapping_dir.glob("**/*.y*ml")
-                for raw in [yaml.safe_load(file.read_text(encoding="utf-8"))["model"]]
-                for model in (raw if isinstance(raw, list) else [raw])
-            ]
+            all_models: list[str] = []
+            errors = []
+            for file in repo_mapping_dir.glob("**/*.y*ml"):
+                try:
+                    content = file.read_text(encoding="utf-8")
+                    data = yaml.safe_load(content)
+                    if not isinstance(data, dict):
+                        raise TypeError(
+                            f"Expected a mapping at the top level, got {type(data).__name__}"
+                        )
+                    model_value = data.get("model")
+                    if not model_value:
+                        raise KeyError("No 'model' specified in mapping file")
+                    models_in_file = (
+                        model_value if isinstance(model_value, list) else [model_value]
+                    )
+                    all_models.extend(models_in_file)
+                except Exception as e:
+                    errors.append(Exception(f"{file}: {type(e).__name__}: {e}"))
+
+            if errors:
+                raise ExceptionGroup(
+                    f"Failed to parse mapping files in repository '{repository.name}' at '{repo_mapping_dir}'",
+                    errors,
+                )
             if all_models:
                 repository.validate_include_patterns(all_models)
             else:
                 logger.warning(
-                    f"No model mappings found in repository '{repository.name}' at '{repo_mapping_dir}'."
+                    f"No valid model mappings found in repository '{repository.name}' at '{repo_mapping_dir}'."
                 )
 
     @classmethod
