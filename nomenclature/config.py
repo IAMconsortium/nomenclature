@@ -39,6 +39,18 @@ class CodeListConfig(BaseModel):
     )
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
 
+    @model_validator(mode="before")
+    @classmethod
+    def check_no_filter_at_dimension_level(cls, v):
+        if isinstance(v, dict):
+            for field in ("include", "exclude"):
+                if field in v:
+                    raise ValueError(
+                        f"'{field}' must be nested inside 'repository', not at the "
+                        f"dimension level."
+                    )
+        return v
+
     @field_validator("repositories", mode="before")
     @classmethod
     def add_name_if_necessary(cls, v: list):

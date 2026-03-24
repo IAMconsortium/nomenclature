@@ -29,6 +29,21 @@ def test_unknown_repo_raises():
         NomenclatureConfig.from_file(MODULE_TEST_DATA_DIR / "unknown_repo.yaml")
 
 
+@pytest.mark.parametrize(
+    "config_file, field",
+    [
+        ("include_filter_wrong_level.yaml", "include"),
+        ("exclude_filter_wrong_level.yaml", "exclude"),
+    ],
+)
+def test_filter_at_wrong_level_raises(config_file, field):
+    with raises(
+        ValueError,
+        match=f"'{field}' must be nested inside 'repository'",
+    ):
+        NomenclatureConfig.from_file(MODULE_TEST_DATA_DIR / config_file)
+
+
 def test_multiple_definition_repos():
     nomenclature_config = NomenclatureConfig.from_file(
         MODULE_TEST_DATA_DIR / "multiple_repos_per_dimension.yaml"

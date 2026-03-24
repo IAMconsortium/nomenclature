@@ -1,0 +1,5 @@
+definitions:
+  region:
+    repository: common-definitions
+    exclude:
+      - name: World
