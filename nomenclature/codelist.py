@@ -518,11 +518,19 @@ class CodeList(BaseModel):
         include: list[dict[str, Any]],
     ) -> None:
         """Raise if any include filter from nomenclature.yaml matches no codes."""
-        if errors := [
-            ValueError(f"No codes found for include filter: {inc_filter}")
-            for inc_filter in include
-            if not CodeList.filter_codes(codes, [inc_filter])
-        ]:
+        errors: list[ValueError] = []
+        for inc_filter in include:
+            try:
+                matches = CodeList.filter_codes(codes, [inc_filter])
+            except TypeError:
+                # Treat filters that trigger type errors (e.g. regex on missing/non-string
+                # attributes) as non-matching, so they are reported via ValueError.
+                matches = []
+            if not matches:
+                errors.append(
+                    ValueError(f"No codes found for include filter: {inc_filter}")
+                )
+        if errors:
             raise ExceptionGroup("Include filter validation failed", errors)
 
     @staticmethod
