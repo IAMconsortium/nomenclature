@@ -6,6 +6,8 @@ from conftest import TEST_DATA_DIR, clean_up_external_repos
 from pytest import raises
 from git import Repo
 
+import shutil
+
 from nomenclature.config import MappingRepository, NomenclatureConfig, Repository
 
 MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "config"
@@ -143,3 +145,22 @@ def test_config_year_and_datetime_false_raises():
         ValueError, match=r"'timezone' is set but 'datetime' is not allowed"
     ):
         NomenclatureConfig.from_file(TEST_DATA_DIR / "config" / "datetime_false.yaml")
+
+
+def test_include_nonexistent_mapping_raises():
+    """Test that a mapping include pattern matching no models raises"""
+    try:
+        with pytest.RaisesGroup(
+            ValueError, match="Mapping include pattern validation failed"
+        ) as excinfo:
+            NomenclatureConfig.from_file(
+                MODULE_TEST_DATA_DIR / "include_nonexistent_mapping.yaml"
+            )
+        assert excinfo.group_contains(
+            ValueError,
+            match=r"No models found for include pattern: 'Non-Existent-Model\*'",
+        )
+    finally:
+        repo_dir = MODULE_TEST_DATA_DIR / "common-definitions"
+        if repo_dir.exists():
+            shutil.rmtree(repo_dir)

@@ -194,6 +194,15 @@ class MappingRepository(BaseModel):
             if re.match(pattern, model) is not None
         ]
 
+    def validate_include_patterns(self, models: list[str]) -> None:
+        """Raise if any include pattern matches no models in the external repo."""
+        if errors := [
+            ValueError(f"No models found for include pattern: '{pattern}'")
+            for pattern, regex in zip(self.include, self.regex_include_patterns)
+            if not any(re.match(regex, model) for model in models)
+        ]:
+            raise ExceptionGroup("Mapping include pattern validation failed", errors)
+
 
 class RegionMappingConfig(BaseModel):
     repositories: list[MappingRepository] = Field(
@@ -341,6 +350,25 @@ class NomenclatureConfig(BaseModel):
         for repo_name, repo in self.repositories.items():
             repo.fetch_repo(target_folder / repo_name)
 
+    def validate_mapping_includes(self) -> None:
+        """Validate that all mapping include patterns match at least one model."""
+        for repository in self.mappings.repositories:
+            repo_mapping_dir = (
+                self.repositories[repository.name].local_path / "mappings"
+            )
+            all_models = [
+                model
+                for file in repo_mapping_dir.glob("**/*.y*ml")
+                for raw in [yaml.safe_load(file.read_text(encoding="utf-8"))["model"]]
+                for model in (raw if isinstance(raw, list) else [raw])
+            ]
+            if all_models:
+                repository.validate_include_patterns(all_models)
+            else:
+                logger.warning(
+                    f"No model mappings found in repository '{repository.name}' at '{repo_mapping_dir}'."
+                )
+
     @classmethod
     def from_file(cls, file: Path, dry_run: bool = False):
         """Read a NomenclatureConfig from a file
@@ -356,4 +384,5 @@ class NomenclatureConfig(BaseModel):
         instance = cls(**config)
         if not dry_run:
             instance.fetch_repos(file.parent)
+            instance.validate_mapping_includes()
         return instance
