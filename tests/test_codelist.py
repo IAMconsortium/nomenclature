@@ -569,7 +569,7 @@ def test_variable_codelist_with_duplicates_raises(CodeList):
 
     assert excinfo.group_contains(ValueError, match="Identical.*'Some Variable'")
     assert excinfo.group_contains(
-        ValueError, match="Conflicting." "*'Some other Variable'"
+        ValueError, match="Conflicting.*'Some other Variable'"
     )
 
 
@@ -668,12 +668,12 @@ def test_include_nonexistent_code_raises():
                 TEST_DATA_DIR / "config" / "variable",
                 config,
             )
-
+
         expected = [
             r"\{'name': 'Non-Existent'\}",
             r"\{'name': 'Missing', 'tier': 2\}",
         ]
-
+
         for exp in expected:
             assert excinfo.group_contains(
                 ValueError,
@@ -681,13 +681,15 @@ def test_include_nonexistent_code_raises():
             )
     finally:
         clean_up_external_repos(config.repositories)
-
-
-def test_include_nonexistent_hierarchy_raises():
-    """Test that referencing a non-existent hierarchy raises"""
-    config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "config" / "include_nonexistent_hierarchy.yaml"
-    )
+
+
+def test_include_nonexistent_hierarchy_raises():
+    """Test that referencing a non-existent hierarchy raises"""
+
+    config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "config" / "include_nonexistent_hierarchy.yaml"
+    )
+
     try:
         with pytest.RaisesGroup(
             ValueError, match="Include filter validation failed"
@@ -697,11 +699,11 @@ def test_include_nonexistent_hierarchy_raises():
                 TEST_DATA_DIR / "config" / "region",
                 config,
             )
-
+
         expected = [
             r"\{'hierarchy': 'Non-Existent'\}",
         ]
-
+
         for exp in expected:
             assert excinfo.group_contains(
                 ValueError,
