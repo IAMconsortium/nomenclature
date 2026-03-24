@@ -328,9 +328,10 @@ def test_error_group_rendering():
         text=True,
     )
     assert result.returncode == 1
-    assert "6 sub-exceptions" in result.stderr
-    assert "Asia" in result.stderr
-    assert "Final Energy|Industry" in result.stderr
+    assert all(
+        content in result.stderr
+        for content in ("6", "sub-exceptions", "Asia", "Final Energy|Industry")
+    )
 
 
 def test_cli_empty_definitions_dir():
