@@ -6,7 +6,6 @@ from conftest import TEST_DATA_DIR, clean_up_external_repos
 from pytest import raises
 from git import Repo
 
-
 from nomenclature.config import MappingRepository, NomenclatureConfig, Repository
 
 MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "config"
