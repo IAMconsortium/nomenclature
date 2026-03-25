@@ -20,7 +20,11 @@ from pydantic import (
     model_validator,
 )
 
-from nomenclature.exceptions import TimeDomainError, TimeDomainErrorGroup
+from nomenclature.exceptions import (
+    TimeDomainError,
+    TimeDomainErrorGroup,
+    NoTracebackExceptionGroup,
+)
 from nomenclature.utils import handle_remove_readonly
 
 logger = logging.getLogger(__name__)
@@ -213,7 +217,9 @@ class MappingRepository(BaseModel):
             for pattern, regex in zip(self.include, self.regex_include_patterns)
             if not any(re.match(regex, model) for model in models)
         ]:
-            raise ExceptionGroup("Mapping include pattern validation failed", errors)
+            raise NoTracebackExceptionGroup(
+                "Mapping include pattern validation failed", errors
+            )
 
 
 class RegionMappingConfig(BaseModel):
@@ -389,7 +395,7 @@ class NomenclatureConfig(BaseModel):
                     errors.append(Exception(f"{file}: {type(e).__name__}: {e}"))
 
             if errors:
-                raise ExceptionGroup(
+                raise NoTracebackExceptionGroup(
                     f"Failed to parse mapping files in repository '{repository.name}' at '{repo_mapping_dir}'",
                     errors,
                 )
