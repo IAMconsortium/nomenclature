@@ -531,7 +531,7 @@ class CodeList(BaseModel):
                     ValueError(f"No codes found for include filter: {inc_filter}")
                 )
         if errors:
-            raise ExceptionGroup("Include filter validation failed", errors)
+            raise CodeListErrorGroup("Include filter validation failed", errors)
 
     @staticmethod
     def filter_codes(
