@@ -28,6 +28,21 @@ def test_unknown_repo_raises():
         NomenclatureConfig.from_file(MODULE_TEST_DATA_DIR / "unknown_repo.yaml")
 
 
+@pytest.mark.parametrize(
+    "config_file, field",
+    [
+        ("include_filter_wrong_level.yaml", "include"),
+        ("exclude_filter_wrong_level.yaml", "exclude"),
+    ],
+)
+def test_filter_at_wrong_level_raises(config_file, field):
+    with raises(
+        ValueError,
+        match=f"'{field}' must be nested inside 'repository'",
+    ):
+        NomenclatureConfig.from_file(MODULE_TEST_DATA_DIR / config_file)
+
+
 def test_multiple_definition_repos():
     nomenclature_config = NomenclatureConfig.from_file(
         MODULE_TEST_DATA_DIR / "multiple_repos_per_dimension.yaml"
@@ -97,8 +112,7 @@ def test_invalid_config_dimensions_raises():
     with raises(
         ValueError,
         match=(
-            "Input should be 'model', 'scenario', 'variable',"
-            " 'region' or 'subannual'"
+            "Input should be 'model', 'scenario', 'variable', 'region' or 'subannual'"
         ),
     ):
         NomenclatureConfig(dimensions=["year"])
@@ -143,3 +157,67 @@ def test_config_year_and_datetime_false_raises():
         ValueError, match=r"'timezone' is set but 'datetime' is not allowed"
     ):
         NomenclatureConfig.from_file(TEST_DATA_DIR / "config" / "datetime_false.yaml")
+
+
+@pytest.mark.parametrize(
+    "bad_files",
+    [
+        {"bad.yaml": "model: [unclosed\n"},  # invalid YAML (parsing error)
+        {"bad.yaml": "not_model: foo\n"},  # missing 'model' key (KeyError)
+        {"bad.yaml": ""},  # empty file returns None (TypeError)
+        {"bad.yaml": "- item1\n- item2\n"},  # list at top level (TypeError)
+        {  # multiple bad files, all aggregated into one ExceptionGroup
+            "bad1.yaml": "model: [unclosed\n",
+            "bad2.yaml": "",
+            "bad3.yaml": "not_model: foo\n",
+        },
+    ],
+)
+def test_invalid_mapping_files_raise_exception_group(tmp_path, monkeypatch, bad_files):
+    """Test ExceptionGroup is raised for invalid mapping files; count and paths match."""
+    mappings_dir = tmp_path / "common-definitions" / "mappings"
+    mappings_dir.mkdir(parents=True)
+    for filename, content in bad_files.items():
+        (mappings_dir / filename).write_text(content)
+
+    def mock_fetch_repos(self, target_folder):
+        for repo_name, repo in self.repositories.items():
+            repo.local_path = tmp_path / repo_name
+
+    monkeypatch.setattr(NomenclatureConfig, "fetch_repos", mock_fetch_repos)
+
+    with pytest.raises(ExceptionGroup) as excinfo:
+        NomenclatureConfig.from_file(
+            MODULE_TEST_DATA_DIR / "include_nonexistent_mapping.yaml"
+        )
+    messages = [str(e) for e in excinfo.value.exceptions]
+    assert len(excinfo.value.exceptions) == len(bad_files)
+    for filename in bad_files:
+        assert any(filename in message for message in messages)
+
+
+def test_include_nonexistent_mapping_raises(tmp_path, monkeypatch):
+    """
+    Test that a mapping include pattern matching no models raise.
+    Mocks `fetch_repos` to avoid shutil operations with imported repo directory.
+    """
+    mappings_dir = tmp_path / "common-definitions" / "mappings"
+    mappings_dir.mkdir(parents=True)
+    (mappings_dir / "some_model.yaml").write_text("model: Some-Real-Model 1.0\n")
+
+    def mock_fetch_repos(self, target_folder):
+        for repo_name, repo in self.repositories.items():
+            repo.local_path = tmp_path / repo_name
+
+    monkeypatch.setattr(NomenclatureConfig, "fetch_repos", mock_fetch_repos)
+
+    with pytest.RaisesGroup(
+        ValueError, match="Mapping include pattern validation failed"
+    ) as excinfo:
+        NomenclatureConfig.from_file(
+            MODULE_TEST_DATA_DIR / "include_nonexistent_mapping.yaml"
+        )
+    assert excinfo.group_contains(
+        ValueError,
+        match=r"No models found for include pattern: 'Non-Existent-Model\*'",
+    )

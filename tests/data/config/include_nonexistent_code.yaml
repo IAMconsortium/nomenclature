@@ -1,0 +1,13 @@
+repositories:
+  common-definitions:
+    url: https://github.com/IAMconsortium/common-definitions.git/
+  legacy-definitions:
+    url: https://github.com/IAMconsortium/legacy-definitions.git/
+definitions:
+  variable:
+    repository:
+      - name: common-definitions
+        include:
+          - name: Non-Existent
+          - name: Missing
+            tier: 2

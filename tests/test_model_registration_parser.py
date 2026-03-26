@@ -11,9 +11,7 @@ def test_parse_model_registration(tmp_path):
     region_path.mkdir()
 
     parse_model_registration(
-        TEST_DATA_DIR
-        / "model_registration"
-        / "excel_model_registration.xlsx",
+        TEST_DATA_DIR / "model_registration" / "excel_model_registration.xlsx",
         region_path,
         mapping_path,
     )
@@ -22,9 +20,7 @@ def test_parse_model_registration(tmp_path):
     with open(mapping_path / "Model_1.1.yaml", "r", encoding="utf-8") as file:
         obs_model_mapping = yaml.safe_load(file)
     with open(
-        TEST_DATA_DIR
-        / "model_registration"
-        / "excel_mapping_reference.yaml",
+        TEST_DATA_DIR / "model_registration" / "excel_mapping_reference.yaml",
         "r",
         encoding="utf-8",
     ) as file:

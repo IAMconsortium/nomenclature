@@ -20,7 +20,11 @@ from pydantic import (
     model_validator,
 )
 
-from nomenclature.exceptions import TimeDomainError, TimeDomainErrorGroup
+from nomenclature.exceptions import (
+    TimeDomainError,
+    TimeDomainErrorGroup,
+    NoTracebackExceptionGroup,
+)
 from nomenclature.utils import handle_remove_readonly
 
 logger = logging.getLogger(__name__)
@@ -38,6 +42,18 @@ class CodeListConfig(BaseModel):
         default_factory=list, alias="repository"
     )
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
+
+    @model_validator(mode="before")
+    @classmethod
+    def check_no_filter_at_dimension_level(cls, v):
+        if isinstance(v, dict):
+            for field in ("include", "exclude"):
+                if field in v:
+                    raise ValueError(
+                        f"'{field}' must be nested inside 'repository', not at the "
+                        f"dimension level."
+                    )
+        return v
 
     @field_validator("repositories", mode="before")
     @classmethod
@@ -170,7 +186,7 @@ class DataStructureConfig(BaseModel):
         return {"dimension": info.field_name, **v}
 
     @property
-    def repos(self) -> dict[str, str]:
+    def repos(self) -> dict[str, list[CodeListFromRepository]]:
         return {
             dimension: getattr(self, dimension).repositories
             for dimension in ("model", "scenario", "region", "variable")
@@ -193,6 +209,17 @@ class MappingRepository(BaseModel):
             for pattern in self.regex_include_patterns
             if re.match(pattern, model) is not None
         ]
+
+    def validate_include_patterns(self, models: list[str]) -> None:
+        """Raise if any include pattern matches no models in the external repo."""
+        if errors := [
+            ValueError(f"No models found for include pattern: '{pattern}'")
+            for pattern, regex in zip(self.include, self.regex_include_patterns)
+            if not any(re.match(regex, model) for model in models)
+        ]:
+            raise NoTracebackExceptionGroup(
+                "Mapping include pattern validation failed", errors
+            )
 
 
 class RegionMappingConfig(BaseModel):
@@ -341,9 +368,47 @@ class NomenclatureConfig(BaseModel):
         for repo_name, repo in self.repositories.items():
             repo.fetch_repo(target_folder / repo_name)
 
+    def validate_mapping_includes(self) -> None:
+        """Validate that all mapping include patterns match at least one model."""
+        for repository in self.mappings.repositories:
+            repo_mapping_dir = (
+                self.repositories[repository.name].local_path / "mappings"
+            )
+            all_models: list[str] = []
+            errors = []
+            for file in repo_mapping_dir.glob("**/*.y*ml"):
+                try:
+                    content = file.read_text(encoding="utf-8")
+                    data = yaml.safe_load(content)
+                    if not isinstance(data, dict):
+                        raise TypeError(
+                            f"Expected a mapping at the top level, got {type(data).__name__}"
+                        )
+                    model_value = data.get("model")
+                    if not model_value:
+                        raise KeyError("No 'model' specified in mapping file")
+                    models_in_file = (
+                        model_value if isinstance(model_value, list) else [model_value]
+                    )
+                    all_models.extend(models_in_file)
+                except Exception as e:
+                    errors.append(Exception(f"{file}: {type(e).__name__}: {e}"))
+
+            if errors:
+                raise NoTracebackExceptionGroup(
+                    f"Failed to parse mapping files in repository '{repository.name}' at '{repo_mapping_dir}'",
+                    errors,
+                )
+            if all_models:
+                repository.validate_include_patterns(all_models)
+            else:
+                logger.warning(
+                    f"No valid model mappings found in repository '{repository.name}' at '{repo_mapping_dir}'."
+                )
+
     @classmethod
     def from_file(cls, file: Path, dry_run: bool = False):
-        """Read a DataStructureConfig from a file
+        """Read a NomenclatureConfig from a file
 
         Parameters
         ----------
@@ -356,4 +421,5 @@ class NomenclatureConfig(BaseModel):
         instance = cls(**config)
         if not dry_run:
             instance.fetch_repos(file.parent)
+            instance.validate_mapping_includes()
         return instance

@@ -569,7 +569,7 @@ def test_variable_codelist_with_duplicates_raises(CodeList):
 
     assert excinfo.group_contains(ValueError, match="Identical.*'Some Variable'")
     assert excinfo.group_contains(
-        ValueError, match="Conflicting." "*'Some other Variable'"
+        ValueError, match="Conflicting.*'Some other Variable'"
     )
 
 
@@ -652,3 +652,64 @@ def test_region_code_list_external_repo_with_filters():
         assert "Other (R5)" not in regions
     finally:
         clean_up_external_repos(nomenclature_config.repositories)
+
+
+def test_include_nonexistent_code_raises():
+    """Test that referencing non-existent code in 'include' raises"""
+    config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "config" / "include_nonexistent_code.yaml"
+    )
+    try:
+        with pytest.RaisesGroup(
+            ValueError,
+            ValueError,
+            match="Importing definitions from external repository failed",
+        ) as excinfo:
+            VariableCodeList.from_directory(
+                "variable",
+                TEST_DATA_DIR / "config" / "variable",
+                config,
+            )
+
+        expected = [
+            r"\{'name': 'Non-Existent'\}",
+            r"\{'name': 'Missing', 'tier': 2\}",
+        ]
+
+        for exp in expected:
+            assert excinfo.group_contains(
+                ValueError,
+                match=r"No codes matched the 'definitions' include-filter: " + exp,
+            )
+    finally:
+        clean_up_external_repos(config.repositories)
+
+
+def test_include_nonexistent_hierarchy_raises():
+    """Test that referencing a non-existent hierarchy raises"""
+
+    config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "config" / "include_nonexistent_hierarchy.yaml"
+    )
+
+    try:
+        with pytest.RaisesGroup(
+            ValueError, match="Importing definitions from external repository failed"
+        ) as excinfo:
+            RegionCodeList.from_directory(
+                "region",
+                TEST_DATA_DIR / "config" / "region",
+                config,
+            )
+
+        expected = [
+            r"\{'hierarchy': 'Non-Existent'\}",
+        ]
+
+        for exp in expected:
+            assert excinfo.group_contains(
+                ValueError,
+                match=r"No codes matched the 'definitions' include-filter: " + exp,
+            )
+    finally:
+        clean_up_external_repos(config.repositories)
