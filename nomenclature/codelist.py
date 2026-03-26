@@ -528,10 +528,14 @@ class CodeList(BaseModel):
                 matches = []
             if not matches:
                 errors.append(
-                    ValueError(f"No codes found for include filter: {inc_filter}")
+                    ValueError(
+                        f"No codes matched the 'definitions' include-filter: {inc_filter}"
+                    )
                 )
         if errors:
-            raise CodeListErrorGroup("Include filter validation failed", errors)
+            raise CodeListErrorGroup(
+                "Importing definitions from external repository failed", errors
+            )
 
     @staticmethod
     def filter_codes(
