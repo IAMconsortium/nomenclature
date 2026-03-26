@@ -2728,14 +2728,14 @@ test = ["Cython", "array-api-strict (>=2.3.1)", "asv", "gmpy2", "hypothesis (>=6
 
 [[package]]
 name = "scse-toolkit"
-version = "1.0.1"
+version = "0.15.2"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "scse_toolkit-1.0.1-py3-none-any.whl", hash = "sha256:80d9df8c606ac6555eb682875f66299b386d5157945dbf336a4e4d2475124be9"},
-    {file = "scse_toolkit-1.0.1.tar.gz", hash = "sha256:cfaa68c8ba9190eb6b02ab37048f0eeae73a12c1333b43046c23f0f543a352ea"},
+    {file = "scse_toolkit-0.15.2-py3-none-any.whl", hash = "sha256:fd01cca9279f60dfbda87c26b0616cf6ecb1e8ae3d145187d4651868b2268f76"},
+    {file = "scse_toolkit-0.15.2.tar.gz", hash = "sha256:f541bd54c36a5e98e2c2a6304b111502bd329e72fc07a48226b97a69c5f96271"},
 ]
 
 [package.dependencies]
@@ -3279,4 +3279,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.14"
-content-hash = "c2622d65f099c6895e8aec2aa5ee0a139b478a49210cbb23eb6cd8e444c8b785"
+content-hash = "d5e35e8b3235d45f89cbb6591c46440ac69d3de6067018966d8fb440128b7a28"
