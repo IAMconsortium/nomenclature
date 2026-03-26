@@ -5,6 +5,7 @@ from pydantic import validate_call
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor import Processor, RegionProcessor
+from nomenclature.processor.nuts import NutsProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -21,11 +22,13 @@ def process(
     This function is the recommended way of using the nomenclature package. It performs
     the following operations:
 
-    * Validation against the codelists and criteria of a DataStructureDefinition
-    * Region-processing, which can consist of three parts:
-        1. Model native regions not listed in the model mapping will be dropped
-        2. Model native regions can be renamed
-        3. Aggregation from model native regions to "common regions"
+    * Validation against the codelists and criteria of a :class:`DataStructureDefinition`
+    * Region processing, which can occur via one or more :class:`Processor` instances. This can be:
+        * Region aggregation (via :class:`RegionProcessor`), which renames and aggregates based on user-provided mappings.
+            1. Model native regions not listed in the model mapping will be dropped
+            2. Model native regions can be renamed
+            3. Aggregation from model native regions to "common regions"
+        * NUTS aggregation (via :class:`NutsProcessor`), which aggregates NUTS3 -> NUTS2 -> NUTS1 -> Country -> EU27(+UK)
     * Validation of consistency across the variable hierarchy
 
     Parameters
@@ -36,9 +39,9 @@ def process(
         Codelists that are used for validation.
     dimensions : list, optional
         Dimensions to be used in the validation, defaults to all dimensions defined in
-        `dsd`
-    processor : :class:`RegionProcessor`, optional
-        Region processor to perform region renaming and aggregation (if given)
+        ``dsd``.
+    processor : :class:`Processor` or list of :class:`Processor`, optional
+        One or more processors to apply. Runs before any config-declared processors.
 
     Returns
     -------
@@ -56,8 +59,30 @@ def process(
 
     dimensions = dimensions or dsd.dimensions
 
+    # Auto-instantiate processors declared in nomenclature.yaml under 'processors'
+    # Explicit processors take precedence; config-based ones are appended after.
+    if dsd.config.processor.region_processor:
+        if any(isinstance(p, RegionProcessor) for p in processor):
+            logger.info(
+                "Config declares 'region-processor: true' but an explicit "
+                "RegionProcessor was provided -- skipping config-defined processor."
+            )
+        else:
+            processor = processor + [
+                RegionProcessor.from_directory(dsd.project_folder / "mappings", dsd)
+            ]
+
+    if dsd.config.processor.nuts is not None:
+        if any(isinstance(p, NutsProcessor) for p in processor):
+            logger.info(
+                "Config declares 'nuts' processor but an explicit NutsProcessor "
+                "was provided -- skipping config-defined processor."
+            )
+        else:
+            processor = processor + [NutsProcessor.from_definition(dsd)]
+
     if (
-        any(isinstance(p, RegionProcessor) for p in processor)
+        any(isinstance(p, (RegionProcessor, NutsProcessor)) for p in processor)
         and "region" in dimensions
     ):
         dimensions.remove("region")

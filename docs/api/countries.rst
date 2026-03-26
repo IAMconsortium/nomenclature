@@ -6,7 +6,7 @@ A common list of countries
 ==========================
 
 Having an agreed list of country names including a mapping to alpha-3 and alpha-2 codes
-(also know as ISO3 and ISO2 codes) is an important prerequisite for scenario analysis
+(also known as ISO3 and ISO2 codes) is an important prerequisite for scenario analysis
 and model comparison.
 
 The :class:`nomenclature` package builds on the :class:`pycountry` package
