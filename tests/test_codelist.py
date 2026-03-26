@@ -661,7 +661,9 @@ def test_include_nonexistent_code_raises():
     )
     try:
         with pytest.RaisesGroup(
-            ValueError, ValueError, match="Include filter validation failed"
+            ValueError,
+            ValueError,
+            match="Importing definitions from external repository failed",
         ) as excinfo:
             VariableCodeList.from_directory(
                 "variable",
@@ -677,7 +679,7 @@ def test_include_nonexistent_code_raises():
         for exp in expected:
             assert excinfo.group_contains(
                 ValueError,
-                match=r"No codes found for include filter: " + exp,
+                match=r"No codes matched the 'definitions' include-filter: " + exp,
             )
     finally:
         clean_up_external_repos(config.repositories)
@@ -692,7 +694,7 @@ def test_include_nonexistent_hierarchy_raises():
 
     try:
         with pytest.RaisesGroup(
-            ValueError, match="Include filter validation failed"
+            ValueError, match="Importing definitions from external repository failed"
         ) as excinfo:
             RegionCodeList.from_directory(
                 "region",
@@ -707,7 +709,7 @@ def test_include_nonexistent_hierarchy_raises():
         for exp in expected:
             assert excinfo.group_contains(
                 ValueError,
-                match=r"No codes found for include filter: " + exp,
+                match=r"No codes matched the 'definitions' include-filter: " + exp,
             )
     finally:
         clean_up_external_repos(config.repositories)
