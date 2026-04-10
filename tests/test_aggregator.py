@@ -34,6 +34,10 @@ def test_aggregator_from_file():
         "rename": [
             {"name": "Resource|Extraction|Petrol", "rename": "Resource|Extraction|Oil"}
         ],
+        "input_data": None,
+        "input_meta": None,
+        "output_data": None,
+        "output_meta": None,
     }
     assert obs.model_dump() == exp
 
