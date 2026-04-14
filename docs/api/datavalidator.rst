@@ -76,4 +76,4 @@ Standard usage
   DataValidator.from_file(data_val_yaml).apply(df)
 
 .. autoclass:: DataValidator
-   :members: from_file, from_codelist, apply
+   :members: from_file, from_codelist, apply, validate_with_definition
