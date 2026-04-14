@@ -162,6 +162,8 @@ def test_cli_non_default_folders_fails():
         ],
     )
     assert result.exit_code == 1
+    assert isinstance(result.exception, NotADirectoryError)
+    assert "Definitions directory not found" in str(result.exception)
 
 
 def test_cli_wrong_definitions_name():
@@ -177,6 +179,8 @@ def test_cli_wrong_definitions_name():
         ],
     )
     assert result.exit_code == 1
+    assert isinstance(result.exception, NotADirectoryError)
+    assert "Definitions directory not found" in str(result.exception)
 
 
 def test_cli_variable_validation_item_invalid():
