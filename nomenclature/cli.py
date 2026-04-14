@@ -230,8 +230,8 @@ def run_workflow(
     input_file : Path
         Input data file, must be IAMC format, .xlsx or .csv
     workflow_file : Path
-            Path to the workflow file,
-            default: current working directory / "workflow.py"
+        Path to the workflow file,
+        default: current working directory / "workflow.py"
     workflow_function : str
         Name of the workflow function inside the workflow file, default: main
     output_file : Path | None
