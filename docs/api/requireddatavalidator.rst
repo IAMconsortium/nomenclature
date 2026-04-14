@@ -41,4 +41,4 @@ Standard usage
 
 
 .. autoclass:: RequiredDataValidator
-   :members: from_file, apply
+   :members: from_file, apply, check_required_data_per_model, validate_with_definition
