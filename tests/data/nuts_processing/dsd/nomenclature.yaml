@@ -3,6 +3,7 @@ dimensions:
   - variable
 definitions:
   region:
+    country: true
     nuts:
       nuts-1: [AT]
       nuts-2: [AT]

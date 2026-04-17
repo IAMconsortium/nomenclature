@@ -1,5 +1,4 @@
 import copy
-import logging
 from unittest.mock import patch
 
 import numpy as np
@@ -652,10 +651,10 @@ def test_config_region_processor_auto_loaded():
     assert_iamframe_equal(obs, exp)
 
 
-def test_config_region_processor_explicit_takes_priority(caplog):
+def test_config_and_explicit_region_processor_raise():
     """
-    Test that when an explicit `RegionProcessor` argument is provided,
-    no config-declared `RegionProcessor` is instantiated, and an info log is emitted.
+    Test that providing an explicit `RegionProcessor` when config also declares one
+    raises a `ValueError`.
     """
     test_df = IamDataFrame(
         pd.DataFrame(
@@ -668,26 +667,16 @@ def test_config_region_processor_explicit_takes_priority(caplog):
         )
     )
 
-    exp = IamDataFrame(
-        pd.DataFrame(
-            [
-                ["model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 4, 6],
-            ],
-            columns=IAMC_IDX + [2005, 2010],
-        )
-    )
-
     dsd = DataStructureDefinition(CONFIG_PROCESSOR_DIR / "region_processor/definitions")
     explicit_rp = RegionProcessor.from_directory(
         CONFIG_PROCESSOR_DIR / "region_processor/mappings", dsd
     )
-    # Assert that no additional RegionProcessor is built inside process()
+
     with patch.object(
         RegionProcessor, "from_directory", wraps=RegionProcessor.from_directory
     ) as from_dir:
-        with caplog.at_level(logging.INFO):
-            obs = process(test_df, dsd, processor=explicit_rp)
+        with pytest.raises(
+            ValueError, match="Config declares 'region-processor: true' but an explicit"
+        ):
+            process(test_df, dsd, processor=explicit_rp)
         from_dir.assert_not_called()
-
-    assert "skipping config-defined processor" in caplog.text
-    assert_iamframe_equal(obs, exp)
