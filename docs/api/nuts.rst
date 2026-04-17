@@ -35,8 +35,9 @@ The full list of NUTS regions is accessible via the Eurostat website (`xlsx, 500
 
 .. currentmodule:: nomenclature.processor.nuts
 
+
 **NutsProcessor**
-=================
+-----------------
 
 The :class:`NutsProcessor` class provides automated aggregation of scenario data
 across NUTS regions. It performs hierarchical aggregation in the following order:
@@ -94,9 +95,9 @@ The country-level regions must be defined in a region definition file or by sett
 .. note::
 
    Only NUTS regions explicitly listed under ``definitions.region.nuts`` are present
-   in the output. The :class:`NutsProcessor` always aggregates through all levels,\
+   in the output. The :class:`NutsProcessor` always aggregates through all levels,
    but intermediate levels are **dropped** from the result unless they are listed
-  in the configuration. In the example above, all three levels (NUTS1, NUTS2, NUTS3)
+   in the configuration. In the example above, all three levels (NUTS1, NUTS2, NUTS3)
    are listed, so the final output includes the original NUTS3 data as well as
    the aggregated NUTS2 and NUTS1 regions alongside the country-level result.
    If only ``nuts-3`` were listed, the aggregated NUTS2 and NUTS1 regions would

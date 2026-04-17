@@ -75,6 +75,21 @@ class NutsProcessor(Processor):
     def from_definition(
         cls, dsd: DataStructureDefinition, models: list[str] | None = None
     ):
+        """Instantiate from a :class:`DataStructureDefinition`.
+
+        Parameters
+        ----------
+        dsd : DataStructureDefinition
+            Project data structure definition.
+        models : list[str], optional
+            Models to apply NUTS aggregation to. Defaults to the list configured
+            under ``config.processor.nuts`` in *dsd*.
+
+        Raises
+        ------
+        ValueError
+            If no models are configured for NUTS processing.
+        """
         models = models or dsd.config.processor.nuts
         if not models:
             raise ValueError("No models configured for NUTS processor")
@@ -94,6 +109,25 @@ class NutsProcessor(Processor):
         )
 
     def apply(self, df: IamDataFrame):
+        """Apply NUTS region aggregation.
+
+        Parameters
+        ----------
+        df : IamDataFrame
+            Input data to be aggregated.
+
+        Returns
+        -------
+        IamDataFrame
+            Aggregated data.
+
+        Raises
+        ------
+        ValueError
+            If a NUTS region in *df* is not listed in ``definitions.region.nuts``.
+        UnknownRegionError
+            If the result contains regions not defined in the region codelist.
+        """
         processed_dfs: list[IamDataFrame] = []
 
         # Check for NUTS regions not listed in the configuration
@@ -242,6 +276,23 @@ class NutsProcessor(Processor):
         return_aggregation_difference: bool = False,
         rtol_difference: float = 0.01,
     ):
+        """Apply the full NUTS aggregation pipeline for a single model.
+
+        Parameters
+        ----------
+        model_df : IamDataFrame
+            Data for a single model.
+        return_aggregation_difference : bool, optional
+            Whether to return aggregation differences for diagnostics.
+        rtol_difference : float, optional
+            Relative tolerance used when comparing pre-aggregated country data
+            against freshly aggregated values.
+
+        Returns
+        -------
+        tuple[IamDataFrame, Any]
+            Processed data and (optionally populated) aggregation difference.
+        """
         model = model_df.model[0]
 
         _df = model_df.copy()
