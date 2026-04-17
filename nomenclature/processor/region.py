@@ -703,14 +703,9 @@ class RegionProcessor(Processor):
                 # Single constituent common regions are a special rename case
                 # (technically aggregated, so aggregation-skipped variables are excluded)
                 if common_region.is_single_constituent_region:
-                    non_skip_vars = [
-                        var.name
-                        for var in self.variable_codelist.values()
-                        if not var.skip_region_aggregation
-                    ]
                     _df = model_df.filter(
                         region=common_region.constituent_regions[0],
-                        variable=non_skip_vars,
+                        variable=self.variable_codelist.region_aggregation_variables,
                     ).rename(region=common_region.rename_dict)
                     if not _df.empty:
                         _processed_data.append(_df._data)

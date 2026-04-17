@@ -73,9 +73,10 @@ class CodeListConfig(BaseModel):
 
 class RegionCodeListConfig(CodeListConfig):
     """
-    Configuration for a region's codelist.
+    Configuration for a region codelist.
 
-    This class allows importing the definitions for ISO3 countries and NUTS regions.
+    This class allows selecting which regions to import from external repositories
+    and importing the definitions for ISO3 countries and NUTS regions.
     """
 
     country: bool = False
@@ -173,7 +174,6 @@ class DataStructureConfig(BaseModel):
     Configuration class for the data structure definition.
 
     This class defines the configuration for the main IAMC dimensions:
-    - model
     - scenario
     - region
     - variable
@@ -181,12 +181,11 @@ class DataStructureConfig(BaseModel):
     Each dimension can be configured with its own code list and repository sources.
     """
 
-    model: CodeListConfig = Field(default_factory=CodeListConfig)
     scenario: CodeListConfig = Field(default_factory=CodeListConfig)
     region: RegionCodeListConfig = Field(default_factory=RegionCodeListConfig)
     variable: CodeListConfig = Field(default_factory=CodeListConfig)
 
-    @field_validator("model", "scenario", "region", "variable", mode="before")
+    @field_validator("scenario", "region", "variable", mode="before")
     @classmethod
     def add_dimension(cls, v, info: ValidationInfo):
         return {"dimension": info.field_name, **v}
@@ -195,7 +194,7 @@ class DataStructureConfig(BaseModel):
     def repos(self) -> dict[str, str]:
         return {
             dimension: getattr(self, dimension).repositories
-            for dimension in ("model", "scenario", "region", "variable")
+            for dimension in ("scenario", "region", "variable")
             if getattr(self, dimension).repositories
         }
 
@@ -383,9 +382,10 @@ class NomenclatureConfig(BaseModel):
     @model_validator(mode="after")
     @classmethod
     def check_nuts_consistency(cls, v: "NomenclatureConfig") -> "NomenclatureConfig":
-        if v.processor and v.processor.nuts and not v.definitions.region.nuts:
+        if v.processor.nuts and not v.definitions.region.nuts:
             raise ValueError(
-                "`nuts` region processor set but no NUTS regions in `definitions`."
+                "`nuts` region processor set but no NUTS regions in `definitions`. "
+                "To fix, set `definitions.regions.nuts` to True."
             )
         return v
 

@@ -72,8 +72,10 @@ class NutsProcessor(Processor):
     model_config = ConfigDict(hide_input_in_errors=True)
 
     @classmethod
-    def from_definition(cls, dsd: DataStructureDefinition):
-        models = dsd.config.processor.nuts
+    def from_definition(
+        cls, dsd: DataStructureDefinition, models: list[str] | None = None
+    ):
+        models = models or dsd.config.processor.nuts
         if not models:
             raise ValueError("No models configured for NUTS processor")
         return cls(
@@ -94,17 +96,26 @@ class NutsProcessor(Processor):
     def apply(self, df: IamDataFrame):
         processed_dfs: list[IamDataFrame] = []
 
+        # Check for NUTS regions not listed in the configuration
+        all_nuts = {r.code for r in nuts.get(level=[1, 2, 3])}
+        if unaccounted_nuts := self.nuts_codelist.validate_df(
+            df.filter(region=all_nuts), "region"
+        ):
+            raise ValueError(
+                f"Did not find NUTS region(s) {unaccounted_nuts} in 'region.nuts' configuration."
+            )
+
         for model in df.model:
             model_df = df.filter(model=model)
 
             # Skip unlisted models
             if model not in self.models:
                 logger.info(
-                    f"Skipping NUTS region aggregation for model '{model}' (no region processing mapping)"
+                    f"Skipping NUTS region aggregation for model '{model}' (no NUTS aggregation mapping)"
                 )
                 processed_dfs.append(model_df)
             else:
-                logger.info(f"Applying region-processing for model '{model}'")
+                logger.info(f"Applying NUTS processing for model '{model}'")
                 processed_dfs.append(self._apply_nuts_processing(model_df)[0])
 
         res = pyam.concat(processed_dfs)
@@ -118,7 +129,7 @@ class NutsProcessor(Processor):
         model_df: IamDataFrame,
         source_regions: list[str],
         parent_prefix_length: int,
-    ) -> list[pd.Series]:
+    ) -> IamDataFrame:
         """Aggregate source NUTS regions to their parent region.
 
         Parameters
@@ -132,8 +143,8 @@ class NutsProcessor(Processor):
 
         Returns
         -------
-        list[pd.Series]
-            Aggregated data series
+        IamDataFrame
+            Aggregated data
         """
 
         aggregated_data = []
@@ -147,9 +158,9 @@ class NutsProcessor(Processor):
         # Aggregate each parent from its constituents
         for parent_code, constituents in parent_groups.items():
             parent = (
-                countries.get(alpha_2=parent_code).name
-                if len(parent_code) == 2  # If NUTS 1 > country, use name
-                else parent_code
+                parent_code
+                if len(parent_code) > 2  # If NUTS 1 > country, use name
+                else countries.get(alpha_2=parent_code).name
             )
             aggregated = aggregate_region_with_variable_rules(
                 model_df,
@@ -159,7 +170,7 @@ class NutsProcessor(Processor):
             )
             aggregated_data.extend(aggregated)
 
-        return aggregated_data
+        return IamDataFrame(pd.concat(aggregated_data), meta=model_df.meta)
 
     def _aggregate_to_eu27(self, df: IamDataFrame) -> list[pd.Series]:
         """Aggregate country-level data to European Union (and United Kingdom).
@@ -231,47 +242,35 @@ class NutsProcessor(Processor):
         return_aggregation_difference: bool = False,
         rtol_difference: float = 0.01,
     ):
-        if len(model_df.model) != 1:
-            raise ValueError(
-                f"Must be called for a unique model, found: {model_df.model}"
-            )
         model = model_df.model[0]
 
-        # Check for NUTS regions not listed in the configuration
-        all_nuts = {r.code for r in nuts.get(level={1, 2, 3})}
-        if unaccounted_nuts := (set(model_df.region) & all_nuts) - set(
-            self.nuts_codelist
-        ):
-            raise ValueError(
-                f"Did not find NUTS region(s) {unaccounted_nuts} in 'region.nuts' configuration."
-            )
-
         _df = model_df.copy()
-        _processed_data: list[pd.Series] = []
 
         # Silence pyam's empty filter warnings
         with adjust_log_level(logger="pyam", level="ERROR"):
             # NUTS3 > NUTS2 aggregation
-            if nuts3_in_data := (set(_df.region) & {r.code for r in nuts.get(level=3)}):
-                _processed_data = self._aggregate_nuts_level(_df, nuts3_in_data, 4)
+            if nuts3_in_data := _df.filter(region={r.code for r in nuts.get(level=3)}):
                 # Keep NUTS3, add aggregated NUTS2
-                _df = pyam.concat([_df, IamDataFrame(pd.concat(_processed_data))])
+                _df = pyam.concat(
+                    [_df, self._aggregate_nuts_level(_df, nuts3_in_data.region, 4)]
+                )
 
             # NUTS2 > NUTS1 aggregation (uses original NUTS2 + aggregated NUTS2)
-            if nuts2_in_data := (set(_df.region) & {r.code for r in nuts.get(level=2)}):
-                _processed_data = self._aggregate_nuts_level(_df, nuts2_in_data, 3)
+            if nuts2_in_data := _df.filter(region={r.code for r in nuts.get(level=2)}):
                 # Keep NUTS2, add aggregated NUTS1
-                _df = pyam.concat([_df, IamDataFrame(pd.concat(_processed_data))])
+                _df = pyam.concat(
+                    [_df, self._aggregate_nuts_level(_df, nuts2_in_data.region, 3)]
+                )
 
             # NUTS1 > Country aggregation (uses original NUTS1 + aggregated NUTS1)
-            if nuts1_in_data := (set(_df.region) & {r.code for r in nuts.get(level=1)}):
-                _processed_data = self._aggregate_nuts_level(_df, nuts1_in_data, 2)
+            if nuts1_in_data := _df.filter(region={r.code for r in nuts.get(level=1)}):
+                _nuts1_agg = self._aggregate_nuts_level(_df, nuts1_in_data.region, 2)
 
             # Compare & merge country-level aggregated data with any pre-aggregated
             # country data in the original model input
             _data, difference = merge_with_preaggregated_data(
                 model_df,
-                _processed_data,
+                [_nuts1_agg._data] if nuts1_in_data else [],
                 countries.names,
                 self.variable_codelist,
                 rtol_difference,
