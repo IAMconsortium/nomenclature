@@ -65,8 +65,10 @@ The *nomenclature.yaml* in the project directory is as follows:
     - variable
   definitions:
     region:
-      nuts:
-        nuts-3: [ AT ]
+      nuts:nuts:
+      nuts-1: [ AT ]
+      nuts-2: [ AT ]
+      nuts-3: [ AT ]
       country: true
   processors:
     nuts: [ Model A ]
@@ -88,6 +90,17 @@ The data is aggregated for the applicable variables, creating the common region
 The country-level regions must be defined in a region definition file or by setting
 *definitions.region.country* as *true* in the configuration file
 (see :ref:`adding-countries`).
+
+.. note::
+
+   Only NUTS regions explicitly listed under ``definitions.region.nuts`` are present
+   in the output. The :class:`NutsProcessor` always aggregates through all levels,\
+   but intermediate levels are **dropped** from the result unless they are listed
+  in the configuration. In the example above, all three levels (NUTS1, NUTS2, NUTS3)
+   are listed, so the final output includes the original NUTS3 data as well as
+   the aggregated NUTS2 and NUTS1 regions alongside the country-level result.
+   If only ``nuts-3`` were listed, the aggregated NUTS2 and NUTS1 regions would
+   be discarded and only the NUTS3 regions and the country total would be retained.
 
 .. note::
 
