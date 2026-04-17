@@ -60,26 +60,26 @@ def process(
     dimensions = dimensions or dsd.dimensions
 
     # Auto-instantiate processors declared in nomenclature.yaml under 'processors'
-    # Explicit processors take precedence; config-based ones are appended after.
-    if dsd.config.processor.region_processor:
+    # Raise error if both explicit and config-based processors exist.
+    if getattr(dsd.config.processor, "region_processor", False):
         if any(isinstance(p, RegionProcessor) for p in processor):
-            logger.info(
+            raise ValueError(
                 "Config declares 'region-processor: true' but an explicit "
-                "RegionProcessor was provided -- skipping config-defined processor."
+                "RegionProcessor was provided. Please specify only one source of "
+                "RegionProcessor (either via config or explicitly)."
             )
-        else:
-            processor = processor + [
-                RegionProcessor.from_directory(dsd.project_folder / "mappings", dsd)
-            ]
+        processor.append(
+            RegionProcessor.from_directory(dsd.project_folder / "mappings", dsd)
+        )
 
-    if dsd.config.processor.nuts is not None:
+    if getattr(dsd.config.processor, "nuts", None) is not None:
         if any(isinstance(p, NutsProcessor) for p in processor):
-            logger.info(
+            raise ValueError(
                 "Config declares 'nuts' processor but an explicit NutsProcessor "
-                "was provided -- skipping config-defined processor."
+                "was provided. Please specify only one source of NutsProcessor "
+                "(either via config or explicitly)."
             )
-        else:
-            processor = processor + [NutsProcessor.from_definition(dsd)]
+        processor.append(NutsProcessor.from_definition(dsd))
 
     if (
         any(isinstance(p, (RegionProcessor, NutsProcessor)) for p in processor)
