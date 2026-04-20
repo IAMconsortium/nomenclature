@@ -245,8 +245,8 @@ class RegionMappingConfig(BaseModel):
 class ProcessorConfig(BaseModel):
     """Configuration for region processor settings."""
 
-    nuts: list[str] | None = None
-    region_processor: bool = Field(False, alias="region-processor")
+    nuts: list[str] = Field(default_factory=list, alias="nuts-processor")
+    region_processor: bool = Field(default=False, alias="region-processor")
 
     model_config = ConfigDict(
         validate_by_name=True, validate_by_alias=True, extra="forbid"
@@ -261,7 +261,6 @@ class TimeDomainConfig(BaseModel):
     timezone: str | None = Field(
         default=None,
         pattern=r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$",
-        # pattern_msg="Invalid timezone format. Expected format: 'UTC±HH:MM'."
     )
 
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)

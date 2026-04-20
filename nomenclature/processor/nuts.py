@@ -1,5 +1,4 @@
 import logging
-import re
 import pyam
 import pandas as pd
 
@@ -104,7 +103,7 @@ class NutsProcessor(Processor):
             mapping={
                 code.name: code
                 for code in self.region_codelist.mapping.values()
-                if re.search(r"NUTS \d regions \(2024 edition\)", code.hierarchy)
+                if code.hierarchy.startswith("NUTS ")
             },
         )
 

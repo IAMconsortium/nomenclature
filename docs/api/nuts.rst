@@ -94,7 +94,7 @@ The country-level regions must be defined in a region definition file or by sett
 
 .. note::
 
-   Only NUTS regions explicitly listed under ``definitions.region.nuts`` are present
+   Only NUTS regions explicitly listed under ``definitions.region.nuts`` are added to
    in the output. The :class:`NutsProcessor` always aggregates through all levels,
    but intermediate levels are **dropped** from the result unless they are listed
    in the configuration. In the example above, all three levels (NUTS1, NUTS2, NUTS3)

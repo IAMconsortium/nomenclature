@@ -199,8 +199,13 @@ This is equivalent to calling:
 
 .. code:: python
 
+  import pyam
   from nomenclature.processor import RegionProcessor
+  
+  df = pyam.IamDataFrame(data="path/to/file.csv")
+  dsd = DataStructureDefinition("definitions")
   processor = RegionProcessor.from_directory("mappings", dsd)
+  aggregated_data = process(df, dsd)
 
 NUTS processor
 ^^^^^^^^^^^^^^
@@ -212,6 +217,6 @@ NUTS1 → Country → EU27) for those models:
 .. code:: yaml
 
   processors:
-    nuts: [ Model A, Model B ]
+    nuts-processor: [ Model A, Model B ]
 
 More details on NUTS aggregation can be found here: :ref:`nuts`.
