@@ -1,0 +1,12 @@
+dimensions:
+  - region
+  - variable
+definitions:
+  region:
+    country: true
+    nuts:
+      nuts-1: [AT]
+      nuts-2: [AT]
+      nuts-3: [AT]
+processors:
+  nuts: [model_a]

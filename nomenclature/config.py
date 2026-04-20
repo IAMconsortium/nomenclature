@@ -27,12 +27,24 @@ logger = logging.getLogger(__name__)
 
 
 class CodeListFromRepository(BaseModel):
+    """
+    Configuration for a codelist from an external repository.
+
+    The `include` and `exclude` filters allow selecting which definitions to import.
+    """
+
     name: str
     include: list[dict[str, Any]] = [{"name": "*"}]
     exclude: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class CodeListConfig(BaseModel):
+    """Configuration for a dimension's codelist.
+
+    This class lists external repositories for codelists, importing definitions
+    from remote sources.
+    """
+
     dimension: str | None = None
     repositories: list[CodeListFromRepository] = Field(
         default_factory=list, alias="repository"
@@ -62,6 +74,13 @@ class CodeListConfig(BaseModel):
 
 
 class RegionCodeListConfig(CodeListConfig):
+    """
+    Configuration for a region codelist.
+
+    This class allows selecting which regions to import from external repositories
+    and importing the definitions for ISO3 countries and NUTS regions.
+    """
+
     country: bool = False
     nuts: dict[str, str | list[str] | bool] | None = None
 
@@ -79,6 +98,8 @@ class RegionCodeListConfig(CodeListConfig):
 
 
 class Repository(BaseModel):
+    """Configuration for an external codelist repository."""
+
     url: str
     hash: str | None = None
     release: str | None = None
@@ -152,21 +173,22 @@ class Repository(BaseModel):
 
 
 class DataStructureConfig(BaseModel):
-    """A class for configuration of a DataStructureDefinition
+    """
+    Configuration class for the data structure definition.
 
-    Attributes
-    ----------
-    region : RegionCodeListConfig
-        Attributes for configuring the RegionCodeList
+    This class defines the configuration for the main IAMC dimensions:
+    - scenario
+    - region
+    - variable
 
+    Each dimension can be configured with its own code list and repository sources.
     """
 
-    model: CodeListConfig = Field(default_factory=CodeListConfig)
     scenario: CodeListConfig = Field(default_factory=CodeListConfig)
     region: RegionCodeListConfig = Field(default_factory=RegionCodeListConfig)
     variable: CodeListConfig = Field(default_factory=CodeListConfig)
 
-    @field_validator("model", "scenario", "region", "variable", mode="before")
+    @field_validator("scenario", "region", "variable", mode="before")
     @classmethod
     def add_dimension(cls, v, info: ValidationInfo):
         return {"dimension": info.field_name, **v}
@@ -175,12 +197,14 @@ class DataStructureConfig(BaseModel):
     def repos(self) -> dict[str, str]:
         return {
             dimension: getattr(self, dimension).repositories
-            for dimension in ("model", "scenario", "region", "variable")
+            for dimension in ("scenario", "region", "variable")
             if getattr(self, dimension).repositories
         }
 
 
 class MappingRepository(BaseModel):
+    """Configuration for a mapping repository."""
+
     name: str
     include: list[str] = ["*"]
 
@@ -198,6 +222,8 @@ class MappingRepository(BaseModel):
 
 
 class RegionMappingConfig(BaseModel):
+    """Configuration for region mapping/aggregation external repositories."""
+
     repositories: list[MappingRepository] = Field(
         default_factory=list, alias="repository"
     )
@@ -219,7 +245,20 @@ class RegionMappingConfig(BaseModel):
         return v
 
 
+class ProcessorConfig(BaseModel):
+    """Configuration for region processor settings."""
+
+    nuts: list[str] = Field(default_factory=list, alias="nuts-processor")
+    region_processor: bool = Field(default=False, alias="region-processor")
+
+    model_config = ConfigDict(
+        validate_by_name=True, validate_by_alias=True, extra="forbid"
+    )
+
+
 class TimeDomainConfig(BaseModel):
+    """Configuration for time domain validation settings."""
+
     year_allowed: bool = Field(default=True, alias="year")
     datetime_allowed: bool = Field(default=False, alias="datetime")
     timezone: str | None = Field(
@@ -306,6 +345,9 @@ class NomenclatureConfig(BaseModel):
     repositories: dict[str, Repository] = Field(default_factory=dict)
     definitions: DataStructureConfig = Field(default_factory=DataStructureConfig)
     mappings: RegionMappingConfig = Field(default_factory=RegionMappingConfig)
+    processor: ProcessorConfig = Field(
+        default_factory=ProcessorConfig, alias="processors"
+    )
     illegal_characters: list[str] = Field(
         default=[":", ";", '"'], alias="illegal-characters"
     )
@@ -327,6 +369,7 @@ class NomenclatureConfig(BaseModel):
     def check_definitions_repository(
         cls, v: "NomenclatureConfig"
     ) -> "NomenclatureConfig":
+        """Check that all repositories referenced in definitions and mappings exist."""
         mapping_repos = {"mappings": v.mappings.repositories} if v.mappings else {}
         repos: dict[str, list[MappingRepository]] = {
             **v.definitions.repos,
@@ -336,6 +379,16 @@ class NomenclatureConfig(BaseModel):
             repository_names = [repository.name for repository in repositories]
             if unknown_repos := repository_names - v.repositories.keys():
                 raise ValueError((f"Unknown repository {unknown_repos} in '{use}'."))
+        return v
+
+    @model_validator(mode="after")
+    @classmethod
+    def check_nuts_consistency(cls, v: "NomenclatureConfig") -> "NomenclatureConfig":
+        if v.processor.nuts and not v.definitions.region.nuts:
+            raise ValueError(
+                "`nuts` region processor set but no NUTS regions in `definitions`. "
+                "To fix, set `definitions.regions.nuts` to True."
+            )
         return v
 
     def fetch_repos(self, target_folder: Path):

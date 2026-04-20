@@ -563,6 +563,9 @@ class CodeList(BaseModel):
 
         def matches_filter(code: Code, filters: list[dict], keep: bool):
             def check_attribute_match(code_value, filter_value):
+                # If bool, match exactly (before int because bool is subclass of int)
+                if isinstance(filter_value, bool):
+                    return code_value == filter_value
                 # If int, match exactly
                 if isinstance(filter_value, int):
                     return code_value == filter_value
@@ -620,6 +623,17 @@ class VariableCodeList(CodeList):
     unknown_code_error: ClassVar[type[UnknownCodeError]] = UnknownVariableError
 
     _data_validator = None
+    _region_aggregation_variables = None
+
+    @property
+    def region_aggregation_variables(self) -> list[str]:
+        """Variable names where skip_region_aggregation is False, cached on first access."""
+        if self._region_aggregation_variables is not None:
+            return self._region_aggregation_variables
+        self._region_aggregation_variables = [
+            var.name for var in self.mapping.values() if not var.skip_region_aggregation
+        ]
+        return self._region_aggregation_variables
 
     @property
     def data_validator(self):
@@ -836,6 +850,7 @@ class RegionCodeList(CodeList):
                         RegionCode(
                             name=r.code,
                             hierarchy=f"NUTS {level[-1]} regions (2024 edition)",
+                            extra_attributes={"nuts": True},
                         )
                     )
 

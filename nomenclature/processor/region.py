@@ -132,9 +132,11 @@ class RegionAggregationMapping(BaseModel):
     @field_validator("native_regions")
     @classmethod
     def validate_native_regions_name(cls, v, info: ValidationInfo):
-        """Checks if a native region occurs a maximum of two ways:
-        * at most once in both keep name AND rename format
-        * only once in either keep name OR rename format"""
+        """
+        Validate that each native region source name must appear *at most* once as:
+        - A region without renaming (keep original name), and/or
+        - A region with renaming (assign new name)
+        """
         keep = [nr.name for nr in v if nr.rename is None]
         rename = [nr.name for nr in v if nr.rename is not None]
         keep_dups = [item for item, count in Counter(keep).items() if count > 1]
@@ -152,6 +154,7 @@ class RegionAggregationMapping(BaseModel):
     @field_validator("native_regions")
     @classmethod
     def validate_native_regions_target(cls, v, info: ValidationInfo):
+        """Check that target region names (after renaming, if applicable) are unique."""
         target_names = [nr.target_native_region for nr in v]
         duplicates = [
             item for item, count in Counter(target_names).items() if count > 1
@@ -666,7 +669,7 @@ class RegionProcessor(Processor):
         return_aggregation_difference: bool = False,
         rtol_difference: float = 0.01,
     ) -> tuple[IamDataFrame, pd.DataFrame]:
-        """Apply the region processing for a single model"""
+        """Apply region processing for a single model"""
         if len(model_df.model) != 1:
             raise ValueError(
                 f"Must be called for a unique model, found: {model_df.model}"
@@ -678,6 +681,7 @@ class RegionProcessor(Processor):
 
         _processed_data: list[pd.Series] = []
 
+        # Silence pyam's empty filter warnings
         # Silence pyam's empty filter warnings
         with adjust_log_level(logger="pyam", level="ERROR"):
             # Add unchanged native regions to processed data
@@ -712,23 +716,87 @@ class RegionProcessor(Processor):
                 if common_region.is_single_constituent_region:
                     _df = model_df.filter(
                         region=common_region.constituent_regions[0],
-                        variable=non_skip_vars,
+                        variable=self.variable_codelist.region_aggregation_variables,
                     ).rename(region=common_region.rename_dict)
-                regions = [common_region.name, common_region.constituent_regions]
-
-                # First, perform 'simple' aggregation (no arguments)
-                simple_vars = [
-                    var
-                    for var in self.variable_codelist.vars_default_agg_args(
-                        model_df.variable
+                    if not _df.empty:
+                        _processed_data.append(_df._data)
+                else:
+                    # Use aggregation function
+                    aggregated = aggregate_region_with_variable_rules(
+                        model_df,
+                        common_region.name,
+                        common_region.constituent_regions,
+                        self.variable_codelist,
                     )
-                ]
-                _df = model_df.aggregate_region(
-                    simple_vars,
-                    *regions,
-                )
-                if _df is not None and not _df.empty:
-                    _processed_data.append(_df._data)
+                    _processed_data.extend(aggregated)
+
+            # Compare & merge with pre-aggregated data
+            _data, difference = merge_with_preaggregated_data(
+                model_df,
+                _processed_data,
+                self.mappings[model].common_region_names,
+                self.variable_codelist,
+                rtol_difference,
+                return_aggregation_difference,
+                model,
+            )
+
+        return IamDataFrame(_data, meta=model_df.meta), difference
+
+    def revert(self, df: pyam.IamDataFrame) -> pyam.IamDataFrame:
+        model_dfs = []
+        for model in df.model:
+            model_df = df.filter(model=model)
+            if mapping := self.mappings.get(model):
+                # remove common regions, then apply inverse-renaming of native-regions
+                model_df = model_df.filter(
+                    region=mapping.common_region_names, keep=False
+                ).rename(region=mapping.reverse_rename_mapping)
+            model_dfs.append(model_df)
+        return pyam.concat(model_dfs)
+
+
+def aggregate_region_with_variable_rules(
+    df: IamDataFrame,
+    target_region: str,
+    constituent_regions: list[str],
+    variable_codelist: VariableCodeList,
+) -> list[pd.Series]:
+    """
+    Core region aggregation logic with variable-specific rules.
+
+    This is the shared aggregation engine used by different processors.
+    It handles:
+    - Variables with simple aggregation (sum)
+    - Variables with weighted aggregation
+    - Variables with custom methods
+    - Variables with skip_region_aggregation flag
+
+    Parameters
+    ----------
+    df : IamDataFrame
+        Source data
+    target_region : str
+        Name of region to create
+    constituent_regions : list of str
+        Regions to aggregate from
+    variable_codelist : VariableCodeList
+        Variable definitions with aggregation rules
+
+    Returns
+    -------
+    list of pd.Series
+        Aggregated data series
+    """
+    aggregated_data = []
+    regions = [target_region, constituent_regions]
+
+    # Simple aggregation (default sum)
+    simple_vars = [var for var in variable_codelist.vars_default_args(df.variable)]
+    if simple_vars:
+        _df = df.aggregate_region(simple_vars, *regions)
+        if _df is not None and not _df.empty:
+            aggregated_data.append(_df._data)
 
                 # Second, special weighted aggregation
                 for var in self.variable_codelist.vars_special_agg_kwargs(
