@@ -72,7 +72,7 @@ def process(
             RegionProcessor.from_directory(dsd.project_folder / "mappings", dsd)
         )
 
-    if getattr(dsd.config.processor, "nuts", None) is not None:
+    if dsd.config.processor.nuts:
         if any(isinstance(p, NutsProcessor) for p in processor):
             raise ValueError(
                 "Config declares 'nuts' processor but an explicit NutsProcessor "
