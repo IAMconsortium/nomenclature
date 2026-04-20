@@ -246,28 +246,6 @@ class RegionAggregationMapping(BaseModel):
                 raise ConstituentsNotNativeError({"regions": missing, "file": v.file})
         return v
 
-    @field_serializer("model", when_used="json")
-    def serialize_model(self, model: list[str]) -> str | list[str]:
-        return model[0] if len(model) == 1 else model
-
-    @field_serializer("native_regions", when_used="json")
-    def serialize_native_regions(self, native_regions: list[NativeRegion]) -> list:
-        return [
-            (
-                {native_region.name: native_region.rename}
-                if native_region.rename
-                else native_region.name
-            )
-            for native_region in native_regions
-        ]
-
-    @field_serializer("common_regions", when_used="json")
-    def serialize_common_regions(self, common_regions: list[CommonRegion]) -> list:
-        return [
-            {common_region.name: common_region.constituent_regions}
-            for common_region in common_regions
-        ]
-
     @classmethod
     def from_file(cls, file: Path | str) -> "RegionAggregationMapping":
         """Initialize a RegionAggregationMapping from a file.
@@ -408,23 +386,22 @@ class RegionAggregationMapping(BaseModel):
 
     @property
     def all_regions(self) -> list[str]:
-        """List of all regions. Native regions are renamed, if possible."""
+        # For the native regions we take the **renamed** (if given) names
         nr_list = [x.target_native_region for x in self.native_regions or []]
         return nr_list + self.common_region_names
 
     @property
     def model_native_region_names(self) -> list[str]:
-        """List of the original model native region names"""
+        # List of the **original** model native region names
         return [x.name for x in self.native_regions or []]
 
     @property
     def common_region_names(self) -> list[str]:
-        """List of the common region names"""
+        # List of the common region names
         return [x.name for x in self.common_regions or []]
 
     @property
     def rename_mapping(self) -> dict[str, str]:
-        """Mapping from original native region names to their renamed targets."""
         return {
             r.name: r.target_native_region
             for r in self.native_regions or []
@@ -432,24 +409,22 @@ class RegionAggregationMapping(BaseModel):
         }
 
     @property
-    def reverse_rename_mapping(self) -> dict[str, str]:
-        """Mapping from native region renamed targets to original names."""
-        return {renamed: original for original, renamed in self.rename_mapping.items()}
-
-    @property
     def upload_native_regions(self) -> list[str]:
-        """List of native regions to upload, with renamed regions applied."""
         return [
             native_region.target_native_region
             for native_region in self.native_regions or []
         ]
 
     @property
+    def reverse_rename_mapping(self) -> dict[str, str]:
+        return {renamed: original for original, renamed in self.rename_mapping.items()}
+
+    @property
     def models(self) -> list[str]:
         return self.model
 
     def check_unexpected_regions(self, df: IamDataFrame) -> None:
-        """Raises if regions in input data are not found in the model mapping"""
+        # Raise error if a region in the input data is not used in the model mapping
 
         if regions_not_found := set(df.region) - set(
             self.model_native_region_names
@@ -472,6 +447,28 @@ class RegionAggregationMapping(BaseModel):
     def __eq__(self, other: "RegionAggregationMapping") -> bool:
         return self.model_dump(exclude={"file"}) == other.model_dump(exclude={"file"})
 
+    @field_serializer("model", when_used="json")
+    def serialize_model(self, model) -> str | list[str]:
+        return model[0] if len(model) == 1 else model
+
+    @field_serializer("native_regions", when_used="json")
+    def serialize_native_regions(self, native_regions) -> list:
+        return [
+            (
+                {native_region.name: native_region.rename}
+                if native_region.rename
+                else native_region.name
+            )
+            for native_region in native_regions
+        ]
+
+    @field_serializer("common_regions", when_used="json")
+    def serialize_common_regions(self, common_regions) -> list:
+        return [
+            {common_region.name: common_region.constituent_regions}
+            for common_region in common_regions
+        ]
+
     def to_yaml(self, file) -> None:
         with open(file, "w", encoding="utf-8") as f:
             yaml.dump(
@@ -482,9 +479,7 @@ class RegionAggregationMapping(BaseModel):
             )
 
 
-def validate_with_definition(
-    v: RegionAggregationMapping, info: ValidationInfo
-) -> RegionAggregationMapping:
+def validate_with_definition(v: RegionAggregationMapping, info: ValidationInfo):
     """Check if mappings valid with respect to RegionCodeList."""
     if invalid := info.data["region_codelist"].validate_items(v.all_regions):
         raise RegionNotDefinedError({"regions": invalid, "file": v.file})
@@ -611,14 +606,14 @@ class RegionProcessor(Processor):
         for model in df.model:
             model_df = df.filter(model=model)
 
-            # If no mapping is defined, the dataframe is returned unchanged
+            # if no mapping is defined the data frame is returned unchanged
             if model not in self.mappings:
                 logger.info(
                     f"Skipping region aggregation for model '{model}' (no region processing mapping)"
                 )
                 processed_dfs.append(model_df)
 
-            # Otherwise, first rename, then aggregate
+            # otherwise we first rename, then aggregate
             else:
                 file = self.mappings[model].file
                 logger.info(
@@ -676,15 +671,14 @@ class RegionProcessor(Processor):
             )
         model = model_df.model[0]
 
-        # Check for regions not mentioned in the model mapping
         self.mappings[model].check_unexpected_regions(model_df)
 
         _processed_data: list[pd.Series] = []
 
         # Silence pyam's empty filter warnings
-        # Silence pyam's empty filter warnings
         with adjust_log_level(logger="pyam", level="ERROR"):
-            # Add unchanged native regions to processed data
+            # Native region handling
+            # Unchanged regions are added to processed data directly
             keep = [
                 r.name for r in self.mappings[model].native_regions if r.rename is None
             ]
@@ -692,7 +686,7 @@ class RegionProcessor(Processor):
             if not keep_df.empty:
                 _processed_data.append(keep_df._data)
 
-            # Add renamed native regions to processed data
+            # Renamed regions are added to processed data
             rename = [
                 r.name
                 for r in self.mappings[model].native_regions
@@ -704,15 +698,10 @@ class RegionProcessor(Processor):
                     rename_df.rename(region=self.mappings[model].rename_mapping)._data
                 )
 
-            # Aggregate common regions
+            # Aggregation
             for common_region in self.mappings[model].common_regions:
-                # If common region consists of single native region
-                # treat as rename that filters skip-region-aggregation variables
-                non_skip_vars = [
-                    var.name
-                    for var in self.variable_codelist.values()
-                    if not var.skip_region_aggregation
-                ]
+                # Single constituent common regions are a special rename case
+                # (technically aggregated, so aggregation-skipped variables are excluded)
                 if common_region.is_single_constituent_region:
                     _df = model_df.filter(
                         region=common_region.constituent_regions[0],
@@ -792,84 +781,89 @@ def aggregate_region_with_variable_rules(
     regions = [target_region, constituent_regions]
 
     # Simple aggregation (default sum)
-    simple_vars = [var for var in variable_codelist.vars_default_args(df.variable)]
+    simple_vars = [var for var in variable_codelist.vars_default_agg_args(df.variable)]
     if simple_vars:
         _df = df.aggregate_region(simple_vars, *regions)
         if _df is not None and not _df.empty:
             aggregated_data.append(_df._data)
 
-                # Second, special weighted aggregation
-                for var in self.variable_codelist.vars_special_agg_kwargs(
-                    model_df.variable
-                ):
-                    if var.region_aggregation is None:
-                        _df = _aggregate_region(
-                            model_df,
-                            var.name,
-                            *regions,
-                            **var.pyam_agg_kwargs,
+    # Weighted/special aggregation
+    for var in variable_codelist.vars_special_agg_kwargs(df.variable):
+        if var.region_aggregation is None:
+            # Standard weighted aggregation
+            _df = _aggregate_region(df, var.name, *regions, **var.pyam_agg_kwargs)
+            if _df is not None and not _df.empty:
+                aggregated_data.append(_df._data)
+        else:
+            # Aggregation with variable renaming
+            for rename_var in var.region_aggregation:
+                for _rename, _kwargs in rename_var.items():
+                    _df = _aggregate_region(df, var.name, *regions, **_kwargs)
+                    if _df is not None and not _df.empty:
+                        aggregated_data.append(
+                            _df.rename(variable={var.name: _rename})._data
                         )
-                        if _df is not None and not _df.empty:
-                            _processed_data.append(_df._data)
-                    else:
-                        for rename_var in var.region_aggregation:
-                            # Run aggregation for each rename variable
-                            for _rename, _kwargs in rename_var.items():
-                                _df = _aggregate_region(
-                                    model_df,
-                                    var.name,
-                                    *regions,
-                                    **_kwargs,
-                                )
-                                if _df is not None and not _df.empty:
-                                    # Add new renamed aggregated variable to df
-                                    _processed_data.append(
-                                        _df.rename(variable={var.name: _rename})._data
-                                    )
 
-            # Get pre-aggregated common region data
-            common_region_df = model_df.filter(
-                region=self.mappings[model].common_region_names,
-                variable=self.variable_codelist,
+    return aggregated_data
+
+
+def merge_with_preaggregated_data(
+    model_df: IamDataFrame,
+    aggregated_data: list[pd.Series],
+    target_regions: list[str],
+    variable_codelist: VariableCodeList,
+    rtol_difference: float = 0.01,
+    return_aggregation_difference: bool = False,
+    model_name: str = "",
+) -> tuple[pd.Series, pd.DataFrame]:
+    """Merge aggregated data with any pre-aggregated data that exists at target regions.
+
+    Parameters
+    ----------
+    model_df : IamDataFrame
+        Original model data
+    aggregated_data : list of pd.Series
+        List of aggregated data series
+    target_regions : list of str
+        Regions to filter for pre-aggregated data
+    variable_codelist : VariableCodeList
+        Variables to include
+    rtol_difference : float
+        Relative tolerance for comparison
+    return_aggregation_difference : bool
+        Whether to return difference dataframe
+    model_name : str
+        Model name for error messages
+
+    Returns
+    -------
+    tuple of (pd.Series, pd.DataFrame)
+        Merged data and difference report
+    """
+    # Filter for pre-aggregated data
+    pre_aggregated_df = model_df.filter(
+        region=target_regions,
+        variable=variable_codelist,
+    )
+
+    difference = pd.DataFrame()
+    if aggregated_data:
+        _data = pd.concat(aggregated_data)
+        if not pre_aggregated_df.empty:
+            _data, difference = _compare_and_merge(
+                pre_aggregated_df._data,
+                _data,
+                rtol_difference,
+                return_aggregation_difference,
             )
+    elif not pre_aggregated_df.empty:
+        _data = pre_aggregated_df._data
+    else:
+        raise ValueError(
+            f"Region-processing for model '{model_name}' returned an empty dataset"
+        )
 
-            # Compare and merge processed data onto pre-aggregated data
-            difference = pd.DataFrame()
-            if _processed_data:
-                _data = pd.concat(_processed_data)
-                if not common_region_df.empty:
-                    _data, difference = _compare_and_merge(
-                        common_region_df._data,
-                        _data,
-                        rtol_difference,
-                        return_aggregation_difference,
-                    )
-
-            # If data exists only at the common-region level, use that
-            elif not common_region_df.empty:
-                _data = common_region_df._data
-
-            # Raise an error if region-processing yields an empty result
-            else:
-                raise ValueError(
-                    f"Region-processing for model '{model}' returned an empty dataset"
-                )
-
-        # Cast processed timeseries data and meta indicators to IamDataFrame
-        return IamDataFrame(_data, meta=model_df.meta), difference
-
-    def revert(self, df: pyam.IamDataFrame) -> pyam.IamDataFrame:
-        """Remove common regions and reverse native region renaming."""
-        model_dfs = []
-        for model in df.model:
-            model_df = df.filter(model=model)
-            if mapping := self.mappings.get(model):
-                # Remove common regions, then apply inverse-renaming of native-regions
-                model_df = model_df.filter(
-                    region=mapping.common_region_names, keep=False
-                ).rename(region=mapping.reverse_rename_mapping)
-            model_dfs.append(model_df)
-        return pyam.concat(model_dfs)
+    return _data, difference
 
 
 def _aggregate_region(df, var, *regions, **kwargs):
@@ -938,7 +932,6 @@ def _compare_and_merge(
 def _check_exclude_region_overlap(
     region_aggregation_mapping: RegionAggregationMapping, region_type: str
 ) -> RegionAggregationMapping:
-    """Raise error if excluded regions overlap with defined regions."""
     if (
         region_aggregation_mapping.exclude_regions is None
         or getattr(region_aggregation_mapping, region_type) is None
