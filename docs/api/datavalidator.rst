@@ -69,7 +69,7 @@ Standard usage
 
 .. code-block:: python
 
-  from nomenclature.processor import DataValidator
+  from nomenclature import DataValidator
 
   # ...setting directory/file paths and loading dataset
 
