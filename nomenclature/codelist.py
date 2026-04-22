@@ -537,8 +537,12 @@ class CodeList(BaseModel):
             def check_attribute_match(code_value, filter_value):
                 # if is list -> recursive
                 # if is str -> escape all special characters except "*" and use a regex
+                # if is bool -> match exactly (must be checked before int since bool
+                #   is a subclass of int)
                 # if is int -> match exactly
                 # if is None -> Attribute does not exist therefore does not match
+                if isinstance(filter_value, bool):
+                    return code_value == filter_value
                 if isinstance(filter_value, int):
                     return code_value == filter_value
                 if isinstance(filter_value, str):
@@ -592,6 +596,17 @@ class VariableCodeList(CodeList):
     unknown_code_error: ClassVar[type[UnknownCodeError]] = UnknownVariableError
 
     _data_validator = None
+    _region_aggregation_variables = None
+
+    @property
+    def region_aggregation_variables(self) -> list[str]:
+        """Variable names where skip_region_aggregation is False, cached on first access."""
+        if self._region_aggregation_variables is not None:
+            return self._region_aggregation_variables
+        self._region_aggregation_variables = [
+            var.name for var in self.mapping.values() if not var.skip_region_aggregation
+        ]
+        return self._region_aggregation_variables
 
     @property
     def data_validator(self):
@@ -809,6 +824,7 @@ class RegionCodeList(CodeList):
                         RegionCode(
                             name=r.code,
                             hierarchy=f"NUTS {level[-1]} regions (2024 edition)",
+                            extra_attributes={"nuts": True},
                         )
                     )
 
@@ -934,5 +950,4 @@ class MetaCodeList(CodeList):
 
 
 class ScenarioCodeList(CodeList):
-
     unknown_code_error = UnknownScenarioError
