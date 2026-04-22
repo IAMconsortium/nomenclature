@@ -129,9 +129,9 @@ class RegionAggregationMapping(BaseModel):
 
     @field_validator("native_regions")
     @classmethod
-    def validate_native_regions_name(cls, v, info: ValidationInfo):
+    def check_native_regions_name(cls, v, info: ValidationInfo):
         """
-        Validate that each native region source name must appear *at most* once as:
+        Check that each native region source name must appear *at most* once as:
         - A region without renaming (keep original name), and/or
         - A region with renaming (assign new name)
         """
@@ -152,7 +152,7 @@ class RegionAggregationMapping(BaseModel):
 
     @field_validator("native_regions")
     @classmethod
-    def validate_native_regions_target(cls, v, info: ValidationInfo):
+    def check_native_regions_target(cls, v, info: ValidationInfo):
         """Check that target region names (after renaming, if applicable) are unique."""
         target_names = [nr.target_native_region for nr in v]
         duplicates = [
