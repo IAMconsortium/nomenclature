@@ -569,7 +569,7 @@ def test_variable_codelist_with_duplicates_raises(CodeList):
 
     assert excinfo.group_contains(ValueError, match="Identical.*'Some Variable'")
     assert excinfo.group_contains(
-        ValueError, match="Conflicting." "*'Some other Variable'"
+        ValueError, match="Conflicting.*'Some other Variable'"
     )
 
 

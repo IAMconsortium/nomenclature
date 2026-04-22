@@ -17,6 +17,7 @@ from nomenclature.processor import (  # noqa
     NutsProcessor,
     RegionProcessor,
     RequiredDataValidator,
+    DataValidator,
 )
 
 here = Path(__file__).parent

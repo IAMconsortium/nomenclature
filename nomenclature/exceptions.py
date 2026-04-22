@@ -71,7 +71,6 @@ class NomenclatureValidationError(NoTracebackExceptionGroup):
 
 
 class UnknownCodeError(NoTracebackException):
-
     message_template: str = (
         "The following {}(s) are not defined in the {} codelist:\n - {}{}"
     )
@@ -177,7 +176,6 @@ class DataValidationError(NoTracebackException):
 
 
 class RequiredDataMissingError(ValueError):
-
     def __init__(self, missing_data_info: str, file: Path) -> None:
 
         message = (

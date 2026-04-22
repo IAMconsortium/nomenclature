@@ -230,8 +230,8 @@ def run_workflow(
     input_file : Path
         Input data file, must be IAMC format, .xlsx or .csv
     workflow_file : Path
-            Path to the workflow file,
-            default: current working directory / "workflow.py"
+        Path to the workflow file,
+        default: current working directory / "workflow.py"
     workflow_function : str
         Name of the workflow function inside the workflow file, default: main
     output_file : Path | None
@@ -252,7 +252,7 @@ def run_workflow(
     if not hasattr(workflow, workflow_function):
         raise ValueError(f"{workflow} does not have a function `{workflow_function}`")
 
-    df = getattr(workflow, workflow_function)(IamDataFrame(input_file))
+    df: IamDataFrame = getattr(workflow, workflow_function)(IamDataFrame(input_file))
     if output_file is not None:
         df.to_excel(output_file)
 
