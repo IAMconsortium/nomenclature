@@ -934,5 +934,4 @@ class MetaCodeList(CodeList):
 
 
 class ScenarioCodeList(CodeList):
-
     unknown_code_error = UnknownScenarioError
