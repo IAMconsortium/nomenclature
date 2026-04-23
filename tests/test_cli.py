@@ -315,6 +315,29 @@ def test_cli_validate_data_fails():
     assert "Final Energy|Industry" in full_error_message
 
 
+@pytest.mark.xfail(
+    sys.platform.startswith("win"),
+    reason="Command to invoke the cli does not work on Windows",
+)
+def test_error_group_rendering():
+    result = subprocess.run(
+        [
+            "poetry",
+            "run",
+            "nomenclature",
+            "validate-project",
+            str(TEST_DATA_DIR / "validation"),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 1
+    assert all(
+        content in result.stderr
+        for content in ("6", "sub-exceptions", "Asia", "Final Energy|Industry")
+    )
+
+
 def test_cli_empty_definitions_dir():
     """Assert that an error is raised when the `definitions` directory is empty"""
 
