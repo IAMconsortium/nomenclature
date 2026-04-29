@@ -83,12 +83,14 @@ def validate_project(
 ):
     """Validate a nomenclature project directory structure and content.
 
+    \b
     Performs comprehensive validation including:
     - YAML syntax validation for all files
     - Parsing of codelists in the definitions folder
     - Validation of model mappings against region codelists
     - Consistency checks for required-data and data-validation criteria
 
+    \b
     Example:
       $ nomenclature validate-project . --definitions def --mappings map
     """
@@ -132,6 +134,7 @@ def check_region_aggregation(
 
     Useful for quality control of model-reported regional data.
 
+    \b
     Example:
       $ nomenclature check-region-aggregation input.xlsx --processed-data results.xlsx
     """
@@ -159,6 +162,7 @@ def export_definitions_to_excel(
     Creates an Excel workbook with separate sheets for each dimension (variable,
     region, etc.) containing all codelist definitions and attributes.
 
+    \b
     Example:
       $ nomenclature export-definitions . codelists.xlsx
     """
@@ -186,6 +190,7 @@ def list_missing_variables(
     variable codelist. Can generate a template YAML file with the missing variables
     for review and addition to the codelist.
 
+    \b
     Example:
       $ nomenclature list-missing-variables input.xlsx --target-file new_vars.yaml
     """
@@ -222,6 +227,7 @@ def run_workflow(
     The workflow function should accept an IamDataFrame and return an IamDataFrame.
     Useful for project-specific data transformations and validation.
 
+    \b
     Example:
       $ nomenclature run-workflow input.xlsx --output-file output.xlsx
     """
@@ -260,6 +266,7 @@ def validate_scenarios(
     Verifies that specified dimensions (variables, regions, scenarios, etc.) in an IAMC
     data file are defined in the project codelists.
 
+    \b
     Example:
       $ nomenclature validate-scenarios input.xlsx --definitions defs
     """
@@ -284,6 +291,7 @@ def convert_xlsx_codelist_to_yaml(
     attributes, and exports it as a structured YAML file compatible with the
     nomenclature definitions format.
 
+    \b
     Example:
       $ nomenclature convert-xlsx-codelist-to-yaml input.xlsx output.yaml sheet1 variable
     """
@@ -309,12 +317,16 @@ def parse_model_registration(
     """Parse model registration spreadsheet and generate YAML files.
 
     Reads a standardized Excel model registration file containing native region
-    definitions and common region mappings. Generates two sets of YAML files:
-    - Region definitions with optional country mappings
+    definitions and common region mappings.
+
+    \b
+    Generates two sets of YAML files:
+    - Region definitions with optional country lists
     - Model-specific region aggregation mappings
 
     Supports R5 region conventions with automatic World region generation.
 
+    \b
     Example:
       $ nomenclature parse-model-registration registration.xlsx
     """
