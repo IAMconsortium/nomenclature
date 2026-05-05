@@ -232,13 +232,14 @@ class MappingRepository(BaseModel):
     def validate_include_patterns(self, models: list[str]) -> None:
         """Raise if any include pattern matches no models in the external repo."""
         if errors := [
-            ValueError(
-                f"No models found for include pattern in repository '{self.name}': '{pattern}'"
-            )
+            ValueError(f"No models found for include pattern: '{pattern}'")
             for pattern, regex in zip(self.include, self.regex_include_patterns)
             if not any(re.match(regex, model) for model in models)
         ]:
-            raise ExceptionGroup("Mapping include pattern validation failed", errors)
+            raise ExceptionGroup(
+                f"Mapping include pattern validation for repository '{self.name}' failed",
+                errors,
+            )
 
 
 class RegionMappingConfig(BaseModel):
