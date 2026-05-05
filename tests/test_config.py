@@ -176,12 +176,13 @@ def test_include_nonexistent_mapping_raises(tmp_path, monkeypatch):
     monkeypatch.setattr(NomenclatureConfig, "fetch_repos", mock_fetch_repos)
 
     with pytest.RaisesGroup(
-        ValueError, match="Mapping include pattern validation failed"
+        ValueError,
+        match="Mapping include pattern validation for repository 'common-definitions' failed",
     ) as excinfo:
         NomenclatureConfig.from_file(
             MODULE_TEST_DATA_DIR / "include_nonexistent_mapping.yaml"
         )
     assert excinfo.group_contains(
         ValueError,
-        match=r"No models found for include pattern in repository 'common-definitions': 'Non-Existent-Model\*'",
+        match=r"No models found for include pattern: 'Non-Existent-Model\*'",
     )
