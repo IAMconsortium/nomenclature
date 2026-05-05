@@ -676,7 +676,7 @@ def test_include_nonexistent_code_raises():
     for exp in expected:
         assert excinfo.group_contains(
             ValueError,
-            match=r"No codes found for include filter: " + exp,
+            match=rf"No variables found for include filter in repository 'common-definitions': {exp}",
         )
 
     clean_up_external_repos(config.repositories)
@@ -703,7 +703,7 @@ def test_include_nonexistent_hierarchy_raises():
     for exp in expected:
         assert excinfo.group_contains(
             ValueError,
-            match=r"No codes found for include filter: " + exp,
+            match=rf"No regions found for include filter in repository 'common-definitions': {exp}",
         )
 
     clean_up_external_repos(config.repositories)

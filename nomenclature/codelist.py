@@ -221,7 +221,9 @@ class CodeList(BaseModel):
                 file_glob_pattern,
                 repo.name,
             )
-            cls._validate_include_filters(repository_code_list, repo.include)
+            cls._validate_include_filters(
+                repository_code_list, repo.include, name, repo.name
+            )
             code_list.extend(
                 cls.filter_codes(repository_code_list, repo.include, repo.exclude)
             )
@@ -516,20 +518,26 @@ class CodeList(BaseModel):
     def _validate_include_filters(
         codes: list[Code],
         include: list[dict[str, Any]],
+        dimension: str = "code",
+        repository: str | None = None,
     ) -> None:
         """Raise if any include filter from nomenclature.yaml matches no codes."""
         if errors := [
-            ValueError(f"No codes found for include filter: {inc_filter}")
+            ValueError(
+                f"No {dimension}s found for include filter"
+                + (f" in repository '{repository}'" if repository else "")
+                + f": {inc_filter}"
+            )
             for inc_filter in include
             if not CodeList.filter_codes(codes, [inc_filter])
         ]:
-            raise ExceptionGroup("Include filter validation failed", errors)
+            raise CodeListErrorGroup("Include filter validation failed", errors)
 
     @staticmethod
     def filter_codes(
         codes: list[Code],
-        include: list[dict[str, Any]],
-        exclude: list[dict[str, Any]] = [],
+        include: dict | list[dict[str, Any]] | None = None,
+        exclude: list[dict[str, Any]] | None = None,
     ) -> list[Code]:
         """
         Filter a list of codes based on include and exclude filters.
@@ -548,6 +556,8 @@ class CodeList(BaseModel):
         list[Code]
             Filtered list of Code objects.
         """
+        include = [include] if isinstance(include, dict) else include or []
+        exclude = exclude or []
 
         def matches_filter(code, filters, keep):
             def check_attribute_match(code_value, filter_value):
@@ -859,7 +869,9 @@ class RegionCodeList(CodeList):
             repo_list_of_codes = cls._parse_and_replace_tags(
                 repo_list_of_codes, repo_path, file_glob_pattern
             )
-            cls._validate_include_filters(repo_list_of_codes, repo.include)
+            cls._validate_include_filters(
+                repo_list_of_codes, repo.include, name, repo.name
+            )
             code_list.extend(
                 cls.filter_codes(repo_list_of_codes, repo.include, repo.exclude)
             )
