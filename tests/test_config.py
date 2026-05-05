@@ -183,5 +183,5 @@ def test_include_nonexistent_mapping_raises(tmp_path, monkeypatch):
         )
     assert excinfo.group_contains(
         ValueError,
-        match=r"No models found for include pattern: 'Non-Existent-Model\*'",
+        match=r"No models found for include pattern in repository 'common-definitions': 'Non-Existent-Model\*'",
     )

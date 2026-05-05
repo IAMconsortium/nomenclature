@@ -232,7 +232,9 @@ class MappingRepository(BaseModel):
     def validate_include_patterns(self, models: list[str]) -> None:
         """Raise if any include pattern matches no models in the external repo."""
         if errors := [
-            ValueError(f"No models found for include pattern: '{pattern}'")
+            ValueError(
+                f"No models found for include pattern in repository '{self.name}': '{pattern}'"
+            )
             for pattern, regex in zip(self.include, self.regex_include_patterns)
             if not any(re.match(regex, model) for model in models)
         ]:
@@ -419,12 +421,20 @@ class NomenclatureConfig(BaseModel):
             repo_mapping_dir = (
                 self.repositories[repository.name].local_path / "mappings"
             )
-            all_models = [
-                model
-                for file in repo_mapping_dir.glob("**/*.y*ml")
-                for raw in [yaml.safe_load(file.read_text(encoding="utf-8"))["model"]]
-                for model in (raw if isinstance(raw, list) else [raw])
-            ]
+            all_models: list[str] = []
+            for file in repo_mapping_dir.glob("**/*.y*ml"):
+                try:
+                    data = yaml.safe_load(file.read_text(encoding="utf-8"))
+                except Exception as exc:
+                    raise ValueError(f"Failed to parse mapping file '{file}'") from exc
+                if not isinstance(data, dict) or not (model_value := data.get("model")):
+                    raise ValueError(
+                        f"Missing/invalid 'model' key in mapping file '{file}' "
+                        f"in repository '{repository.name}'"
+                    )
+                all_models.extend(
+                    model_value if isinstance(model_value, list) else [model_value]
+                )
             if all_models:
                 repository.validate_include_patterns(all_models)
             else:
@@ -440,7 +450,9 @@ class NomenclatureConfig(BaseModel):
         ----------
         file : :class:`pathlib.Path` or path-like
             Path to config file
-
+        dry_run : bool, optional
+            If True, only parse the config file without fetching repositories
+            or validating mapping filters. Default is False.
         """
         with open(file, "r", encoding="utf-8") as stream:
             config = yaml.safe_load(stream)
