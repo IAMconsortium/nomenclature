@@ -656,54 +656,56 @@ def test_region_code_list_external_repo_with_filters():
 
 def test_include_nonexistent_code_raises():
     """Test that referencing non-existent code in 'include' raises"""
-    config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "config" / "include_nonexistent_code.yaml"
-    )
-    with pytest.RaisesGroup(
-        ValueError, ValueError, match="Include filter validation failed"
-    ) as excinfo:
-        VariableCodeList.from_directory(
-            "variable",
-            TEST_DATA_DIR / "config" / "variable",
-            config,
+    try:
+        config = NomenclatureConfig.from_file(
+            TEST_DATA_DIR / "config" / "include_nonexistent_code.yaml"
         )
+        with pytest.RaisesGroup(
+            ValueError, ValueError, match="Include filter validation failed"
+        ) as excinfo:
+            VariableCodeList.from_directory(
+                "variable",
+                TEST_DATA_DIR / "config" / "variable",
+                config,
+            )
 
-    expected = [
-        r"\{'name': 'Non-Existent'\}",
-        r"\{'name': 'Missing', 'tier': 2\}",
-    ]
+        expected = [
+            r"\{'name': 'Non-Existent'\}",
+            r"\{'name': 'Missing', 'tier': 2\}",
+        ]
 
-    for exp in expected:
-        assert excinfo.group_contains(
-            ValueError,
-            match=rf"No variables found for include filter in repository 'common-definitions': {exp}",
-        )
-
-    clean_up_external_repos(config.repositories)
+        for exp in expected:
+            assert excinfo.group_contains(
+                ValueError,
+                match=rf"No variables found for include filter in repository 'common-definitions': {exp}",
+            )
+    finally:
+        clean_up_external_repos(config.repositories)
 
 
 def test_include_nonexistent_hierarchy_raises():
     """Test that referencing a non-existent hierarchy raises"""
-    config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "config" / "include_nonexistent_hierarchy.yaml"
-    )
-    with pytest.RaisesGroup(
-        ValueError, match="Include filter validation failed"
-    ) as excinfo:
-        RegionCodeList.from_directory(
-            "region",
-            TEST_DATA_DIR / "config" / "region",
-            config,
+    try:
+        config = NomenclatureConfig.from_file(
+            TEST_DATA_DIR / "config" / "include_nonexistent_hierarchy.yaml"
         )
+        with pytest.RaisesGroup(
+            ValueError, match="Include filter validation failed"
+        ) as excinfo:
+            RegionCodeList.from_directory(
+                "region",
+                TEST_DATA_DIR / "config" / "region",
+                config,
+            )
 
-    expected = [
-        r"\{'hierarchy': 'Non-Existent'\}",
-    ]
+        expected = [
+            r"\{'hierarchy': 'Non-Existent'\}",
+        ]
 
-    for exp in expected:
-        assert excinfo.group_contains(
-            ValueError,
-            match=rf"No regions found for include filter in repository 'common-definitions': {exp}",
-        )
-
-    clean_up_external_repos(config.repositories)
+        for exp in expected:
+            assert excinfo.group_contains(
+                ValueError,
+                match=rf"No regions found for include filter in repository 'common-definitions': {exp}",
+            )
+    finally:
+        clean_up_external_repos(config.repositories)
