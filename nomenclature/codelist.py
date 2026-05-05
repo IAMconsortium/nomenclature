@@ -523,15 +523,14 @@ class CodeList(BaseModel):
     ) -> None:
         """Raise if any include filter from nomenclature.yaml matches no codes."""
         if errors := [
-            ValueError(
-                f"No {dimension}s found for include filter"
-                + (f" in repository '{repository}'" if repository else "")
-                + f": {inc_filter}"
-            )
+            ValueError(f"No {dimension}s found for include filter: {inc_filter}")
             for inc_filter in include
             if not CodeList.filter_codes(codes, [inc_filter])
         ]:
-            raise CodeListErrorGroup("Include filter validation failed", errors)
+            raise CodeListErrorGroup(
+                f"Importing {dimension}s from external repository '{repository}' failed",
+                errors,
+            )
 
     @staticmethod
     def filter_codes(

@@ -661,7 +661,9 @@ def test_include_nonexistent_code_raises():
             TEST_DATA_DIR / "config" / "include_nonexistent_code.yaml"
         )
         with pytest.RaisesGroup(
-            ValueError, ValueError, match="Include filter validation failed"
+            ValueError,
+            ValueError,
+            match="Importing variables from external repository 'common-definitions' failed",
         ) as excinfo:
             VariableCodeList.from_directory(
                 "variable",
@@ -677,7 +679,7 @@ def test_include_nonexistent_code_raises():
         for exp in expected:
             assert excinfo.group_contains(
                 ValueError,
-                match=rf"No variables found for include filter in repository 'common-definitions': {exp}",
+                match=rf"No variables found for include filter: {exp}",
             )
     finally:
         clean_up_external_repos(config.repositories)
@@ -690,7 +692,8 @@ def test_include_nonexistent_hierarchy_raises():
             TEST_DATA_DIR / "config" / "include_nonexistent_hierarchy.yaml"
         )
         with pytest.RaisesGroup(
-            ValueError, match="Include filter validation failed"
+            ValueError,
+            match="Importing regions from external repository 'common-definitions' failed",
         ) as excinfo:
             RegionCodeList.from_directory(
                 "region",
@@ -705,7 +708,7 @@ def test_include_nonexistent_hierarchy_raises():
         for exp in expected:
             assert excinfo.group_contains(
                 ValueError,
-                match=rf"No regions found for include filter in repository 'common-definitions': {exp}",
+                match=rf"No regions found for include filter: {exp}",
             )
     finally:
         clean_up_external_repos(config.repositories)
