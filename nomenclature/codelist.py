@@ -567,6 +567,8 @@ class CodeList(BaseModel):
                 #   is a subclass of int)
                 # if is int -> match exactly
                 # if is None -> Attribute does not exist therefore does not match
+                if code_value is None:  # attribute doesn't exist on this code
+                    return False
                 if isinstance(filter_value, bool):
                     return code_value == filter_value
                 if isinstance(filter_value, int):
