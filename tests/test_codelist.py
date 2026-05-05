@@ -63,7 +63,6 @@ def test_codelist_to_yaml():
         "    description: Some basic variable\n"
         "    file: simple_codelist/foo.yaml\n"
         "    unit:\n"
-        "    skip-region-aggregation: false\n"
         "    bool: true\n"
     )
 
@@ -293,10 +292,7 @@ def test_to_csv():
         "variable", MODULE_TEST_DATA_DIR / "simple_codelist"
     ).to_csv(lineterminator="\n")
 
-    exp = (
-        "variable,description,unit,skip-region-aggregation,bool\n"
-        "Some Variable,Some basic variable,,False,True\n"
-    )
+    exp = "variable,description,unit,bool\n" "Some Variable,Some basic variable,,True\n"
     assert obs == exp
 
 

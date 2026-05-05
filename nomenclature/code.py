@@ -105,7 +105,10 @@ class Code(BaseModel):
     def flattened_dict(self):
         return {
             **self.model_dump(
-                by_alias=True, exclude_unset=True, exclude="extra_attributes"
+                by_alias=True,
+                exclude_unset=True,
+                exclude_defaults=True,
+                exclude="extra_attributes",
             ),
             **self.extra_attributes,
         }
