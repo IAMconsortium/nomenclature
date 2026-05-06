@@ -94,7 +94,16 @@ def process(
 
     # Run the processors
     for p in processor:
-        df = p.apply(df)
+        try:
+            df = p.apply(df)
+        except Exception as error:
+            if p.fail_ok:
+                logger.warning(
+                    f"Processor {p.__class__.__name__} failed with error: {error}. "
+                    "Continuing with processing as fail_ok=True."
+                )
+            else:
+                raise
 
     # Check consistency across the variable hierarchy
     error = dsd.check_aggregate(df)

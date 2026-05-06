@@ -38,6 +38,7 @@ def test_aggregator_from_file():
         "input_meta": None,
         "output_data": None,
         "output_meta": None,
+        "fail_ok": False,
     }
     assert obs.model_dump() == exp
 
