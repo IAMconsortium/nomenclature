@@ -87,7 +87,7 @@ class UnknownCodeError(NoTracebackException):
         complete_message = self.message_template.format(
             dimension,
             dimension,
-            "\n - ".join(invalid_code_names),
+            "\n - ".join(f"'{name}'" for name in invalid_code_names),
             (
                 f"\n\nPlease refer to {self._file_service_address}/{project}/{project}"
                 f"-template.xlsx for the list of allowed {dimension}s."

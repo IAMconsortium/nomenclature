@@ -38,7 +38,8 @@ class IamcDataFilter(BaseModel):
                 errors.append(
                     NoTracebackException(
                         f"The following {dimension}s are not defined in the "
-                        "DataStructureDefinition:\n   " + ", ".join(invalid)
+                        "DataStructureDefinition:\n   "
+                        + ", ".join(f"'{item}'" for item in invalid)
                     )
                 )
 

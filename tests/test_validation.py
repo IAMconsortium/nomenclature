@@ -50,7 +50,7 @@ def test_validation_fails_variable(simple_definition, simple_df):
     assert excinfo.group_contains(
         UnknownVariableError,
         match=(
-            r"foo\n\n"
+            r"'foo'\n\n"
             r"Please refer to https://files.ece.iiasa.ac.at/data_structure_definition/"
             r"data_structure_definition-template.xlsx for the list of allowed "
             r"variables."
@@ -83,7 +83,7 @@ def test_validation_fails_region(simple_definition, simple_df):
         NomenclatureValidationError, match=MATCH_FAIL_VALIDATION
     ) as excinfo:
         simple_definition.validate(simple_df)
-    assert excinfo.group_contains(UnknownRegionError, match=r"foo")
+    assert excinfo.group_contains(UnknownRegionError, match=r"'foo'")
 
 
 def test_validation_multiple_units(extras_definition, simple_df):
@@ -109,7 +109,7 @@ def test_validation_with_custom_dimension(simple_df):
     ) as excinfo:
         definition.validate(simple_df.rename(scenario={"scen_a": "scen_c"}))
 
-    assert excinfo.group_contains(UnknownScenarioError, match=r"scen_c")
+    assert excinfo.group_contains(UnknownScenarioError, match=r"'scen_c'")
 
     # Validating against specific dimensions works (in spite of conflict in "scenario")
     definition.validate(
@@ -133,7 +133,7 @@ def test_wildcard_match(simple_df):
         NomenclatureValidationError, match=MATCH_FAIL_VALIDATION
     ) as excinfo:
         definition.validate(simple_df.rename(scenario={"scen_a": "foo"}))
-    assert excinfo.group_contains(UnknownScenarioError, match=r"foo")
+    assert excinfo.group_contains(UnknownScenarioError, match=r"'foo'")
 
 
 @pytest.mark.parametrize(

@@ -56,12 +56,12 @@ def test_RequiredDataValidator_validate_with_definition():
     [
         (
             "requiredData_unknown_region.yaml",
-            r"region\(s\).*not defined.*\n.*Asia",
+            r"region\(s\).*not defined.*\n.*'Asia'",
             UnknownRegionError,
         ),
         (
             "requiredData_unknown_variable.yaml",
-            r"variable\(s\).*not defined.*\n.*Final Energy\|Industry",
+            r"variable\(s\).*not defined.*\n.*'Final Energy\|Industry'",
             UnknownVariableError,
         ),
         (

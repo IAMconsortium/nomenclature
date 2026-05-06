@@ -610,7 +610,7 @@ def test_region_aggregation_unknown_region(simple_df, simple_definition, caplog)
     )
     with pytest.raises(
         UnknownRegionError,
-        match=r"region\(s\) are not defined in the region codelist:\n - unknown region",
+        match=r"region\(s\) are not defined in the region codelist:\n - 'unknown region'",
     ):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "region_processing" / "no_mapping", simple_definition

@@ -49,7 +49,7 @@ def test_assert_valid_structure_requiredData_raises():
     # Assert that all issues with requiredData files are reported correctly
     assert len(excinfo.value.exceptions) == 5
     assert excinfo.group_contains(
-        UnknownRegionError, match=r"region\(s\) are not defined.*\n.*Asia"
+        UnknownRegionError, match=r"region\(s\) are not defined.*\n.*'Asia'"
     )
     assert excinfo.group_contains(
         WrongUnitError,
@@ -57,5 +57,5 @@ def test_assert_valid_structure_requiredData_raises():
     )
     assert excinfo.group_contains(
         UnknownVariableError,
-        match=r"variable\(s\) are not defined.*\n - Final Energy\|Industry",
+        match=r"variable\(s\) are not defined.*\n - 'Final Energy\|Industry'",
     )

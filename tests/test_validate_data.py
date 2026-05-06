@@ -115,8 +115,8 @@ def test_DataValidator_illegal_structure(name, match):
 @pytest.mark.parametrize(
     "dimension, match",
     [
-        ("region", r"regions.*not defined.*\n.*Asia"),
-        ("variable", r"variables.*not defined.*\n.*Final Energy\|Industry"),
+        ("region", r"regions.*not defined.*\n.*'Asia'"),
+        ("variable", r"variables.*not defined.*\n.*'Final Energy\|Industry'"),
     ],
 )
 def test_DataValidator_validate_with_definition_raises(dimension, match):
