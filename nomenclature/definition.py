@@ -227,7 +227,7 @@ class DataStructureDefinition:
 
             # Write codelist for each dimensions to own sheet
             for dim in self.dimensions:
-                getattr(self, dim).to_excel(writer, dim, sort_by_code=True)
+                getattr(self, dim).to_excel(writer, dim, sort="asc")
 
 
 def time_format(x):

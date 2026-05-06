@@ -651,3 +651,120 @@ def test_region_code_list_external_repo_with_filters():
         assert "Other (R5)" not in regions
     finally:
         clean_up_external_repos(nomenclature_config.repositories)
+
+
+def test_codelist_sort():
+    """Test that the sort() method returns a sorted CodeList"""
+    codelist = CodeList(
+        name="test",
+        mapping={
+            "Population": Code(name="Population"),
+            "Emissions|CO2": Code(name="Emissions|CO2"),
+            "Primary Energy": Code(name="Primary Energy"),
+            "Final Energy": Code(name="Final Energy"),
+        },
+    )
+
+    # Test ascending sort (default)
+    sorted_asc = codelist.sort()
+    assert list(sorted_asc.keys()) == [
+        "Emissions|CO2",
+        "Final Energy",
+        "Population",
+        "Primary Energy",
+    ]
+
+    # Test explicit ascending sort
+    sorted_asc_explicit = codelist.sort(order="asc")
+    assert list(sorted_asc_explicit.keys()) == [
+        "Emissions|CO2",
+        "Final Energy",
+        "Population",
+        "Primary Energy",
+    ]
+
+    # Test descending sort
+    sorted_desc = codelist.sort(order="desc")
+    assert list(sorted_desc.keys()) == [
+        "Primary Energy",
+        "Population",
+        "Final Energy",
+        "Emissions|CO2",
+    ]
+
+    # Verify original codelist is unchanged
+    assert list(codelist.keys()) == [
+        "Population",
+        "Emissions|CO2",
+        "Primary Energy",
+        "Final Energy",
+    ]
+
+
+def test_codelist_to_yaml_sorted():
+    """Test that to_yaml() with sort produces sorted output"""
+    codelist = CodeList(
+        name="test",
+        mapping={
+            "Primary Energy": Code(
+                name="Primary Energy", description="Total primary energy"
+            ),
+            "Emissions|CO2": Code(
+                name="Emissions|CO2", description="Carbon dioxide emissions"
+            ),
+        },
+    )
+
+    # Test ascending sort
+    obs_asc = codelist.to_yaml(sort="asc")
+    exp_asc = (
+        "- Emissions|CO2:\n"
+        "    description: Carbon dioxide emissions\n"
+        "- Primary Energy:\n"
+        "    description: Total primary energy\n"
+    )
+    assert obs_asc == exp_asc
+
+    # Test descending sort
+    obs_desc = codelist.to_yaml(sort="desc")
+    exp_desc = (
+        "- Primary Energy:\n"
+        "    description: Total primary energy\n"
+        "- Emissions|CO2:\n"
+        "    description: Carbon dioxide emissions\n"
+    )
+    assert obs_desc == exp_desc
+
+
+def test_codelist_to_pandas_sorted():
+    """Test that to_pandas() with sort produces sorted DataFrame"""
+    variables = VariableCodeList.from_directory(
+        "variable", MODULE_TEST_DATA_DIR / "simple_codelist"
+    )
+
+    # Test ascending sort
+    sorted_asc = variables.to_pandas(sort="asc")
+    variable_column_asc = sorted_asc["variable"].tolist()
+    assert variable_column_asc == sorted(variable_column_asc)
+
+    # Test descending sort
+    sorted_desc = variables.to_pandas(sort="desc")
+    variable_column_desc = sorted_desc["variable"].tolist()
+    assert variable_column_desc == sorted(variable_column_desc, reverse=True)
+
+
+def test_codelist_sort_invalid_order():
+    """Test that invalid sort order raises ValueError"""
+    codelist = CodeList(
+        name="test",
+        mapping={"Primary Energy": Code(name="Primary Energy")},
+    )
+
+    with raises(ValueError, match="Invalid sort order: invalid"):
+        codelist.sort(order="invalid")
+
+    with raises(ValueError, match="Invalid sort order: ascending"):
+        codelist.to_yaml(sort="ascending")
+
+    with raises(ValueError, match="Invalid sort order: descending"):
+        codelist.to_pandas(sort="descending")

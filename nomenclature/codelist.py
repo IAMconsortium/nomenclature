@@ -395,13 +395,16 @@ class CodeList(BaseModel):
         if errors:
             raise CodeListErrorGroup("Found illegal characters", errors)
 
-    def to_yaml(self, path: Path | str | None = None):
+    def to_yaml(self, path: Path | str | None = None, sort: str | None = None):
         """Write mapping to yaml file or return as stream
 
         Parameters
         ----------
         path : :class:`pathlib.Path` or str, optional
             Write to file path if not None, otherwise return as stream
+        sort : str, optional
+            Sort order: "asc" (ascending) or "desc" (descending).
+            If None (default), codes are not sorted.
         """
 
         class Dumper(yaml.Dumper):
@@ -409,9 +412,18 @@ class CodeList(BaseModel):
                 return super().increase_indent(flow=flow, indentless=indentless)
 
         # Translate to list of nested dicts, replace None by empty field, write to file
+        codelist_items = self.codelist_repr().items()
+        if sort is not None:
+            if sort not in ["asc", "desc"]:
+                raise ValueError(
+                    f"Invalid sort order: {sort}. Must be 'asc' or 'desc'."
+                )
+            reverse = sort == "desc"
+            codelist_items = sorted(codelist_items, key=lambda x: x[0], reverse=reverse)
+
         stream = (
             yaml.dump(
-                [{code: attrs} for code, attrs in self.codelist_repr().items()],
+                [{code: attrs} for code, attrs in codelist_items],
                 sort_keys=False,
                 Dumper=Dumper,
             )
@@ -424,13 +436,14 @@ class CodeList(BaseModel):
         with open(path, "w", encoding="utf-8") as file:
             file.write(stream)
 
-    def to_pandas(self, sort_by_code: bool = False) -> pd.DataFrame:
+    def to_pandas(self, sort: str | None = None) -> pd.DataFrame:
         """Export the CodeList to a :class:`pandas.DataFrame`
 
         Parameters
         ----------
-        sort_by_code : bool, optional
-            Sort the codelist before exporting to csv.
+        sort : str, optional
+            Sort order: "asc" (ascending) or "desc" (descending).
+            If None (default), codes are not sorted.
         """
         codelist = (
             pd.DataFrame.from_dict(
@@ -438,16 +451,21 @@ class CodeList(BaseModel):
             )
             .reset_index()
             .rename(columns={"index": self.name})
-            .drop(columns="file")
+            .drop(columns="file", errors="ignore")
         )
-        if sort_by_code:
-            codelist.sort_values(by=self.name, inplace=True)
+        if sort is not None:
+            if sort not in ["asc", "desc"]:
+                raise ValueError(
+                    f"Invalid sort order: {sort}. Must be 'asc' or 'desc'."
+                )
+            ascending = sort == "asc"
+            codelist.sort_values(by=self.name, ascending=ascending, inplace=True)
         return codelist
 
     def to_csv(
         self,
         path: str | Path | IO[bytes] | None = None,
-        sort_by_code: bool = False,
+        sort: str | None = None,
         **kwargs,
     ) -> str | None:
         """Write the codelist to a comma-separated values (csv) file
@@ -458,8 +476,9 @@ class CodeList(BaseModel):
             File path as string or :class:`pathlib.Path`, or file-like object.
             If *None*, the result is returned as a csv-formatted string.
             See :meth:`pandas.DataFrame.to_csv` for details.
-        sort_by_code : bool, optional
-            Sort the codelist before exporting to csv.
+        sort : str, optional
+            Sort order: "asc" (ascending) or "desc" (descending).
+            If None (default), codes are not sorted.
         **kwargs
             Passed to :meth:`pandas.DataFrame.to_csv`.
 
@@ -468,13 +487,13 @@ class CodeList(BaseModel):
         None or csv-formatted string (if *path* is None)
         """
         index = kwargs.pop("index", False)  # by default, do not write index to csv
-        return self.to_pandas(sort_by_code).to_csv(path, index=index, **kwargs)
+        return self.to_pandas(sort).to_csv(path, index=index, **kwargs)
 
     def to_excel(
         self,
         excel_writer: PathLike | IO[bytes] | pd.ExcelWriter,
         sheet_name: str | None = None,
-        sort_by_code: bool = False,
+        sort: str | None = None,
         **kwargs,
     ):
         """Write the codelist to an Excel spreadsheet
@@ -486,17 +505,18 @@ class CodeList(BaseModel):
             or existing :class:`pandas.ExcelWriter`.
         sheet_name : str, optional
             Name of sheet that will have the codelist. If *None*, use the codelist name.
-        sort_by_code : bool, optional
-            Sort the codelist before exporting to file.
+        sort : str, optional
+            Sort order: "asc" (ascending) or "desc" (descending).
+            If None (default), codes are not sorted.
         **kwargs
             Passed to :class:`pandas.ExcelWriter` (if *excel_writer* is path-like).
         """
         sheet_name = sheet_name or self.name
         if isinstance(excel_writer, pd.ExcelWriter):
-            write_sheet(excel_writer, sheet_name, self.to_pandas(sort_by_code))
+            write_sheet(excel_writer, sheet_name, self.to_pandas(sort))
         else:
             with pd.ExcelWriter(excel_writer, **kwargs) as writer:
-                write_sheet(writer, sheet_name, self.to_pandas(sort_by_code))
+                write_sheet(writer, sheet_name, self.to_pandas(sort))
 
     def codelist_repr(self, json_serialized: bool = False) -> dict:
         """Cast a CodeList into corresponding dictionary"""
@@ -536,6 +556,28 @@ class CodeList(BaseModel):
         if not filtered_codelist.mapping:
             logger.warning(f"Filtered {self.__class__.__name__} is empty!")
         return filtered_codelist
+
+    def sort(self, order: str = "asc") -> "CodeList":
+        """Sort the CodeList by code names.
+
+        Parameters
+        ----------
+        order : str, optional
+            Sort order, either "asc" (ascending) or "desc" (descending). Default is "asc".
+
+        Returns
+        -------
+        CodeList
+            A new CodeList with codes sorted alphabetically by name.
+        """
+        if order not in ["asc", "desc"]:
+            raise ValueError(f"Invalid sort order: {order}. Must be 'asc' or 'desc'.")
+
+        reverse = order == "desc"
+        sorted_mapping = dict(
+            sorted(self.mapping.items(), key=lambda x: x[0], reverse=reverse)
+        )
+        return self.__class__(name=self.name, mapping=sorted_mapping)
 
     @staticmethod
     def filter_codes(
