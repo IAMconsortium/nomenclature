@@ -52,7 +52,7 @@ The command automatically:
 
 - Parses the "Common-Region-Mapping" sheet to generate model mapping YAML files
 - Parses the "Region-Country-Mapping" sheet (if present) to generate region definitions with country lists
-- Handles R5 region conventions with automatic World region generation
+- Adds an aggregation to "World" from R5 regions (if present)
 
 Option 2) Registration using a GitHub pull request
 --------------------------------------------------

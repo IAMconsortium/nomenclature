@@ -20,7 +20,6 @@ runner = CliRunner()
 
 
 def test_cli_installed():
-
     result = subprocess.run(
         [sys.executable, "-m", "nomenclature"], capture_output=True, text=True
     )

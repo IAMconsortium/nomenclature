@@ -138,8 +138,7 @@ class Aggregator(Processor):
             error = f"Dimension '{self.dimension}' not found in DataStructureDefinition"
         elif invalid := codelist.validate_items(self.codes):
             error = (
-                f"The following {self.dimension}s are not defined in the "
-                "DataStructureDefinition:\n - "
+                f"The following {self.dimension}s are not defined\n - "
                 + "\n - ".join(f"'{item}'" for item in invalid)
             )
         if error:

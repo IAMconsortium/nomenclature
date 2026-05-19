@@ -20,7 +20,7 @@ structure is required:
 
 Regions can have attributes, for example a description, a list of countries, or ISO3 codes.
 If the attributes `countries` and/or `iso3_codes` are provided, the item(s) are 
-validated against a list of valid ISO3 country names/codes taken from the
+validated against a list of valid ISO3 country names/codes adapted from the
 `pycountry <https://github.com/flyingcircusio/pycountry>`_ package.
 More details on the list of countries can be found :ref:`here <countries>`.
 

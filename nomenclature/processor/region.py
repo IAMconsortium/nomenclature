@@ -887,8 +887,7 @@ def _compare_and_merge(
 ) -> tuple[IamDataFrame, pd.DataFrame]:
     """Compare and merge original and aggregated results"""
 
-    # Compare aggregated (processed) data and original (pre-aggregated) data
-    # provided at the common-region level
+    # Compare aggregated (processed) and original data at the common-region level
     compare = pd.merge(
         left=original.rename(index="original"),
         right=aggregated.rename(index="aggregated"),
