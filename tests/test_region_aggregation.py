@@ -14,6 +14,8 @@ from nomenclature import (
     RegionProcessor,
     process,
 )
+from nomenclature.code import RegionCode
+from nomenclature.codelist import RegionCodeList, VariableCodeList
 from nomenclature.processor.region import CommonRegion, NativeRegion
 
 TEST_FOLDER_REGION_PROCESSING = TEST_DATA_DIR / "region_processing"
@@ -391,3 +393,82 @@ def test_model_mapping_from_excel_to_yaml(tmp_path):
         TEST_DATA_DIR / "model_registration" / "excel_mapping_reference.yaml"
     )
     assert obs == exp
+
+
+@pytest.fixture
+def region_codelist_with_countries():
+    """RegionCodeList where each native region target name has countries assigned."""
+    return RegionCodeList(
+        name="region",
+        mapping={
+            "alternative_name_a": RegionCode(
+                name="alternative_name_a", countries=["Germany", "France"]
+            ),
+            "alternative_name_b": RegionCode(
+                name="alternative_name_b", countries=["China"]
+            ),
+            "region_c": RegionCode(name="region_c", countries=["Japan"]),
+            "common_region_1": RegionCode(name="common_region_1"),
+            "common_region_2": RegionCode(name="common_region_2"),
+        },
+    )
+
+
+@pytest.fixture
+def region_processor_with_countries(region_codelist_with_countries):
+    """RegionProcessor with a mapping where each native region target name has countries assigned."""
+    mapping = RegionAggregationMapping.from_file(
+        TEST_FOLDER_REGION_AGGREGATION / "working_mapping.yaml"
+    )
+    return RegionProcessor(
+        mappings={"model_a": mapping},
+        region_codelist=region_codelist_with_countries,
+        variable_codelist=VariableCodeList(name="variable"),
+    )
+
+
+def test_get_common_region_country_mapping(
+    region_processor_with_countries,
+):
+    obs = region_processor_with_countries.get_common_region_country_mapping("model_a")
+    assert obs == {
+        "common_region_1": ["Germany", "France", "China"],
+        "common_region_2": ["Japan"],
+    }
+
+
+def test_get_native_region_country_mapping(
+    region_processor_with_countries,
+):
+    obs = region_processor_with_countries.get_native_region_country_mapping("model_a")
+    assert obs == {
+        "alternative_name_a": ["Germany", "France"],
+        "alternative_name_b": ["China"],
+        "region_c": ["Japan"],
+    }
+
+
+def test_get_common_region_country_mapping_no_countries():
+    """Regions without a countries attribute return an empty list."""
+    mapping = RegionAggregationMapping.from_file(
+        TEST_FOLDER_REGION_AGGREGATION / "working_mapping.yaml"
+    )
+    codelist = RegionCodeList(
+        name="region",
+        mapping={
+            "alternative_name_a": RegionCode(name="alternative_name_a"),
+            "alternative_name_b": RegionCode(name="alternative_name_b"),
+            "region_c": RegionCode(name="region_c"),
+            "common_region_1": RegionCode(name="common_region_1"),
+            "common_region_2": RegionCode(name="common_region_2"),
+        },
+    )
+    region_processor = RegionProcessor(
+        mappings={"model_a": mapping},
+        region_codelist=codelist,
+        variable_codelist=VariableCodeList(name="variable"),
+    )
+    assert region_processor.get_common_region_country_mapping("model_a") == {
+        "common_region_1": [],
+        "common_region_2": [],
+    }
