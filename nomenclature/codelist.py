@@ -536,7 +536,7 @@ class CodeList(BaseModel):
     def filter_codes(
         codes: list[Code],
         include: dict | list[dict[str, Any]] | None = None,
-        exclude: list[dict[str, Any]] | None = None,
+        exclude: dict | list[dict[str, Any]] | None = None,
     ) -> list[Code]:
         """
         Filter a list of codes based on include and exclude filters.
@@ -556,7 +556,7 @@ class CodeList(BaseModel):
             Filtered list of Code objects.
         """
         include = [include] if isinstance(include, dict) else include or []
-        exclude = exclude or []
+        exclude = [exclude] if isinstance(exclude, dict) else exclude or []
 
         def matches_filter(code, filters, keep):
             def check_attribute_match(code_value, filter_value):
