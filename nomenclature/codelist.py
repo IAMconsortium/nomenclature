@@ -3,7 +3,7 @@ import re
 from os import PathLike
 from pathlib import Path
 from textwrap import indent
-from typing import Any, ClassVar
+from typing import Any, IO, ClassVar
 
 import numpy as np
 import pandas as pd
