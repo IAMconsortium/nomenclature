@@ -2,10 +2,10 @@
  - variable: Primary Energy
    validation:
     - range: [ 1, 5 ]
-# variable exists only for 'scen_a'
+# Variable exists only for 'scen_a'
  - variable: Primary Energy|Coal
    range: [2, 5]
-# both upper and lower bound fail for both scenarios
+# Both upper and lower bound fail for both scenarios
  - variable: Primary Energy
    year: 2005
    range: [ 1.1, 1.9]

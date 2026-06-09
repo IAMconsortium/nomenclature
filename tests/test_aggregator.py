@@ -38,6 +38,7 @@ def test_aggregator_from_file():
         "input_meta": None,
         "output_data": None,
         "output_meta": None,
+        "fail_ok": False,
     }
     assert obs.model_dump() == exp
 
@@ -82,7 +83,7 @@ def test_aggregator_validate_invalid_code():
     file = "aggregation_mapping_invalid_code.yaml"
     aggregator = Aggregator.from_file(TEST_FOLDER_GENERIC_PROCESSOR / file)
     definition = DataStructureDefinition(TEST_FOLDER_GENERIC_PROCESSOR / "definition")
-    match = f"The following variables are not .*\n .*- Final Energy\|Foo\n.*{file}"
+    match = f"The following variables are not .*\n .*- 'Final Energy\\|Foo'\n.*{file}"
     with pytest.raises(ValueError, match=match):
         aggregator.validate_with_definition(definition)
 

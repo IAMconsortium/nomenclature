@@ -49,7 +49,9 @@ class CodeListConfig(BaseModel):
     repositories: list[CodeListFromRepository] = Field(
         default_factory=list, alias="repository"
     )
-    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
+    model_config = ConfigDict(
+        extra="forbid", validate_by_name=True, validate_by_alias=True
+    )
 
     @field_validator("repositories", mode="before")
     @classmethod
@@ -102,6 +104,7 @@ class Repository(BaseModel):
     hash: str | None = None
     release: str | None = None
     local_path: Path | None = Field(default=None, validate_default=True)
+    # Defined via the `repository` name in the configuration
 
     @model_validator(mode="after")
     @classmethod
@@ -280,8 +283,8 @@ class TimeDomainConfig(BaseModel):
 
     @property
     def datetime_format(self) -> str:
-        # if year is a separate column, exclude it from format
-        # if not, datetime is coerced in IamDataFrame, and include seconds
+        # If year is a separate column, exclude it from format
+        # If not, datetime is coerced to IamDataFrame, and include seconds
         return "%Y-%m-%d %H:%M:%S" if self.datetime_allowed else None
 
     def check_datetime_format(self, df: IamDataFrame) -> None:
@@ -291,7 +294,7 @@ class TimeDomainConfig(BaseModel):
         for d in _datetime:
             try:
                 _dt = datetime.strptime(str(d), self.datetime_format + "%z")
-                # only check timezone if a specific timezone is required
+                # Only check timezone if a specific timezone is required
                 if self.timezone and not _dt.tzname() == self.timezone:
                     errors.append(TimeDomainError(f"{d} - invalid timezone"))
             except ValueError:

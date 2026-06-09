@@ -61,7 +61,7 @@ def remove_readonly(func, path, excinfo):
 
 
 def clean_up_external_repos(repos):
-    # clean up the external repo
+    # Clean up the external repo
     for repository in repos.values():
         if repository.local_path.exists():
             shutil.rmtree(repository.local_path, onerror=remove_readonly)

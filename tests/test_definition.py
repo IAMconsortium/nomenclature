@@ -17,11 +17,11 @@ def test_definition_with_custom_dimension(simple_definition):
         dimensions=["region", "variable", "scenario"],
     )
 
-    # check that "standard" dimensions are identical to simple test definitions
+    # Check that "standard" dimensions are identical to simple test definitions
     assert obs.region == simple_definition.region
     assert obs.variable == simple_definition.variable
 
-    # check that "custom" dimensions are as expected
+    # Check that "custom" dimensions are as expected
     assert obs.scenario["scen_a"] == Code(
         name="scen_a", extra_attributes={"attribute": "value"}
     )
@@ -49,13 +49,13 @@ def test_definition_from_general_config(workflow_folder):
         dimensions=["region", "variable"],
     )
     try:
-        # explicitly defined in `general-config-definitions/region/regions.yaml`
+        # Explicitly defined in `general-config-definitions/region/regions.yaml`
         if workflow_folder == "general-config":
             assert "Region A" in obs.region
-        # imported from https://github.com/IAMconsortium/common-definitions repo
+        # Imported from https://github.com/IAMconsortium/common-definitions
         assert "World" in obs.region
 
-        # imported from https://github.com/IAMconsortium/common-definitions repo
+        # Imported from https://github.com/IAMconsortium/common-definitions
         assert "Primary Energy" in obs.variable
     finally:
         clean_up_external_repos(obs.config.repositories)
@@ -73,9 +73,9 @@ def test_definition_general_config_nuts_only():
     obs = DataStructureDefinition(
         TEST_DATA_DIR / "config" / "general-config-only-nuts" / "definitions"
     )
-    # check country codes
+    # Check country codes
     assert all(region[:2] in ("AT", "BE", "CZ") for region in obs.region)
-    # check region import
+    # Check region import
     assert len([region for region in obs.region if region.startswith("AT")]) == 4
     assert len([region for region in obs.region if region.startswith("BE")]) == 12
     assert len([region for region in obs.region if region.startswith("CZ")]) == 15

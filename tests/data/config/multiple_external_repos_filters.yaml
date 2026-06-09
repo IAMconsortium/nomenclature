@@ -12,5 +12,5 @@ definitions:
           - name: "Population*"
             tier: 1
         exclude:
-          - name: "Primary Energy|*|*" # exclude all third tier variables
+          - name: "Primary Energy|*|*" # Exclude all third tier variables
       - legacy-definitions

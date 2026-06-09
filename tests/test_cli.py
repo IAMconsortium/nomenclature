@@ -19,14 +19,9 @@ MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "cli"
 runner = CliRunner()
 
 
-@pytest.mark.xfail(
-    sys.platform.startswith("win"),
-    reason="Command to invoke the cli does not work on Windows",
-)
 def test_cli_installed():
-
     result = subprocess.run(
-        ["poetry", "run", "nomenclature"], capture_output=True, text=True
+        [sys.executable, "-m", "nomenclature"], capture_output=True, text=True
     )
     assert all(
         command in result.stdout
@@ -162,6 +157,8 @@ def test_cli_non_default_folders_fails():
         ],
     )
     assert result.exit_code == 1
+    assert isinstance(result.exception, NotADirectoryError)
+    assert "Definitions directory not found" in str(result.exception)
 
 
 def test_cli_wrong_definitions_name():
@@ -177,6 +174,8 @@ def test_cli_wrong_definitions_name():
         ],
     )
     assert result.exit_code == 1
+    assert isinstance(result.exception, NotADirectoryError)
+    assert "Definitions directory not found" in str(result.exception)
 
 
 def test_cli_variable_validation_item_invalid():
@@ -311,19 +310,15 @@ def test_cli_validate_data_fails():
     assert "6 sub-exceptions" in str(result.exception)
 
     full_error_message = "".join(traceback.format_exception(result.exception))
-    assert "Asia" in full_error_message
-    assert "Final Energy|Industry" in full_error_message
+    assert "'Asia'" in full_error_message
+    assert "'Final Energy|Industry'" in full_error_message
 
 
-@pytest.mark.xfail(
-    sys.platform.startswith("win"),
-    reason="Command to invoke the cli does not work on Windows",
-)
 def test_error_group_rendering():
     result = subprocess.run(
         [
-            "poetry",
-            "run",
+            sys.executable,
+            "-m",
             "nomenclature",
             "validate-project",
             str(TEST_DATA_DIR / "validation"),
@@ -334,7 +329,7 @@ def test_error_group_rendering():
     assert result.returncode == 1
     assert all(
         content in result.stderr
-        for content in ("6", "sub-exceptions", "Asia", "Final Energy|Industry")
+        for content in ("6", "sub-exceptions", "'Asia'", "'Final Energy|Industry'")
     )
 
 

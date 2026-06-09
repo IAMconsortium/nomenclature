@@ -112,6 +112,8 @@ class RegionAggregationMapping(BaseModel):
         Optionally, list of model native regions to select and potentially rename.
     common_regions: list[CommonRegion], optional
         Optionally, list of common regions where aggregation will be performed.
+    exclude_regions: list[str], optional
+        Optionally, list of model native regions to exclude from processing.
     """
 
     model: list[str]
@@ -140,7 +142,6 @@ class RegionAggregationMapping(BaseModel):
         keep_dups = [item for item, count in Counter(keep).items() if count > 1]
         rename_dups = [item for item, count in Counter(rename).items() if count > 1]
         if keep_dups or rename_dups:
-            # raise a RegionNameCollisionError with parameters duplicates and file.
             raise RegionNameCollisionError(
                 {
                     "location": "native regions (names)",
@@ -159,7 +160,6 @@ class RegionAggregationMapping(BaseModel):
             item for item, count in Counter(target_names).items() if count > 1
         ]
         if duplicates:
-            # Raise a RegionNameCollisionError with parameters duplicates and file.
             raise RegionNameCollisionError(
                 {
                     "location": "native regions (rename-targets)",
@@ -192,7 +192,7 @@ class RegionAggregationMapping(BaseModel):
     def check_native_or_common_regions(
         cls, v: "RegionAggregationMapping"
     ) -> "RegionAggregationMapping":
-        """Check that we have at least one of the two: native regions or common regions"""
+        """Check that at least one of the following is provided: native or common regions."""
         if not v.native_regions and not v.common_regions:
             raise ValueError(
                 "At least one of 'native_regions' and 'common_regions' must be "
@@ -352,7 +352,7 @@ class RegionAggregationMapping(BaseModel):
             regions = regions.drop(
                 columns=(c for c in regions.columns if c.startswith("Unnamed: "))
             ).drop(index=0)
-            # replace nan with None
+            # Replace nan with None
             regions = regions.where(pd.notnull(regions), None)
             native = "Native region (as reported by the model)"
             rename = "Native region (after renaming)"
@@ -385,7 +385,7 @@ class RegionAggregationMapping(BaseModel):
                 r5_regions = [
                     region for region in common_regions if "(R5)" in region.name
                 ]
-                # only add "World" from R5-constituent region if all R5 regions given
+                # Only add "World" from R5-constituent region if all R5 regions given
                 if len(r5_regions) in [5, 6]:
                     constituent_world_regions = sorted(
                         region
@@ -859,14 +859,14 @@ def aggregate_region_with_variable_rules(
     regions = [target_region, constituent_regions]
 
     # Simple aggregation (default sum)
-    simple_vars = [var for var in variable_codelist.vars_default_args(df.variable)]
+    simple_vars = [var for var in variable_codelist.vars_default_agg_args(df.variable)]
     if simple_vars:
         _df = df.aggregate_region(simple_vars, *regions)
         if _df is not None and not _df.empty:
             aggregated_data.append(_df._data)
 
     # Weighted/special aggregation
-    for var in variable_codelist.vars_kwargs(df.variable):
+    for var in variable_codelist.vars_special_agg_kwargs(df.variable):
         if var.region_aggregation is None:
             # Standard weighted aggregation
             _df = _aggregate_region(df, var.name, *regions, **var.pyam_agg_kwargs)
@@ -965,7 +965,7 @@ def _compare_and_merge(
 ) -> tuple[IamDataFrame, pd.DataFrame]:
     """Compare and merge original and aggregated results"""
 
-    # compare processed (aggregated) data and data provided at the common-region level
+    # Compare aggregated (processed) and original data at the common-region level
     compare = pd.merge(
         left=original.rename(index="original"),
         right=aggregated.rename(index="aggregated"),
@@ -974,7 +974,7 @@ def _compare_and_merge(
         right_index=True,
     )
 
-    # drop rows that are not in conflict
+    # Drop rows that are not in conflict
     compare = compare.dropna()
     difference = compare[
         ~np.isclose(compare["original"], compare["aggregated"], rtol=rtol)
@@ -1001,7 +1001,7 @@ def _compare_and_merge(
             "-aggregated-data for obtaining the differences as "
             "dataframe or file."
         )
-    # merge aggregated data onto original common-region data
+    # Merge aggregated data onto original common-region data
     index = aggregated.index.difference(original.index)
     return pd.concat([original, aggregated[index]]), difference
 
