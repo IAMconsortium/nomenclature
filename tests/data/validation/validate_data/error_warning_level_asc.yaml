@@ -4,4 +4,4 @@
     - warning_level: low
       upper_bound: 2.5
     - upper_bound: 5
-      # default warning_level: error
+      # Default warning_level: error

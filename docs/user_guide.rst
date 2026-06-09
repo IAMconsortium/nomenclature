@@ -29,7 +29,7 @@ When working with nomenclature, there are two main classes that the user interac
 
 The :class:`DataStructureDefinition` class parses :ref:`codelist <codelist>` files which
 define allowed values for validation. The most commonly used dimensions for validation
-in a in a model comparison or scenario exercise are *variable* and *region*.
+in a model comparison or scenario exercise are *variable* and *region*.
 
 The :class:`RegionProcessor` parses :ref:`model mapping <model_mapping>` files which
 define the renaming of native regions and aggregation to common regions.

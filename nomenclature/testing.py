@@ -27,7 +27,7 @@ def assert_valid_yaml(path: Path):
 
     special_characters = ""
 
-    # iterate over the yaml files in all sub-folders and try loading each
+    # Iterate over the yaml files in all sub-folders and try loading each
     exceptions: list[Exception] = []
     for file in (f for f in path.glob("**/*") if f.suffix in {".yaml", ".yml"}):
         try:
@@ -37,7 +37,7 @@ def assert_valid_yaml(path: Path):
             exceptions.append(error)
 
         with open(file, "r", encoding="utf-8") as all_lines:
-            # check if any special character is found in the file
+            # Check if any special character is found in the file
             for index, line in enumerate(all_lines.readlines()):
                 for col, char in enumerate(line):
                     if char in ILLEGAL_CHARS:
@@ -50,7 +50,7 @@ def assert_valid_yaml(path: Path):
             AssertionError(f"Unexpected special character(s): {special_characters}")
         )
 
-    # test fails if any file cannot be parsed, raise error with list of these files
+    # Test fails if any file cannot be parsed, raise error with list of these files
     if exceptions:
         raise YamlErrorGroup("Parsing yaml files failed", exceptions)
 
@@ -151,6 +151,3 @@ def assert_valid_structure(
         path, dsd, RequiredDataValidator, "required_data", required_data
     )
     _check_processor_directory(path, dsd, DataValidator, "validate_data", validate_data)
-
-
-# Todo: add function which runs `DataStructureDefinition(path).validate(scenario)`
