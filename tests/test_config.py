@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 
 import pytest
-from conftest import TEST_DATA_DIR, clean_up_external_repos
+from conftest import TEST_DATA_DIR
 from git import Repo
 from pytest import raises
 
