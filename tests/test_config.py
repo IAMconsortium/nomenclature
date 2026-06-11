@@ -1,10 +1,10 @@
+import logging
 from pathlib import Path
 
-import logging
 import pytest
-from conftest import TEST_DATA_DIR, clean_up_external_repos
-from pytest import raises
+from conftest import TEST_DATA_DIR
 from git import Repo
+from pytest import raises
 
 from nomenclature.config import MappingRepository, NomenclatureConfig, Repository
 
@@ -13,7 +13,9 @@ MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "config"
 
 def test_hash_and_release_raises():
     with raises(ValueError, match="`hash` or `release` can be provided, not both"):
-        NomenclatureConfig.from_file(MODULE_TEST_DATA_DIR / "hash_and_release.yaml")
+        NomenclatureConfig.from_file(
+            MODULE_TEST_DATA_DIR / "hash_and_release.yaml", dry_run=True
+        )
 
 
 def test_setting_local_path_raises():
@@ -25,29 +27,26 @@ def test_unknown_repo_raises():
     with raises(
         ValueError, match="Unknown repository {'common-definitions'} in 'region'"
     ):
-        NomenclatureConfig.from_file(MODULE_TEST_DATA_DIR / "unknown_repo.yaml")
+        NomenclatureConfig.from_file(
+            MODULE_TEST_DATA_DIR / "unknown_repo.yaml", dry_run=True
+        )
 
 
 def test_multiple_definition_repos():
     nomenclature_config = NomenclatureConfig.from_file(
-        MODULE_TEST_DATA_DIR / "multiple_repos_per_dimension.yaml"
+        MODULE_TEST_DATA_DIR / "multiple_repos_per_dimension.yaml", dry_run=True
     )
-    try:
-        exp_repos = {"common-definitions", "legacy-definitions"}
-        assert nomenclature_config.repositories.keys() == exp_repos
-    finally:
-        clean_up_external_repos(nomenclature_config.repositories)
+    exp_repos = {"common-definitions", "legacy-definitions"}
+    assert nomenclature_config.repositories.keys() == exp_repos
 
 
 def test_multiple_mapping_repos():
     nomenclature_config = NomenclatureConfig.from_file(
-        MODULE_TEST_DATA_DIR / "multiple_repos_for_mapping.yaml"
+        MODULE_TEST_DATA_DIR / "multiple_repos_for_mapping.yaml", dry_run=True
     )
-    try:
-        exp_repos = {"common-definitions", "legacy-definitions"}
-        assert nomenclature_config.repositories.keys() == exp_repos
-    finally:
-        clean_up_external_repos(nomenclature_config.repositories)
+
+    exp_repos = {"common-definitions", "legacy-definitions"}
+    assert nomenclature_config.repositories.keys() == exp_repos
 
 
 def test_double_stacked_external_repo_raises(monkeypatch):
@@ -81,11 +80,11 @@ def test_fetch_repo_url_changed_reclones(tmp_path, caplog):
     assert new_remote_url != original_remote_url
     assert repo.url in new_remote_url
 
-    clean_up_external_repos({"test_repo": repo})
-
 
 def test_config_dimensions():
-    config = NomenclatureConfig.from_file(MODULE_TEST_DATA_DIR / "dimensions.yaml")
+    config = NomenclatureConfig.from_file(
+        MODULE_TEST_DATA_DIR / "dimensions.yaml", dry_run=True
+    )
     assert set(config.dimensions) == {
         "scenario",
         "region",
@@ -109,25 +108,21 @@ def test_invalid_config_dimensions_raises():
     ["external_repo_filters.yaml", "multiple_external_repos_filters.yaml"],
 )
 def test_config_with_filter(config_file):
-    config = NomenclatureConfig.from_file(TEST_DATA_DIR / "config" / config_file)
-    try:
-        assert isinstance(config.definitions.variable.repositories, list)
-    finally:
-        clean_up_external_repos(config.repositories)
+    config = NomenclatureConfig.from_file(
+        TEST_DATA_DIR / "config" / config_file, dry_run=True
+    )
+    assert isinstance(config.definitions.variable.repositories, list)
 
 
 def test_config_external_repo_mapping_filter():
     config = NomenclatureConfig.from_file(
-        TEST_DATA_DIR / "config" / "filter_mappings.yaml"
+        TEST_DATA_DIR / "config" / "filter_mappings.yaml", dry_run=True
     )
     exp = MappingRepository(
         name="common-definitions", include=["MESSAGEix-GLOBIOM 2.1-M-R12"]
     )
-    try:
-        assert isinstance(config.mappings.repositories, list)
-        assert config.mappings.repositories[0] == exp
-    finally:
-        clean_up_external_repos(config.repositories)
+    assert isinstance(config.mappings.repositories, list)
+    assert config.mappings.repositories[0] == exp
 
 
 def test_auto_update_property():
@@ -142,4 +137,6 @@ def test_config_year_and_datetime_false_raises():
     with pytest.raises(
         ValueError, match=r"'timezone' is set but 'datetime' is not allowed"
     ):
-        NomenclatureConfig.from_file(TEST_DATA_DIR / "config" / "datetime_false.yaml")
+        NomenclatureConfig.from_file(
+            TEST_DATA_DIR / "config" / "datetime_false.yaml", dry_run=True
+        )
