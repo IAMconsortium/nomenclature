@@ -29,11 +29,11 @@ requires-poetry = ">=2.0,<3.0"
 version = "0.0.0"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.6.2"
 mypy = "^1.7.1"
 flake8 = "^6.1.0"
 pytest = "^8.4.0"
 coverage = "^7.3.3"
+ruff = "^0.15.7"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^7.2.6"

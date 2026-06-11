@@ -3,7 +3,7 @@ import re
 from os import PathLike
 from pathlib import Path
 from textwrap import indent
-from typing import IO, ClassVar
+from typing import Any, IO, ClassVar
 
 import numpy as np
 import pandas as pd
@@ -228,6 +228,9 @@ class CodeList(BaseModel):
                 config.repositories[repo.name].local_path / "definitions" / name,
                 file_glob_pattern,
                 repo.name,
+            )
+            cls._validate_include_filters(
+                repository_code_list, repo.include, name, repo.name
             )
             code_list.extend(
                 cls.filter_codes(repository_code_list, repo.include, repo.exclude)
@@ -580,10 +583,28 @@ class CodeList(BaseModel):
         return self.__class__(name=self.name, mapping=sorted_mapping)
 
     @staticmethod
+    def _validate_include_filters(
+        codes: list[Code],
+        include: list[dict[str, Any]],
+        dimension: str = "code",
+        repository: str | None = None,
+    ) -> None:
+        """Raise if any include filter from nomenclature.yaml matches no codes."""
+        if errors := [
+            ValueError(f"No {dimension}s found for include filter: {inc_filter}")
+            for inc_filter in include
+            if not CodeList.filter_codes(codes, [inc_filter])
+        ]:
+            raise CodeListErrorGroup(
+                f"Importing {dimension}s from external repository '{repository}' failed",
+                errors,
+            )
+
+    @staticmethod
     def filter_codes(
         codes: list[Code],
-        include: list[dict] | None = None,
-        exclude: list[dict] | None = None,
+        include: dict | list[dict[str, Any]] | None = None,
+        exclude: dict | list[dict[str, Any]] | None = None,
     ) -> list[Code]:
         """
         Filter a list of codes based on include and exclude filters.
@@ -602,6 +623,8 @@ class CodeList(BaseModel):
         list[Code]
             Filtered list of Code objects.
         """
+        include = [include] if isinstance(include, dict) else include or []
+        exclude = [exclude] if isinstance(exclude, dict) else exclude or []
 
         def matches_filter(code: Code, filters: list[dict], keep: bool):
             def check_attribute_match(code_value, filter_value):
@@ -644,6 +667,7 @@ class CodeList(BaseModel):
             if matches_filter(code, include, True)
             and not matches_filter(code, exclude, False)
         ]
+
         return filtered_codes
 
 
@@ -909,6 +933,9 @@ class RegionCodeList(CodeList):
             )
             repo_list_of_codes = cls._parse_and_replace_tags(
                 repo_list_of_codes, repo_path, file_glob_pattern
+            )
+            cls._validate_include_filters(
+                repo_list_of_codes, repo.include, name, repo.name
             )
             code_list.extend(
                 cls.filter_codes(repo_list_of_codes, repo.include, repo.exclude)

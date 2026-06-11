@@ -6,6 +6,7 @@ from conftest import TEST_DATA_DIR
 from git import Repo
 from pytest import raises
 
+
 from nomenclature.config import MappingRepository, NomenclatureConfig, Repository
 
 MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "config"
@@ -30,6 +31,21 @@ def test_unknown_repo_raises():
         NomenclatureConfig.from_file(
             MODULE_TEST_DATA_DIR / "unknown_repo.yaml", dry_run=True
         )
+
+
+@pytest.mark.parametrize(
+    "config_file, field",
+    [
+        ("include_filter_wrong_level.yaml", "include"),
+        ("exclude_filter_wrong_level.yaml", "exclude"),
+    ],
+)
+def test_filter_at_wrong_level_raises(config_file, field):
+    with raises(
+        ValueError,
+        match=f"'{field}' must be nested inside 'repository'",
+    ):
+        NomenclatureConfig.from_file(MODULE_TEST_DATA_DIR / config_file)
 
 
 def test_multiple_definition_repos():
@@ -96,8 +112,7 @@ def test_invalid_config_dimensions_raises():
     with raises(
         ValueError,
         match=(
-            "Input should be 'model', 'scenario', 'variable',"
-            " 'region' or 'subannual'"
+            "Input should be 'model', 'scenario', 'variable', 'region' or 'subannual'"
         ),
     ):
         NomenclatureConfig(dimensions=["year"])
@@ -140,3 +155,31 @@ def test_config_year_and_datetime_false_raises():
         NomenclatureConfig.from_file(
             TEST_DATA_DIR / "config" / "datetime_false.yaml", dry_run=True
         )
+
+
+def test_include_nonexistent_mapping_raises(tmp_path, monkeypatch):
+    """
+    Test that a mapping include pattern matching no models raise.
+    Mocks `fetch_repos` to avoid shutil operations with imported repo directory.
+    """
+    mappings_dir = tmp_path / "common-definitions" / "mappings"
+    mappings_dir.mkdir(parents=True)
+    (mappings_dir / "some_model.yaml").write_text("model: Some-Real-Model 1.0\n")
+
+    def mock_fetch_repos(self, target_folder):
+        for repo_name, repo in self.repositories.items():
+            repo.local_path = tmp_path / repo_name
+
+    monkeypatch.setattr(NomenclatureConfig, "fetch_repos", mock_fetch_repos)
+
+    with pytest.RaisesGroup(
+        ValueError,
+        match="Mapping include pattern validation for repository 'common-definitions' failed",
+    ) as excinfo:
+        NomenclatureConfig.from_file(
+            MODULE_TEST_DATA_DIR / "include_nonexistent_mapping.yaml"
+        )
+    assert excinfo.group_contains(
+        ValueError,
+        match=r"No models found for include pattern: 'Non-Existent-Model\*'",
+    )

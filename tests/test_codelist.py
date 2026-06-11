@@ -653,6 +653,66 @@ def test_region_code_list_external_repo_with_filters():
         clean_up_external_repos(nomenclature_config.repositories)
 
 
+def test_include_nonexistent_code_raises():
+    """Test that referencing non-existent code in 'include' raises"""
+    try:
+        config = NomenclatureConfig.from_file(
+            TEST_DATA_DIR / "config" / "include_nonexistent_code.yaml"
+        )
+        with pytest.RaisesGroup(
+            ValueError,
+            ValueError,
+            match="Importing variables from external repository 'common-definitions' failed",
+        ) as excinfo:
+            VariableCodeList.from_directory(
+                "variable",
+                TEST_DATA_DIR / "config" / "variable",
+                config,
+            )
+
+        expected = [
+            r"\{'name': 'Non-Existent'\}",
+            r"\{'name': 'Missing', 'tier': 2\}",
+        ]
+
+        for exp in expected:
+            assert excinfo.group_contains(
+                ValueError,
+                match=rf"No variables found for include filter: {exp}",
+            )
+    finally:
+        clean_up_external_repos(config.repositories)
+
+
+def test_include_nonexistent_hierarchy_raises():
+    """Test that referencing a non-existent hierarchy raises"""
+    try:
+        config = NomenclatureConfig.from_file(
+            TEST_DATA_DIR / "config" / "include_nonexistent_hierarchy.yaml"
+        )
+        with pytest.RaisesGroup(
+            ValueError,
+            match="Importing regions from external repository 'common-definitions' failed",
+        ) as excinfo:
+            RegionCodeList.from_directory(
+                "region",
+                TEST_DATA_DIR / "config" / "region",
+                config,
+            )
+
+        expected = [
+            r"\{'hierarchy': 'Non-Existent'\}",
+        ]
+
+        for exp in expected:
+            assert excinfo.group_contains(
+                ValueError,
+                match=rf"No regions found for include filter: {exp}",
+            )
+    finally:
+        clean_up_external_repos(config.repositories)
+
+
 def test_codelist_sort():
     """Test that the sort() method returns a sorted CodeList"""
     codelist = CodeList(
