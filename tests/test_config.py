@@ -81,8 +81,6 @@ def test_fetch_repo_url_changed_reclones(tmp_path, caplog):
     assert new_remote_url != original_remote_url
     assert repo.url in new_remote_url
 
-    clean_up_external_repos({"test_repo": repo})
-
 
 def test_config_dimensions():
     config = NomenclatureConfig.from_file(MODULE_TEST_DATA_DIR / "dimensions.yaml")
