@@ -2,6 +2,7 @@ import shutil
 import os
 import stat
 from pathlib import Path
+import sys
 
 import pandas as pd
 import pytest
@@ -64,4 +65,8 @@ def clean_up_external_repos(repos):
     # Clean up the external repo
     for repository in repos.values():
         if repository.local_path.exists():
-            shutil.rmtree(repository.local_path, onerror=remove_readonly)
+
+            if sys.version_info[1] >= 12:
+                shutil.rmtree(repository.local_path, onexc=remove_readonly)
+            else:
+                shutil.rmtree(repository.local_path, onerror=remove_readonly)
