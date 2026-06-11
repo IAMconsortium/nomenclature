@@ -1,10 +1,9 @@
 from pathlib import Path
 
-import logging
 import pytest
 from conftest import TEST_DATA_DIR, clean_up_external_repos
-from pytest import raises
 from git import Repo
+from pytest import raises
 
 from nomenclature.config import MappingRepository, NomenclatureConfig, Repository
 
