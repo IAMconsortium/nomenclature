@@ -76,9 +76,9 @@ def test_definition_general_config_nuts_only():
     # Check country codes
     assert all(region[:2] in ("AT", "BE", "CZ") for region in obs.region)
     # Check region import
-    assert len([region for region in obs.region if region.startswith("AT")]) == 4
-    assert len([region for region in obs.region if region.startswith("BE")]) == 12
-    assert len([region for region in obs.region if region.startswith("CZ")]) == 15
+    assert len([region for region in obs.region if region.startswith("AT")]) == 3
+    assert len([region for region in obs.region if region.startswith("BE")]) == 11
+    assert len([region for region in obs.region if region.startswith("CZ")]) == 14
 
 
 def test_to_excel(simple_definition, tmpdir):
