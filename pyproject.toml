@@ -14,7 +14,7 @@ dependencies = [
     "PyYAML (>=6.0.1,<7.0)",
     "pandas (>=2.1.2,<3.0)",
     "pycountry==23.12.11",  # pin to guard against "silent" changes in country names
-    "pysquirrel (>=1.1,<2.0)",
+    "pysquirrel (>=1.3,<2.0)",
     "gitpython (>=3.1.40,<4.0)",
     "numpy (>=1.23.0,<3.0)",
     "scse-toolkit (>=0.15.2,<2.0)",
