@@ -254,6 +254,19 @@ class DataValidator(Processor):
     def from_file(
         cls, file: Path | str, output_path: Path | str | None = None
     ) -> "DataValidator":
+        """Create a :class:`DataValidator` from a YAML file.
+
+        Parameters
+        ----------
+        file : :class:`pathlib.Path` or str
+            Path to the YAML file containing the validation criteria.
+        output_path : :class:`pathlib.Path` or str, optional
+            Path to write an Excel file with all flagged datapoints.
+
+        Returns
+        -------
+        DataValidator
+        """
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
         criteria_items = []
@@ -281,6 +294,22 @@ class DataValidator(Processor):
     def from_codelist(
         cls, codelist: VariableCodeList, output_path: Path | None = None
     ) -> "DataValidator":
+        """Create a :class:`DataValidator` from a :class:`~nomenclature.codelist.VariableCodeList`.
+
+        Extracts validation criteria from variables in the codelist that define
+        bounds or tolerance ranges.
+
+        Parameters
+        ----------
+        codelist : VariableCodeList
+            Variable codelist containing validation arguments.
+        output_path : :class:`pathlib.Path`, optional
+            Path to write an Excel file with all flagged datapoints.
+
+        Returns
+        -------
+        DataValidator
+        """
         criteria_items = [
             {
                 "variable": variable.name,
@@ -300,16 +329,16 @@ class DataValidator(Processor):
 
         Parameters
         ----------
-        df : IamDataFrame
+        df : pyam.IamDataFrame
             Data in IAMC format to be validated
 
         Returns
         -------
-        IamDataFrame
+        pyam.IamDataFrame
 
         Raises
         ------
-            `ValueError` if any criterion has a warning level of `error`
+            :exc:`ValueError` if any criterion has a warning level of ``error``
         """
 
         error_list: list[bool] = []
@@ -333,6 +362,21 @@ class DataValidator(Processor):
         return df
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
+        """Validate the criteria items against a :class:`DataStructureDefinition`.
+
+        Checks that all variables and regions referenced in the criteria
+        exist in the provided definition.
+
+        Parameters
+        ----------
+        dsd : DataStructureDefinition
+            Data structure definition to validate against.
+
+        Raises
+        ------
+        ExceptionGroup
+            If any criteria item references unknown variables or regions.
+        """
         errors: list[Exception] = []
         for criterion in self.criteria_items:
             try:

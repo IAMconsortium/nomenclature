@@ -158,6 +158,17 @@ class RequiredDataValidator(Processor):
 
     @classmethod
     def from_file(cls, file: Path | str) -> "RequiredDataValidator":
+        """Create a :class:`RequiredDataValidator` from a YAML file.
+
+        Parameters
+        ----------
+        file : :class:`pathlib.Path` or str
+            Path to the YAML file containing the required data specification.
+
+        Returns
+        -------
+        RequiredDataValidator
+        """
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
         return cls(file=Path(file), **content)
@@ -167,16 +178,16 @@ class RequiredDataValidator(Processor):
 
         Parameters
         ----------
-        df : IamDataFrame
+        df : pyam.IamDataFrame
             Data in IAMC format to be validated
 
         Returns
         -------
-        IamDataFrame
+        pyam.IamDataFrame
 
         Raises
         ------
-            `ValueError` if any required dimension is not found in the data
+            :exc:`ValueError` if any required dimension is not found in the data
         """
         if self.model is not None:
             models_to_check = [model for model in df.model if model in self.model]
@@ -209,6 +220,21 @@ class RequiredDataValidator(Processor):
     def check_required_data_per_model(
         self, df: IamDataFrame, model: str
     ) -> list[pd.DataFrame]:
+        """Check which required data is missing for a single model.
+
+        Parameters
+        ----------
+        df : pyam.IamDataFrame
+            Data in IAMC format to check.
+        model : str
+            Model name to filter the data for.
+
+        Returns
+        -------
+        list of :class:`pandas.DataFrame`
+            List of DataFrames describing missing data, one per unfulfilled
+            requirement. Empty if all requirements are satisfied.
+        """
         model_df = df.filter(model=model)
         missing_data = []
         for requirement in self.required_data:
@@ -236,6 +262,22 @@ class RequiredDataValidator(Processor):
         return missing_data
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
+        """Validate the required data specification against a :class:`DataStructureDefinition`.
+
+        Checks that all variables, regions, and units referenced in the
+        required data exist in the provided definition.
+
+        Parameters
+        ----------
+        dsd : DataStructureDefinition
+            Data structure definition to validate against.
+
+        Raises
+        ------
+        ExceptionGroup
+            If any required data item references unknown variables, regions,
+            or units.
+        """
         errors: list[Exception] = []
         for data in self.required_data:
             try:
