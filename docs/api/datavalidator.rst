@@ -73,7 +73,7 @@ Standard usage
 
   # ...setting directory/file paths and loading dataset
 
-  DataValidator.from_file(data_val_yaml).apply(df)
+  DataValidator.from_file(yaml_file_containing_data_validation_criteria).apply(df)
 
 .. autoclass:: DataValidator
    :members: from_file, from_codelist, apply, validate_with_definition

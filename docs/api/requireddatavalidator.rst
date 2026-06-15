@@ -37,7 +37,7 @@ Standard usage
 
   # ...setting directory/file paths and loading dataset
 
-  RequiredDataValidator.from_file(req_data_yaml).apply(df)
+  RequiredDataValidator.from_file(yaml_file_containing_required_data).apply(df)
 
 
 .. autoclass:: RequiredDataValidator
