@@ -34,9 +34,9 @@ class WarningEnum(IntEnum):
 
 
 class DataValidationCriteria(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
     warning_level: WarningEnum = WarningEnum.error
+
+    model_config = ConfigDict(extra="forbid")
 
     @field_validator("warning_level", mode="before")
     @classmethod
@@ -96,11 +96,11 @@ class DataValidationValue(DataValidationCriteria):
 
 
 class DataValidationBounds(DataValidationCriteria):
-    # allow extra but raise error to guard against multiple criteria
-    model_config = ConfigDict(extra="allow")
-
     upper_bound: float | None = None
     lower_bound: float | None = None
+
+    # Allow extra but raise error to guard against multiple criteria
+    model_config = ConfigDict(extra="allow")
 
     @model_validator(mode="after")
     def check_validation_criteria_exist(self):
@@ -199,7 +199,7 @@ class DataValidationItem(IamcDataFilter):
         error = False
         per_item_df = df.filter(**self.filter_args)
 
-        # set a meta indicator for the item being processed if name is given
+        # If name is given, set a meta indicator for the item being processed
         if self.name is not None:
             meta_index = per_item_df.index.copy()
             df.set_meta(name=self.name, meta="ok", index=meta_index)
@@ -213,7 +213,7 @@ class DataValidationItem(IamcDataFilter):
                     )
                 )
 
-                # mark failing scenarios with a meta indicator and warning level
+                # Mark failing scenarios with a meta indicator and warning level
                 failed_index = failed_validation.set_index(
                     ["model", "scenario"]
                 ).index.drop_duplicates()
@@ -224,8 +224,8 @@ class DataValidationItem(IamcDataFilter):
                         meta=criterion.warning_level.name,
                         index=meta_index.intersection(failed_index),
                     )
-                    # remove failed scenarios from the meta index to avoid
-                    # that lower warnings override higher warnings in meta indicators
+                    # Remove failed scenarios from the meta index to avoid
+                    # lower warnings overriding higher warnings in meta indicators
                     meta_index = meta_index.difference(failed_index)
 
                 failed_validation["warning_level"] = criterion.warning_level.name
@@ -254,15 +254,28 @@ class DataValidator(Processor):
     def from_file(
         cls, file: Path | str, output_path: Path | str | None = None
     ) -> "DataValidator":
+        """Create a :class:`DataValidator` from a YAML file.
+
+        Parameters
+        ----------
+        file : :class:`pathlib.Path` or str
+            Path to the YAML file containing the validation criteria.
+        output_path : :class:`pathlib.Path` or str, optional
+            Path to write an Excel file with all flagged datapoints.
+
+        Returns
+        -------
+        DataValidator
+        """
         with open(file, "r", encoding="utf-8") as f:
             content = yaml.safe_load(f)
         criteria_items = []
         for item in content:
-            # simple case where filter and criteria args are all given at top level
+            # Simple case where filter and criteria args are all given at top level
             if "validation" not in item:
                 item["validation"] = [dict()]
 
-            # if some criteria args are given at top-level, add to "validation" list
+            # If some criteria args are given at top-level, add to "validation" list
             criteria = [
                 criterion
                 for criterion in item
@@ -281,6 +294,22 @@ class DataValidator(Processor):
     def from_codelist(
         cls, codelist: VariableCodeList, output_path: Path | None = None
     ) -> "DataValidator":
+        """Create a :class:`DataValidator` from a :class:`~nomenclature.codelist.VariableCodeList`.
+
+        Extracts validation criteria from variables in the codelist that define
+        bounds or tolerance ranges.
+
+        Parameters
+        ----------
+        codelist : VariableCodeList
+            Variable codelist containing validation arguments.
+        output_path : :class:`pathlib.Path`, optional
+            Path to write an Excel file with all flagged datapoints.
+
+        Returns
+        -------
+        DataValidator
+        """
         criteria_items = [
             {
                 "variable": variable.name,
@@ -300,21 +329,21 @@ class DataValidator(Processor):
 
         Parameters
         ----------
-        df : IamDataFrame
+        df : pyam.IamDataFrame
             Data in IAMC format to be validated
 
         Returns
         -------
-        IamDataFrame
+        pyam.IamDataFrame
 
         Raises
         ------
-            `ValueError` if any criterion has a warning level of `error`
+            :exc:`ValueError` if any criterion has a warning level of ``error``
         """
 
-        error_list = []
-        fail_list = []
-        output_list = []
+        error_list: list[bool] = []
+        fail_list: list[str] = []
+        output_list: list[pd.DataFrame] = []
 
         with adjust_log_level():
             for item in self.criteria_items:
@@ -333,6 +362,21 @@ class DataValidator(Processor):
         return df
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
+        """Validate the criteria items against a :class:`DataStructureDefinition`.
+
+        Checks that all variables and regions referenced in the criteria
+        exist in the provided definition.
+
+        Parameters
+        ----------
+        dsd : DataStructureDefinition
+            Data structure definition to validate against.
+
+        Raises
+        ------
+        ExceptionGroup
+            If any criteria item references unknown variables or regions.
+        """
         errors: list[Exception] = []
         for criterion in self.criteria_items:
             try:

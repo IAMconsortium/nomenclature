@@ -1,7 +1,7 @@
 import importlib.util
 import sys
 from pathlib import Path
-from typing import Annotated, List
+from typing_extensions import Annotated
 
 import pandas as pd
 import typer
@@ -40,8 +40,19 @@ def main(
 # validate-yaml
 # ---------------------------------------------------------
 @app.command()
-def validate_yaml(path: Annotated[Path, typer.Argument(..., exists=True)]):
-    """Assert that all yaml files in `path` are syntactically valid."""
+def validate_yaml(
+    path: Annotated[
+        Path,
+        typer.Argument(
+            ..., exists=True, help="Directory containing YAML files to validate"
+        ),
+    ],
+):
+    """Validate YAML syntax in all files within a directory.
+
+    Performs a formal check that all YAML files can be parsed without syntax errors.
+    This does not validate the content, only the YAML structure.
+    """
     assert_valid_yaml(path)
 
 
@@ -50,52 +61,38 @@ def validate_yaml(path: Annotated[Path, typer.Argument(..., exists=True)]):
 # ---------------------------------------------------------
 @app.command()
 def validate_project(
-    path: Annotated[Path, typer.Argument(..., exists=True)],
-    definitions: Annotated[str, typer.Option()] = "definitions",
-    mappings: Annotated[str | None, typer.Option()] = None,
-    required_data: Annotated[str | None, typer.Option()] = None,
-    validate_data: Annotated[str | None, typer.Option()] = None,
-    dimensions: Annotated[List[str] | None, typer.Option("--dimension")] = None,
+    path: Annotated[
+        Path, typer.Argument(..., exists=True, help="Project directory to validate")
+    ],
+    definitions: Annotated[
+        str, typer.Option(help="Name of definitions folder")
+    ] = "definitions",
+    mappings: Annotated[
+        str | None, typer.Option(help="Name of mappings folder")
+    ] = None,
+    required_data: Annotated[
+        str | None, typer.Option(help="Name of required data folder")
+    ] = None,
+    validate_data: Annotated[
+        str | None, typer.Option(help="Name of data validation folder")
+    ] = None,
+    dimensions: Annotated[
+        list[str] | None,
+        typer.Option("--dimension", help="Dimensions to check (defaults to all)"),
+    ] = None,
 ):
-    """Assert that `path` is a valid nomenclature-compatible project folder.
+    """Validate a nomenclature project directory structure and content.
 
-    Parameters
-    ----------
-    path : Path
-        Project directory to be validated
-    definitions : str, optional
-        Name of 'definitions' folder, defaults to "definitions"
-    mappings : str, optional
-        Name of 'mappings' folder, defaults to "mappings"
-    required_data : str, optional
-        Name of folder for 'required data' criteria, default to "required_data"
-    validate_data : str, optional
-        Name of folder for data validation criteria, default to "validate_data"
-    dimensions : List[str], optional
-        Dimensions to be checked, defaults to all sub-folders of `definitions`
+    \b
+    Performs comprehensive validation including:
+    - YAML syntax validation for all files
+    - Parsing of codelists in the definitions folder
+    - Validation of model mappings against region codelists
+    - Consistency checks for required-data and data-validation criteria
 
-    Example
-    -------
-    $ nomenclature validate-project .
-                        --definitions <def-folder> --mappings <map-folder>
-                        --dimension <folder1>
-                        --dimension <folder2>
-                        --dimension <folder3>
-
-    Note
-    ----
-    This test includes three steps:
-
-    1. Test that all yaml files in `definitions` and `mappings` can be correctly parsed
-       as yaml files. This is a formal check for yaml syntax only.
-    2. Test that all files in `definitions` can be correctly parsed as a
-       :class:`DataStructureDefinition` object comprised of individual codelists.
-    3. Test that all model mappings in `mappings` can be correctly parsed as a
-       :class:`RegionProcessor` object. This includes a check that all regions mentioned
-       in a model mapping are defined in the region codelist.
-    4. Test that all required-data and data-validation files can be parsed correctly
-       and are consistent with the `definitions`.
-
+    \b
+    Example:
+      $ nomenclature validate-project . --definitions def --mappings map
     """
     assert_valid_yaml(path)
     assert_valid_structure(
@@ -108,46 +105,38 @@ def validate_project(
 # ---------------------------------------------------------
 @app.command()
 def check_region_aggregation(
-    input_data_file: Annotated[Path, typer.Argument(..., exists=True)],
-    workflow_directory: Annotated[Path, typer.Option(exists=True)] = Path.cwd(),
-    definitions: Annotated[str, typer.Option()] = "definitions",
-    mappings: Annotated[str, typer.Option()] = "mappings",
-    processed_data: Annotated[Path | None, typer.Option()] = (
-        Path.cwd() / "results.xlsx"
-    ),
-    differences: Annotated[Path | None, typer.Option()] = None,
+    input_data_file: Annotated[
+        Path,
+        typer.Argument(..., exists=True, help="Input IAMC data file (.xlsx or .csv)"),
+    ],
+    workflow_directory: Annotated[
+        Path,
+        typer.Option(
+            exists=True, help="Workflow directory with codelists and mappings"
+        ),
+    ] = Path.cwd(),
+    definitions: Annotated[
+        str, typer.Option(help="Definitions folder name")
+    ] = "definitions",
+    mappings: Annotated[str, typer.Option(help="Mappings folder name")] = "mappings",
+    processed_data: Annotated[
+        Path | None, typer.Option(help="Output file for processed data")
+    ] = (Path.cwd() / "results.xlsx"),
+    differences: Annotated[
+        Path | None, typer.Option(help="Output file for aggregation differences")
+    ] = None,
 ):
-    """Perform region processing and compare aggregated and original data
+    """Perform region aggregation and validate against original data.
 
-    Parameters
-    ----------
-    input_data_file : Path
-        Location of input data
-    workflow_directory : Path
-        Location of the workflow directory containing codelists and model mappings, by
-        default .
-    definitions : str
-        Definitions folder inside workflow_directory, by default "definitions"
-    mappings : str
-        Model mapping folder inside workflow_directory, by default "mappings"
-    processed_data : Path, optional
-        If given, exports the results from region processing to a file called
-        `processed_data`, by default "results.xlsx"
-    differences : Path, optional
-        If given, exports the differences between aggregated and model native data to a
-        file called `differences`, by default None
+    Applies model-specific region mappings to aggregate native regions into common
+    regions (e.g., national data to R5 regions). Compares aggregated results with
+    any pre-aggregated data in the input file and reports differences.
 
-    Example
-    -------
+    Useful for quality control of model-reported regional data.
 
-    This example runs the region processing for input data located in
-    ``input_data.xlsx`` based on a workflow directory called ``workflow_directory``. The
-    results of the aggregation will be exported to results.xlsx and the differences to
-    differences.xlsx.
-
-    $ nomenclature check-region-processing input_data.xlsx -w workflow_directory
-                        --processed_data results.xlsx --differences differences.xlsx
-
+    \b
+    Example:
+      $ nomenclature check-region-aggregation input.xlsx --processed-data results.xlsx
     """
     results_df, differences_df = RegionProcessor.from_directory(
         workflow_directory / mappings,
@@ -165,10 +154,18 @@ def check_region_aggregation(
 # ---------------------------------------------------------
 @app.command("export-definitions")
 def export_definitions_to_excel(
-    path: Annotated[Path, typer.Argument(..., exists=True)],
-    target: Annotated[Path, typer.Argument(...)],
+    path: Annotated[Path, typer.Argument(..., exists=True, help="Project directory")],
+    target: Annotated[Path, typer.Argument(..., help="Output Excel file path")],
 ):
-    """Export project definitions to Excel."""
+    """Export project codelists to Excel for review or editing.
+
+    Creates an Excel workbook with separate sheets for each dimension (variable,
+    region, etc.) containing all codelist definitions and attributes.
+
+    \b
+    Example:
+      $ nomenclature export-definitions . codelists.xlsx
+    """
     DataStructureDefinition(path / "definitions").to_excel(target)
 
 
@@ -177,30 +174,25 @@ def export_definitions_to_excel(
 # ---------------------------------------------------------
 @app.command()
 def list_missing_variables(
-    data: Annotated[Path, typer.Argument(..., exists=True)],
-    workflow_directory: Annotated[Path, typer.Option()] = Path.cwd(),
-    target_file: Annotated[str | None, typer.Option()] = None,
+    data: Annotated[
+        Path, typer.Argument(..., exists=True, help="IAMC data file (.xlsx or .csv)")
+    ],
+    workflow_directory: Annotated[
+        Path, typer.Option(help="Workflow directory with variable codelist")
+    ] = Path.cwd(),
+    target_file: Annotated[
+        str | None, typer.Option(help="Target YAML file for missing variables")
+    ] = None,
 ):
-    """Create a list of variables that are not part of the variable codelist
+    """Identify and optionally export variables not in the codelist.
 
-    Parameters
-    ----------
-    data : Path
-        path to the IAMC data file, can be .xlsx or .csv
-    workflow_directory : Path, default current working directory
-        Path to the workflow directory that contains the variable codelist
-    target_file : Path | None
-        Name of the target variable definition file, optional, defaults to
-        'variables.yaml'
-    Example
-    -------
+    Scans an IAMC data file for variables that are not defined in the project's
+    variable codelist. Can generate a template YAML file with the missing variables
+    for review and addition to the codelist.
 
-    The following command will add all the missing variables to the file
-    new_variables.yaml located in my_workflow/definitions/variable:
-
-    $ nomenclature list-missing-variables input_data.xlsx --workflow-directory
-                        my_workflow
-
+    \b
+    Example:
+      $ nomenclature list-missing-variables input.xlsx --target-file new_vars.yaml
     """
     codelist_path = workflow_directory / "definitions" / "variable"
     final_target = None if target_file is None else codelist_path / target_file
@@ -216,32 +208,28 @@ def list_missing_variables(
 # ---------------------------------------------------------
 @app.command()
 def run_workflow(
-    input_file: Annotated[Path, typer.Argument(..., exists=True)],
-    workflow_file: Annotated[Path, typer.Option(exists=True)] = (
-        Path.cwd() / "workflow.py"
-    ),
-    workflow_function: Annotated[str, typer.Option()] = "main",
-    output_file: Annotated[Path | None, typer.Option()] = None,
+    input_file: Annotated[
+        Path, typer.Argument(..., exists=True, help="Input IAMC data file")
+    ],
+    workflow_file: Annotated[
+        Path, typer.Option(exists=True, help="Python workflow file")
+    ] = (Path.cwd() / "workflow.py"),
+    workflow_function: Annotated[
+        str, typer.Option(help="Function name in workflow file")
+    ] = "main",
+    output_file: Annotated[
+        Path | None, typer.Option(help="Output file for processed data")
+    ] = None,
 ):
-    """Run a given input file through a workflow function defined in a workflow.py
+    """Execute a custom Python workflow on IAMC data.
 
-    Parameters
-    ----------
-    input_file : Path
-        Input data file, must be IAMC format, .xlsx or .csv
-    workflow_file : Path
-            Path to the workflow file,
-            default: current working directory / "workflow.py"
-    workflow_function : str
-        Name of the workflow function inside the workflow file, default: main
-    output_file : Path | None
-        Path to the output file where the processing results is saved, nothing
-        is saved if None is given, default: None
+    Loads a function from a Python file and applies it to process scenario data.
+    The workflow function should accept an IamDataFrame and return an IamDataFrame.
+    Useful for project-specific data transformations and validation.
 
-    Raises
-    ------
-    ValueError
-        If the workflow_file does not have the specified workflow_function
+    \b
+    Example:
+      $ nomenclature run-workflow input.xlsx --output-file output.xlsx
     """
     module_name = workflow_file.stem
     spec = importlib.util.spec_from_file_location(module_name, workflow_file)
@@ -252,7 +240,7 @@ def run_workflow(
     if not hasattr(workflow, workflow_function):
         raise ValueError(f"{workflow} does not have a function `{workflow_function}`")
 
-    df = getattr(workflow, workflow_function)(IamDataFrame(input_file))
+    df: IamDataFrame = getattr(workflow, workflow_function)(IamDataFrame(input_file))
     if output_file is not None:
         df.to_excel(output_file)
 
@@ -262,59 +250,50 @@ def run_workflow(
 # ---------------------------------------------------------
 @app.command()
 def validate_scenarios(
-    input_file: Annotated[Path, typer.Argument(..., exists=True)],
-    definitions: Annotated[Path, typer.Option(exists=True)] = Path("definitions"),
-    dimensions: Annotated[List[str] | None, typer.Option("--dimension")] = None,
+    input_file: Annotated[
+        Path, typer.Argument(..., exists=True, help="IAMC data file to validate")
+    ],
+    definitions: Annotated[
+        Path, typer.Option(exists=True, help="Definitions folder with codelists")
+    ] = Path("definitions"),
+    dimensions: Annotated[
+        list[str] | None,
+        typer.Option("--dimension", help="Dimensions to validate (defaults to all)"),
+    ] = None,
 ):
-    """Validate a scenario file against the codelists of a project
+    """Validate scenario data against project codelists.
 
-    Example
-    -------
-    $ nomenclature validate-scenarios <input-file>
-                        --definitions <def-folder>
-                        --dimension <folder1>
-                        --dimension <folder2>
-                        --dimension <folder3>
+    Verifies that specified dimensions (variables, regions, scenarios, etc.) in an IAMC
+    data file are defined in the project codelists.
 
-    Parameters
-    ----------
-    input_file : Path
-        Input data file, must be IAMC format, .xlsx or .csv
-    definitions : Path
-        Definitions folder with codelists, by default "definitions"
-    dimensions : list[str], optional
-        Dimensions to be checked, defaults to all sub-folders of `definitions`
-
-    Raises
-    ------
-    ValueError
-        If input_file validation fails against specified codelist(s).
+    \b
+    Example:
+      $ nomenclature validate-scenarios input.xlsx --definitions defs
     """
     DataStructureDefinition(definitions, dimensions).validate(IamDataFrame(input_file))
 
 
 @app.command()
 def convert_xlsx_codelist_to_yaml(
-    source: Annotated[Path, typer.Argument(..., exists=True)],
-    target: Annotated[Path, typer.Argument(...)],
-    sheet_name: Annotated[str, typer.Argument(...)],
-    col: Annotated[str, typer.Argument(...)],
-    attrs: Annotated[list[str] | None, typer.Option()] = None,
+    source: Annotated[
+        Path, typer.Argument(..., exists=True, help="Excel file with codelist")
+    ],
+    target: Annotated[Path, typer.Argument(..., help="Output YAML file path")],
+    sheet_name: Annotated[str, typer.Argument(..., help="Sheet name in Excel file")],
+    col: Annotated[str, typer.Argument(..., help="Column to use as codes")],
+    attrs: Annotated[
+        list[str] | None, typer.Option(help="Columns to use as attributes")
+    ] = None,
 ):
-    """Parses an xlsx file with a codelist and writes a yaml file
+    """Convert Excel-based codelist to YAML format.
 
-    Parameters
-    ----------
-    source : str, path, file-like object
-        Path to xlsx file with definitions (codelists).
-    target : str, path, file-like object
-        Path to save the parsed definitions as yaml file.
-    sheet_name : str
-        Sheet name of `source`.
-    col : str
-        Column from `sheet_name` to use as codes.
-    attrs : list, optional
-        Columns from `sheet_name` to use as attributes.
+    Reads a codelist from a specified Excel sheet and column, preserving any
+    attributes, and exports it as a structured YAML file compatible with the
+    nomenclature definitions format.
+
+    \b
+    Example:
+      $ nomenclature convert-xlsx-codelist-to-yaml input.xlsx output.yaml sheet1 variable
     """
     if attrs is None:
         attrs = []
@@ -325,33 +304,34 @@ def convert_xlsx_codelist_to_yaml(
 
 @app.command()
 def parse_model_registration(
-    model_registration_file: Annotated[Path, typer.Argument(..., exists=True)],
-    definition_path: Annotated[Path, typer.Option(exists=True)] = (
-        Path.cwd() / "definitions" / "region"
-    ),
-    mappings_path: Annotated[Path, typer.Option(exists=True)] = Path.cwd() / "mappings",
+    model_registration_file: Annotated[
+        Path, typer.Argument(..., exists=True, help="Excel model registration file")
+    ],
+    definition_path: Annotated[
+        Path, typer.Option(exists=True, help="Region definitions output folder")
+    ] = (Path.cwd() / "definitions" / "region"),
+    mappings_path: Annotated[
+        Path, typer.Option(exists=True, help="Model mappings output folder")
+    ] = Path.cwd() / "mappings",
 ) -> None:
-    """Parses a model registration file and writes the definitions & mapping yaml files
+    """Parse model registration spreadsheet and generate YAML files.
 
-    Parameters
-    ----------
-    model_registration_file : path, file-like object
-        Path to xlsx model registration file.
-    definition_path : path
-        Path to the region definitions folder, default: current working
-        directory/definitions/region
-    mappings_path: path
-        Path to the model mappings folder, default current working
-        directory/definitions/region
+    Reads a standardized Excel model registration file containing native region
+    definitions and common region mappings.
 
-    Notes
-    -----
+    \b
+    Generates two sets of YAML files:
+    - Region definitions with optional country lists
+    - Model-specific region aggregation mappings
 
-    If the registration file featuers a complete set of R5 region, a "World" region (sum
-    of all R5) will be added.
+    Supports R5 region conventions with automatic World region generation.
+
+    \b
+    Example:
+      $ nomenclature parse-model-registration registration.xlsx
     """
 
-    # parse Common-Region-Mapping
+    # Parse Common-Region-Mapping
     region_aggregation_mapping = RegionAggregationMapping.from_file(
         model_registration_file
     )
@@ -362,7 +342,7 @@ def parse_model_registration(
     region_aggregation_mapping.to_yaml(
         mappings_path / f"{file_model_name}.yaml",
     )
-    # parse Region-Country-Mapping
+    # Parse Region-Country-Mapping
     if "Region-Country-Mapping" in pd.ExcelFile(model_registration_file).sheet_names:
         native = "Native region (as reported by the model)"
         constituents = "Country name"

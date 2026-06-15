@@ -24,6 +24,7 @@ from nomenclature.exceptions import (
 )
 
 logger = logging.getLogger(__name__)
+
 SPECIAL_CODELIST = {
     "variable": VariableCodeList,
     "region": RegionCodeList,
@@ -33,11 +34,16 @@ SPECIAL_CODELIST = {
 
 
 class DataStructureDefinition:
-    """Definition of datastructure codelists for dimensions used in the IAMC format"""
+    """
+    Loads and manages codelists for IAMC data dimensions (e.g., variable, region, scenario).
+
+    This class reads project definitions from a folder, initializes codelists for each dimension,
+    and provides methods to validate scenario data, check aggregation consistency, and export
+    codelists to Excel.
+    """
 
     def __init__(self, path, dimensions=None):
         """
-
         Parameters
         ----------
         path : str or path-like
@@ -71,7 +77,7 @@ class DataStructureDefinition:
             raise NotADirectoryError(f"Definitions directory not found: {path}")
 
         self.dimensions = (
-            dimensions
+            ([dimensions] if isinstance(dimensions, str) else dimensions)
             or self.config.dimensions
             or [x.stem for x in path.iterdir() if x.is_dir()]
         )
@@ -88,14 +94,14 @@ class DataStructureDefinition:
         if empty := [d for d in self.dimensions if not getattr(self, d)]:
             raise ValueError(f"Empty codelist: {', '.join(empty)}")
 
-    def validate(self, df: IamDataFrame, dimensions: list | None = None) -> None:
+    def validate(self, df: IamDataFrame, dimensions: list | str | None = None) -> None:
         """Validate that the coordinates of `df` are defined in the codelists
 
         Parameters
         ----------
         df : :class:`pyam.IamDataFrame`
             Scenario data to be validated against the codelists of this instance.
-        dimensions : list of str, optional
+        dimensions : list of str, str, optional
             Dimensions to perform validation (defaults to all dimensions of self)
 
         Returns
@@ -109,6 +115,7 @@ class DataStructureDefinition:
         """
 
         exceptions: list[Exception] = []
+        dimensions = [dimensions] if isinstance(dimensions, str) else dimensions
         for dimension in dimensions or self.dimensions:
             try:
                 getattr(self, dimension).validate_df(
@@ -159,26 +166,26 @@ class DataStructureDefinition:
                 if attr.check_aggregate:
                     components = attr.components
 
-                    # check if multiple lists of components are given for a code
+                    # Check if multiple lists of components are given for a code
                     if isinstance(components, dict):
                         for name, _components in components.items():
                             error = df.check_aggregate(code, _components, **kwargs)
                             if error is not None:
                                 error.dropna(inplace=True)
-                                # append components-name to variable column
+                                # Append components-name to variable column
                                 error.index = replace_index_labels(
                                     error.index, "variable", [f"{code} [{name}]"]
                                 )
                                 lst.append(error)
 
-                    # else use components provided as single list or pyam-default (None)
+                    # Else, use components provided as single list or pyam-default (None)
                     else:
                         error = df.check_aggregate(code, components, **kwargs)
                         if error is not None:
                             lst.append(error.dropna())
 
         if lst:
-            # there may be empty dataframes due to `dropna()` above
+            # There may be empty dataframes due to `dropna()` above
             return pd.concat(lst)
         return pd.DataFrame()
 
@@ -196,7 +203,7 @@ class DataStructureDefinition:
             kwargs["engine"] = "xlsxwriter"
 
         with pd.ExcelWriter(excel_writer, **kwargs) as writer:
-            # create dataframe with attributes of the DataStructureDefinition
+            # Create dataframe with attributes of the DataStructureDefinition
             project = self.project_folder.absolute().parts[-1]
             arg_dict = {
                 "project": project,
@@ -218,9 +225,9 @@ class DataStructureDefinition:
 
             write_sheet(writer, "project", ret)
 
-            # write codelist for each dimensions to own sheet
+            # Write codelist for each dimensions to own sheet
             for dim in self.dimensions:
-                getattr(self, dim).to_excel(writer, dim, sort_by_code=True)
+                getattr(self, dim).to_excel(writer, dim, sort="asc")
 
 
 def time_format(x):

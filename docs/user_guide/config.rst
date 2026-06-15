@@ -47,6 +47,8 @@ multiple external repositories can be used as the example below illustrates for
   repositories:
     common-definitions:
       url: https://github.com/IAMconsortium/common-definitions.git/
+    legacy-definitions:
+      url: https://github.com/IAMconsortium/legacy-definitions.git/
   definitions:
     region:
       repository: common-definitions

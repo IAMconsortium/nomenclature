@@ -1,8 +1,9 @@
 import logging
 import re
+from os import PathLike
 from pathlib import Path
 from textwrap import indent
-from typing import ClassVar
+from typing import Any, IO, ClassVar
 
 import numpy as np
 import pandas as pd
@@ -50,7 +51,7 @@ class CodeList(BaseModel):
     name: str
     mapping: dict[str, Code] = {}
 
-    # class variable
+    # Class variables
     validation_schema: ClassVar[str] = "generic"
     code_basis: ClassVar = Code
     unknown_code_error: ClassVar[type[UnknownCodeError]] = UnknownCodeError
@@ -64,12 +65,19 @@ class CodeList(BaseModel):
         cls, v: dict[str, Code], info: ValidationInfo
     ) -> dict[str, Code]:
         """Check that no code ends with a whitespace"""
+        errors = []
         for code in v:
             if code.endswith(" "):
-                raise ValueError(
-                    f"Unexpected whitespace at the end of a {info.data['name']}"
-                    f" code: '{code}'."
+                errors.append(
+                    ValueError(
+                        f"Unexpected whitespace at the end of a {info.data['name']}"
+                        f" code: '{code}'."
+                    )
                 )
+        if errors:
+            raise CodeListErrorGroup(
+                f"Found trailing whitespace in {info.data['name']} codes", errors
+            )
         return v
 
     def __setitem__(self, key: str, value: Code) -> None:
@@ -176,11 +184,11 @@ class CodeList(BaseModel):
                     raise ValueError(f"Duplicate item in tag codelist: {tag_name}")
                 tag_dict[tag_name] = [Code.from_dict(t) for t in tag[tag_name]]
 
-        # start with all non tag codes
+        # Start with all non-tag codes
         codes_without_tags = [code for code in code_list if not code.contains_tags]
         codes_with_tags = [code for code in code_list if code.contains_tags]
 
-        # replace tags by the items of the tag-dictionary
+        # Replace tags by the items of the tag-dictionary
         for tag_name, tags in tag_dict.items():
             codes_with_tags = cls.replace_tags(codes_with_tags, tag_name, tags)
 
@@ -193,7 +201,7 @@ class CodeList(BaseModel):
         path: Path,
         config: NomenclatureConfig | None = None,
         file_glob_pattern: str = "**/*",
-    ):
+    ) -> "CodeList":
         """Initialize a CodeList from a directory with codelist files
 
         Parameters
@@ -221,6 +229,9 @@ class CodeList(BaseModel):
                 config.repositories[repo.name].local_path / "definitions" / name,
                 file_glob_pattern,
                 repo.name,
+            )
+            cls._validate_include_filters(
+                repository_code_list, repo.include, name, repo.name
             )
             code_list.extend(
                 cls.filter_codes(repository_code_list, repo.include, repo.exclude)
@@ -286,27 +297,36 @@ class CodeList(BaseModel):
         path: Path,
         file_glob_pattern: str = "**/*",
         repository: str | None = None,
-    ):
-        code_list: list[Code] = []
+    ) -> list[Code]:
+        list_of_codes: list[Code] = []
         for yaml_file in (
             f
             for f in path.glob(file_glob_pattern)
             if f.suffix in {".yaml", ".yml"} and not f.name.startswith("tag_")
         ):
             with open(yaml_file, "r", encoding="utf-8") as stream:
-                _code_list = yaml.safe_load(stream)
-            for code_dict in _code_list:
+                _list_of_codes = yaml.safe_load(stream)
+            for code_dict in _list_of_codes:
                 code = cls.code_basis.from_dict(code_dict)
                 code.file = yaml_file.relative_to(path.parent).as_posix()
                 if repository:
                     code.repository = repository
-                code_list.append(code)
+                list_of_codes.append(code)
 
-        code_list = cls._parse_and_replace_tags(code_list, path, file_glob_pattern)
-        return code_list
+        list_of_codes = cls._parse_and_replace_tags(
+            list_of_codes, path, file_glob_pattern
+        )
+        return list_of_codes
 
     @classmethod
-    def read_excel(cls, name, source, sheet_name, col, attrs=None):
+    def read_excel(
+        cls,
+        name: str,
+        source: str | Path | IO[bytes],
+        sheet_name: str,
+        col: str,
+        attrs: list | None = None,
+    ) -> "CodeList":
         """Parses an xlsx file with a codelist
 
         Parameters
@@ -326,19 +346,19 @@ class CodeList(BaseModel):
             attrs = []
         codelist = pd.read_excel(source, sheet_name=sheet_name, usecols=[col] + attrs)
 
-        # replace nan with None
+        # Replace nan with None
         codelist = codelist.replace(np.nan, None)
 
-        # check for duplicates in the codelist
+        # Check for duplicates in the codelist
         duplicate_rows = codelist[col].duplicated(keep=False).values
         if any(duplicate_rows):
             duplicates = codelist[duplicate_rows]
-            # set index to equal the row numbers to simplify identifying the issue
+            # Set index to equal the row numbers to simplify identifying the issue
             duplicates.index = pd.Index([i + 2 for i in duplicates.index])
             msg = f"Duplicate values in the codelist:\n{duplicates.head(20)}"
             raise ValueError(msg + ("\n..." if len(duplicates) > 20 else ""))
 
-        # set `col` as index and cast all attribute-names to lowercase
+        # Set `col` as index and cast all attribute-names to lowercase
         codes = codelist[[col] + attrs].set_index(col)[attrs]
         codes.rename(columns={c: str(c).lower() for c in codes.columns}, inplace=True)
         codes_di = codes.to_dict(orient="index")
@@ -374,28 +394,40 @@ class CodeList(BaseModel):
 
         for code in self.mapping.values():
             if not code.from_external_repository:
-                for attr, value in code.model_dump(exclude="file").items():
+                for attr, value in code.model_dump(exclude={"file"}).items():
                     _check_string(attr, value)
         if errors:
             raise CodeListErrorGroup("Found illegal characters", errors)
 
-    def to_yaml(self, path=None):
+    def to_yaml(self, path: Path | str | None = None, sort: str | None = None):
         """Write mapping to yaml file or return as stream
 
         Parameters
         ----------
         path : :class:`pathlib.Path` or str, optional
             Write to file path if not None, otherwise return as stream
+        sort : str, optional
+            Sort order: "asc" (ascending) or "desc" (descending).
+            If None (default), codes are not sorted.
         """
 
         class Dumper(yaml.Dumper):
             def increase_indent(self, flow: bool = False, indentless: bool = False):
                 return super().increase_indent(flow=flow, indentless=indentless)
 
-        # translate to list of nested dicts, replace None by empty field, write to file
+        # Translate to list of nested dicts, replace None by empty field, write to file
+        codelist_items = self.codelist_repr().items()
+        if sort is not None:
+            if sort not in ["asc", "desc"]:
+                raise ValueError(
+                    f"Invalid sort order: {sort}. Must be 'asc' or 'desc'."
+                )
+            reverse = sort == "desc"
+            codelist_items = sorted(codelist_items, key=lambda x: x[0], reverse=reverse)
+
         stream = (
             yaml.dump(
-                [{code: attrs} for code, attrs in self.codelist_repr().items()],
+                [{code: attrs} for code, attrs in codelist_items],
                 sort_keys=False,
                 Dumper=Dumper,
             )
@@ -408,13 +440,14 @@ class CodeList(BaseModel):
         with open(path, "w", encoding="utf-8") as file:
             file.write(stream)
 
-    def to_pandas(self, sort_by_code: bool = False) -> pd.DataFrame:
+    def to_pandas(self, sort: str | None = None) -> pd.DataFrame:
         """Export the CodeList to a :class:`pandas.DataFrame`
 
         Parameters
         ----------
-        sort_by_code : bool, optional
-            Sort the codelist before exporting to csv.
+        sort : str, optional
+            Sort order: "asc" (ascending) or "desc" (descending).
+            If None (default), codes are not sorted.
         """
         codelist = (
             pd.DataFrame.from_dict(
@@ -422,13 +455,23 @@ class CodeList(BaseModel):
             )
             .reset_index()
             .rename(columns={"index": self.name})
-            .drop(columns="file")
+            .drop(columns="file", errors="ignore")
         )
-        if sort_by_code:
-            codelist.sort_values(by=self.name, inplace=True)
+        if sort is not None:
+            if sort not in ["asc", "desc"]:
+                raise ValueError(
+                    f"Invalid sort order: {sort}. Must be 'asc' or 'desc'."
+                )
+            ascending = sort == "asc"
+            codelist.sort_values(by=self.name, ascending=ascending, inplace=True)
         return codelist
 
-    def to_csv(self, path=None, sort_by_code: bool = False, **kwargs):
+    def to_csv(
+        self,
+        path: str | Path | IO[bytes] | None = None,
+        sort: str | None = None,
+        **kwargs,
+    ) -> str | None:
         """Write the codelist to a comma-separated values (csv) file
 
         Parameters
@@ -437,8 +480,9 @@ class CodeList(BaseModel):
             File path as string or :class:`pathlib.Path`, or file-like object.
             If *None*, the result is returned as a csv-formatted string.
             See :meth:`pandas.DataFrame.to_csv` for details.
-        sort_by_code : bool, optional
-            Sort the codelist before exporting to csv.
+        sort : str, optional
+            Sort order: "asc" (ascending) or "desc" (descending).
+            If None (default), codes are not sorted.
         **kwargs
             Passed to :meth:`pandas.DataFrame.to_csv`.
 
@@ -447,10 +491,14 @@ class CodeList(BaseModel):
         None or csv-formatted string (if *path* is None)
         """
         index = kwargs.pop("index", False)  # by default, do not write index to csv
-        return self.to_pandas(sort_by_code).to_csv(path, index=index, **kwargs)
+        return self.to_pandas(sort).to_csv(path, index=index, **kwargs)
 
     def to_excel(
-        self, excel_writer, sheet_name=None, sort_by_code: bool = False, **kwargs
+        self,
+        excel_writer: PathLike | IO[bytes] | pd.ExcelWriter,
+        sheet_name: str | None = None,
+        sort: str | None = None,
+        **kwargs,
     ):
         """Write the codelist to an Excel spreadsheet
 
@@ -461,19 +509,20 @@ class CodeList(BaseModel):
             or existing :class:`pandas.ExcelWriter`.
         sheet_name : str, optional
             Name of sheet that will have the codelist. If *None*, use the codelist name.
-        sort_by_code : bool, optional
-            Sort the codelist before exporting to file.
+        sort : str, optional
+            Sort order: "asc" (ascending) or "desc" (descending).
+            If None (default), codes are not sorted.
         **kwargs
             Passed to :class:`pandas.ExcelWriter` (if *excel_writer* is path-like).
         """
         sheet_name = sheet_name or self.name
         if isinstance(excel_writer, pd.ExcelWriter):
-            write_sheet(excel_writer, sheet_name, self.to_pandas(sort_by_code))
+            write_sheet(excel_writer, sheet_name, self.to_pandas(sort))
         else:
             with pd.ExcelWriter(excel_writer, **kwargs) as writer:
-                write_sheet(writer, sheet_name, self.to_pandas(sort_by_code))
+                write_sheet(writer, sheet_name, self.to_pandas(sort))
 
-    def codelist_repr(self, json_serialized=False) -> dict:
+    def codelist_repr(self, json_serialized: bool = False) -> dict:
         """Cast a CodeList into corresponding dictionary"""
 
         nice_dict = {}
@@ -512,9 +561,51 @@ class CodeList(BaseModel):
             logger.warning(f"Filtered {self.__class__.__name__} is empty!")
         return filtered_codelist
 
+    def sort(self, order: str = "asc") -> "CodeList":
+        """Sort the CodeList by code names.
+
+        Parameters
+        ----------
+        order : str, optional
+            Sort order, either "asc" (ascending) or "desc" (descending). Default is "asc".
+
+        Returns
+        -------
+        CodeList
+            A new CodeList with codes sorted alphabetically by name.
+        """
+        if order not in ["asc", "desc"]:
+            raise ValueError(f"Invalid sort order: {order}. Must be 'asc' or 'desc'.")
+
+        reverse = order == "desc"
+        sorted_mapping = dict(
+            sorted(self.mapping.items(), key=lambda x: x[0], reverse=reverse)
+        )
+        return self.__class__(name=self.name, mapping=sorted_mapping)
+
+    @staticmethod
+    def _validate_include_filters(
+        codes: list[Code],
+        include: list[dict[str, Any]],
+        dimension: str = "code",
+        repository: str | None = None,
+    ) -> None:
+        """Raise if any include filter from nomenclature.yaml matches no codes."""
+        if errors := [
+            ValueError(f"No {dimension}s found for include filter: {inc_filter}")
+            for inc_filter in include
+            if not CodeList.filter_codes(codes, [inc_filter])
+        ]:
+            raise CodeListErrorGroup(
+                f"Importing {dimension}s from external repository '{repository}' failed",
+                errors,
+            )
+
     @staticmethod
     def filter_codes(
-        codes: list[Code], include: dict | None = None, exclude: dict | None = None
+        codes: list[Code],
+        include: dict | list[dict[str, Any]] | None = None,
+        exclude: dict | list[dict[str, Any]] | None = None,
     ) -> list[Code]:
         """
         Filter a list of codes based on include and exclude filters.
@@ -533,27 +624,28 @@ class CodeList(BaseModel):
         list[Code]
             Filtered list of Code objects.
         """
+        include = [include] if isinstance(include, dict) else include or []
+        exclude = [exclude] if isinstance(exclude, dict) else exclude or []
 
-        def matches_filter(code, filters, keep):
+        def matches_filter(code: Code, filters: list[dict], keep: bool):
             def check_attribute_match(code_value, filter_value):
-                # if is list -> recursive
-                # if is str -> escape all special characters except "*" and use a regex
-                # if is bool -> match exactly (must be checked before int since bool
-                #   is a subclass of int)
-                # if is int -> match exactly
-                # if is None -> Attribute does not exist therefore does not match
+                # If bool, match exactly (before int because bool is subclass of int)
                 if isinstance(filter_value, bool):
                     return code_value == filter_value
+                # If int, match exactly
                 if isinstance(filter_value, int):
                     return code_value == filter_value
+                # If str, escape all special characters except "*" and use a regex
                 if isinstance(filter_value, str):
                     pattern = re.compile(escape_regexp(filter_value) + "$")
                     return re.match(pattern, code_value) is not None
+                # If list, recursive
                 if isinstance(filter_value, list):
                     return any(
                         check_attribute_match(code_value, value)
                         for value in filter_value
                     )
+                # If None, attribute does not exist therefore does not match
                 if filter_value is None:
                     return False
                 raise ValueError("Invalid filter value type")
@@ -576,6 +668,7 @@ class CodeList(BaseModel):
             if matches_filter(code, include, True)
             and not matches_filter(code, exclude, False)
         ]
+
         return filtered_codes
 
 
@@ -591,7 +684,7 @@ class VariableCodeList(CodeList):
 
     """
 
-    # class variables
+    # Class variables
     code_basis: ClassVar = VariableCode
     validation_schema: ClassVar[str] = "variable"
     unknown_code_error: ClassVar[type[UnknownCodeError]] = UnknownVariableError
@@ -626,7 +719,7 @@ class VariableCodeList(CodeList):
         """Get the list of all units"""
         units = set()
 
-        # replace "dimensionless" variables (unit: `None`) with empty string
+        # Replace "dimensionless" variables (unit: `None`) with empty string
         # for consistency with the yaml file format
         def to_dimensionless(u):
             return u or ""
@@ -645,7 +738,7 @@ class VariableCodeList(CodeList):
         """Check that any variable "region-aggregation" mappings are valid"""
 
         for var in v.values():
-            # ensure that a variable does not have both individual
+            # Ensure that a variable does not have both individual
             # pyam-aggregation-kwargs and a 'region-aggregation' attribute
             if var.region_aggregation is not None:
                 if conflict_args := list(var.pyam_agg_kwargs.keys()):
@@ -653,7 +746,7 @@ class VariableCodeList(CodeList):
                         {"variable": var.name, "file": var.file, "args": conflict_args},
                     )
 
-                # ensure that mapped variables are defined in the nomenclature
+                # Ensure that mapped variables are defined in the nomenclature
                 invalid = []
                 for inst in var.region_aggregation:
                     invalid.extend(var for var in inst if var not in v)
@@ -710,9 +803,11 @@ class VariableCodeList(CodeList):
             )
         return v
 
-    def vars_default_args(self, variables: list[str]) -> list[str]:
-        """return subset of variables which does not feature any special pyam
-        aggregation arguments and where skip_region_aggregation is False"""
+    def vars_default_agg_args(self, variables: list[str]) -> list[str]:
+        """
+        Return subset of variables which does not feature any special pyam
+        aggregation arguments and where skip_region_aggregation is False
+        """
         return [
             var
             for var in variables
@@ -721,9 +816,11 @@ class VariableCodeList(CodeList):
             and not self[var].skip_region_aggregation
         ]
 
-    def vars_kwargs(self, variables: list[str]) -> list[VariableCode]:
-        # return subset of variables which features special pyam aggregation arguments
-        # and where skip_region_aggregation is False
+    def vars_special_agg_kwargs(self, variables: list[str]) -> list[VariableCode]:
+        """
+        Return subset of variables which features special pyam aggregation
+        arguments and where skip_region_aggregation is False
+        """
         return [
             self[var]
             for var in variables
@@ -734,8 +831,8 @@ class VariableCodeList(CodeList):
 
     def validate_units(
         self,
-        unit_mapping,
-        project: None | str = None,
+        unit_mapping: dict,
+        project: str | None = None,
     ) -> None:
         if invalid_units := [
             (variable, unit, self.mapping[variable].unit)
@@ -750,11 +847,11 @@ class VariableCodeList(CodeList):
         dimension: str,
         project: str | None = None,
     ) -> None:
-        # validate variables
+        # Validate variables
         super().validate_df(df, dimension, project)
-        # validate units
+        # Validate units
         self.validate_units(df.unit_mapping, project)
-        # validate timeseries data values
+        # Validate timeseries data values
         self.data_validator.apply(df)
 
     def list_missing_variables(
@@ -789,7 +886,7 @@ class RegionCodeList(CodeList):
 
     """
 
-    # class variable
+    # Class variables
     code_basis: ClassVar = RegionCode
     validation_schema: ClassVar[str] = "region"
     unknown_code_error: ClassVar[type[UnknownCodeError]] = UnknownRegionError
@@ -801,7 +898,7 @@ class RegionCodeList(CodeList):
         path: Path,
         config: NomenclatureConfig | None = None,
         file_glob_pattern: str = "**/*",
-    ):
+    ) -> "RegionCodeList":
         """Initialize a RegionCodeList from a directory with codelist files
 
         Parameters
@@ -824,24 +921,19 @@ class RegionCodeList(CodeList):
 
         code_list: list[RegionCode] = []
 
-        # initializing from general configuration
-        # adding all countries
+        # Initializing from general configuration
         config = config or NomenclatureConfig()
-        if config.definitions.region.country is True:
+        if config.definitions.region.country:  # Adding all ISO3 countries
             for country in nomenclature.countries:
-                try:
-                    code_list.append(
-                        RegionCode(
-                            name=country.name,
-                            iso3_codes=country.alpha_3,
-                            hierarchy="Country",
-                        )
+                code_list.append(
+                    RegionCode(
+                        name=country.name,
+                        iso3_codes=country.alpha_3,
+                        hierarchy="Country",
                     )
-                # special handling for countries that do not have an alpha_3 code
-                except AttributeError:
-                    code_list.append(RegionCode(name=country.name, hierarchy="Country"))
+                )
 
-        # adding nuts regions
+        # Adding NUTS regions
         if config.definitions.region.nuts:
             for level, countries in config.definitions.region.nuts.items():
                 if countries is True:
@@ -857,7 +949,7 @@ class RegionCodeList(CodeList):
                         )
                     )
 
-        # importing from an external repository
+        # Importing from external repositories
         for repo in config.definitions.region.repositories:
             repo_path = (
                 config.repositories[repo.name].local_path / "definitions" / "region"
@@ -871,17 +963,20 @@ class RegionCodeList(CodeList):
             repo_list_of_codes = cls._parse_and_replace_tags(
                 repo_list_of_codes, repo_path, file_glob_pattern
             )
+            cls._validate_include_filters(
+                repo_list_of_codes, repo.include, name, repo.name
+            )
             code_list.extend(
                 cls.filter_codes(repo_list_of_codes, repo.include, repo.exclude)
             )
 
-        # parse from current repository
+        # Parse from current repository
         local_code_list = cls._parse_region_code_dir(path, file_glob_pattern)
         code_list.extend(
             cls._parse_and_replace_tags(local_code_list, path, file_glob_pattern)
         )
 
-        # translate to mapping
+        # Translate to mapping
         mapping: dict[str, RegionCode] = {}
 
         errors: list[ValueError] = []
@@ -938,18 +1033,19 @@ class RegionCodeList(CodeList):
         file_glob_pattern: str = "**/*",
         repository: str | None = None,
     ) -> list[RegionCode]:
-        """"""
-        code_list: list[RegionCode] = []
+        """Parse region codes from a directory with codelist files"""
+
+        list_of_codes: list[RegionCode] = []
         for yaml_file in (
             f
             for f in path.glob(file_glob_pattern)
             if f.suffix in {".yaml", ".yml"} and not f.name.startswith("tag_")
         ):
             with open(yaml_file, "r", encoding="utf-8") as stream:
-                _code_list = yaml.safe_load(stream)
+                _list_of_codes: list[dict] = yaml.safe_load(stream)
 
-            # a "region" codelist assumes a top-level category to be used as attribute
-            for top_level_cat in _code_list:
+            # A region codelist assumes a top-level category to be used as attribute
+            for top_level_cat in _list_of_codes:
                 for top_key, _codes in top_level_cat.items():
                     for item in _codes:
                         code = RegionCode.from_dict(item)
@@ -957,9 +1053,9 @@ class RegionCodeList(CodeList):
                         if repository:
                             code.repository = repository
                         code.file = yaml_file.relative_to(path.parent).as_posix()
-                        code_list.append(code)
+                        list_of_codes.append(code)
 
-        return code_list
+        return list_of_codes
 
 
 class MetaCodeList(CodeList):

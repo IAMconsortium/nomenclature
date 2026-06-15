@@ -1,4 +1,4 @@
-# initialization fails because of undefined variable "Price|Carbon (Max)"
+# Initialization fails because of undefined variable "Price|Carbon (Max)"
 - Price|Carbon:
     definition: Price of carbon
     unit: USD/t CO2

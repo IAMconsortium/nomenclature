@@ -2,10 +2,10 @@
  - variable: Primary Energy
    value: 2.
    atol: 1.
-# variable exists only for 'scen_a', fails validation for 2005
+# Variable exists only for 'scen_a', fails validation for 2005
  - variable: Primary Energy|Coal
    value: 3
-# both upper and lower bound fail for both scenarios
+# Both upper and lower bound fail for both scenarios
  - variable: Primary Energy
    year: 2005
    value: 1.5

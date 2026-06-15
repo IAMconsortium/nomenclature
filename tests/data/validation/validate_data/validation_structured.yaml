@@ -1,7 +1,7 @@
  - name: Structured Validation
    variable: Final Energy
    year: 2010
-   upper_bound: 2.5  # test that 'upper_bound' is passed to both validation items below
+   upper_bound: 2.5  # Test that 'upper_bound' is passed to both validation items below
    validation:
       - lower_bound: 1
       - warning_level: low

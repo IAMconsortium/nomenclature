@@ -10,6 +10,7 @@ class Processor(BaseModel, abc.ABC):
     input_meta: Annotated[list[str] | None, Field(frozen=True)] = None
     output_data: Annotated[dict[str, list[str]] | None, Field(frozen=True)] = None
     output_meta: Annotated[list[str] | None, Field(frozen=True)] = None
+    fail_ok: bool = False
 
     @abc.abstractmethod
     def apply(self, df: IamDataFrame) -> IamDataFrame:

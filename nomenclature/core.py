@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def process(
     df: pyam.IamDataFrame,
     dsd: DataStructureDefinition,
-    dimensions: list[str] | None = None,
+    dimensions: list[str] | str | None = None,
     processor: Processor | list[Processor] | None = None,
 ) -> pyam.IamDataFrame:
     """Function for validation and region aggregation in one step
@@ -37,7 +37,7 @@ def process(
         Scenario data to be validated and aggregated.
     dsd : :class:`DataStructureDefinition`
         Codelists that are used for validation.
-    dimensions : list, optional
+    dimensions : list of str, str, optional
         Dimensions to be used in the validation, defaults to all dimensions defined in
         ``dsd``.
     processor : :class:`Processor` or list of :class:`Processor`, optional
@@ -57,7 +57,9 @@ def process(
     processor = processor or []
     processor = processor if isinstance(processor, list) else [processor]
 
-    dimensions = dimensions or dsd.dimensions
+    dimensions = (
+        [dimensions] if isinstance(dimensions, str) else dimensions
+    ) or dsd.dimensions
 
     # Auto-instantiate processors declared in nomenclature.yaml under 'processors'
     # Raise error if both explicit and config-based processors exist.
@@ -87,14 +89,23 @@ def process(
     ):
         dimensions.remove("region")
 
-    # validate against the codelists
+    # Validate against the codelists
     dsd.validate(df, dimensions=dimensions)
 
-    # run the processors
+    # Run the processors
     for p in processor:
-        df = p.apply(df)
+        try:
+            df = p.apply(df)
+        except Exception as error:
+            if p.fail_ok:
+                logger.warning(
+                    f"Processor {p.__class__.__name__} failed with error: {error}. "
+                    "Continuing with processing as fail_ok=True."
+                )
+            else:
+                raise
 
-    # check consistency across the variable hierarchy
+    # Check consistency across the variable hierarchy
     error = dsd.check_aggregate(df)
     if not error.empty:
         raise ValueError(

@@ -8,9 +8,6 @@ definitions:
     repository:
       - name: common-definitions
         include:
-          - name: [Primary Energy*, Final Energy*]
-          - name: "Population*"
-            tier: 1
-        exclude:
-          - name: "Primary Energy|*|*" # Exclude all third tier variables
-      - legacy-definitions
+          - name: Non-Existent
+          - name: Missing
+            tier: 2

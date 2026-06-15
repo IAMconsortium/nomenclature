@@ -9,4 +9,4 @@
 - Emissions|CO2:
     description: Emissions of carbon dioxide (CO2)
     unit: Mt CO2/yr
-    upper_bound:  # this item is skipped when creating `VariableCodeList.data_validator`
+    upper_bound:  # This item is skipped when creating `VariableCodeList.data_validator`

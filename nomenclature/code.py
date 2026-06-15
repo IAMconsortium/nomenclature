@@ -19,7 +19,7 @@ from typing_extensions import Self
 from nomenclature.countries import countries
 
 
-# this must be kept in sync with the subtypes of `DataValidationCriteria`
+# This must be kept in sync with the subtypes of `DataValidationCriteria`
 VALIDATION_ARGS = [
     "upper_bound",
     "lower_bound",
@@ -40,7 +40,7 @@ class Code(BaseModel):
     repository: str | None = None
 
     def __eq__(self, other) -> bool:
-        return self.model_dump(exclude="file") == other.model_dump(exclude="file")
+        return self.model_dump(exclude={"file"}) == other.model_dump(exclude={"file"})
 
     @field_validator("extra_attributes")
     @classmethod
@@ -58,19 +58,19 @@ class Code(BaseModel):
         return v
 
     @classmethod
-    def from_dict(cls, mapping) -> "Code":
+    def from_dict(cls, mapping) -> Self:
         if isinstance(mapping, str):
             return cls(name=mapping)
 
         if len(mapping) != 1:
             raise ValueError(f"Code is not a single name-attributes mapping: {mapping}")
 
-        # extract the name of the code
+        # Extract the name of the code
         name = list(mapping.keys())[0]
-        # overwrite the mapping as just the code content
+        # Overwrite the mapping as just the code content
         mapping = mapping[name]
 
-        # check if we have a "definition" attribute and map it to "description"
+        # Check if there is a "definition" attribute and map it to "description"
         if "definition" in mapping:
             if "description" not in mapping:
                 mapping["description"] = mapping["definition"]
@@ -105,7 +105,10 @@ class Code(BaseModel):
     def flattened_dict(self):
         return {
             **self.model_dump(
-                by_alias=True, exclude_unset=True, exclude="extra_attributes"
+                by_alias=True,
+                exclude_unset=True,
+                exclude_defaults=True,
+                exclude="extra_attributes",
             ),
             **self.extra_attributes,
         }
@@ -142,37 +145,37 @@ class Code(BaseModel):
         """
 
         def _replace_or_recurse(_attr, _value):
-            # if the attribute is a string and contains "{tag}" replace
+            # If the attribute is a string and contains "{tag}" replace
             if isinstance(_value, str) and "{" + tag_name + "}" in _value:
                 replacement = getattr(tag, _attr, getattr(tag, "name"))
-                # if the value is exactly "{tag}", use the target's attribute value directly
+                # If the value is exactly "{tag}", use the target's attribute value directly
                 if _value == "{" + tag_name + "}":
                     return replacement
-                # if the tag has the attribute, replace the tag with the value
+                # If the tag has the attribute, replace the tag with the value
                 else:
                     return _value.replace("{" + tag_name + "}", str(replacement))
-            # if the attribute is an integer and "tier"
+            # If it is the "tier" attribute and an integer
             elif _attr == "tier" and isinstance(_value, int):
                 tag_tier = getattr(tag, _attr, None)
-                # if tier in tag is "^1"/"^2", increment tier
+                # If tier in tag is "^1"/"^2", increment tier
                 if tag_tier in {"^1", "^2"}:
                     return _value + int(tag_tier[-1])
                 elif not tag_tier:
                     return _value
-                # else misformatted tier in tag
+                # Else, misformatted tier in tag
                 else:
                     raise ValueError(
                         f"Invalid 'tier' attribute in '{tag_name}' tag '{tag.name}': {tag_tier}\n"
                         "Allowed values are '^1' or '^2'."
                     )
-            # if the attribute is a list, iterate over the items and replace tags
+            # If the attribute is a list, iterate over the items and replace tags
             elif isinstance(_value, list):
                 return [_replace_or_recurse(_attr, _v) for _v in _value]
-            # if the attribute is a mapping, iterate over the items and replace tags
-            # in the values (not the keys)
+            # If the attribute is a mapping, iterate over the items
+            # and replace tags in the values (not the keys)
             elif isinstance(_value, dict):
                 return {_k: _replace_or_recurse(attr, _v) for _k, _v in _value.items()}
-            # otherwise return as is
+            # Otherwise, return as is
             else:
                 return _value
 
@@ -238,7 +241,7 @@ class VariableCode(Code):
     def cast_variable_components_args(cls, v):
         """Cast "components" list of dicts to a codelist"""
 
-        # translate a list of single-key dictionaries to a simple dictionary
+        # Translate a list of single-key dictionaries to a simple dictionary
         if v is not None and isinstance(v, list) and isinstance(v[0], dict):
             comp = {}
             for val in v:
@@ -266,7 +269,8 @@ class VariableCode(Code):
 
     @property
     def pyam_agg_kwargs(self) -> dict[str, Any]:
-        # return a dict of all not None pyam aggregation properties
+        """Return a dict of all not None pyam aggregation properties"""
+
         return {
             field: getattr(self, field)
             for field in (
@@ -280,6 +284,8 @@ class VariableCode(Code):
 
     @property
     def agg_kwargs(self) -> dict[str, Any]:
+        """Return aggregation kwargs including region aggregation if applicable."""
+
         return (
             {**self.pyam_agg_kwargs, **{"region_aggregation": self.region_aggregation}}
             if self.region_aggregation is not None
@@ -349,6 +355,17 @@ class RegionCode(Code):
 
         return v
 
+    @field_validator("name")
+    @classmethod
+    def check_directional_components(cls, v: str) -> str:
+        """Verifies that directional regions have exactly two components."""
+        if ">" in v and len(v.split(">")) != 2:
+            raise ValueError(
+                f"Directional region '{v}' must have exactly two components "
+                f"separated by '>', found {len(v.split('>'))}"
+            )
+        return v
+
     @property
     def is_directional(self) -> bool:
         return ">" in self.name
@@ -358,7 +375,7 @@ class RegionCode(Code):
         if not self.is_directional:
             raise ValueError("Non-directional region does not have a destination")
 
-        # if code has (model-specific) prefix, append to the destination region
+        # If code has (model-specific) prefix, append to the destination region
         if self.has_prefix:
             return self.prefix + "|" + self.name.split(">")[1]
         else:

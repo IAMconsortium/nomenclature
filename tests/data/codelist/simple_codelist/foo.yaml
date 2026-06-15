@@ -1,5 +1,5 @@
 - Some Variable:
     definition: Some basic variable
-    unit:  # testing that importing an empty unit (ie dimensionless variable) works
-    bool: true  # testing that bool is not cast to string by pydantic
+    unit:  # Testing that importing an empty unit (i.e. dimensionless variable) works
+    bool: true  # Testing that bool is not cast to string by pydantic
     skip-region-aggregation: false

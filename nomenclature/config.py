@@ -49,7 +49,21 @@ class CodeListConfig(BaseModel):
     repositories: list[CodeListFromRepository] = Field(
         default_factory=list, alias="repository"
     )
-    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
+    model_config = ConfigDict(
+        extra="forbid", validate_by_name=True, validate_by_alias=True
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def check_no_filter_at_dimension_level(cls, v):
+        if isinstance(v, dict):
+            for field in ("include", "exclude"):
+                if field in v:
+                    raise ValueError(
+                        f"'{field}' must be nested inside 'repository', not at the "
+                        f"dimension level."
+                    )
+        return v
 
     @field_validator("repositories", mode="before")
     @classmethod
@@ -102,6 +116,7 @@ class Repository(BaseModel):
     hash: str | None = None
     release: str | None = None
     local_path: Path | None = Field(default=None, validate_default=True)
+    # Defined via the `repository` name in the configuration
 
     @model_validator(mode="after")
     @classmethod
@@ -191,7 +206,7 @@ class DataStructureConfig(BaseModel):
         return {"dimension": info.field_name, **v}
 
     @property
-    def repos(self) -> dict[str, str]:
+    def repos(self) -> dict[str, list[CodeListFromRepository]]:
         return {
             dimension: getattr(self, dimension).repositories
             for dimension in ("scenario", "region", "variable")
@@ -216,6 +231,18 @@ class MappingRepository(BaseModel):
             for pattern in self.regex_include_patterns
             if re.match(pattern, model) is not None
         ]
+
+    def validate_include_patterns(self, models: list[str]) -> None:
+        """Raise if any include pattern matches no models in the external repo."""
+        if errors := [
+            ValueError(f"No models found for include pattern: '{pattern}'")
+            for pattern, regex in zip(self.include, self.regex_include_patterns)
+            if not any(re.match(regex, model) for model in models)
+        ]:
+            raise ExceptionGroup(
+                f"Mapping include pattern validation for repository '{self.name}' failed",
+                errors,
+            )
 
 
 class RegionMappingConfig(BaseModel):
@@ -280,8 +307,8 @@ class TimeDomainConfig(BaseModel):
 
     @property
     def datetime_format(self) -> str:
-        # if year is a separate column, exclude it from format
-        # if not, datetime is coerced in IamDataFrame, and include seconds
+        # If year is a separate column, exclude it from format
+        # If not, datetime is coerced to IamDataFrame, and include seconds
         return "%Y-%m-%d %H:%M:%S" if self.datetime_allowed else None
 
     def check_datetime_format(self, df: IamDataFrame) -> None:
@@ -291,7 +318,7 @@ class TimeDomainConfig(BaseModel):
         for d in _datetime:
             try:
                 _dt = datetime.strptime(str(d), self.datetime_format + "%z")
-                # only check timezone if a specific timezone is required
+                # Only check timezone if a specific timezone is required
                 if self.timezone and not _dt.tzname() == self.timezone:
                     errors.append(TimeDomainError(f"{d} - invalid timezone"))
             except ValueError:
@@ -392,19 +419,49 @@ class NomenclatureConfig(BaseModel):
         for repo_name, repo in self.repositories.items():
             repo.fetch_repo(target_folder / repo_name)
 
+    def validate_mapping_includes(self) -> None:
+        """Validate that all mapping include patterns match at least one model."""
+        for repository in self.mappings.repositories:
+            repo_mapping_dir = (
+                self.repositories[repository.name].local_path / "mappings"
+            )
+            all_models: list[str] = []
+            for file in repo_mapping_dir.glob("**/*.y*ml"):
+                try:
+                    data = yaml.safe_load(file.read_text(encoding="utf-8"))
+                except Exception as exc:
+                    raise ValueError(f"Failed to parse mapping file '{file}'") from exc
+                if not isinstance(data, dict) or not (model_value := data.get("model")):
+                    raise ValueError(
+                        f"Missing/invalid 'model' key in mapping file '{file}' "
+                        f"in repository '{repository.name}'"
+                    )
+                all_models.extend(
+                    model_value if isinstance(model_value, list) else [model_value]
+                )
+            if all_models:
+                repository.validate_include_patterns(all_models)
+            else:
+                logger.warning(
+                    f"No model mappings found in repository '{repository.name}' at '{repo_mapping_dir}'."
+                )
+
     @classmethod
     def from_file(cls, file: Path, dry_run: bool = False):
-        """Read a DataStructureConfig from a file
+        """Read a NomenclatureConfig from a file
 
         Parameters
         ----------
         file : :class:`pathlib.Path` or path-like
             Path to config file
-
+        dry_run : bool, optional
+            If True, only parse the config file without fetching repositories
+            or validating mapping filters. Default is False.
         """
         with open(file, "r", encoding="utf-8") as stream:
             config = yaml.safe_load(stream)
         instance = cls(**config)
         if not dry_run:
             instance.fetch_repos(file.parent)
+            instance.validate_mapping_includes()
         return instance
