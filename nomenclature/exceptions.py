@@ -87,7 +87,7 @@ class UnknownCodeError(NoTracebackException):
         complete_message = self.message_template.format(
             dimension,
             dimension,
-            "\n - ".join(invalid_code_names),
+            "\n - ".join(f"'{name}'" for name in invalid_code_names),
             (
                 f"\n\nPlease refer to {self._file_service_address}/{project}/{project}"
                 f"-template.xlsx for the list of allowed {dimension}s."
@@ -122,7 +122,6 @@ class WrongUnitError(NoTracebackException):
         invalid_units: list[tuple[Any, Any, Any]],
         project: str | None = None,
     ) -> None:
-
         formatted_invalid_units = [
             f"'{v}' - expected: {'one of ' if isinstance(e, list) else ''}"
             f"'{e}', found: '{u}'"
@@ -177,7 +176,6 @@ class DataValidationError(NoTracebackException):
 
 class RequiredDataMissingError(ValueError):
     def __init__(self, missing_data_info: str, file: Path) -> None:
-
         message = (
             f"Missing required data (file: {get_relative_path(file)}):\n"
             f"{missing_data_info}"

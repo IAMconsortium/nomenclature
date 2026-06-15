@@ -5,6 +5,7 @@ from pydantic import validate_call
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor import Processor, RegionProcessor
+from nomenclature.processor.nuts import NutsProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 def process(
     df: pyam.IamDataFrame,
     dsd: DataStructureDefinition,
-    dimensions: list[str] | None = None,
+    dimensions: list[str] | str | None = None,
     processor: Processor | list[Processor] | None = None,
 ) -> pyam.IamDataFrame:
     """Function for validation and region aggregation in one step
@@ -21,11 +22,13 @@ def process(
     This function is the recommended way of using the nomenclature package. It performs
     the following operations:
 
-    * Validation against the codelists and criteria of a DataStructureDefinition
-    * Region-processing, which can consist of three parts:
-        1. Model native regions not listed in the model mapping will be dropped
-        2. Model native regions can be renamed
-        3. Aggregation from model native regions to "common regions"
+    * Validation against the codelists and criteria of a :class:`DataStructureDefinition`
+    * Region processing, which can occur via one or more :class:`Processor` instances. This can be:
+        * Region aggregation (via :class:`RegionProcessor`), which renames and aggregates based on user-provided mappings.
+            1. Model native regions not listed in the model mapping will be dropped
+            2. Model native regions can be renamed
+            3. Aggregation from model native regions to "common regions"
+        * NUTS aggregation (via :class:`NutsProcessor`), which aggregates NUTS3 -> NUTS2 -> NUTS1 -> Country -> EU27(+UK)
     * Validation of consistency across the variable hierarchy
 
     Parameters
@@ -34,11 +37,11 @@ def process(
         Scenario data to be validated and aggregated.
     dsd : :class:`DataStructureDefinition`
         Codelists that are used for validation.
-    dimensions : list, optional
+    dimensions : list of str, str, optional
         Dimensions to be used in the validation, defaults to all dimensions defined in
-        `dsd`
-    processor : :class:`RegionProcessor`, optional
-        Region processor to perform region renaming and aggregation (if given)
+        ``dsd``.
+    processor : :class:`Processor` or list of :class:`Processor`, optional
+        One or more processors to apply. Runs before any config-declared processors.
 
     Returns
     -------
@@ -54,22 +57,55 @@ def process(
     processor = processor or []
     processor = processor if isinstance(processor, list) else [processor]
 
-    dimensions = dimensions or dsd.dimensions
+    dimensions = (
+        [dimensions] if isinstance(dimensions, str) else dimensions
+    ) or dsd.dimensions
+
+    # Auto-instantiate processors declared in nomenclature.yaml under 'processors'
+    # Raise error if both explicit and config-based processors exist.
+    if getattr(dsd.config.processor, "region_processor", False):
+        if any(isinstance(p, RegionProcessor) for p in processor):
+            raise ValueError(
+                "Config declares 'region-processor: true' but an explicit "
+                "RegionProcessor was provided. Please specify only one source of "
+                "RegionProcessor (either via config or explicitly)."
+            )
+        processor.append(
+            RegionProcessor.from_directory(dsd.project_folder / "mappings", dsd)
+        )
+
+    if dsd.config.processor.nuts:
+        if any(isinstance(p, NutsProcessor) for p in processor):
+            raise ValueError(
+                "Config declares 'nuts' processor but an explicit NutsProcessor "
+                "was provided. Please specify only one source of NutsProcessor "
+                "(either via config or explicitly)."
+            )
+        processor.append(NutsProcessor.from_definition(dsd))
 
     if (
-        any(isinstance(p, RegionProcessor) for p in processor)
+        any(isinstance(p, (RegionProcessor, NutsProcessor)) for p in processor)
         and "region" in dimensions
     ):
         dimensions.remove("region")
 
-    # validate against the codelists
+    # Validate against the codelists
     dsd.validate(df, dimensions=dimensions)
 
-    # run the processors
+    # Run the processors
     for p in processor:
-        df = p.apply(df)
+        try:
+            df = p.apply(df)
+        except Exception as error:
+            if p.fail_ok:
+                logger.warning(
+                    f"Processor {p.__class__.__name__} failed with error: {error}. "
+                    "Continuing with processing as fail_ok=True."
+                )
+            else:
+                raise
 
-    # check consistency across the variable hierarchy
+    # Check consistency across the variable hierarchy
     error = dsd.check_aggregate(df)
     if not error.empty:
         raise ValueError(

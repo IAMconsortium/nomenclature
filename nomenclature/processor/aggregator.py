@@ -112,7 +112,7 @@ class Aggregator(Processor):
         agg_components = [comp for item in self.aggregate for comp in item.components]
         agg_targets = [item.name for item in self.aggregate]
         rename_sources = [item.name for item in self.rename]
-        # deduplicate rename targets (which are allowed)
+        # Deduplicate rename targets (which are allowed)
         rename_targets = list({item.rename for item in self.rename})
         _validate_items(
             agg_components + agg_targets + rename_sources + rename_targets,
@@ -131,15 +131,15 @@ class Aggregator(Processor):
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         error = None
-        # check for codes that are not defined in the codelists
+        # Check for codes that are not defined in the codelists
         codelist = getattr(dsd, self.dimension, None)
-        # no validation if codelist is not defined or filter-item is None
+        # No validation if codelist is not defined or filter-item is None
         if codelist is None:
             error = f"Dimension '{self.dimension}' not found in DataStructureDefinition"
         elif invalid := codelist.validate_items(self.codes):
             error = (
-                f"The following {self.dimension}s are not defined in the "
-                "DataStructureDefinition:\n - " + "\n - ".join(invalid)
+                f"The following {self.dimension}s are not defined\n - "
+                + "\n - ".join(f"'{item}'" for item in invalid)
             )
         if error:
             raise ValueError(error + "\nin " + str(self.file) + "")
@@ -167,7 +167,11 @@ class Aggregator(Processor):
 
             aggregate_list: list[dict[str, list]] = []
             for item in mapping_input.get("aggregate", []):
-                # TODO explicit check that only one key-value pair exists per item
+                if not isinstance(item, dict) or len(item) != 1:
+                    raise ValueError(
+                        "Each aggregate item must have exactly one key-value pair,"
+                        f" found {item} in {get_relative_path(file)}"
+                    )
                 aggregate_list.append(
                     dict(name=list(item)[0], components=list(item.values())[0])
                 )

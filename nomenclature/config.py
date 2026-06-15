@@ -27,17 +27,43 @@ logger = logging.getLogger(__name__)
 
 
 class CodeListFromRepository(BaseModel):
+    """
+    Configuration for a codelist from an external repository.
+
+    The `include` and `exclude` filters allow selecting which definitions to import.
+    """
+
     name: str
     include: list[dict[str, Any]] = [{"name": "*"}]
     exclude: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class CodeListConfig(BaseModel):
+    """Configuration for a dimension's codelist.
+
+    This class lists external repositories for codelists, importing definitions
+    from remote sources.
+    """
+
     dimension: str | None = None
     repositories: list[CodeListFromRepository] = Field(
         default_factory=list, alias="repository"
     )
-    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
+    model_config = ConfigDict(
+        extra="forbid", validate_by_name=True, validate_by_alias=True
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def check_no_filter_at_dimension_level(cls, v):
+        if isinstance(v, dict):
+            for field in ("include", "exclude"):
+                if field in v:
+                    raise ValueError(
+                        f"'{field}' must be nested inside 'repository', not at the "
+                        f"dimension level."
+                    )
+        return v
 
     @field_validator("repositories", mode="before")
     @classmethod
@@ -60,6 +86,13 @@ class CodeListConfig(BaseModel):
 
 
 class RegionCodeListConfig(CodeListConfig):
+    """
+    Configuration for a region codelist.
+
+    This class allows selecting which regions to import from external repositories
+    and importing the definitions for ISO3 countries and NUTS regions.
+    """
+
     country: bool = False
     nuts: dict[str, str | list[str] | bool] | None = None
 
@@ -77,11 +110,13 @@ class RegionCodeListConfig(CodeListConfig):
 
 
 class Repository(BaseModel):
+    """Configuration for an external codelist repository."""
+
     url: str
     hash: str | None = None
     release: str | None = None
     local_path: Path | None = Field(default=None, validate_default=True)
-    # defined via the `repository` name in the configuration
+    # Defined via the `repository` name in the configuration
 
     @model_validator(mode="after")
     @classmethod
@@ -150,35 +185,38 @@ class Repository(BaseModel):
 
 
 class DataStructureConfig(BaseModel):
-    """A class for configuration of a DataStructureDefinition
+    """
+    Configuration class for the data structure definition.
 
-    Attributes
-    ----------
-    region : RegionCodeListConfig
-        Attributes for configuring the RegionCodeList
+    This class defines the configuration for the main IAMC dimensions:
+    - scenario
+    - region
+    - variable
 
+    Each dimension can be configured with its own code list and repository sources.
     """
 
-    model: CodeListConfig = Field(default_factory=CodeListConfig)
     scenario: CodeListConfig = Field(default_factory=CodeListConfig)
     region: RegionCodeListConfig = Field(default_factory=RegionCodeListConfig)
     variable: CodeListConfig = Field(default_factory=CodeListConfig)
 
-    @field_validator("model", "scenario", "region", "variable", mode="before")
+    @field_validator("scenario", "region", "variable", mode="before")
     @classmethod
     def add_dimension(cls, v, info: ValidationInfo):
         return {"dimension": info.field_name, **v}
 
     @property
-    def repos(self) -> dict[str, str]:
+    def repos(self) -> dict[str, list[CodeListFromRepository]]:
         return {
             dimension: getattr(self, dimension).repositories
-            for dimension in ("model", "scenario", "region", "variable")
+            for dimension in ("scenario", "region", "variable")
             if getattr(self, dimension).repositories
         }
 
 
 class MappingRepository(BaseModel):
+    """Configuration for a mapping repository."""
+
     name: str
     include: list[str] = ["*"]
 
@@ -194,8 +232,22 @@ class MappingRepository(BaseModel):
             if re.match(pattern, model) is not None
         ]
 
+    def validate_include_patterns(self, models: list[str]) -> None:
+        """Raise if any include pattern matches no models in the external repo."""
+        if errors := [
+            ValueError(f"No models found for include pattern: '{pattern}'")
+            for pattern, regex in zip(self.include, self.regex_include_patterns)
+            if not any(re.match(regex, model) for model in models)
+        ]:
+            raise ExceptionGroup(
+                f"Mapping include pattern validation for repository '{self.name}' failed",
+                errors,
+            )
+
 
 class RegionMappingConfig(BaseModel):
+    """Configuration for region mapping/aggregation external repositories."""
+
     repositories: list[MappingRepository] = Field(
         default_factory=list, alias="repository"
     )
@@ -217,13 +269,25 @@ class RegionMappingConfig(BaseModel):
         return v
 
 
+class ProcessorConfig(BaseModel):
+    """Configuration for region processor settings."""
+
+    nuts: list[str] = Field(default_factory=list, alias="nuts-processor")
+    region_processor: bool = Field(default=False, alias="region-processor")
+
+    model_config = ConfigDict(
+        validate_by_name=True, validate_by_alias=True, extra="forbid"
+    )
+
+
 class TimeDomainConfig(BaseModel):
+    """Configuration for time domain validation settings."""
+
     year_allowed: bool = Field(default=True, alias="year")
     datetime_allowed: bool = Field(default=False, alias="datetime")
     timezone: str | None = Field(
         default=None,
         pattern=r"^UTC([+-])(1[0-4]|0?[0-9]):([0-5][0-9])$",
-        # pattern_msg="Invalid timezone format. Expected format: 'UTC±HH:MM'."
     )
 
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
@@ -243,8 +307,8 @@ class TimeDomainConfig(BaseModel):
 
     @property
     def datetime_format(self) -> str:
-        # if year is a separate column, exclude it from format
-        # if not, datetime is coerced in IamDataFrame, and include seconds
+        # If year is a separate column, exclude it from format
+        # If not, datetime is coerced to IamDataFrame, and include seconds
         return "%Y-%m-%d %H:%M:%S" if self.datetime_allowed else None
 
     def check_datetime_format(self, df: IamDataFrame) -> None:
@@ -254,7 +318,7 @@ class TimeDomainConfig(BaseModel):
         for d in _datetime:
             try:
                 _dt = datetime.strptime(str(d), self.datetime_format + "%z")
-                # only check timezone if a specific timezone is required
+                # Only check timezone if a specific timezone is required
                 if self.timezone and not _dt.tzname() == self.timezone:
                     errors.append(TimeDomainError(f"{d} - invalid timezone"))
             except ValueError:
@@ -305,6 +369,9 @@ class NomenclatureConfig(BaseModel):
     repositories: dict[str, Repository] = Field(default_factory=dict)
     definitions: DataStructureConfig = Field(default_factory=DataStructureConfig)
     mappings: RegionMappingConfig = Field(default_factory=RegionMappingConfig)
+    processor: ProcessorConfig = Field(
+        default_factory=ProcessorConfig, alias="processors"
+    )
     illegal_characters: list[str] = Field(
         default=[":", ";", '"'], alias="illegal-characters"
     )
@@ -326,6 +393,7 @@ class NomenclatureConfig(BaseModel):
     def check_definitions_repository(
         cls, v: "NomenclatureConfig"
     ) -> "NomenclatureConfig":
+        """Check that all repositories referenced in definitions and mappings exist."""
         mapping_repos = {"mappings": v.mappings.repositories} if v.mappings else {}
         repos: dict[str, list[MappingRepository]] = {
             **v.definitions.repos,
@@ -337,23 +405,63 @@ class NomenclatureConfig(BaseModel):
                 raise ValueError((f"Unknown repository {unknown_repos} in '{use}'."))
         return v
 
+    @model_validator(mode="after")
+    @classmethod
+    def check_nuts_consistency(cls, v: "NomenclatureConfig") -> "NomenclatureConfig":
+        if v.processor.nuts and not v.definitions.region.nuts:
+            raise ValueError(
+                "`nuts` region processor set but no NUTS regions in `definitions`. "
+                "To fix, set `definitions.regions.nuts` to True."
+            )
+        return v
+
     def fetch_repos(self, target_folder: Path):
         for repo_name, repo in self.repositories.items():
             repo.fetch_repo(target_folder / repo_name)
 
+    def validate_mapping_includes(self) -> None:
+        """Validate that all mapping include patterns match at least one model."""
+        for repository in self.mappings.repositories:
+            repo_mapping_dir = (
+                self.repositories[repository.name].local_path / "mappings"
+            )
+            all_models: list[str] = []
+            for file in repo_mapping_dir.glob("**/*.y*ml"):
+                try:
+                    data = yaml.safe_load(file.read_text(encoding="utf-8"))
+                except Exception as exc:
+                    raise ValueError(f"Failed to parse mapping file '{file}'") from exc
+                if not isinstance(data, dict) or not (model_value := data.get("model")):
+                    raise ValueError(
+                        f"Missing/invalid 'model' key in mapping file '{file}' "
+                        f"in repository '{repository.name}'"
+                    )
+                all_models.extend(
+                    model_value if isinstance(model_value, list) else [model_value]
+                )
+            if all_models:
+                repository.validate_include_patterns(all_models)
+            else:
+                logger.warning(
+                    f"No model mappings found in repository '{repository.name}' at '{repo_mapping_dir}'."
+                )
+
     @classmethod
     def from_file(cls, file: Path, dry_run: bool = False):
-        """Read a DataStructureConfig from a file
+        """Read a NomenclatureConfig from a file
 
         Parameters
         ----------
         file : :class:`pathlib.Path` or path-like
             Path to config file
-
+        dry_run : bool, optional
+            If True, only parse the config file without fetching repositories
+            or validating mapping filters. Default is False.
         """
         with open(file, "r", encoding="utf-8") as stream:
             config = yaml.safe_load(stream)
         instance = cls(**config)
         if not dry_run:
             instance.fetch_repos(file.parent)
+            instance.validate_mapping_includes()
         return instance

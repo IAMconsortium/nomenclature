@@ -1,4 +1,4 @@
-# initialization fails because of conflict between pyam-region-aggregation args
+# Initialization fails because of conflict between pyam-region-aggregation args
 # and 'region-aggregation' attribute
 - Price|Carbon:
     definition: Price of carbon

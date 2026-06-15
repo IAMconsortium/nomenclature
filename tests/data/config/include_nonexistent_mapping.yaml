@@ -1,0 +1,8 @@
+repositories:
+  common-definitions:
+    url: https://github.com/IAMconsortium/common-definitions.git/
+mappings:
+  repository:
+    name: common-definitions
+    include:
+      - Non-Existent-Model*

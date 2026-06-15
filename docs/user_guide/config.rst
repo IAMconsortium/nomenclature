@@ -47,6 +47,8 @@ multiple external repositories can be used as the example below illustrates for
   repositories:
     common-definitions:
       url: https://github.com/IAMconsortium/common-definitions.git/
+    legacy-definitions:
+      url: https://github.com/IAMconsortium/legacy-definitions.git/
   definitions:
     region:
       repository: common-definitions
@@ -114,6 +116,8 @@ the nomenclature package will add all countries to the *region* codelist.
 
 More details on the list of countries can be found here: :ref:`countries`.
 
+.. _adding-countries:
+
 Adding NUTS to the region codelist
 ----------------------------------
 
@@ -174,3 +178,47 @@ the filtering for definitions.
 
 The above example retrieves only the model mapping for *MESSAGEix-GLOBIOM 2.1-M-R12*
 from the common-definitions repository.
+
+Configuring processors
+----------------------
+
+The ``processors`` section of *nomenclature.yaml* allows processors to be declared
+directly in the configuration file, so they are applied automatically when calling
+:func:`process` without passing an explicit ``processor`` argument.
+
+Region processor
+^^^^^^^^^^^^^^^^
+
+Setting *processors.region-processor* as *true* will automatically create a
+:class:`RegionProcessor` from the project's default ``mappings/`` directory:
+
+.. code:: yaml
+
+  processors:
+    region-processor: true
+
+This is equivalent to calling:
+
+.. code:: python
+
+  import pyam
+  from nomenclature.processor import RegionProcessor
+  
+  df = pyam.IamDataFrame(data="path/to/file.csv")
+  dsd = DataStructureDefinition("definitions")
+  processor = RegionProcessor.from_directory("mappings", dsd)
+  aggregated_data = process(df, dsd)
+
+NUTS processor
+^^^^^^^^^^^^^^
+
+Setting *processors.nuts* to a list of model names will automatically create a
+:class:`NutsProcessor` and apply NUTS hierarchical aggregation (NUTS3 → NUTS2 →
+NUTS1 → Country → EU27) for those models:
+
+.. code:: yaml
+
+  processors:
+    nuts-processor: [ Model A, Model B ]
+
+More details on NUTS aggregation can be found here: :ref:`nuts`.

@@ -1,4 +1,5 @@
 import copy
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -55,7 +56,7 @@ def test_region_processing_rename(model_name):
 )
 def test_region_processing_empty_raises(rp_dir):
     # Test that an empty result of the region-processing raises
-    # see also https://github.com/IAMconsortium/pyam/issues/631
+    # See also https://github.com/IAMconsortium/pyam/issues/631
     test_df = IamDataFrame(
         pd.DataFrame(
             [
@@ -198,7 +199,7 @@ def test_region_processing_complete(directory):
             ],
             None,
         ),
-        # check that region-aggregation with missing weights passes (inconsistent index)
+        # Check that region-aggregation with missing weights passes (inconsistent index)
         # TODO check the log output
         (
             "weighted_aggregation",
@@ -211,7 +212,7 @@ def test_region_processing_complete(directory):
     ],
 )
 def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
-    # test a weighed sum
+    # Test a weighed sum
 
     test_df = IamDataFrame(
         pd.DataFrame(
@@ -244,7 +245,7 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
         ),
     )
     assert_iamframe_equal(obs, exp)
-    # check the logs since the presence of args should cause a warning in the logs
+    # Check the logs since the presence of args should cause a warning in the logs
     if args:
         logmsg = (
             "Could not aggregate 'Price|Carbon' for region 'World' "
@@ -590,7 +591,7 @@ def test_aggregation_differences_export(input_data, expected_difference):
 
 
 def test_region_aggregation_unknown_region(simple_df, simple_definition, caplog):
-    # add an unknown region
+    # Add an unknown region
     df_with_unknown_region = simple_df.append(
         pd.DataFrame(
             [
@@ -609,8 +610,73 @@ def test_region_aggregation_unknown_region(simple_df, simple_definition, caplog)
     )
     with pytest.raises(
         UnknownRegionError,
-        match=r"region\(s\) are not defined in the region codelist:\n - unknown region",
+        match=r"region\(s\) are not defined in the region codelist:\n - 'unknown region'",
     ):
         RegionProcessor.from_directory(
             TEST_DATA_DIR / "region_processing" / "no_mapping", simple_definition
         ).apply(df_with_unknown_region)
+
+
+CONFIG_PROCESSOR_DIR = TEST_DATA_DIR / "processor"
+
+
+def test_config_region_processor_auto_loaded():
+    """
+    Test `region-processor: true` in nomenclature.yaml creates `RegionProcessor`
+    from the default mappings directory.
+    """
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_a", "scen_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "scen_a", "region_C", "Primary Energy", "EJ/yr", 5, 6],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    exp = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 4, 6],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    dsd = DataStructureDefinition(CONFIG_PROCESSOR_DIR / "region_processor/definitions")
+    obs = process(test_df, dsd)
+
+    assert_iamframe_equal(obs, exp)
+
+
+def test_config_and_explicit_region_processor_raise():
+    """
+    Test that providing an explicit `RegionProcessor` when config also declares one
+    raises a `ValueError`.
+    """
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "region_A", "Primary Energy", "EJ/yr", 1, 2],
+                ["model_a", "scen_a", "region_B", "Primary Energy", "EJ/yr", 3, 4],
+                ["model_a", "scen_a", "region_C", "Primary Energy", "EJ/yr", 5, 6],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    dsd = DataStructureDefinition(CONFIG_PROCESSOR_DIR / "region_processor/definitions")
+    explicit_rp = RegionProcessor.from_directory(
+        CONFIG_PROCESSOR_DIR / "region_processor/mappings", dsd
+    )
+
+    with patch.object(
+        RegionProcessor, "from_directory", wraps=RegionProcessor.from_directory
+    ) as from_dir:
+        with pytest.raises(
+            ValueError, match="Config declares 'region-processor: true' but an explicit"
+        ):
+            process(test_df, dsd, processor=explicit_rp)
+        from_dir.assert_not_called()

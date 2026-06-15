@@ -3,9 +3,9 @@ native_regions:
   # region_B is passed through
   - region_B
 common_regions:
-  # this is a common region that is renamed from the native-region model output 
-  # variables marked as `skip-region-aggregation` are removed during region-processing
+  # This is a common region that is renamed from the native-region model output 
+  # Variables marked as `skip-region-aggregation` are removed during region-processing
   - region_A: [region_a]
 exclude_regions:
-  - region_a  # the constituent region is excluded from the final data
+  - region_a  # The constituent region is excluded from the final data
   - region_C

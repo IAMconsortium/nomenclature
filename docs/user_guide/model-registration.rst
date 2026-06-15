@@ -24,6 +24,36 @@ Please use the `Excel template`_ and send it to the project managers by email.
 
 .. _`Excel template`: https://raw.githubusercontent.com/IAMconsortium/nomenclature/main/templates/model-registration-template.xlsx
 
+Converting Excel template to YAML
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you have filled out the Excel model registration template and need to convert it
+to YAML format, you can use the :ref:`cli` command ``parse-model-registration``:
+
+.. code-block:: bash
+
+    nomenclature parse-model-registration registration.xlsx
+
+This command reads the Excel file and generates two sets of YAML files:
+
+- **Region definitions**: Created in ``definitions/region/`` (default location)
+- **Model mappings**: Created in ``mappings/`` (default location)
+
+You can specify custom output folders using the ``--definition-path`` and
+``--mappings-path`` options:
+
+.. code-block:: bash
+
+    nomenclature parse-model-registration registration.xlsx \
+        --definition-path ./custom/definitions/region \
+        --mappings-path ./custom/mappings
+
+The command automatically:
+
+- Parses the "Common-Region-Mapping" sheet to generate model mapping YAML files
+- Parses the "Region-Country-Mapping" sheet (if present) to generate region definitions with country lists
+- Adds an aggregation to "World" from R5 regions (if present)
+
 Option 2) Registration using a GitHub pull request
 --------------------------------------------------
 
