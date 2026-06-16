@@ -51,7 +51,7 @@ class CountryProcessor(Processor):
         dsd : DataStructureDefinition
             Project data structure definition.
         models : list[str], optional
-            Models to apply country aggregation to. Defaults to the list configured
+            Models for which to apply country aggregation. Defaults to the list configured
             under ``config.processor.countries`` in *dsd*.
 
         Raises
@@ -80,22 +80,13 @@ class CountryProcessor(Processor):
                 None,
             )
             if level:
-                # Get constituent countries
-                constituent_countries = []
-
-                if code.countries:
-                    constituent_countries = code.countries
-                elif code.iso3_codes:
-                    # Convert ISO3 codes to country names
-                    for iso3 in code.iso3_codes:
-                        country = countries.get(alpha_3=iso3)
-                        if country:
-                            constituent_countries.append(country.name)
-                        else:
-                            logger.warning(
-                                f"ISO3 code '{iso3}' in region '{code.name}' "
-                                "not found in countries database"
-                            )
+                # Get constituent countries (except for "Other" regions)
+                if not code.countries and not code.name.startswith("Other"):
+                    raise ValueError(
+                        f"List of constituent countries for region '{code.name}' "
+                        "not found in codelist."
+                    )
+                constituent_countries = code.countries
 
                 if constituent_countries:
                     aggregates_by_level.setdefault(level, {})[code.name] = (
@@ -149,10 +140,6 @@ class CountryProcessor(Processor):
 
             # Skip unlisted models
             if model not in self.models:
-                logger.info(
-                    f"Skipping country aggregation for model '{model}' "
-                    "(no country aggregation mapping)"
-                )
                 processed_dfs.append(model_df)
             else:
                 logger.info(f"Applying country processing for model '{model}'")
