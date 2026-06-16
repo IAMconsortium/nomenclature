@@ -34,7 +34,7 @@ Minimal configuration
            - hierarchy: [R5, R9, R10]
 
    processors:
-     countries-processor: [Model A, Model B]
+     country-processor: [Model A, Model B]
 
 In this setup, all country codes are added to the region codelist, the R5/R9/R10
 region definitions are imported from ``common-definitions``, and the processor is

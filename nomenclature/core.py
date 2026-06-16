@@ -63,7 +63,7 @@ def process(
 
     # Auto-instantiate processors declared in nomenclature.yaml under 'processors'
     # Raise error if both explicit and config-based processors exist.
-    if getattr(dsd.config.processor, "region_processor", False):
+    if getattr(dsd.config.processor, "region", False):
         if any(isinstance(p, RegionProcessor) for p in processor):
             raise ValueError(
                 "Config declares 'region-processor: true' but an explicit "

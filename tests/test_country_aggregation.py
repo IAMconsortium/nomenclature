@@ -161,7 +161,7 @@ def test_country_from_definition_no_models():
 
     try:
         # Override the processor configuration to be empty
-        dsd.config.processor.countries = []
+        dsd.config.processor.country = []
 
         with pytest.raises(
             ValueError, match="No models configured for Country processor"

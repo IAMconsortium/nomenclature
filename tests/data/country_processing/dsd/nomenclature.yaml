@@ -12,4 +12,4 @@ definitions:
       include:
         - hierarchy: [R5, R9, R10]
 processors:
-  countries: [model_a]
+  country: [model_a]

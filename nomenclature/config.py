@@ -273,8 +273,8 @@ class ProcessorConfig(BaseModel):
     """Configuration for region processor settings."""
 
     nuts: list[str] = Field(default_factory=list, alias="nuts-processor")
-    countries: list[str] = Field(default_factory=list, alias="countries-processor")
-    region_processor: bool = Field(default=False, alias="region-processor")
+    country: list[str] = Field(default_factory=list, alias="country-processor")
+    region: bool = Field(default=False, alias="region-processor")
 
     model_config = ConfigDict(
         validate_by_name=True, validate_by_alias=True, extra="forbid"

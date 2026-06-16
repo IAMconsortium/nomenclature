@@ -226,7 +226,7 @@ More details on NUTS aggregation can be found here: :ref:`nuts`.
 Country processor
 ^^^^^^^^^^^^^^^^^
 
-Setting *processors.countries-processor* to a list of model names will
+Setting *processors.country-processor* to a list of model names will
 automatically create a :class:`CountryProcessor` and aggregate country-level
 data to common regional definitions such as R5, R9 and R10 for those models:
 
@@ -245,7 +245,7 @@ data to common regional definitions such as R5, R9 and R10 for those models:
           - hierarchy: [R5, R9, R10]
 
   processors:
-    countries-processor: [ Model A, Model B ]
+    country-processor: [ Model A, Model B ]
 
 The country processor reads the imported R5/R9/R10 definitions from the region
 codelist and aggregates directly from countries to those regions. If one of

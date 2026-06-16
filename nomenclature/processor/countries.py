@@ -59,7 +59,7 @@ class CountryProcessor(Processor):
         ValueError
             If no models are configured for country processing.
         """
-        models = models or dsd.config.processor.countries
+        models = models or dsd.config.processor.country
         if not models:
             raise ValueError("No models configured for Country processor")
         return cls(
