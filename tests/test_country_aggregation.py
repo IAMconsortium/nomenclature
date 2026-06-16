@@ -54,6 +54,34 @@ def test_country_simple_aggregation():
         )
     )
 
+    expected_values = {
+        "OECD & EU (R5)": {2005: 25.0, 2010: 29.0},
+        "Asia (R5)": {2005: 15.0, 2010: 18.0},
+        "Latin America (R5)": {2005: 4.0, 2010: 5.0},
+        "European Union (R9)": {2005: 2.0, 2010: 3.0},
+        "USA (R9)": {2005: 20.0, 2010: 22.0},
+        "Other OECD (R9)": {2005: 3.0, 2010: 4.0},
+        "China (R9)": {2005: 10.0, 2010: 12.0},
+        "India (R9)": {2005: 5.0, 2010: 6.0},
+        "Latin America (R9)": {2005: 4.0, 2010: 5.0},
+        "China+ (R10)": {2005: 10.0, 2010: 12.0},
+        "Europe (R10)": {2005: 2.0, 2010: 3.0},
+        "India+ (R10)": {2005: 5.0, 2010: 6.0},
+        "Latin America (R10)": {2005: 4.0, 2010: 5.0},
+        "North America (R10)": {2005: 20.0, 2010: 22.0},
+        "Pacific OECD (R10)": {2005: 3.0, 2010: 4.0},
+    }
+    expected_aggregates = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", region, "Primary Energy", "EJ/yr", year, value]
+                for region, values_by_year in expected_values.items()
+                for year, value in values_by_year.items()
+            ],
+            columns=IAMC_IDX + ["year", "value"],
+        )
+    )
+
     dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "definitions")
     try:
         # Load DSD and apply CountryProcessor
@@ -62,47 +90,16 @@ def test_country_simple_aggregation():
         result = processor.apply(test_df)
 
         # Check that aggregated regions are present
-        assert "Asia (R5)" in result.region
-        assert "OECD & EU (R5)" in result.region
-        assert "China (R9)" in result.region
-        assert "Other OECD (R9)" in result.region
-        assert "China+ (R10)" in result.region
-        assert "Pacific OECD (R10)" in result.region
+        assert set(expected_values).issubset(result.region)
 
         # Check original countries are still present
         assert "China" in result.region
         assert "Japan" in result.region
         assert "Brazil" in result.region
 
-        asia_data = result.filter(region="Asia (R5)")
-        assert len(asia_data) > 0
-        assert asia_data.filter(year=2005)["value"].values[0] == 15.0  # 10 + 5
-        assert asia_data.filter(year=2010)["value"].values[0] == 18.0  # 12 + 6
+        observed_aggregates = result.filter(region=list(expected_values))
 
-        oecd_data = result.filter(region="OECD & EU (R5)")
-        assert len(oecd_data) > 0
-        assert oecd_data.filter(year=2005)["value"].values[0] == 25.0  # 20 + 2 + 3
-        assert oecd_data.filter(year=2010)["value"].values[0] == 29.0  # 22 + 3 + 4
-
-        china_r9 = result.filter(region="China (R9)")
-        assert len(china_r9) > 0
-        assert china_r9.filter(year=2005)["value"].values[0] == 10.0
-        assert china_r9.filter(year=2010)["value"].values[0] == 12.0
-
-        other_oecd_r9 = result.filter(region="Other OECD (R9)")
-        assert len(other_oecd_r9) > 0
-        assert other_oecd_r9.filter(year=2005)["value"].values[0] == 3.0
-        assert other_oecd_r9.filter(year=2010)["value"].values[0] == 4.0
-
-        china_r10 = result.filter(region="China+ (R10)")
-        assert len(china_r10) > 0
-        assert china_r10.filter(year=2005)["value"].values[0] == 10.0
-        assert china_r10.filter(year=2010)["value"].values[0] == 12.0
-
-        pacific_oecd_r10 = result.filter(region="Pacific OECD (R10)")
-        assert len(pacific_oecd_r10) > 0
-        assert pacific_oecd_r10.filter(year=2005)["value"].values[0] == 3.0
-        assert pacific_oecd_r10.filter(year=2010)["value"].values[0] == 4.0
+        assert_iamframe_equal(observed_aggregates, expected_aggregates)
     finally:
         clean_up_external_repos(dsd.config.repositories)
 
