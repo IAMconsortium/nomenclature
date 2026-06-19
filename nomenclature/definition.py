@@ -126,7 +126,7 @@ class DataStructureDefinition:
             except (UnknownCodeError, WrongUnitError) as e:
                 exceptions.append(e)
         try:
-            self.config.time_domain.validate_datetime(df)
+            self.config.time_domain.validate_datetime(df, dimensions=self.dimensions)
         except* TimeDomainError as e:
             exceptions.append(e)
         if exceptions:
