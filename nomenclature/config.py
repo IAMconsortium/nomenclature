@@ -328,8 +328,21 @@ class TimeDomainConfig(BaseModel):
                 "The following datetime values are invalid:", errors
             )
 
-    def validate_datetime(self, df: IamDataFrame) -> None:
-        """Validate datetime coordinates against allowed format and/or timezone."""
+    def validate_datetime(self, df: IamDataFrame, dimensions: list[str] | None = None) -> None:
+        """Validate datetime coordinates against allowed format and/or timezone.
+        
+        Parameters
+        ----------
+        df : IamDataFrame
+            The dataframe to validate
+        dimensions : list of str, optional
+            List of allowed dimensions for validation
+        """
+        if "subannual" in df.data.columns and (dimensions is None or "subannual" not in dimensions):
+            raise TimeDomainError(
+                "Invalid time domain - `subannual` found, but not allowed."
+            )
+        
         if df.time_domain == "year":
             if not self.year_allowed:
                 raise TimeDomainError(

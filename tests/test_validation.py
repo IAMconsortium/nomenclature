@@ -210,3 +210,18 @@ def test_validate_time_entry_raises(
     ) as excinfo:
         simple_definition.validate(df)
     assert excinfo.group_contains(TimeDomainError, match=match)
+
+
+def test_validation_subannual_requires_configuration(simple_df, simple_definition):
+    """Test that subannual data raises if not explicitly configured"""
+    df = IamDataFrame(simple_df.data.assign(subannual="winter-night"))
+
+    with pytest.raises(
+        NomenclatureValidationError, match=MATCH_FAIL_VALIDATION
+    ) as excinfo:
+        simple_definition.validate(df)
+
+    assert excinfo.group_contains(
+        TimeDomainError,
+        match=r"Invalid time domain - `subannual` found, but not allowed.",
+    )
