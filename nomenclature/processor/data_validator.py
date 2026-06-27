@@ -388,3 +388,15 @@ class DataValidator(Processor):
                 f"Error in DataValidator (file {get_relative_path(self.file)})",
                 errors,
             )
+
+    @property
+    def input_data(self):
+        _input_data = {}
+        for criterion in self.criteria_items:
+            for key, value in criterion.filter_args.items():
+                if key in _input_data:
+                    _input_data[key].extend(value)
+                else:
+                    _input_data[key] = value
+
+        return _input_data
