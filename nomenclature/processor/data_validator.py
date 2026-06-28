@@ -391,12 +391,21 @@ class DataValidator(Processor):
 
     @property
     def input_data(self):
-        _input_data = {}
-        for criterion in self.criteria_items:
-            for key, value in criterion.filter_args.items():
-                if key in _input_data:
-                    _input_data[key].extend(value)
-                else:
-                    _input_data[key] = value
+        return merge_criteria_items_filter_args(self.criteria_items)
 
-        return _input_data
+
+def merge_criteria_items_filter_args(list_of_items: list[DataValidationItem]) -> dict:
+    """Concatenate filter-arguments"""
+    merged_dict = {}
+    for dct in list_of_items:
+        for key, value in dct.filter_args.items():
+            if key in merged_dict:
+                merged_dict[key].extend(value)
+            else:
+                merged_dict[key] = value
+
+    # drop duplicates
+    for key, value in merged_dict.items():
+        merged_dict[key] = list(set(merged_dict[key]))
+
+    return merged_dict
