@@ -199,3 +199,32 @@ def test_code_with_multi_key_dict_raises():
 def test_code_with_definition_and_description_raises():
     with raises(ValueError, match="Found both 'definition' and 'description'"):
         Code.from_dict({"Code": {"definition": "", "description": ""}})
+
+
+def test_code_long_description():
+    code = Code(name="code1", description="A code")
+    assert code.long_description == "A code"
+    assert code.long_description == code.description
+
+
+def test_variablecode_long_description():
+    variablecode = VariableCode(name="var1", description="A variable", unit="unit1")
+    assert variablecode.long_description == "A variable [unit1]"
+
+
+def test_regioncode_long_description():
+    a_country_region = RegionCode(
+        name="country", description="A country", iso3_codes="ABW"
+    )
+    assert a_country_region.long_description == "A country [ABW]"
+    a_region_with_multiple_iso3_codes = RegionCode(
+        name="region", description="A region", iso3_codes=["ABW", "AFG"]
+    )
+    assert a_region_with_multiple_iso3_codes.long_description == "A region [ABW, AFG]"
+    a_common_region_with_multiple_countries = RegionCode(
+        name="region", description="A region", countries=["Aruba", "Afghanistan"]
+    )
+    assert (
+        a_common_region_with_multiple_countries.long_description
+        == "A region; Countries: Aruba, Afghanistan"
+    )

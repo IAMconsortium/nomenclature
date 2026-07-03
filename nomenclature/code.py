@@ -18,7 +18,6 @@ from typing_extensions import Self
 
 from nomenclature.countries import countries
 
-
 # This must be kept in sync with the subtypes of `DataValidationCriteria`
 VALIDATION_ARGS = [
     "upper_bound",
@@ -198,6 +197,11 @@ class Code(BaseModel):
         else:
             super().__setattr__(name, value)
 
+    @property
+    def long_description(self) -> str | None:
+        """Return a long description of the code, including extra attributes."""
+        return self.description
+
 
 class VariableCode(Code):
     unit: str | list[str] = Field(...)
@@ -304,6 +308,13 @@ class VariableCode(Code):
             if key in VALIDATION_ARGS and value is not None
         }
 
+    @property
+    def long_description(self) -> str | None:
+        """Return a long description of the variable code, including validation args."""
+        if self.description is None:
+            return self.description
+        return self.description + f" [{self.unit}]"
+
 
 class RegionCode(Code):
     """A subclass of Code specified for regions
@@ -396,6 +407,18 @@ class RegionCode(Code):
     @property
     def has_prefix(self) -> bool:
         return "|" in self.name
+
+    @property
+    def long_description(self) -> str | None:
+        """Return a long description of the region code, including countries and ISO3 codes."""
+        if self.description is None:
+            return
+        description = self.description
+        if self.countries:
+            description += f"; Countries: {', '.join(self.countries)}"
+        if self.iso3_codes:
+            description += f" [{', '.join(to_list(self.iso3_codes))}]"
+        return description
 
 
 class MetaCode(Code):
