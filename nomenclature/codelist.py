@@ -899,6 +899,7 @@ class RegionCodeList(CodeList):
                 code_list.append(
                     RegionCode(
                         name=country.name,
+                        description=country.name,
                         iso3_codes=country.alpha_3,
                         hierarchy="Country",
                     )
