@@ -216,14 +216,11 @@ def test_regioncode_long_description():
     a_country_region = RegionCode(
         name="country", description="A country", iso3_codes="ABW"
     )
-    assert a_country_region.long_description == "A country; ISO3 code: ABW"
+    assert a_country_region.long_description == "A country [ABW]"
     a_region_with_multiple_iso3_codes = RegionCode(
         name="region", description="A region", iso3_codes=["ABW", "AFG"]
     )
-    assert (
-        a_region_with_multiple_iso3_codes.long_description
-        == "A region; ISO3 codes: ABW, AFG"
-    )
+    assert a_region_with_multiple_iso3_codes.long_description == "A region [ABW, AFG]"
     a_common_region_with_multiple_countries = RegionCode(
         name="region", description="A region", countries=["Aruba", "Afghanistan"]
     )
