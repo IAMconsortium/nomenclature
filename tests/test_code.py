@@ -209,7 +209,7 @@ def test_code_long_description():
 
 def test_variablecode_long_description():
     variablecode = VariableCode(name="var1", description="A variable", unit="unit1")
-    assert variablecode.long_description == "A variable; [unit1]"
+    assert variablecode.long_description == "A variable [unit1]"
 
 
 def test_regioncode_long_description():

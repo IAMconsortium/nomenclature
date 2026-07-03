@@ -313,7 +313,7 @@ class VariableCode(Code):
         """Return a long description of the variable code, including validation args."""
         if self.description is None:
             return self.description
-        return self.description + f"; [{self.unit}]"
+        return self.description + f" [{self.unit}]"
 
 
 class RegionCode(Code):
@@ -412,14 +412,12 @@ class RegionCode(Code):
     def long_description(self) -> str | None:
         """Return a long description of the region code, including countries and ISO3 codes."""
         if self.description is None:
-            return self.description
+            return
         description = self.description
         if self.countries:
             description += f"; Countries: {', '.join(self.countries)}"
-        if self.iso3_codes and isinstance(self.iso3_codes, list):
-            description += f"; ISO3 codes: {', '.join(to_list(self.iso3_codes))}"
-        if self.iso3_codes and isinstance(self.iso3_codes, str):
-            description += f"; ISO3 code: {self.iso3_codes}"
+        if self.iso3_codes:
+            description += f" [{', '.join(to_list(self.iso3_codes))}]"
         return description
 
 
