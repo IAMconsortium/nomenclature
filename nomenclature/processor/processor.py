@@ -12,6 +12,10 @@ class Processor(BaseModel, abc.ABC):
     output_meta: Annotated[list[str] | None, Field(frozen=True)] = None
     fail_ok: bool = False
 
+    @property
+    def input_meta(self) -> Annotated[list[str] | None, Field(frozen=True)]:
+        return
+
     @abc.abstractmethod
     def apply(self, df: IamDataFrame) -> IamDataFrame:
         raise NotImplementedError
