@@ -13,8 +13,8 @@ aggregation and does not require a nested hierarchy to be computed level by leve
 
 The processor reads region definitions from the project's region codelist and
 looks for entries with hierarchy names containing ``R5``, ``R9`` or ``R10``.
-Constituent countries are taken from the ``countries`` or ``iso3_codes``
-attributes of those region definitions.
+Constituent countries are taken from the ``countries`` attributes of those region
+definitions.
 
 Minimal configuration
 ---------------------
@@ -27,18 +27,18 @@ Minimal configuration
 
    definitions:
      region:
-       country: true
        repository:
          name: common-definitions
          include:
            - hierarchy: [R5, R9, R10]
+       country: true
 
    processors:
-     country-processor: [Model A, Model B]
+     country: [Model A, Model B]
 
-In this setup, all country codes are added to the region codelist, the R5/R9/R10
+In this setup, all country names are added to the region codelist, the R5/R9/R10
 region definitions are imported from ``common-definitions``, and the processor is
 applied to the listed models.
 
 .. autoclass:: CountryProcessor
-   :members: from_definition, regional_aggregates, regional_aggregates_by_level, apply
+   :members: from_definition, apply
