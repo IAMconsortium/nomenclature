@@ -997,21 +997,6 @@ class RegionCodeList(CodeList):
         """
         return sorted(list({v.hierarchy for v in self.mapping.values()}))
 
-    def by_hierarchy(self, hierarchy: str) -> list[RegionCode]:
-        """Filter region codes by hierarchy.
-
-        Parameters
-        ----------
-        hierarchy : str
-            Hierarchy value to match exactly.
-
-        Returns
-        -------
-        list[RegionCode]
-            List of region codes whose hierarchy exactly matches the given value.
-        """
-        return [code for code in self.mapping.values() if code.hierarchy == hierarchy]
-
     @classmethod
     def _parse_region_code_dir(
         cls,

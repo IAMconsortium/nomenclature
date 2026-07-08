@@ -662,19 +662,19 @@ class RegionProcessor(Processor):
         # Extract regional aggregates from codelist for given hierarchies
         regional_aggregates = {}
         for hierarchy in hierarchies:
-            for code in dsd.region.by_hierarchy(hierarchy):
+            for code in dsd.region.filter(hierarchy=hierarchy).items():
                 if skip_patterns and any(
-                    re.match(escape_regexp(pattern), code.name)
+                    re.match(escape_regexp(pattern), code[0])
                     for pattern in skip_patterns
                 ):
                     continue
-                if not code.countries:
+                if not code[1].countries:
                     raise ValueError(
-                        f"List of constituent countries for region '{code.name}' "
+                        f"List of constituent countries for region '{code[0]}' "
                         "not found in codelist."
                     )
-                if code.countries:
-                    regional_aggregates[code.name] = code.countries
+                if code[1].countries:
+                    regional_aggregates[code[0]] = code[1].countries
 
         if not regional_aggregates:
             logger.warning(

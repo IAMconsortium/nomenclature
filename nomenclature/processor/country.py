@@ -36,11 +36,7 @@ def create_country_processor(
     if not models:
         raise ValueError("No models configured for country processor")
 
-    available_hierarchies = [
-        hierarchy
-        for hierarchy in ["R5", "R9", "R10"]
-        if dsd.region.by_hierarchy(hierarchy)
-    ]
+    available_hierarchies = set(["R5", "R9", "R10"]) & set(dsd.region.hierarchy)
 
     return RegionProcessor.from_country_codelist(
         dsd=dsd,
