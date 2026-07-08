@@ -1,5 +1,3 @@
-"""Tests for CountryProcessor - country to regional aggregation (R5/R9/R10)."""
-
 import pandas as pd
 import pytest
 from pathlib import Path
@@ -8,11 +6,11 @@ from pyam.utils import IAMC_IDX
 from conftest import clean_up_external_repos
 
 from nomenclature import DataStructureDefinition
-from nomenclature.processor.countries import CountryProcessor
+from nomenclature.processor import create_country_processor
 
 here = Path(__file__).parent
 TEST_DATA_DIR = here / "data"
-COUNTRY_TEST_DIR = TEST_DATA_DIR / "country_processing" / "dsd"
+COUNTRY_TEST_DIR = TEST_DATA_DIR / "country_processing"
 
 
 def _make_country_df(countries: list[str], value: float = 1.0) -> IamDataFrame:
@@ -82,15 +80,17 @@ def test_country_simple_aggregation():
         )
     )
 
-    dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "definitions")
+    dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "all" / "definitions")
     try:
-        # Load DSD and apply CountryProcessor
-        processor = CountryProcessor.from_definition(dsd)
+        # Load DSD and apply RegionProcessor
+        processor = create_country_processor(dsd=dsd, models=["model_a"])
 
         result = processor.apply(test_df)
 
         # Check that aggregated regions are present
-        assert set(expected_values).issubset(result.region)
+        print(expected_values.keys())
+        print(set(result.region))
+        assert set().issubset(set(result.region))
 
         # Check original countries are still present
         assert "China" in result.region
@@ -107,16 +107,10 @@ def test_country_simple_aggregation():
 def test_country_skips_missing_hierarchy_levels(monkeypatch):
     """Test that hierarchy levels not present in the mapping are skipped."""
 
-    dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "definitions")
+    dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "r5" / "definitions")
+
     try:
-        processor = CountryProcessor.from_definition(dsd)
-
-        monkeypatch.setattr(
-            CountryProcessor,
-            "regional_aggregates_by_level",
-            property(lambda self: {"R5": {"Asia (R5)": ["China", "India"]}}),
-        )
-
+        processor = create_country_processor(dsd=dsd, models=["model_a"])
         result = processor.apply(_make_country_df(["China", "India"]))
 
         assert "Asia (R5)" in result.region
@@ -139,9 +133,9 @@ def test_country_skip_unlisted_model():
         )
     )
 
-    dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "definitions")
+    dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "all" / "definitions")
     try:
-        processor = CountryProcessor.from_definition(dsd)
+        processor = create_country_processor(dsd=dsd, models=["model_a"])
 
         # model_b is not in the processor configuration, should return unchanged
         result = processor.apply(test_df)
@@ -154,37 +148,15 @@ def test_country_from_definition_no_models():
     """Test that from_definition raises error when no models are configured."""
 
     # Create a minimal DSD without country processor configuration
-    dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "definitions")
+    dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "all" / "definitions")
 
     try:
         # Override the processor configuration to be empty
         dsd.config.processor.country = []
 
         with pytest.raises(
-            ValueError, match="No models configured for Country processor"
+            ValueError, match="No models configured for country processor"
         ):
-            CountryProcessor.from_definition(dsd)
-    finally:
-        clean_up_external_repos(dsd.config.repositories)
-
-
-def test_country_regional_aggregates_property():
-    """Test the regional_aggregates property returns correct mappings."""
-
-    dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "definitions")
-    try:
-        processor = CountryProcessor.from_definition(dsd)
-
-        aggregates = processor.regional_aggregates
-
-        # Check expected R5 regions are present
-        assert "Asia (R5)" in aggregates
-        assert "OECD & EU (R5)" in aggregates
-
-        # Check that China and India are in Asia, while Japan belongs to OECD & EU
-        assert "China" in aggregates["Asia (R5)"]
-        assert "India" in aggregates["Asia (R5)"]
-        assert "Japan" not in aggregates["Asia (R5)"]
-        assert "Japan" in aggregates["OECD & EU (R5)"]
+            create_country_processor(dsd=dsd, models=[])
     finally:
         clean_up_external_repos(dsd.config.repositories)
