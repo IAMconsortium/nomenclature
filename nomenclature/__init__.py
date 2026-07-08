@@ -14,7 +14,7 @@ from nomenclature.definition import DataStructureDefinition  # noqa
 from nomenclature.nuts import nuts  # noqa
 from nomenclature.processor import (  # noqa
     RegionAggregationMapping,  # noqa
-    CountryProcessor,
+    create_country_processor,  # noqa
     NutsProcessor,
     RegionProcessor,
     RequiredDataValidator,

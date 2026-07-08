@@ -5,6 +5,7 @@ from pydantic import validate_call
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor import Processor, RegionProcessor
+from nomenclature.processor.country import create_country_processor
 from nomenclature.processor.nuts import NutsProcessor
 
 logger = logging.getLogger(__name__)
@@ -72,6 +73,11 @@ def process(
             )
         processor.append(
             RegionProcessor.from_directory(dsd.project_folder / "mappings", dsd)
+        )
+
+    if dsd.config.processor.country:
+        processor.append(
+            create_country_processor(dsd=dsd, models=dsd.config.processor.country)
         )
 
     if dsd.config.processor.nuts:
