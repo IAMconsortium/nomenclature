@@ -169,11 +169,10 @@ class CodeList(BaseModel):
         """
         tag_dict: dict[str, list[Code]] = {}
 
-        for yaml_file in (
-            f
-            for f in path.glob(file_glob_pattern)
-            if f.suffix in {".yaml", ".yml"} and f.name.startswith("tag_")
-        ):
+        tag_files = list(path.glob("**/tag_*.yaml")) + list(
+            path.parent.glob("tag_*.yaml")
+        )
+        for yaml_file in (f for f in tag_files):
             with open(yaml_file, "r", encoding="utf-8") as stream:
                 _tag_list = yaml.safe_load(stream)
 
