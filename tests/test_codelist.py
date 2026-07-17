@@ -88,10 +88,14 @@ def test_duplicate_tag_raises():
         )
 
 
-def test_tagged_codelist():
+# the "tagged_in_parent_codelist" folder checks that
+@pytest.mark.parametrize(
+    "folder", ("tagged_codelist", "tagged_in_parent_folder_codelist/variable")
+)
+def test_tagged_codelist(folder):
     """Check that multiple tags in a code are correctly replaced"""
     variables = VariableCodeList.from_directory(
-        "variable", MODULE_TEST_DATA_DIR / "tagged_codelist"
+        "variable", MODULE_TEST_DATA_DIR / folder
     )
 
     exp = {
