@@ -222,3 +222,33 @@ NUTS1 → Country → EU27) for those models:
     nuts-processor: [ Model A, Model B ]
 
 More details on NUTS aggregation can be found here: :ref:`nuts`.
+
+Country processor
+^^^^^^^^^^^^^^^^^
+
+Setting *processors.country-processor* to a list of model names will
+automatically create a :class:`CountryProcessor` and aggregate country-level
+data to common regional definitions such as R5, R9 and R10 for those models:
+
+.. code:: yaml
+
+  repositories:
+    common-definitions:
+      url: https://github.com/IAMconsortium/common-definitions.git/
+
+  definitions:
+    region:
+      country: true
+      repository:
+        name: common-definitions
+        include:
+          - hierarchy: [R5, R9, R10]
+
+  processors:
+    country-processor: [ Model A, Model B ]
+
+The country processor reads the imported R5/R9/R10 definitions from the region
+codelist and aggregates directly from countries to those regions. If one of
+those hierarchy levels is not present in the codelist, it is skipped.
+
+More details on the processor API can be found here: :doc:`../api/countryprocessor`.
