@@ -88,9 +88,7 @@ def test_country_simple_aggregation():
         result = processor.apply(test_df)
 
         # Check that aggregated regions are present
-        print(expected_values.keys())
-        print(set(result.region))
-        assert set().issubset(set(result.region))
+        assert set(expected_values.keys()).issubset(set(result.region))
 
         # Check original countries are still present
         assert "China" in result.region
