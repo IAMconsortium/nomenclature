@@ -1,14 +1,13 @@
 import logging
 from collections import Counter
 from pathlib import Path
-import re
 
 import numpy as np
 import pandas as pd
 import pyam
 import yaml
 from pyam import IamDataFrame
-from pyam.utils import adjust_log_level, escape_regexp
+from pyam.utils import adjust_log_level
 from pydantic import (
     AfterValidator,
     BaseModel,
@@ -34,7 +33,6 @@ from nomenclature.exceptions import (
 )
 from nomenclature.processor import Processor
 from nomenclature.utils import get_relative_path
-from nomenclature.countries import countries
 
 logger = logging.getLogger(__name__)
 
@@ -617,100 +615,6 @@ class RegionProcessor(Processor):
             )
         return cls(
             mappings=mapping_dict,
-            region_codelist=dsd.region,
-            variable_codelist=dsd.variable,
-        )
-
-    @classmethod
-    @validate_call(config={"arbitrary_types_allowed": True})
-    def from_country_codelist(
-        cls,
-        dsd: DataStructureDefinition,
-        hierarchies: list[str],
-        models: list[str],
-        skip_patterns: list[str] | None = None,
-    ):
-        """Create a processor for country-to-regional aggregation.
-
-        This factory method generates region aggregation mappings on-the-fly by
-        extracting regions with constituent countries matching the specified
-        hierarchies from the region codelist.
-
-        Parameters
-        ----------
-        dsd : DataStructureDefinition
-            Project data structure definition containing region and variable codelists.
-        hierarchies : list[str]
-            List of hierarchy values to match (e.g., ["R5", "R9", "R10"]).
-            Regions with these exact hierarchy values will be used for aggregation.
-        models : list[str]
-            Models for which to apply the aggregation.
-        skip_patterns : list[str], optional
-            Optional regex patterns to skip certain regions from aggregation.
-
-        Returns
-        -------
-        RegionProcessor
-            A RegionProcessor instance with generated mappings.
-
-        Raises
-        ------
-            If regions with the specified hierarchies lack constituent country information.
-        """
-        skip_patterns = skip_patterns or []
-
-        # Extract regional aggregates from codelist for given hierarchies
-        regional_aggregates = {}
-        for hierarchy in hierarchies:
-            for code in dsd.region.filter(hierarchy=hierarchy).items():
-                if skip_patterns and any(
-                    re.match(escape_regexp(pattern), code[0])
-                    for pattern in skip_patterns
-                ):
-                    continue
-                if not code[1].countries:
-                    raise ValueError(
-                        f"List of constituent countries for region '{code[0]}' "
-                        "not found in codelist."
-                    )
-                if code[1].countries:
-                    regional_aggregates[code[0]] = code[1].countries
-
-        if not regional_aggregates:
-            logger.warning(
-                f"No regional aggregates for hierarchies {hierarchies} found in "
-                "region codelist."
-            )
-
-        # Get all countries from the codelist
-        country_names = set(countries.names)
-        all_countries_in_codelist = [
-            region_name
-            for region_name in dsd.region.mapping.keys()
-            if region_name in country_names
-        ]
-
-        # Create native regions for all countries (to keep them in output)
-        native_regions = [
-            NativeRegion(name=country) for country in all_countries_in_codelist
-        ]
-
-        # Create common regions for aggregation
-        common_regions = [
-            CommonRegion(name=region_name, constituent_regions=constituent_countries)
-            for region_name, constituent_countries in regional_aggregates.items()
-        ]
-
-        # Create the same mapping for all models
-        mapping = RegionAggregationMapping(
-            model=models,
-            file=Path(__file__),
-            native_regions=native_regions,
-            common_regions=common_regions,
-        )
-
-        return cls(
-            mappings={model: mapping for model in models},
             region_codelist=dsd.region,
             variable_codelist=dsd.variable,
         )

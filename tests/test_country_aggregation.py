@@ -6,7 +6,7 @@ from pyam.utils import IAMC_IDX
 from conftest import clean_up_external_repos
 
 from nomenclature import DataStructureDefinition
-from nomenclature.processor import create_country_processor
+from nomenclature.processor import CountryProcessor
 
 here = Path(__file__).parent
 TEST_DATA_DIR = here / "data"
@@ -83,7 +83,7 @@ def test_country_simple_aggregation():
     dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "all" / "definitions")
     try:
         # Load DSD and apply RegionProcessor
-        processor = create_country_processor(dsd=dsd, models=["model_a"])
+        processor = CountryProcessor.from_codelist(dsd=dsd, models=["model_a"])
 
         result = processor.apply(test_df)
 
@@ -110,7 +110,7 @@ def test_country_skips_missing_hierarchy_levels(monkeypatch):
     dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "r5" / "definitions")
 
     try:
-        processor = create_country_processor(dsd=dsd, models=["model_a"])
+        processor = CountryProcessor.from_codelist(dsd=dsd, models=["model_a"])
         result = processor.apply(_make_country_df(["China", "India"]))
 
         assert "Asia (R5)" in result.region
@@ -135,7 +135,7 @@ def test_country_skip_unlisted_model():
 
     dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "all" / "definitions")
     try:
-        processor = create_country_processor(dsd=dsd, models=["model_a"])
+        processor = CountryProcessor.from_codelist(dsd=dsd, models=["model_a"])
 
         # model_b is not in the processor configuration, should return unchanged
         result = processor.apply(test_df)
@@ -157,6 +157,6 @@ def test_country_from_definition_no_models():
         with pytest.raises(
             ValueError, match="No models configured for country processor"
         ):
-            create_country_processor(dsd=dsd, models=[])
+            CountryProcessor.from_codelist(dsd=dsd, models=[])
     finally:
         clean_up_external_repos(dsd.config.repositories)
