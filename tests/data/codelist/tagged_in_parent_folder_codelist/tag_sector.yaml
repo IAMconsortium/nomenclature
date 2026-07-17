@@ -1,0 +1,7 @@
+- Sector:
+  - Energy:
+      definition: energy
+      weight: Energy
+  - Industry:
+      definition: industrial
+      extra: 1
