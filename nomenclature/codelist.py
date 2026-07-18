@@ -18,6 +18,7 @@ from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import CodeListConfig, NomenclatureConfig
 from nomenclature.exceptions import (
     CodeListErrorGroup,
+    MissingComponentError,
     MissingWeightError,
     UnknownCodeError,
     UnknownRegionError,
@@ -768,6 +769,34 @@ class VariableCodeList(CodeList):
                     "missing_weights": "".join(
                         f"'{weight}' used for '{var}' in: {file}\n"
                         for var, weight, file in missing_weights
+                    )
+                },
+            )
+        return v
+
+    @field_validator("mapping")
+    @classmethod
+    def check_components_in_vars(cls, v):
+        """Check that all variables specified in 'components' (for check-aggregate
+        variables) are present in the codelist"""
+        missing = []
+        for var in v.values():
+            if not var.check_aggregate or var.components is None:
+                continue
+            components: list[str] = (
+                var.components
+                if isinstance(var.components, list)
+                else [c for group in var.components.values() for c in group]
+            )
+            missing.extend(
+                (var.name, comp, var.file) for comp in components if comp not in v
+            )
+        if missing:
+            raise MissingComponentError(
+                {
+                    "missing_components": "".join(
+                        f"'{comp}' used for '{var}' in: {file}\n"
+                        for var, comp, file in missing
                     )
                 },
             )
