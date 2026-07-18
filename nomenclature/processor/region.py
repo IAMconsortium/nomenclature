@@ -188,7 +188,6 @@ class RegionAggregationMapping(BaseModel):
         return v
 
     @model_validator(mode="after")
-    @classmethod
     def check_native_or_common_regions(
         cls, v: "RegionAggregationMapping"
     ) -> "RegionAggregationMapping":
@@ -201,7 +200,6 @@ class RegionAggregationMapping(BaseModel):
         return v
 
     @model_validator(mode="after")
-    @classmethod
     def check_native_common_region_no_overlap(
         cls, v: "RegionAggregationMapping"
     ) -> "RegionAggregationMapping":
@@ -220,21 +218,18 @@ class RegionAggregationMapping(BaseModel):
         return v
 
     @model_validator(mode="after")
-    @classmethod
     def check_exclude_native_region_overlap(
         cls, v: "RegionAggregationMapping"
     ) -> "RegionAggregationMapping":
         return _check_exclude_region_overlap(v, "native_regions")
 
     @model_validator(mode="after")
-    @classmethod
     def check_exclude_common_region_overlap(
         cls, v: "RegionAggregationMapping"
     ) -> "RegionAggregationMapping":
         return _check_exclude_region_overlap(v, "common_regions")
 
     @model_validator(mode="after")
-    @classmethod
     def check_constituent_regions_in_native_regions(
         cls, v: "RegionAggregationMapping"
     ) -> "RegionAggregationMapping":

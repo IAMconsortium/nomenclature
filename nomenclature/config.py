@@ -119,7 +119,6 @@ class Repository(BaseModel):
     # Defined via the `repository` name in the configuration
 
     @model_validator(mode="after")
-    @classmethod
     def check_hash_and_release(cls, v: "Repository") -> "Repository":
         if v.hash and v.release:
             raise ValueError("Either `hash` or `release` can be provided, not both.")
@@ -293,7 +292,6 @@ class TimeDomainConfig(BaseModel):
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
 
     @model_validator(mode="after")
-    @classmethod
     def validate_datetime_and_timezone(
         cls, v: "TimeDomainConfig"
     ) -> "TimeDomainConfig":
@@ -328,9 +326,11 @@ class TimeDomainConfig(BaseModel):
                 "The following datetime values are invalid:", errors
             )
 
-    def validate_datetime(self, df: IamDataFrame, dimensions: list[str] | None = None) -> None:
+    def validate_datetime(
+        self, df: IamDataFrame, dimensions: list[str] | None = None
+    ) -> None:
         """Validate datetime coordinates against allowed format and/or timezone.
-        
+
         Parameters
         ----------
         df : IamDataFrame
@@ -338,11 +338,13 @@ class TimeDomainConfig(BaseModel):
         dimensions : list of str, optional
             List of allowed dimensions for validation
         """
-        if "subannual" in df.data.columns and (dimensions is None or "subannual" not in dimensions):
+        if "subannual" in df.data.columns and (
+            dimensions is None or "subannual" not in dimensions
+        ):
             raise TimeDomainError(
                 "Invalid time domain - `subannual` found, but not allowed."
             )
-        
+
         if df.time_domain == "year":
             if not self.year_allowed:
                 raise TimeDomainError(
@@ -403,7 +405,6 @@ class NomenclatureConfig(BaseModel):
         return v if isinstance(v, list) else [v]
 
     @model_validator(mode="after")
-    @classmethod
     def check_definitions_repository(
         cls, v: "NomenclatureConfig"
     ) -> "NomenclatureConfig":
@@ -420,7 +421,6 @@ class NomenclatureConfig(BaseModel):
         return v
 
     @model_validator(mode="after")
-    @classmethod
     def check_nuts_consistency(cls, v: "NomenclatureConfig") -> "NomenclatureConfig":
         if v.processor.nuts and not v.definitions.region.nuts:
             raise ValueError(
