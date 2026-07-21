@@ -18,7 +18,7 @@ from nomenclature.processor.validator import (
     ValidationBounds,
     ValidationItem,
 )
-from nomenclature.processor import Processor
+from nomenclature.processor import Validator
 from nomenclature.processor.iamc import IamcDataFilter
 from nomenclature.utils import get_relative_path
 
@@ -132,7 +132,7 @@ class DataValidationItem(ValidationItem, IamcDataFilter):
         return error, fail_list, output_list
 
 
-class DataValidator(Processor):
+class DataValidator(Validator):
     """Processor for validating IAMC datapoints"""
 
     criteria_items: list[DataValidationItem]

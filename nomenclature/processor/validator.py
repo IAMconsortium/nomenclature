@@ -1,6 +1,6 @@
 import abc
 import logging
-
+from pathlib import Path
 from enum import IntEnum
 from typing import Any
 from pydantic import (
@@ -12,6 +12,10 @@ from pydantic import (
     computed_field,
 )
 from pyam import IamDataFrame
+
+from nomenclature.codelist import CodeList
+from nomenclature.definition import DataStructureDefinition
+from nomenclature.processor.processor import Processor
 
 logger = logging.getLogger(__name__)
 
@@ -181,3 +185,45 @@ class ValidationItem(BaseModel, abc.ABC):
 
     def __str__(self):
         return ", ".join([f"{key}: {value}" for key, value in self.filter_args.items()])
+
+
+class Validator(Processor):
+    """Abstract validation and processing class"""
+
+    criteria_items: list[ValidationItem]
+    file: Path | str
+    output_path: Path | None = None
+
+    @classmethod
+    @abc.abstractmethod
+    def from_file(
+        cls, file: Path | str, output_path: Path | str | None = None
+    ) -> "Validator":
+        """Create a Validator instance from a file."""
+        pass
+
+    @classmethod
+    @abc.abstractmethod
+    def from_codelist(
+        cls, codelist: CodeList, output_path: Path | None = None
+    ) -> "Validator":
+        """Create a Validator from a CodeList"""
+        pass
+
+    @abc.abstractmethod
+    def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
+        """Validate the criteria items against a :class:`DataStructureDefinition`.
+
+        Checks that all codes referenced in the criteria exist in the provided definition.
+
+        Parameters
+        ----------
+        dsd : DataStructureDefinition
+            Data structure definition to validate against.
+
+        Raises
+        ------
+        ExceptionGroup
+            If any criteria item references unknown codes.
+        """
+        pass
