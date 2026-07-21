@@ -44,6 +44,7 @@ class ValidationCriteria(ABC, BaseModel):
     @property
     @abstractmethod
     def validation_args(self):
+        """Attributes used for validation."""
         pass
 
     @property
@@ -146,7 +147,6 @@ class ValidationRange(ValidationCriteria):
 
     @property
     def validation_args(self):
-        """Attributes used for validation (as bounds)."""
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,

@@ -1,7 +1,31 @@
-from pathlib import Path
+import logging
 import pyam
+
+from pathlib import Path
+
+from pydantic import Field
 from nomenclature.processor import Processor
 from nomenclature.codelist import MetaCodeList
+from nomenclature.processor.data import ValidationItem
+
+logger = logging.getLogger(__name__)
+
+
+class MetaValidationItem(ValidationItem):
+    """Validation item for meta indicator validation"""
+
+    meta_column_to_validate: str = Field(..., alias="meta")
+
+    model_config = dict(validate_by_alias=True, validate_by_name=True, extra="forbid")
+
+    @property
+    def filter_args(self):
+        return self.model_dump(
+            exclude_none=True, exclude_unset=True, exclude=["validation", "name"]
+        )
+
+    def apply(df):
+        pass
 
 
 class MetaValidator(Processor):

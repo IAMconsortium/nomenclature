@@ -29,7 +29,6 @@ class WarningEnum(IntEnum):
 class DataValidationItem(ValidationItem, IamcDataFilter):
     @property
     def filter_args(self):
-        """Dimensions and values used to filter rows to be validated."""
         return self.model_dump(
             exclude_none=True, exclude_unset=True, exclude=["validation", "name"]
         )
