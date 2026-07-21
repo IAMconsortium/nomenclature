@@ -18,7 +18,7 @@ from typing_extensions import Self
 
 from nomenclature.countries import countries
 
-# This must be kept in sync with the subtypes of `DataValidationCriteria`
+# This must be kept in sync with the subtypes of `ValidationCriteria`
 VALIDATION_ARGS = [
     "upper_bound",
     "lower_bound",
@@ -431,4 +431,17 @@ class MetaCode(Code):
 
     """
 
-    allowed_values: list[Any] | None = None
+    value: list[Any] | None = Field(default=None, alias="allowed_values")
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
+
+    @property
+    def has_validation_args(self) -> bool:
+        return True if self.validation_args else False
+
+    @property
+    def validation_args(self) -> dict:
+        return {
+            key: value
+            for key, value in self.extra_attributes.items()
+            if key in VALIDATION_ARGS and value is not None
+        }
