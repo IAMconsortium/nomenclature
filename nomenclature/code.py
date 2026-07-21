@@ -440,8 +440,9 @@ class MetaCode(Code):
 
     @property
     def validation_args(self) -> dict:
+        alias_map = {"allowed_values": "value"}  # Map alias to canonical name
         return {
-            key: value
+            alias_map.get(key, key): value
             for key, value in self.extra_attributes.items()
-            if key in VALIDATION_ARGS and value is not None
+            if alias_map.get(key, key) in VALIDATION_ARGS and value is not None
         }
