@@ -4,6 +4,7 @@ from enum import IntEnum
 from pathlib import Path
 
 import pandas as pd
+from pydantic import computed_field
 import yaml
 from pyam import IamDataFrame
 from pyam.utils import adjust_log_level
@@ -11,7 +12,12 @@ from pyam.utils import adjust_log_level
 from nomenclature.codelist import VariableCodeList
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.exceptions import DataValidationError, NoTracebackExceptionGroup
-from nomenclature.processor.validator import ValidationItem
+from nomenclature.processor.validator import (
+    ValidationValue,
+    ValidationRange,
+    ValidationBounds,
+    ValidationItem,
+)
 from nomenclature.processor import Processor
 from nomenclature.processor.iamc import IamcDataFilter
 from nomenclature.utils import get_relative_path
@@ -26,7 +32,49 @@ class WarningEnum(IntEnum):
     low = 20
 
 
+class DataValidationValue(ValidationValue):
+    value: float
+    rtol: float = 0.0
+    atol: float = 0.0
+
+    @property
+    def tolerance(self) -> float | None:
+        return (
+            self.value * self.rtol + self.atol
+            if isinstance(self.value, float)
+            else None
+        )
+
+    @computed_field
+    def upper_bound(self) -> float | None:
+        return self.value + self.tolerance
+
+    @computed_field
+    def lower_bound(self) -> float | None:
+        return self.value - self.tolerance
+
+    @property
+    def validation_args(self):
+        if isinstance(self.value, list):
+            return {"value": self.value}
+        return self.model_dump(
+            exclude_none=True,
+            exclude_unset=True,
+            exclude=["warning_level", "value", "rtol", "atol"],
+        )
+
+    @property
+    def criteria(self):
+        return self.model_dump(
+            exclude_none=True,
+            exclude_unset=True,
+            exclude=["warning_level", "lower_bound", "upper_bound"],
+        )
+
+
 class DataValidationItem(ValidationItem, IamcDataFilter):
+    validation: list[DataValidationValue | ValidationBounds | ValidationRange]
+
     @property
     def filter_args(self):
         return self.model_dump(
@@ -36,7 +84,7 @@ class DataValidationItem(ValidationItem, IamcDataFilter):
     def apply(
         self, df: IamDataFrame, fail_list: list, output_list: list
     ) -> tuple[bool, list, list]:
-        """Apply validation to IamDataFrame."""
+        """Apply data validation to IamDataFrame."""
         error = False
         per_item_df = df.filter(**self.filter_args)
 
@@ -121,7 +169,7 @@ class DataValidator(Processor):
                 criterion
                 for criterion in item
                 if criterion
-                not in list(IamcDataFilter.model_fields) + ["validation", "name"]
+                not in list(IamcDataFilter.model_fields) + ["name", "validation"]
             ]
             for criterion in criteria:
                 value = item.pop(criterion)
@@ -192,7 +240,7 @@ class DataValidator(Processor):
                 error_list.append(error)
             if self.output_path:
                 pd.concat(output_list).to_excel(self.output_path, index=False)
-            fail_msg = "(file %s):\n" % get_relative_path(self.file)
+            fail_msg = f"(file {get_relative_path(self.file)}):\n"
             if any(error_list):
                 raise DataValidationError(fail_list, self.file)
             if fail_list:

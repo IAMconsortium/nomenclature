@@ -1,7 +1,8 @@
+import abc
 import logging
 
 from enum import IntEnum
-from abc import ABC, abstractmethod
+from typing import Any
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -10,6 +11,7 @@ from pydantic import (
     model_validator,
     computed_field,
 )
+from pyam import IamDataFrame
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +23,7 @@ class WarningEnum(IntEnum):
     low = 20
 
 
-class ValidationCriteria(ABC, BaseModel):
+class ValidationCriteria(abc.ABC, BaseModel):
     """Base class for validation criteria (value, bounds, range)"""
 
     warning_level: WarningEnum = WarningEnum.error
@@ -42,14 +44,15 @@ class ValidationCriteria(ABC, BaseModel):
         return value
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def validation_args(self):
         """Attributes used for validation."""
         pass
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def criteria(self):
+        """Attributes used for validation (as specified in the file)."""
         pass
 
     def __str__(self):
@@ -57,38 +60,22 @@ class ValidationCriteria(ABC, BaseModel):
 
 
 class ValidationValue(ValidationCriteria):
-    value: float
-    rtol: float = 0.0
-    atol: float = 0.0
-
-    @property
-    def tolerance(self) -> float:
-        return self.value * self.rtol + self.atol
-
-    @computed_field
-    def upper_bound(self) -> float:
-        return self.value + self.tolerance
-
-    @computed_field
-    def lower_bound(self) -> float:
-        return self.value - self.tolerance
+    value: Any
 
     @property
     def validation_args(self):
-        """Attributes used for validation (as bounds)."""
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
-            exclude=["warning_level", "value", "rtol", "atol"],
+            exclude=["warning_level"],
         )
 
     @property
     def criteria(self):
-        """Attributes used for validation (as specified in the file)."""
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
-            exclude=["warning_level", "lower_bound", "upper_bound"],
+            exclude=["warning_level"],
         )
 
 
@@ -162,7 +149,7 @@ class ValidationRange(ValidationCriteria):
         )
 
 
-class ValidationItem(BaseModel, ABC):
+class ValidationItem(BaseModel, abc.ABC):
     """Base class for validation items (filter + criteria)"""
 
     name: str | None = None
@@ -182,13 +169,13 @@ class ValidationItem(BaseModel, ABC):
             return self
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def filter_args(self):
         """Dimensions and values used to filter rows to be validated."""
         pass
 
-    @abstractmethod
-    def apply(self, df, fail_list, output_list):
+    @abc.abstractmethod
+    def apply(self, df: IamDataFrame, fail_list: list, output_list: list):
         """Apply validation to IamDataFrame."""
         pass
 
