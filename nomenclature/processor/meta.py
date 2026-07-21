@@ -3,12 +3,20 @@ import pyam
 
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 from nomenclature.processor import Processor
 from nomenclature.codelist import MetaCodeList
-from nomenclature.processor.data import ValidationItem
+from nomenclature.processor.validator import ValidationValue, ValidationItem
 
 logger = logging.getLogger(__name__)
+
+
+class MetaValidationValue(ValidationValue):
+    value: list[str] = Field(..., alias="values")
+
+    config_dict = ConfigDict(
+        validate_by_alias=True, validate_by_name=True, extra="forbid"
+    )
 
 
 class MetaValidationItem(ValidationItem):
@@ -16,7 +24,9 @@ class MetaValidationItem(ValidationItem):
 
     meta_column_to_validate: str = Field(..., alias="meta")
 
-    model_config = dict(validate_by_alias=True, validate_by_name=True, extra="forbid")
+    model_config = ConfigDict(
+        validate_by_alias=True, validate_by_name=True, extra="forbid"
+    )
 
     @property
     def filter_args(self):
@@ -31,14 +41,9 @@ class MetaValidationItem(ValidationItem):
 class MetaValidator(Processor):
     """Meta indicator validation and processing class"""
 
-    meta_code_list: MetaCodeList
-
-    def __init__(self, path_to_meta_code_list_files: Path):
-        super().__init__(
-            meta_code_list=MetaCodeList.from_directory(
-                name="meta_code_list", path=path_to_meta_code_list_files
-            )
-        )
+    criteria_items: list[MetaValidationItem]
+    file: Path | str
+    output_path: Path | None = None
 
     def _values_allowed(self, values, allowed_values, meta_indicator) -> bool:
         """Checks if the values within a meta indicator column are
@@ -73,6 +78,34 @@ class MetaValidator(Processor):
                 f"Allowed values: {repr_list(allowed_values)}"
             )
         return True
+
+    @classmethod
+    def from_codelist(
+        cls, codelist: MetaCodeList, output_path: Path | None = None
+    ) -> "MetaValidator":
+        """Create a MetaValidator from a MetaCodeList
+
+        Parameters
+        ----------
+        codelist : MetaCodeList
+            The MetaCodeList to use for validation
+
+        Returns
+        -------
+        MetaValidator
+            A new MetaValidator instance with the given MetaCodeList
+        """
+        criteria_items = [
+            {
+                "meta": meta.name,
+                "validation": [meta.validation_args],
+            }
+            for meta in codelist.values()
+            if meta.has_validation_args
+        ]
+        return cls(
+            criteria_items=criteria_items, file="definitions", output_path=output_path
+        )
 
     def apply(self, df: pyam.IamDataFrame) -> pyam.IamDataFrame:
         """Apply meta indicator validation processing
