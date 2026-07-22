@@ -1,32 +1,66 @@
 import logging
 import pyam
+import yaml
 
+from typing import Any
 from pathlib import Path
 
-from pydantic import ConfigDict, Field
-from nomenclature.processor import Processor
+from pydantic import BaseModel, ConfigDict, Field
+from nomenclature.definition import DataStructureDefinition
 from nomenclature.codelist import MetaCodeList
-from nomenclature.processor.validator import ValidationValue, ValidationItem
+from nomenclature.processor import Validator
+from nomenclature.processor.validator import (
+    ValidationBounds,
+    ValidationRange,
+    ValidationValue,
+    ValidationItem,
+)
+from nomenclature.utils import get_relative_path
+from toolkit.exceptions import NoTracebackException, NoTracebackExceptionGroup
 
 logger = logging.getLogger(__name__)
 
 
-class MetaValidationValue(ValidationValue):
-    value: list[str] = Field(..., alias="values")
-
-    config_dict = ConfigDict(
-        validate_by_alias=True, validate_by_name=True, extra="forbid"
-    )
-
-
-class MetaValidationItem(ValidationItem):
-    """Validation item for meta indicator validation"""
-
-    meta_column_to_validate: str = Field(..., alias="meta")
+class MetaFilter(BaseModel):
+    meta: str = Field(..., alias="meta_column_to_validate")
 
     model_config = ConfigDict(
         validate_by_alias=True, validate_by_name=True, extra="forbid"
     )
+
+    @property
+    def criteria(self):
+        return self.model_dump(exclude_none=True, exclude_unset=True)
+
+    def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
+        """Check meta indicators to validate against the DataStructureDefinition"""
+        codelist: MetaCodeList | None = getattr(dsd, "meta", None)
+        # No validation if codelist is not defined or filter-item is None
+        if codelist is None or getattr(self, "meta") is None:
+            return
+        if invalid := codelist.validate_items(getattr(self, "meta")):
+            if errors := NoTracebackException(
+                "The following meta indicators are not defined in the "
+                "DataStructureDefinition:\n   "
+                + ", ".join(f"'{item}'" for item in invalid)
+            ):
+                raise NoTracebackExceptionGroup(
+                    f"Errors in {self.__class__.__name__}", errors
+                )
+
+
+class MetaValidationValue(ValidationValue):
+    value: list[Any] = Field(..., alias="values")
+
+    model_config = ConfigDict(
+        validate_by_alias=True, validate_by_name=True, extra="forbid"
+    )
+
+
+class MetaValidationItem(ValidationItem, MetaFilter):
+    """Validation item for meta indicator validation"""
+
+    validation: list[MetaValidationValue | ValidationBounds | ValidationRange]
 
     @property
     def filter_args(self):
@@ -38,7 +72,7 @@ class MetaValidationItem(ValidationItem):
         pass
 
 
-class MetaValidator(Processor):
+class MetaValidator(Validator):
     """Meta indicator validation and processing class"""
 
     criteria_items: list[MetaValidationItem]
@@ -78,6 +112,45 @@ class MetaValidator(Processor):
                 f"Allowed values: {repr_list(allowed_values)}"
             )
         return True
+
+    @classmethod
+    def from_file(
+        cls, file: Path | str, output_path: Path | str | None = None
+    ) -> "MetaValidator":
+        """Create a :class:`MetaValidator` from a YAML file.
+
+        Parameters
+        ----------
+        file : :class:`pathlib.Path` or str
+            Path to the YAML file containing the validation criteria.
+        output_path : :class:`pathlib.Path` or str, optional
+            Path to write an Excel file with all flagged datapoints.
+
+        Returns
+        -------
+        MetaValidator
+        """
+        with open(file, "r", encoding="utf-8") as f:
+            content = yaml.safe_load(f)
+        criteria_items = []
+        for item in content:
+            # Simple case where filter and criteria args are all given at top level
+            if "validation" not in item:
+                item["validation"] = [dict()]
+
+            # If some criteria args are given at top-level, add to "validation" list
+            criteria = [
+                criterion
+                for criterion in item
+                if criterion not in ["name", "meta", "validation"]
+            ]
+            for criterion in criteria:
+                value = item.pop(criterion)
+                for criteria_item in item["validation"]:
+                    criteria_item[criterion] = value
+            criteria_items.append(item)
+
+        return cls(file=file, criteria_items=criteria_items, output_path=output_path)  # type: ignore
 
     @classmethod
     def from_codelist(
@@ -145,6 +218,19 @@ class MetaValidator(Processor):
                 meta_indicator,
             )
         return df
+
+    def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
+        errors: list[Exception] = []
+        for criterion in self.criteria_items:
+            try:
+                criterion.validate_with_definition(dsd)
+            except NoTracebackExceptionGroup as exception:
+                errors.extend(exception.exceptions)
+        if errors:
+            raise NoTracebackExceptionGroup(
+                f"Error in DataValidator (file {get_relative_path(self.file)})",
+                errors,
+            )
 
 
 def repr_list(x):
