@@ -1,5 +1,6 @@
 import abc
 import logging
+import pandas as pd
 from pathlib import Path
 from enum import IntEnum
 from typing import Any
@@ -12,10 +13,12 @@ from pydantic import (
     computed_field,
 )
 from pyam import IamDataFrame
-
+from pyam.utils import adjust_log_level
+from toolkit.exceptions import NoTracebackException
 from nomenclature.codelist import CodeList
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor.processor import Processor
+from nomenclature.utils import get_relative_path
 
 logger = logging.getLogger(__name__)
 
@@ -173,10 +176,10 @@ class ValidationItem(BaseModel, abc.ABC):
             return self
 
     @property
-    @abc.abstractmethod
     def filter_args(self):
-        """Dimensions and values used to filter rows to be validated."""
-        pass
+        return self.model_dump(
+            exclude_none=True, exclude_unset=True, exclude=["validation", "name"]
+        )
 
     @abc.abstractmethod
     def apply(self, df: IamDataFrame, fail_list: list, output_list: list):
@@ -193,6 +196,7 @@ class Validator(Processor):
     criteria_items: list[ValidationItem]
     file: Path | str
     output_path: Path | None = None
+    exception_cls: type[NoTracebackException] = NoTracebackException
 
     @classmethod
     @abc.abstractmethod
@@ -227,3 +231,42 @@ class Validator(Processor):
             If any criteria item references unknown codes.
         """
         pass
+
+    def apply(self, df: IamDataFrame) -> IamDataFrame:
+        """Validates data in IAMC format according to specified criteria.
+
+        Logs warning/error messages for each criterion that is not met.
+
+        Parameters
+        ----------
+        df : pyam.IamDataFrame
+            Data in IAMC format to be validated
+
+        Returns
+        -------
+        pyam.IamDataFrame
+
+        Raises
+        ------
+            :exc:`ValueError` if any criterion has a warning level of ``error``
+        """
+
+        error_list: list[bool] = []
+        fail_list: list[str] = []
+        output_list: list[pd.DataFrame] = []
+
+        with adjust_log_level():
+            for item in self.criteria_items:
+                error, fail_list, output_list = item.apply(df, fail_list, output_list)
+                error_list.append(error)
+            if self.output_path:
+                pd.concat(output_list).to_excel(self.output_path, index=False)
+            fail_msg = f"(file {get_relative_path(self.file)}):\n"
+            if any(error_list):
+                raise self.exception_cls(fail_list, self.file)
+            if fail_list:
+                fail_msg = (
+                    "Data validation with warning(s) " + fail_msg + "\n".join(fail_list)
+                )
+                logger.warning(fail_msg)
+        return df
