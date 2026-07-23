@@ -11,7 +11,7 @@ from toolkit.exceptions import NoTracebackException
 from nomenclature import DataStructureDefinition
 from nomenclature.codelist import VariableCodeList
 from nomenclature.exceptions import DataValidationError
-from nomenclature.processor.data_validator import DataValidator
+from nomenclature.processor.data import DataValidator
 
 DATA_VALIDATION_TEST_DIR = TEST_DATA_DIR / "validation" / "validate_data"
 PROCESSOR_TEST_DIR = TEST_DATA_DIR / "processor" / "data_validator"

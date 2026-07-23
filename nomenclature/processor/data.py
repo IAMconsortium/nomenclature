@@ -4,22 +4,21 @@ from enum import IntEnum
 from pathlib import Path
 
 import pandas as pd
+from pydantic import computed_field
+from toolkit.exceptions import NoTracebackException
 import yaml
 from pyam import IamDataFrame
-from pyam.utils import adjust_log_level
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-    computed_field,
-    field_validator,
-    model_validator,
-)
 
 from nomenclature.codelist import VariableCodeList
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.exceptions import DataValidationError, NoTracebackExceptionGroup
-from nomenclature.processor import Processor
+from nomenclature.processor.validator import (
+    ValidationValue,
+    ValidationRange,
+    ValidationBounds,
+    ValidationItem,
+)
+from nomenclature.processor import Validator
 from nomenclature.processor.iamc import IamcDataFilter
 from nomenclature.utils import get_relative_path
 
@@ -33,52 +32,31 @@ class WarningEnum(IntEnum):
     low = 20
 
 
-class DataValidationCriteria(BaseModel):
-    warning_level: WarningEnum = WarningEnum.error
-
-    model_config = ConfigDict(extra="forbid")
-
-    @field_validator("warning_level", mode="before")
-    @classmethod
-    def validate_warning_level(cls, value):
-        if isinstance(value, str):
-            try:
-                return WarningEnum[value]
-            except KeyError:
-                raise ValueError(
-                    f"Invalid warning level: {value}. Expected one of:"
-                    f" {', '.join(level.name for level in WarningEnum)}"
-                )
-        return value
-
-    @property
-    def criteria(self):
-        pass
-
-    def __str__(self):
-        return ", ".join([f"{key}: {value}" for key, value in self.criteria.items()])
-
-
-class DataValidationValue(DataValidationCriteria):
+class DataValidationValue(ValidationValue):
     value: float
     rtol: float = 0.0
     atol: float = 0.0
 
     @property
-    def tolerance(self) -> float:
-        return self.value * self.rtol + self.atol
+    def tolerance(self) -> float | None:
+        return (
+            self.value * self.rtol + self.atol
+            if isinstance(self.value, float)
+            else None
+        )
 
     @computed_field
-    def upper_bound(self) -> float:
+    def upper_bound(self) -> float | None:
         return self.value + self.tolerance
 
     @computed_field
-    def lower_bound(self) -> float:
+    def lower_bound(self) -> float | None:
         return self.value - self.tolerance
 
     @property
     def validation_args(self):
-        """Attributes used for validation (as bounds)."""
+        if isinstance(self.value, list):
+            return {"value": self.value}
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
@@ -87,7 +65,6 @@ class DataValidationValue(DataValidationCriteria):
 
     @property
     def criteria(self):
-        """Attributes used for validation (as specified in the file)."""
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
@@ -95,107 +72,13 @@ class DataValidationValue(DataValidationCriteria):
         )
 
 
-class DataValidationBounds(DataValidationCriteria):
-    upper_bound: float | None = None
-    lower_bound: float | None = None
-
-    # Allow extra but raise error to guard against multiple criteria
-    model_config = ConfigDict(extra="allow")
-
-    @model_validator(mode="after")
-    def check_validation_criteria_exist(self):
-        if self.upper_bound is None and self.lower_bound is None:
-            raise ValueError("No validation criteria provided: " + str(self.criteria))
-        return self
-
-    @model_validator(mode="after")
-    def check_validation_multiple_criteria(self):
-        if self.model_extra:
-            raise ValueError(
-                "Must use either bounds, range or value, found: " + str(self.criteria)
-            )
-        return self
-
-    @property
-    def validation_args(self):
-        return self.criteria
-
-    @property
-    def criteria(self):
-        return self.model_dump(
-            exclude_none=True, exclude_unset=True, exclude=["warning_level"]
-        )
-
-
-class DataValidationRange(DataValidationCriteria):
-    range: list[float] = Field(..., min_length=2, max_length=2)
-
-    @field_validator("range", mode="after")
-    @classmethod
-    def check_range_is_valid(cls, value: list[float]):
-        if value[0] > value[1]:
-            raise ValueError(
-                "Validation 'range' must be given as `(lower_bound, upper_bound)`, "
-                "found: " + str(value)
-            )
-        return value
-
-    @computed_field
-    def upper_bound(self) -> float:
-        return self.range[1]
-
-    @computed_field
-    def lower_bound(self) -> float:
-        return self.range[0]
-
-    @property
-    def validation_args(self):
-        """Attributes used for validation (as bounds)."""
-        return self.model_dump(
-            exclude_none=True,
-            exclude_unset=True,
-            exclude=["warning_level", "range"],
-        )
-
-    @property
-    def criteria(self):
-        return self.model_dump(
-            exclude_none=True,
-            exclude_unset=True,
-            exclude=["warning_level", "lower_bound", "upper_bound"],
-        )
-
-
-class DataValidationItem(IamcDataFilter):
-    name: str | None = None
-    validation: list[DataValidationValue | DataValidationRange | DataValidationBounds]
-
-    @model_validator(mode="after")
-    def check_warnings_order(self):
-        """Check if warnings are set in descending order of severity."""
-        if self.validation != sorted(
-            self.validation, key=lambda c: c.warning_level, reverse=True
-        ):
-            raise ValueError(
-                f"Validation criteria for {self.criteria} not sorted"
-                " in descending order of severity."
-            )
-        else:
-            return self
-
-    @property
-    def filter_args(self):
-        """Attributes used for validation (as specified in the file)."""
-        return self.model_dump(
-            exclude_none=True, exclude_unset=True, exclude=["validation", "name"]
-        )
-
-    def __str__(self):
-        return ", ".join([f"{key}: {value}" for key, value in self.filter_args.items()])
+class DataValidationItem(ValidationItem, IamcDataFilter):
+    validation: list[DataValidationValue | ValidationBounds | ValidationRange]
 
     def apply(
         self, df: IamDataFrame, fail_list: list, output_list: list
     ) -> tuple[bool, list, list]:
+        """Apply data validation to IamDataFrame."""
         error = False
         per_item_df = df.filter(**self.filter_args)
 
@@ -243,12 +126,13 @@ class DataValidationItem(IamcDataFilter):
         return error, fail_list, output_list
 
 
-class DataValidator(Processor):
+class DataValidator(Validator):
     """Processor for validating IAMC datapoints"""
 
     criteria_items: list[DataValidationItem]
     file: Path | str
     output_path: Path | None = None
+    exception_cls: type[NoTracebackException] = DataValidationError
 
     @classmethod
     def from_file(
@@ -280,7 +164,7 @@ class DataValidator(Processor):
                 criterion
                 for criterion in item
                 if criterion
-                not in list(IamcDataFilter.model_fields) + ["validation", "name"]
+                not in list(IamcDataFilter.model_fields) + ["name", "validation"]
             ]
             for criterion in criteria:
                 value = item.pop(criterion)
@@ -321,45 +205,6 @@ class DataValidator(Processor):
         return cls(
             file="definitions", criteria_items=criteria_items, output_path=output_path
         )
-
-    def apply(self, df: IamDataFrame) -> IamDataFrame:
-        """Validates data in IAMC format according to specified criteria.
-
-        Logs warning/error messages for each criterion that is not met.
-
-        Parameters
-        ----------
-        df : pyam.IamDataFrame
-            Data in IAMC format to be validated
-
-        Returns
-        -------
-        pyam.IamDataFrame
-
-        Raises
-        ------
-            :exc:`ValueError` if any criterion has a warning level of ``error``
-        """
-
-        error_list: list[bool] = []
-        fail_list: list[str] = []
-        output_list: list[pd.DataFrame] = []
-
-        with adjust_log_level():
-            for item in self.criteria_items:
-                error, fail_list, output_list = item.apply(df, fail_list, output_list)
-                error_list.append(error)
-            if self.output_path:
-                pd.concat(output_list).to_excel(self.output_path, index=False)
-            fail_msg = "(file %s):\n" % get_relative_path(self.file)
-            if any(error_list):
-                raise DataValidationError(fail_list, self.file)
-            if fail_list:
-                fail_msg = (
-                    "Data validation with warning(s) " + fail_msg + "\n".join(fail_list)
-                )
-                logger.warning(fail_msg)
-        return df
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
         """Validate the criteria items against a :class:`DataStructureDefinition`.

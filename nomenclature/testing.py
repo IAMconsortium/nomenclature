@@ -12,9 +12,10 @@ from nomenclature.exceptions import (
 )
 from nomenclature.processor import (
     DataValidator,
+    RequiredDataValidator,
+    MetaValidator,
     Processor,
     RegionProcessor,
-    RequiredDataValidator,
 )
 
 logger = logging.getLogger(__name__)
@@ -71,7 +72,7 @@ def _check_mappings(
 
 def _collect_processor_errors(
     path: Path,
-    processor: type[RequiredDataValidator] | type[DataValidator],
+    processor: type[RequiredDataValidator] | type[DataValidator] | type[MetaValidator],
     dsd: DataStructureDefinition,
 ) -> None:
     errors: list[NoTracebackExceptionGroup] = []
@@ -108,6 +109,7 @@ def assert_valid_structure(
     mappings: str | None = None,
     required_data: str | None = None,
     validate_data: str | None = None,
+    validate_meta: str | None = None,
     dimensions: list[str] | None = None,
 ) -> None:
     """Assert that `path` can be initialized as a :class:`DataStructureDefinition`
@@ -125,6 +127,9 @@ def assert_valid_structure(
         (if this folder exists)
     validate_data : str, optional
         Name of the folder for data validation criteria, defaults to "validate_data"
+        (if this folder exists)
+    validate_meta : str, optional
+        Name of the folder for meta validation criteria, defaults to "validate_meta"
         (if this folder exists)
     dimensions : list[str], optional
         Dimensions to be checked, defaults to all sub-folders of `definitions`
@@ -151,3 +156,4 @@ def assert_valid_structure(
         path, dsd, RequiredDataValidator, "required_data", required_data
     )
     _check_processor_directory(path, dsd, DataValidator, "validate_data", validate_data)
+    _check_processor_directory(path, dsd, MetaValidator, "validate_meta", validate_meta)
