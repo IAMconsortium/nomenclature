@@ -182,15 +182,6 @@ def test_RegionCode_iso3_code_str_fail():
         RegionCode(name="Austria", hierarchy="country", iso3_codes="AUTT")
 
 
-def test_MetaCode_allowed_values_attribute():
-    meta = MetaCode(
-        name="MetaCode test",
-        allowed_values=[True],
-    )
-
-    assert meta.allowed_values == [True]
-
-
 def test_code_with_multi_key_dict_raises():
     with raises(ValueError, match="Code is not a single name-attributes mapping"):
         Code.from_dict({"name": "", "illegal second key": ""})

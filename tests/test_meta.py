@@ -1,6 +1,9 @@
 import pyam
 import pytest
 
+from nomenclature.processor.validator import WarningEnum
+from nomenclature.codelist import MetaCodeList
+from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor.meta import MetaValidator
 
 from conftest import TEST_DATA_DIR
@@ -8,30 +11,41 @@ from conftest import TEST_DATA_DIR
 MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "meta_validator"
 
 
-def test_MetaValidator(simple_df):
-    meta_validator = MetaValidator(MODULE_TEST_DATA_DIR / "definitions1" / "meta")
-    exp = simple_df.copy()
-    pyam.testing.assert_iamframe_equal(exp, meta_validator.apply(df=simple_df))
-
-
-def test_MetaValidator_Meta_Indicator_Error(simple_df):
-    simple_df.set_meta(name="not allowed", meta=False)
-    meta_validator = MetaValidator(MODULE_TEST_DATA_DIR / "definitions2" / "meta")
-    match = (
-        "Invalid meta indicator: 'not allowed'\n"  # noqa
-        "Valid meta indicators: 'boolean', 'number', 'string'"  # noqa
+def test_MetaValidator_from_codelist(simple_df):
+    """
+    Test MetaValidator can be created from a MetaCodeList and validation criteria
+    are set correctly.
+    """
+    meta_codelist = MetaCodeList.from_directory(
+        "meta", MODULE_TEST_DATA_DIR / "definitions1" / "meta"
     )
+    meta_validator = MetaValidator.from_codelist(meta_codelist)
+    assert meta_validator.criteria_items[0].validation[0].value == [True, False]
+    assert meta_validator.criteria_items[1].validation[0].value == [1.0, 2.0, 3.0, 4.0]
+    assert meta_validator.criteria_items[2].validation[0].value == ["foo", "bar"]
 
-    with pytest.raises(ValueError, match=match):
-        meta_validator.apply(df=simple_df)
 
-
-def test_MetaValidator_Meta_Indicator_Value_Error(simple_df):
-    simple_df.set_meta(name="meta_string", meta=3)
-    meta_validator = MetaValidator(MODULE_TEST_DATA_DIR / "definitions3" / "meta")
-    match = (
-        "Invalid value for meta indicator 'meta_string': '3'\n"  # noqa
-        "Allowed values: 'A', 'B'"  # noqa
+def test_MetaValidator_from_file(simple_df):
+    """
+    Test MetaValidator can be created from a YAML file and validation criteria
+    are set correctly.
+    """
+    meta_validator = MetaValidator.from_file(
+        MODULE_TEST_DATA_DIR / "validate_meta" / "meta.yaml"
     )
-    with pytest.raises(ValueError, match=match):
-        meta_validator.apply(df=simple_df)
+    assert meta_validator.criteria_items[0].validation[0].upper_bound == 2.0
+    assert (
+        meta_validator.criteria_items[0].validation[0].warning_level == WarningEnum.high
+    )
+    assert meta_validator.criteria_items[1].validation[0].value == ["foo"]
+
+
+def test_MetaValidator_validate_with_definition(simple_df):
+    """
+    Test MetaValidator's criteria items against the MetaCodeList."""
+    meta_codelist = MetaCodeList.from_directory(
+        "meta", MODULE_TEST_DATA_DIR / "definitions1" / "meta"
+    )
+    meta_validator = MetaValidator.from_codelist(meta_codelist)
+    dsd = DataStructureDefinition(MODULE_TEST_DATA_DIR / "definitions1")
+    meta_validator.validate_with_definition(dsd)

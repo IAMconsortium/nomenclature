@@ -523,12 +523,14 @@ def test_MetaCodeList_from_directory():
         "exclude": MetaCode(
             name="exclude",
             description=None,
-            allowed_values=[True, False],
+            values=[True, False],
+            extra_attributes={"allowed_values": [True, False]},
         ),
         "Meta cat with int values": MetaCode(
             name="Meta cat with int values",
             description=None,
-            allowed_values=[1, 2, 3],
+            values=[1, 2, 3],
+            extra_attributes={"allowed_values": [1, 2, 3]},
         ),
     }
     exp = MetaCodeList(name="Meta", mapping=mapping)
