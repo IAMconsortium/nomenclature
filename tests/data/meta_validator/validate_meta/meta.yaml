@@ -1,0 +1,8 @@
+- name: Number Meta-Indicator Validation
+  meta: number
+  validation:
+    - warning_level: high
+      upper_bound: 2
+- name: String Meta-Indicator Validation
+  meta: string
+  value: ["foo"]

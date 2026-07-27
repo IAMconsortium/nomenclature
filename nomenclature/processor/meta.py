@@ -34,7 +34,7 @@ class MetaFilter(BaseModel):
         validate_by_alias=True, validate_by_name=True, extra="forbid"
     )
 
-    @field_validator("meta", mode="after")
+    @field_validator("meta", mode="before")
     @classmethod
     def single_input_to_list(cls, v):
         return v if isinstance(v, list) else [v]
