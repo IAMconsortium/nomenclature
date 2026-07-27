@@ -1,6 +1,3 @@
-import pyam
-import pytest
-
 from nomenclature.processor.validator import WarningEnum
 from nomenclature.codelist import MetaCodeList
 from nomenclature.definition import DataStructureDefinition

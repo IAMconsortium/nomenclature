@@ -1,7 +1,7 @@
 import pytest
 from pytest import raises
 
-from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
+from nomenclature.code import Code, RegionCode, VariableCode
 
 
 def test_variable_without_unit_raises():
