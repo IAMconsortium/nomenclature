@@ -45,6 +45,14 @@ MissingWeightError = partial(
         "are not defined in the variable codelist:\n{missing_weights}"
     ),
 )
+UnknownVariableComponentError = partial(
+    PydanticCustomError,
+    "unknown_variable_component",
+    (
+        "The following variables are used as 'components' for aggregation but "
+        "are not defined in the variable codelist:\n{unknown_variable_component}"
+    ),
+)
 RegionNotDefinedError = partial(
     PydanticCustomError,
     "region_not_defined",

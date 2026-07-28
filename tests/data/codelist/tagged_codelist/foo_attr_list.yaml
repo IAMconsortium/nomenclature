@@ -9,3 +9,7 @@
         - By sector:
             - Emissions|{Species}|Energy
             - Emissions|{Species}|Industry
+- Emissions|{Species}|{Source}:
+    unit: "{Species}/yr"
+- Emissions|{Species}|{Sector}:
+    unit: "{Species}/yr"

@@ -40,3 +40,17 @@ def test_unknown_weight_raises():
         DataStructureDefinition(
             TEST_FOLDER_VARIABLE / "unknown_weight", dimensions=["variable"]
         )
+
+
+def test_unknown_component_raises():
+    # Check that a component that is not defined in the variable codelist raises an error
+    # Both missing components should appear in the error message
+    error_pattern = (
+        r"'components'.*aggregation.*not defined.*\n"
+        r"'Emissions\|CO2\|Fossil'.*'Emissions\|CO2'.*variable/variables.yaml\n"
+        r"'Final Energy\|Electricity'.*'Final Energy'.*variable/variables.yaml"
+    )
+    with pytest.raises(ValidationError, match=error_pattern):
+        DataStructureDefinition(
+            TEST_FOLDER_VARIABLE / "unknown_component", dimensions=["variable"]
+        )

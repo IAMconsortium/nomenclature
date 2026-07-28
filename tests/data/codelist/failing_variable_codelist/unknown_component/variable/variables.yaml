@@ -1,0 +1,10 @@
+- Emissions|CO2:
+    unit: Mt CO2/yr
+    check-aggregate: true
+    components:
+      - Emissions|CO2|Fossil
+- Final Energy:
+    unit: EJ/yr
+    check-aggregate: true
+    components:
+      - Final Energy|Electricity
