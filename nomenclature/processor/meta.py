@@ -47,17 +47,20 @@ class MetaFilter(BaseModel):
         """Check meta indicators to validate against the DataStructureDefinition"""
         codelist: MetaCodeList | None = getattr(dsd, "meta", None)
         # No validation if codelist is not defined or filter-item is None
+        errors: list[NoTracebackException] = []
         if codelist is None or getattr(self, "meta") is None:
             return
         if invalid := codelist.validate_items(getattr(self, "meta")):
-            if errors := NoTracebackException(
-                "The following meta indicators are not defined in the "
-                "DataStructureDefinition:\n   "
-                + ", ".join(f"'{item}'" for item in invalid)
-            ):
-                raise NoTracebackExceptionGroup(
-                    f"Errors in {self.__class__.__name__}", errors
+            errors.append(
+                NoTracebackException(
+                    "The following meta indicators are not defined in the "
+                    "DataStructureDefinition:\n   "
+                    + ", ".join(f"'{item}'" for item in invalid)
                 )
+            )
+            raise NoTracebackExceptionGroup(
+                f"Errors in {self.__class__.__name__}", errors
+            )
 
 
 class MetaValidationValue(ValidationValue):

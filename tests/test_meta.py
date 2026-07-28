@@ -4,7 +4,10 @@ from nomenclature.processor.validator import WarningEnum
 from nomenclature.codelist import MetaCodeList
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor.meta import MetaValidator
-from nomenclature.exceptions import MetaValidationError
+from nomenclature.exceptions import (
+    NoTracebackException,
+    MetaValidationError,
+)
 
 from conftest import TEST_DATA_DIR
 
@@ -48,7 +51,7 @@ def test_MetaValidator_from_file():
     )
 
 
-def test_MetaValidator_validate_with_definition(simple_df):
+def test_MetaValidator_validate_with_definition():
     """
     Test MetaValidator's criteria items against the MetaCodeList."""
     meta_codelist = MetaCodeList.from_directory(
@@ -56,7 +59,26 @@ def test_MetaValidator_validate_with_definition(simple_df):
     )
     meta_validator = MetaValidator.from_codelist(meta_codelist)
     dsd = DataStructureDefinition(MODULE_TEST_DATA_DIR / "definitions")
-    meta_validator.validate_with_definition(dsd)
+
+    assert meta_validator.validate_with_definition(dsd) is None
+
+
+def test_MetaValidator_validate_with_definition_raises():
+    """
+    Test MetaValidator's DSD validation when criteria uses indicators not in definition."""
+    error_msg = (
+        "The following meta indicators are not defined "
+        "in the DataStructureDefinition:\n   'not defined'"
+    )
+
+    meta_validator = MetaValidator.from_file(
+        MODULE_TEST_DATA_DIR / "validate_meta" / "indicator_not_defined.yaml"
+    )
+    dsd = DataStructureDefinition(MODULE_TEST_DATA_DIR / "definitions")
+
+    with pytest.RaisesGroup(NoTracebackException) as excinfo:
+        meta_validator.validate_with_definition(dsd)
+    assert excinfo.group_contains(NoTracebackException, match=error_msg)
 
 
 def test_MetaValidator_apply_warning(simple_df, caplog):
