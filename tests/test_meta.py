@@ -53,7 +53,8 @@ def test_MetaValidator_from_file():
 
 def test_MetaValidator_validate_with_definition():
     """
-    Test MetaValidator's criteria items against the MetaCodeList."""
+    Test MetaValidator's criteria items against the MetaCodeList.
+    """
     meta_codelist = MetaCodeList.from_directory(
         "meta", MODULE_TEST_DATA_DIR / "definitions" / "meta"
     )
@@ -65,7 +66,8 @@ def test_MetaValidator_validate_with_definition():
 
 def test_MetaValidator_validate_with_definition_raises():
     """
-    Test MetaValidator's DSD validation when criteria uses indicators not in definition."""
+    Test MetaValidator's DSD validation when criteria uses indicators not in definition.
+    """
     error_msg = (
         "The following meta indicators are not defined "
         "in the DataStructureDefinition:\n   'not defined'"
@@ -85,7 +87,7 @@ def test_MetaValidator_apply_warning(simple_df, caplog):
     """
     Test MetaValidator's criteria items against a data frame.
     """
-    warning_message = """  Criteria: meta: ['number'], upper_bound: 1.0
+    warning_msg = """  Criteria: meta: ['number'], upper_bound: 1.0
                     number warning_level
   model   scenario                      
   model_a scen_b       2.0          high"""
@@ -94,14 +96,14 @@ def test_MetaValidator_apply_warning(simple_df, caplog):
         MODULE_TEST_DATA_DIR / "validate_meta" / "warning_high.yaml"
     )
     meta_validator.apply(simple_df)
-    assert warning_message in caplog.text
+    assert warning_msg in caplog.text
 
 
 def test_MetaValidator_apply_multiple_warning_levels(simple_df, caplog):
     """
     Test MetaValidator can apply multiple warning levels to meta indicators.
     """
-    warning_message = """
+    warning_msg = """
   Criteria: meta: ['number'], upper_bound: 1.0
                     number warning_level
   model   scenario                      
@@ -121,7 +123,41 @@ def test_MetaValidator_apply_multiple_warning_levels(simple_df, caplog):
         MODULE_TEST_DATA_DIR / "validate_meta" / "warning_multiple.yaml"
     )
     meta_validator.apply(simple_df)
-    assert warning_message in caplog.text
+    assert warning_msg in caplog.text
+
+
+def test_MetaValidator_apply_value_tolerance(simple_df, caplog):
+    """
+    Test MetaValidator allows validation with value and tolerance for `value` field.
+    """
+    warning_msg = """  Criteria: meta: ['number'], value: 1.0, atol: 0.5
+                    number warning_level
+  model   scenario                      
+  model_a scen_b       2.0        medium"""
+
+    meta_validator = MetaValidator.from_file(
+        MODULE_TEST_DATA_DIR / "validate_meta" / "warning_value_tolerance.yaml"
+    )
+    meta_validator.apply(simple_df)
+    assert warning_msg in caplog.text
+
+
+def test_MetaValidator_apply_multiple_columns(simple_df, caplog):
+    """
+    Test MetaValidator allows simultaneous validation for multiple meta columns.
+    """
+    warning_msg = """  Criteria: meta: ['number', 'number_too'], upper_bound: 1.0
+                    number  number_too warning_level
+  model   scenario                                  
+  model_a scen_a       NaN         2.0          high
+          scen_b       2.0         NaN          high"""
+    simple_df.set_meta([2.0, 1.0], "number_too")
+    warning_msg = """"""
+    meta_validator = MetaValidator.from_file(
+        MODULE_TEST_DATA_DIR / "validate_meta" / "warning_multiple_columns.yaml"
+    )
+    meta_validator.apply(simple_df)
+    assert warning_msg in caplog.text
 
 
 def test_MetaValidator_apply_error(simple_df):
