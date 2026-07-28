@@ -14,6 +14,7 @@ API documentation
    api/codelist
    api/regionprocessor
    api/datavalidator
+   api/metavalidator
    api/requireddatavalidator
    api/countries
    api/nuts
