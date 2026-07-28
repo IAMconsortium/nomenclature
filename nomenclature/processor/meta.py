@@ -85,8 +85,8 @@ class MetaValidationItem(ValidationItem, MetaFilter):
 
         # If name is given, set a meta indicator for the item being processed
         if self.name is not None:
-            meta_index = per_item_df.index.copy()
-            per_item_df[self.name] = "ok"
+            meta_index: pd.MultiIndex = per_item_df.index.copy()
+            df.set_meta(name=self.name, meta="ok", index=meta_index)
 
         for criterion in self.validation:
             failed_validation = _validate_meta(per_item_df, **criterion.validation_args)
@@ -97,12 +97,12 @@ class MetaValidationItem(ValidationItem, MetaFilter):
                 ).drop_duplicates(keep=False)
 
                 # Mark failing scenarios with a meta indicator and warning level
-                failed_index = failed_validation.set_index(
-                    ["model", "scenario"]
-                ).index.drop_duplicates()
+                failed_index: pd.MultiIndex = failed_validation.index.drop_duplicates()
 
                 if self.name is not None:
-                    df[self.name].iloc[failed_index] = criterion.warning_level.name
+                    df.meta.loc[failed_index.values, self.name] = (
+                        criterion.warning_level.name
+                    )
                     # Remove failed scenarios from the meta index to avoid
                     # lower warnings overriding higher warnings in meta indicators
                     meta_index = meta_index.difference(failed_index)
@@ -328,9 +328,9 @@ def _validate_meta(df: pd.DataFrame, **kwargs) -> pd.DataFrame | None:
         failed_validation.append(_df[_df < lower_bound])
     if not failed_validation:
         return
-    _df = pd.concat(failed_validation).sort_index()
+    _df = pd.concat(failed_validation).dropna().sort_index()
 
     if not _df.empty:
         msg = "{} of {} meta indicators do not satisfy the criteria"
         logger.warning(msg.format(len(_df), len(df)))
-        return _df.reset_index()
+        return _df
