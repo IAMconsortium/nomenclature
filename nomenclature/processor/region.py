@@ -189,15 +189,15 @@ class RegionAggregationMapping(BaseModel):
 
     @model_validator(mode="after")
     def check_native_or_common_regions(
-        cls, v: "RegionAggregationMapping"
+        self
     ) -> "RegionAggregationMapping":
         """Check that at least one of the following is provided: native or common regions."""
-        if not v.native_regions and not v.common_regions:
+        if not self.native_regions and not self.common_regions:
             raise ValueError(
                 "At least one of 'native_regions' and 'common_regions' must be "
                 f"provided in {v.file}"
             )
-        return v
+        return self
 
     @model_validator(mode="after")
     def check_native_common_region_no_overlap(
