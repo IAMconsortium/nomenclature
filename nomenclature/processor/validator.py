@@ -123,7 +123,7 @@ class ValidationRange(ValidationCriteria):
 
     @field_validator("range", mode="after")
     @classmethod
-    def check_range_is_valid(cls, value: list[float]):
+    def check_range_is_valid(cls, value: list[float | int]) -> list[float | int]:
         if value[0] > value[1]:
             raise ValueError(
                 "Validation 'range' must be given as `(lower_bound, upper_bound)`, "
@@ -132,10 +132,12 @@ class ValidationRange(ValidationCriteria):
         return value
 
     @computed_field
+    @property
     def upper_bound(self) -> float:
         return self.range[1]
 
     @computed_field
+    @property
     def lower_bound(self) -> float:
         return self.range[0]
 
