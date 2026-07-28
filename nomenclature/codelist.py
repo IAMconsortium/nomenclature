@@ -18,7 +18,7 @@ from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import CodeListConfig, NomenclatureConfig
 from nomenclature.exceptions import (
     CodeListErrorGroup,
-    MissingComponentError,
+    UnknownVariableComponentError,
     MissingWeightError,
     UnknownCodeError,
     UnknownRegionError,
@@ -793,9 +793,9 @@ class VariableCodeList(CodeList):
                 (var.name, comp, var.file) for comp in components if comp not in v
             )
         if missing:
-            raise MissingComponentError(
+            raise UnknownVariableComponentError(
                 {
-                    "missing_components": "".join(
+                    "unknown_variable_component": "".join(
                         f"'{comp}' used for '{var}' in: {file}\n"
                         for var, comp, file in missing
                     )
