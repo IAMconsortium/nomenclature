@@ -188,58 +188,50 @@ class RegionAggregationMapping(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def check_native_or_common_regions(
-        self
-    ) -> "RegionAggregationMapping":
+    def check_native_or_common_regions(self) -> "RegionAggregationMapping":
         """Check that at least one of the following is provided: native or common regions."""
         if not self.native_regions and not self.common_regions:
             raise ValueError(
                 "At least one of 'native_regions' and 'common_regions' must be "
-                f"provided in {v.file}"
+                f"provided in {self.file}"
             )
         return self
 
     @model_validator(mode="after")
-    def check_native_common_region_no_overlap(
-        cls, v: "RegionAggregationMapping"
-    ) -> "RegionAggregationMapping":
+    def check_native_common_region_no_overlap(self) -> "RegionAggregationMapping":
         """Check that native region target names do not overlap with common region names."""
-        native_region_names = {nr.target_native_region for nr in v.native_regions}
-        common_region_names = {cr.name for cr in v.common_regions}
+        native_region_names = {nr.target_native_region for nr in self.native_regions}
+        common_region_names = {cr.name for cr in self.common_regions}
         overlap = list(native_region_names & common_region_names)
         if overlap:
             raise RegionNameCollisionError(
                 {
                     "location": "native and common regions",
                     "duplicates": overlap,
-                    "file": v.file,
+                    "file": self.file,
                 }
             )
-        return v
+        return self
 
     @model_validator(mode="after")
-    def check_exclude_native_region_overlap(
-        cls, v: "RegionAggregationMapping"
-    ) -> "RegionAggregationMapping":
-        return _check_exclude_region_overlap(v, "native_regions")
+    def check_exclude_native_region_overlap(self) -> "RegionAggregationMapping":
+        return _check_exclude_region_overlap(self, "native_regions")
 
     @model_validator(mode="after")
-    def check_exclude_common_region_overlap(
-        cls, v: "RegionAggregationMapping"
-    ) -> "RegionAggregationMapping":
-        return _check_exclude_region_overlap(v, "common_regions")
+    def check_exclude_common_region_overlap(self) -> "RegionAggregationMapping":
+        return _check_exclude_region_overlap(self, "common_regions")
 
     @model_validator(mode="after")
-    def check_constituent_regions_in_native_regions(
-        cls, v: "RegionAggregationMapping"
-    ) -> "RegionAggregationMapping":
+    def check_constituent_regions_in_native_regions(self) -> "RegionAggregationMapping":
         """Check that all constituent regions in common regions are listed as native regions."""
-        if v.common_regions and v.native_regions:
+        if self.common_regions and self.native_regions:
             if missing := set(
-                [cr for r in v.common_regions for cr in r.constituent_regions]
-            ).difference([r.name for r in v.native_regions] + v.exclude_regions):
-                raise ConstituentsNotNativeError({"regions": missing, "file": v.file})
-        return v
+                [cr for r in self.common_regions for cr in r.constituent_regions]
+            ).difference([r.name for r in self.native_regions] + self.exclude_regions):
+                raise ConstituentsNotNativeError(
+                    {"regions": missing, "file": self.file}
+                )
+        return self
 
     @classmethod
     def from_file(cls, file: Path | str) -> "RegionAggregationMapping":
