@@ -1,10 +1,10 @@
 import logging
 import textwrap
+from typing import Any
 import pandas as pd
 import pyam
 import yaml
 
-from typing import Any
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class MetaFilter(BaseModel):
-    meta: list[str] = Field(..., alias="meta_column_to_validate")
+    meta: list[str] = Field(..., alias="meta_columns_to_validate")
 
     model_config = ConfigDict(
         validate_by_alias=True, validate_by_name=True, extra="forbid"
@@ -64,7 +64,7 @@ class MetaFilter(BaseModel):
 
 
 class MetaValidationValue(ValidationValue):
-    value: list[Any] = Field(..., alias="values")
+    value: float | list[Any] = Field(..., alias="values")
 
     model_config = ConfigDict(
         validate_by_alias=True, validate_by_name=True, extra="forbid"
@@ -72,8 +72,11 @@ class MetaValidationValue(ValidationValue):
 
     @field_validator("value", mode="after")
     @classmethod
-    def single_input_to_list(cls, v):
-        return v if isinstance(v, list) else [v]
+    def coerce_str_to_list_str(cls, v):
+        if isinstance(v, (float, list)):
+            return v
+        if isinstance(v, str):
+            return [v]
 
 
 class MetaValidationItem(ValidationItem, MetaFilter):
@@ -331,7 +334,7 @@ def _validate_meta(df: pd.DataFrame, **kwargs) -> pd.DataFrame | None:
         failed_validation.append(_df[_df < lower_bound])
     if not failed_validation:
         return
-    _df = pd.concat(failed_validation).dropna().sort_index()
+    _df = pd.concat(failed_validation).dropna(how="all").sort_index()
 
     if not _df.empty:
         msg = "{} of {} meta indicators do not satisfy the criteria"

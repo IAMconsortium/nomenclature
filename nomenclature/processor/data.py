@@ -4,7 +4,6 @@ from enum import IntEnum
 from pathlib import Path
 
 import pandas as pd
-from pydantic import computed_field
 from toolkit.exceptions import NoTracebackException
 import yaml
 from pyam import IamDataFrame
@@ -32,48 +31,8 @@ class WarningEnum(IntEnum):
     low = 20
 
 
-class DataValidationValue(ValidationValue):
-    value: float
-    rtol: float = 0.0
-    atol: float = 0.0
-
-    @property
-    def tolerance(self) -> float | None:
-        return (
-            self.value * self.rtol + self.atol
-            if isinstance(self.value, float)
-            else None
-        )
-
-    @computed_field
-    def upper_bound(self) -> float | None:
-        return self.value + self.tolerance
-
-    @computed_field
-    def lower_bound(self) -> float | None:
-        return self.value - self.tolerance
-
-    @property
-    def validation_args(self):
-        if isinstance(self.value, list):
-            return {"value": self.value}
-        return self.model_dump(
-            exclude_none=True,
-            exclude_unset=True,
-            exclude=["warning_level", "value", "rtol", "atol"],
-        )
-
-    @property
-    def criteria(self):
-        return self.model_dump(
-            exclude_none=True,
-            exclude_unset=True,
-            exclude=["warning_level", "lower_bound", "upper_bound"],
-        )
-
-
 class DataValidationItem(ValidationItem, IamcDataFilter):
-    validation: list[DataValidationValue | ValidationBounds | ValidationRange]
+    validation: list[ValidationValue | ValidationBounds | ValidationRange]
 
     def apply(
         self, df: IamDataFrame, fail_list: list, output_list: list

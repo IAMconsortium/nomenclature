@@ -3,7 +3,6 @@ import logging
 import pandas as pd
 from pathlib import Path
 from enum import IntEnum
-from typing import Any
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -67,14 +66,38 @@ class ValidationCriteria(abc.ABC, BaseModel):
 
 
 class ValidationValue(ValidationCriteria):
-    value: Any
+    value: float
+    rtol: float = 0.0
+    atol: float = 0.0
+
+    @property
+    def tolerance(self) -> float | None:
+        return (
+            self.value * self.rtol + self.atol
+            if isinstance(self.value, float)
+            else None
+        )
+
+    @computed_field
+    @property
+    def upper_bound(self) -> float | None:
+        return self.value + self.tolerance if isinstance(self.value, float) else None
+
+    @computed_field
+    @property
+    def lower_bound(self) -> float | None:
+        return self.value - self.tolerance if isinstance(self.value, float) else None
 
     @property
     def validation_args(self):
+        # In case of list of values, validation is a hard equality check
+        if isinstance(self.value, list):
+            return {"value": self.value}
+        # Else, return the bounds for tolerance check
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
-            exclude=["warning_level"],
+            exclude=["warning_level", "value", "rtol", "atol"],
         )
 
     @property
@@ -82,7 +105,7 @@ class ValidationValue(ValidationCriteria):
         return self.model_dump(
             exclude_none=True,
             exclude_unset=True,
-            exclude=["warning_level"],
+            exclude=["warning_level", "lower_bound", "upper_bound"],
         )
 
 
