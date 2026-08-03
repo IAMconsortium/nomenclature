@@ -119,11 +119,10 @@ class Repository(BaseModel):
     # Defined via the `repository` name in the configuration
 
     @model_validator(mode="after")
-    @classmethod
-    def check_hash_and_release(cls, v: "Repository") -> "Repository":
-        if v.hash and v.release:
+    def check_hash_and_release(self) -> "Repository":
+        if self.hash and self.release:
             raise ValueError("Either `hash` or `release` can be provided, not both.")
-        return v
+        return self
 
     @field_validator("local_path")
     @classmethod
@@ -293,13 +292,10 @@ class TimeDomainConfig(BaseModel):
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
 
     @model_validator(mode="after")
-    @classmethod
-    def validate_datetime_and_timezone(
-        cls, v: "TimeDomainConfig"
-    ) -> "TimeDomainConfig":
-        if v.timezone is not None and not v.datetime_allowed:
+    def validate_datetime_and_timezone(self) -> "TimeDomainConfig":
+        if self.timezone is not None and not self.datetime_allowed:
             raise ValueError("'timezone' is set but 'datetime' is not allowed")
-        return v
+        return self
 
     @property
     def mixed_allowed(self) -> bool:
@@ -328,9 +324,11 @@ class TimeDomainConfig(BaseModel):
                 "The following datetime values are invalid:", errors
             )
 
-    def validate_datetime(self, df: IamDataFrame, dimensions: list[str] | None = None) -> None:
+    def validate_datetime(
+        self, df: IamDataFrame, dimensions: list[str] | None = None
+    ) -> None:
         """Validate datetime coordinates against allowed format and/or timezone.
-        
+
         Parameters
         ----------
         df : IamDataFrame
@@ -338,11 +336,13 @@ class TimeDomainConfig(BaseModel):
         dimensions : list of str, optional
             List of allowed dimensions for validation
         """
-        if "subannual" in df.data.columns and (dimensions is None or "subannual" not in dimensions):
+        if "subannual" in df.data.columns and (
+            dimensions is None or "subannual" not in dimensions
+        ):
             raise TimeDomainError(
                 "Invalid time domain - `subannual` found, but not allowed."
             )
-        
+
         if df.time_domain == "year":
             if not self.year_allowed:
                 raise TimeDomainError(
@@ -403,31 +403,29 @@ class NomenclatureConfig(BaseModel):
         return v if isinstance(v, list) else [v]
 
     @model_validator(mode="after")
-    @classmethod
-    def check_definitions_repository(
-        cls, v: "NomenclatureConfig"
-    ) -> "NomenclatureConfig":
+    def check_definitions_repository(self) -> "NomenclatureConfig":
         """Check that all repositories referenced in definitions and mappings exist."""
-        mapping_repos = {"mappings": v.mappings.repositories} if v.mappings else {}
+        mapping_repos = (
+            {"mappings": self.mappings.repositories} if self.mappings else {}
+        )
         repos: dict[str, list[MappingRepository]] = {
-            **v.definitions.repos,
+            **self.definitions.repos,
             **mapping_repos,
         }
         for use, repositories in repos.items():
             repository_names = [repository.name for repository in repositories]
-            if unknown_repos := repository_names - v.repositories.keys():
+            if unknown_repos := repository_names - self.repositories.keys():
                 raise ValueError((f"Unknown repository {unknown_repos} in '{use}'."))
-        return v
+        return self
 
     @model_validator(mode="after")
-    @classmethod
-    def check_nuts_consistency(cls, v: "NomenclatureConfig") -> "NomenclatureConfig":
-        if v.processor.nuts and not v.definitions.region.nuts:
+    def check_nuts_consistency(self) -> "NomenclatureConfig":
+        if self.processor.nuts and not self.definitions.region.nuts:
             raise ValueError(
                 "`nuts` region processor set but no NUTS regions in `definitions`. "
                 "To fix, set `definitions.regions.nuts` to True."
             )
-        return v
+        return self
 
     def fetch_repos(self, target_folder: Path):
         for repo_name, repo in self.repositories.items():
