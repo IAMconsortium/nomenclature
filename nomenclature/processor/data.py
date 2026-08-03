@@ -174,7 +174,7 @@ class DataValidator(Validator):
         Parameters
         ----------
         dsd : DataStructureDefinition
-            Data structure definition to validate against.
+            Definition against which to check the items of the Validator
 
         Raises
         ------

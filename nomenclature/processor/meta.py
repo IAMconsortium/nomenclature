@@ -44,11 +44,11 @@ class MetaFilter(BaseModel):
         return self.model_dump(exclude_none=True, exclude_unset=True)
 
     def validate_with_definition(self, dsd: DataStructureDefinition) -> None:
-        """Check meta indicators to validate against the DataStructureDefinition"""
+        """Check criteria items against the DataStructureDefinition"""
         codelist: MetaCodeList | None = getattr(dsd, "meta", None)
         # No validation if codelist is not defined or filter-item is None
         errors: list[NoTracebackException] = []
-        if codelist is None or getattr(self, "meta") is None:
+        if codelist is None:
             return
         if invalid := codelist.validate_items(getattr(self, "meta")):
             errors.append(
@@ -87,11 +87,11 @@ class MetaValidationItem(ValidationItem, MetaFilter):
     def apply(self, df: IamDataFrame, fail_list: list, output_list: list):
         """Apply meta validation to IamDataFrame."""
         error = False
-        per_item_df = df.meta.filter(self.meta, axis="columns")
+        per_item_df = df.meta[self.meta]
 
         # If name is given, set a meta indicator for the item being processed
         if self.name is not None:
-            meta_index: pd.MultiIndex = per_item_df.index.copy()
+            meta_index: pd.MultiIndex = per_item_df.index
             df.set_meta(name=self.name, meta="ok", index=meta_index)
 
         for criterion in self.validation:
@@ -322,7 +322,7 @@ def _validate_meta(df: pd.DataFrame, **kwargs) -> pd.DataFrame | None:
     upper_bound = kwargs.get("upper_bound")
     lower_bound = kwargs.get("lower_bound")
     if df.empty:
-        logger.warning("No data matches filters, skipping validation.")
+        logger.warning("Column does not exist in `meta`, skipping validation.")
         return
 
     failed_validation: list[pd.DataFrame] = []
