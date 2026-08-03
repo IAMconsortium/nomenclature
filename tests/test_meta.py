@@ -1,5 +1,8 @@
 import pytest
+import pandas as pd
 
+from pyam import IamDataFrame
+from pyam.utils import IAMC_IDX
 from nomenclature.processor.validator import WarningEnum
 from nomenclature.codelist import MetaCodeList
 from nomenclature.definition import DataStructureDefinition
@@ -158,6 +161,34 @@ def test_MetaValidator_apply_multiple_columns(simple_df, caplog):
     )
     meta_validator.apply(simple_df)
     assert warning_msg in caplog.text
+
+
+def test_MetaValidator_apply_empty_df(caplog):
+    """
+    Test MetaValidator on an empty data frame (columns but no rows).
+    """
+    empty_df = IamDataFrame(pd.DataFrame([], columns=IAMC_IDX + [2005, 2010]))
+    empty_df.set_meta([], "number")
+
+    meta_validator = MetaValidator.from_file(
+        MODULE_TEST_DATA_DIR / "validate_meta" / "warning_high.yaml"
+    )
+    meta_validator.apply(empty_df)
+
+    assert (
+        "Columns 'number' do not exist in `meta`, skipping validation." in caplog.text
+    )
+
+    empty_df.set_meta([], "number_too")
+    meta_validator = MetaValidator.from_file(
+        MODULE_TEST_DATA_DIR / "validate_meta" / "warning_multiple_columns.yaml"
+    )
+    meta_validator.apply(empty_df)
+
+    assert (
+        "Columns 'number', 'number_too' do not exist in `meta`, skipping validation."
+        in caplog.text
+    )
 
 
 def test_MetaValidator_apply_error(simple_df):

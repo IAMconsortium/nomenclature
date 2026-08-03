@@ -317,13 +317,16 @@ def _validate_meta(df: pd.DataFrame, **kwargs) -> pd.DataFrame | None:
         *If a meta indicator in the 'df' is not listed in the .yaml
         definition file
     """
-    _df = df.copy()
     value = kwargs.get("value")
     upper_bound = kwargs.get("upper_bound")
     lower_bound = kwargs.get("lower_bound")
     if df.empty:
-        logger.warning("Column does not exist in `meta`, skipping validation.")
+        column_name = "', '".join(df.columns)
+        logger.warning(
+            f"Columns '{column_name}' do not exist in `meta`, skipping validation."
+        )
         return
+    _df = df.copy()
 
     failed_validation: list[pd.DataFrame] = []
     if value is not None:
