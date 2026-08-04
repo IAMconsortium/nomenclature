@@ -141,8 +141,8 @@ def test_wildcard_match(simple_df):
     [
         # With datetime=True, not providing a timezone is allowed
         (
-                {2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"},
-                "datetime_true",
+            {2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"},
+            "datetime_true",
         ),
         # With datetime=True, any timezone is allowed
         (
