@@ -98,9 +98,9 @@ class MetaValidationItem(ValidationItem, MetaFilter):
             failed_validation = _validate_meta(per_item_df, **criterion.validation_args)
             if failed_validation is not None:
                 # Create a new meta DataFrame with failed validation rows removed
-                per_item_df = pd.concat(
-                    [per_item_df, failed_validation]
-                ).drop_duplicates(keep=False)
+                per_item_df = per_item_df.loc[
+                    ~per_item_df.index.isin(failed_validation.index)
+                ]
 
                 # Mark failing scenarios with a meta indicator and warning level
                 failed_index: pd.MultiIndex = failed_validation.index.drop_duplicates()
@@ -328,16 +328,16 @@ def _validate_meta(df: pd.DataFrame, **kwargs) -> pd.DataFrame | None:
         return
     _df = df.copy()
 
-    failed_validation: list[pd.DataFrame] = []
+    failed_index = set()
     if value is not None:
-        failed_validation.append(_df[~_df.isin(value)])
+        failed_index.update(_df[~_df.isin(value)].dropna(how="all").index)
     if upper_bound is not None:
-        failed_validation.append(_df[_df > upper_bound])
+        failed_index.update(_df[_df > upper_bound].dropna(how="all").index)
     if lower_bound is not None:
-        failed_validation.append(_df[_df < lower_bound])
-    if not failed_validation:
+        failed_index.update(_df[_df < lower_bound].dropna(how="all").index)
+    if not failed_index:
         return
-    _df = pd.concat(failed_validation).dropna(how="all").sort_index()
+    _df = df.loc[sorted(failed_index)]
 
     if not _df.empty:
         msg = "{} of {} meta indicators do not satisfy the criteria"

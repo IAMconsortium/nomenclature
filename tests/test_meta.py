@@ -148,12 +148,13 @@ def test_MetaValidator_apply_value_tolerance(simple_df, caplog):
 def test_MetaValidator_apply_multiple_columns(simple_df, caplog):
     """
     Test MetaValidator allows simultaneous validation for multiple meta columns.
+    Higher-level warnings are prioritised over lower-level warnings for the same scenario.
     """
     warning_msg = """  Criteria: meta: ['number', 'number_too'], upper_bound: 1.0
                     number  number_too warning_level
   model   scenario                                  
-  model_a scen_a       NaN         2.0          high
-          scen_b       2.0         NaN          high"""
+  model_a scen_a       1.0         2.0          high
+          scen_b       2.0         1.0          high"""
     simple_df.set_meta([2.0, 1.0], "number_too")
     warning_msg = """"""
     meta_validator = MetaValidator.from_file(
@@ -161,6 +162,8 @@ def test_MetaValidator_apply_multiple_columns(simple_df, caplog):
     )
     meta_validator.apply(simple_df)
     assert warning_msg in caplog.text
+    assert "upper_bound: 0.0" not in caplog.text
+    assert "low" not in caplog.text
 
 
 def test_MetaValidator_apply_empty_df(caplog):
@@ -204,7 +207,6 @@ def test_MetaValidator_apply_ignore_missing_column(simple_df, caplog):
         MODULE_TEST_DATA_DIR / "validate_meta" / "warning_multiple_columns.yaml"
     )
     meta_validator.apply(simple_df)
-    print(caplog.text)
     assert warning_msg in caplog.text
 
 
