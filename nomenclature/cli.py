@@ -1,12 +1,12 @@
 import importlib.util
 import sys
 from pathlib import Path
-from typing_extensions import Annotated
 
 import pandas as pd
 import typer
 import yaml
 from pyam import IamDataFrame
+from typing_extensions import Annotated
 
 from nomenclature import __version__
 from nomenclature.codelist import CodeList, VariableCodeList
@@ -206,7 +206,6 @@ def list_missing_variables(
 # ---------------------------------------------------------
 # run-workflow
 # ---------------------------------------------------------
-@app.command()
 def run_workflow(
     input_file: Path,
     workflow_file: Path = (Path.cwd() / "workflow.py"),
@@ -322,7 +321,8 @@ def parse_model_registration(
     ] = (Path.cwd() / "definitions" / "region"),
     mappings_path: Annotated[
         Path, typer.Option(exists=True, help="Model mappings output folder")
-    ] = Path.cwd() / "mappings",
+    ] = Path.cwd()
+    / "mappings",
 ) -> None:
     """Parse model registration spreadsheet and generate YAML files.
 

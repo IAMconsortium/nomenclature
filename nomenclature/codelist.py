@@ -23,6 +23,7 @@ from nomenclature.exceptions import (
     UnknownCodeError,
     UnknownRegionError,
     UnknownScenarioError,
+    UnknownVariableComponentError,
     UnknownVariableError,
     VariableRenameArgError,
     VariableRenameTargetError,
