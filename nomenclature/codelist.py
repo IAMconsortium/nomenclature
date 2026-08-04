@@ -3,7 +3,7 @@ import re
 from os import PathLike
 from pathlib import Path
 from textwrap import indent
-from typing import Any, IO, ClassVar
+from typing import IO, Any, ClassVar, Self
 
 import numpy as np
 import pandas as pd
@@ -18,7 +18,6 @@ from nomenclature.code import Code, MetaCode, RegionCode, VariableCode
 from nomenclature.config import CodeListConfig, NomenclatureConfig
 from nomenclature.exceptions import (
     CodeListErrorGroup,
-    UnknownVariableComponentError,
     MissingWeightError,
     UnknownCodeError,
     UnknownRegionError,
@@ -201,7 +200,7 @@ class CodeList(BaseModel):
         path: Path,
         config: NomenclatureConfig | None = None,
         file_glob_pattern: str = "**/*",
-    ) -> "CodeList":
+    ) -> Self:
         """Initialize a CodeList from a directory with codelist files
 
         Parameters
