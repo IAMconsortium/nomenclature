@@ -42,6 +42,8 @@ def test_DataValidator_simple_from_file():
     dsd = DataStructureDefinition(TEST_DATA_DIR / "validation" / "definitions")
     assert obs.validate_with_definition(dsd) is None
 
+    assert obs.input_data == {"variable": ["Final Energy"], "year": [2010]}
+
 
 def test_DataValidator_structured_from_file():
     exp = DataValidator(
@@ -97,6 +99,10 @@ def test_DataValidator_from_codelist():
         ".", PROCESSOR_TEST_DIR / "init_from_codelist"
     )
     assert variable_codelist.data_validator == exp
+
+    assert variable_codelist.data_validator.input_data == {
+        "variable": ["Final Energy", "Final Energy|Electricity [Share]"]
+    }
 
 
 @pytest.mark.parametrize(
