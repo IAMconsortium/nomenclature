@@ -14,8 +14,9 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-import nomenclature
 from datetime import datetime
+
+import nomenclature
 
 # -- Project information -----------------------------------------------------
 
