@@ -87,7 +87,7 @@ class MetaValidationItem(ValidationItem, MetaFilter):
     def apply(self, df: IamDataFrame, fail_list: list, output_list: list):
         """Apply meta validation to IamDataFrame."""
         error = False
-        per_item_df = df.meta[self.meta]
+        per_item_df = df.meta.filter(self.meta, axis="columns")
 
         # If name is given, set a meta indicator for the item being processed
         if self.name is not None:

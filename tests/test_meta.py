@@ -191,6 +191,23 @@ def test_MetaValidator_apply_empty_df(caplog):
     )
 
 
+def test_MetaValidator_apply_ignore_missing_column(simple_df, caplog):
+    """
+    Test MetaValidator on a data frame with a missing meta indicator .
+    """
+    warning_msg = """  Criteria: meta: ['number', 'number_too'], upper_bound: 1.0
+                    number warning_level
+  model   scenario                      
+  model_a scen_b       2.0          high"""
+
+    meta_validator = MetaValidator.from_file(
+        MODULE_TEST_DATA_DIR / "validate_meta" / "warning_multiple_columns.yaml"
+    )
+    meta_validator.apply(simple_df)
+    print(caplog.text)
+    assert warning_msg in caplog.text
+
+
 def test_MetaValidator_apply_error(simple_df):
     """
     Test MetaValidator's criteria items against a data frame.
