@@ -1,15 +1,14 @@
-import importlib.util
-import sys
 from pathlib import Path
-from typing_extensions import Annotated
 
 import pandas as pd
 import typer
 import yaml
 from pyam import IamDataFrame
+from typing_extensions import Annotated
 
 from nomenclature import __version__
 from nomenclature.codelist import CodeList, VariableCodeList
+from nomenclature.core import run_workflow
 from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition
 from nomenclature.processor import RegionAggregationMapping, RegionProcessor
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
@@ -206,8 +205,10 @@ def list_missing_variables(
 # ---------------------------------------------------------
 # run-workflow
 # ---------------------------------------------------------
-@app.command()
-def run_workflow(
+
+
+@app.command("run-workflow")
+def cli_run_workflow(
     input_file: Annotated[
         Path, typer.Argument(..., exists=True, help="Input IAMC data file")
     ],
@@ -220,7 +221,7 @@ def run_workflow(
     output_file: Annotated[
         Path | None, typer.Option(help="Output file for processed data")
     ] = None,
-):
+) -> None:
     """Execute a custom Python workflow on IAMC data.
 
     Loads a function from a Python file and applies it to process scenario data.
@@ -231,16 +232,7 @@ def run_workflow(
     Example:
       $ nomenclature run-workflow input.xlsx --output-file output.xlsx
     """
-    module_name = workflow_file.stem
-    spec = importlib.util.spec_from_file_location(module_name, workflow_file)
-    workflow = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = workflow
-    spec.loader.exec_module(workflow)
-
-    if not hasattr(workflow, workflow_function):
-        raise ValueError(f"{workflow} does not have a function `{workflow_function}`")
-
-    df: IamDataFrame = getattr(workflow, workflow_function)(IamDataFrame(input_file))
+    df = run_workflow(IamDataFrame(input_file), workflow_file, workflow_function)
     if output_file is not None:
         df.to_excel(output_file)
 
@@ -312,7 +304,8 @@ def parse_model_registration(
     ] = (Path.cwd() / "definitions" / "region"),
     mappings_path: Annotated[
         Path, typer.Option(exists=True, help="Model mappings output folder")
-    ] = Path.cwd() / "mappings",
+    ] = Path.cwd()
+    / "mappings",
 ) -> None:
     """Parse model registration spreadsheet and generate YAML files.
 
