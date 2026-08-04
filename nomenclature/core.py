@@ -1,6 +1,9 @@
+import importlib.util
 import logging
+import sys
+from pathlib import Path
 
-import pyam
+from pyam import IamDataFrame
 from pydantic import validate_call
 
 from nomenclature.definition import DataStructureDefinition
@@ -12,11 +15,11 @@ logger = logging.getLogger(__name__)
 
 @validate_call(config={"arbitrary_types_allowed": True})
 def process(
-    df: pyam.IamDataFrame,
+    df: IamDataFrame,
     dsd: DataStructureDefinition,
     dimensions: list[str] | str | None = None,
     processor: Processor | list[Processor] | None = None,
-) -> pyam.IamDataFrame:
+) -> IamDataFrame:
     """Function for validation and region aggregation in one step
 
     This function is the recommended way of using the nomenclature package. It performs
@@ -113,3 +116,23 @@ def process(
         )
 
     return df
+
+
+def run_workflow(
+    input_file: Path,
+    workflow_file: Path = (Path.cwd() / "workflow.py"),
+    workflow_function: str = "main",
+) -> IamDataFrame:
+
+    module_name = workflow_file.stem
+    spec = importlib.util.spec_from_file_location(module_name, workflow_file)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load workflow module from {workflow_file}")
+    workflow = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = workflow
+    spec.loader.exec_module(workflow)
+
+    if not hasattr(workflow, workflow_function):
+        raise ValueError(f"{workflow} does not have a function `{workflow_function}`")
+
+    return getattr(workflow, workflow_function)(IamDataFrame(input_file))

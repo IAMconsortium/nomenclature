@@ -1,5 +1,3 @@
-import importlib.util
-import sys
 from pathlib import Path
 
 import pandas as pd
@@ -10,6 +8,7 @@ from typing_extensions import Annotated
 
 from nomenclature import __version__
 from nomenclature.codelist import CodeList, VariableCodeList
+from nomenclature.core import run_workflow
 from nomenclature.definition import SPECIAL_CODELIST, DataStructureDefinition
 from nomenclature.processor import RegionAggregationMapping, RegionProcessor
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
@@ -206,22 +205,6 @@ def list_missing_variables(
 # ---------------------------------------------------------
 # run-workflow
 # ---------------------------------------------------------
-def run_workflow(
-    input_file: Path,
-    workflow_file: Path = (Path.cwd() / "workflow.py"),
-    workflow_function: str = "main",
-) -> IamDataFrame:
-
-    module_name = workflow_file.stem
-    spec = importlib.util.spec_from_file_location(module_name, workflow_file)
-    workflow = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = workflow
-    spec.loader.exec_module(workflow)
-
-    if not hasattr(workflow, workflow_function):
-        raise ValueError(f"{workflow} does not have a function `{workflow_function}`")
-
-    return getattr(workflow, workflow_function)(IamDataFrame(input_file))
 
 
 @app.command("run-workflow")
