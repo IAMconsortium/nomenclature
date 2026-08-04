@@ -301,24 +301,14 @@ class TimeDomainConfig(BaseModel):
     def mixed_allowed(self) -> bool:
         return self.year_allowed and self.datetime_allowed
 
-    @property
-    def datetime_format(self) -> str:
-        # If year is a separate column, exclude it from format
-        # If not, datetime is coerced to IamDataFrame, and include seconds
-        return "%Y-%m-%d %H:%M:%S" if self.datetime_allowed else None
-
     def check_datetime_format(self, df: IamDataFrame) -> None:
         """Validate that datetime values conform to configured format and timezone."""
         errors = []
         _datetime = [d for d in df.time if isinstance(d, datetime)]
         for d in _datetime:
-            try:
-                _dt = datetime.strptime(str(d), self.datetime_format + "%z")
-                # Only check timezone if a specific timezone is required
-                if self.timezone and not _dt.tzname() == self.timezone:
-                    errors.append(TimeDomainError(f"{d} - invalid timezone"))
-            except ValueError:
-                errors.append(TimeDomainError(f"{d} - missing timezone"))
+            # Only check timezone if a specific timezone is required
+            if self.timezone and not d.tzname() == self.timezone:
+                errors.append(TimeDomainError(f"{d} - invalid timezone"))
         if errors:
             raise TimeDomainErrorGroup(
                 "The following datetime values are invalid:", errors

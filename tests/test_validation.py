@@ -139,6 +139,11 @@ def test_wildcard_match(simple_df):
 @pytest.mark.parametrize(
     "rename_mapping, config_file_name",
     [
+        # With datetime=True, not providing a timezone is allowed
+        (
+                {2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"},
+                "datetime_true",
+        ),
         # With datetime=True, any timezone is allowed
         (
             {2005: "2005-06-17 00:00+02:00", 2010: "2010-06-17 00:00+02:00"},
@@ -157,7 +162,7 @@ def test_validate_time_entry(
     rename_mapping,
     config_file_name,
 ):
-    """Test two different datetime values pass the validation"""
+    """Test different datetime values that pass the validation"""
 
     simple_definition.config = NomenclatureConfig.from_file(
         TEST_DATA_DIR / "config" / f"{config_file_name}.yaml"
@@ -183,11 +188,6 @@ def test_validate_time_entry(
             "datetime_utc",
             "invalid timezone",
         ),
-        (
-            {2005: "2005-06-17 00:00", 2010: "2010-06-17 00:00"},
-            "datetime_utc",
-            "missing timezone",
-        ),
     ],
 )
 def test_validate_time_entry_raises(
@@ -197,7 +197,7 @@ def test_validate_time_entry_raises(
     config_file_name,
     match,
 ):
-    """Test three different time validation error cases"""
+    """Test different time validation error cases"""
     simple_definition.config = NomenclatureConfig.from_file(
         TEST_DATA_DIR / "config" / f"{config_file_name}.yaml"
     )
