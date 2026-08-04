@@ -119,7 +119,7 @@ def process(
 
 
 def run_workflow(
-    input_file: Path,
+    df: IamDataFrame,
     workflow_file: Path = (Path.cwd() / "workflow.py"),
     workflow_function: str = "main",
 ) -> IamDataFrame:
@@ -135,4 +135,4 @@ def run_workflow(
     if not hasattr(workflow, workflow_function):
         raise ValueError(f"{workflow} does not have a function `{workflow_function}`")
 
-    return getattr(workflow, workflow_function)(IamDataFrame(input_file))
+    return getattr(workflow, workflow_function)(df)

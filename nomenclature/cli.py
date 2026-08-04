@@ -232,7 +232,7 @@ def cli_run_workflow(
     Example:
       $ nomenclature run-workflow input.xlsx --output-file output.xlsx
     """
-    df = run_workflow(input_file, workflow_file, workflow_function)
+    df = run_workflow(IamDataFrame(input_file), workflow_file, workflow_function)
     if output_file is not None:
         df.to_excel(output_file)
 
