@@ -16,6 +16,7 @@ from nomenclature.processor import (  # noqa
     RegionAggregationMapping,  # noqa
     NutsProcessor,
     RegionProcessor,
+    CountryProcessor,
     RequiredDataValidator,
     DataValidator,
 )

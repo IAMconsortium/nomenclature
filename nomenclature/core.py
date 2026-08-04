@@ -8,6 +8,7 @@ from pydantic import validate_call
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor import Processor, RegionProcessor
+from nomenclature.processor.country import CountryProcessor
 from nomenclature.processor.nuts import NutsProcessor
 
 logger = logging.getLogger(__name__)
@@ -32,6 +33,7 @@ def process(
             2. Model native regions can be renamed
             3. Aggregation from model native regions to "common regions"
         * NUTS aggregation (via :class:`NutsProcessor`), which aggregates NUTS3 -> NUTS2 -> NUTS1 -> Country -> EU27(+UK)
+        * Country-to-region aggregation (via :class:`CountryProcessor`), which aggregates countries based on the region codelist
     * Validation of consistency across the variable hierarchy
 
     Parameters
@@ -66,7 +68,7 @@ def process(
 
     # Auto-instantiate processors declared in nomenclature.yaml under 'processors'
     # Raise error if both explicit and config-based processors exist.
-    if getattr(dsd.config.processor, "region_processor", False):
+    if dsd.config.processor.region:
         if any(isinstance(p, RegionProcessor) for p in processor):
             raise ValueError(
                 "Config declares 'region-processor: true' but an explicit "
@@ -75,6 +77,17 @@ def process(
             )
         processor.append(
             RegionProcessor.from_directory(dsd.project_folder / "mappings", dsd)
+        )
+
+    if dsd.config.processor.country:
+        if any(isinstance(p, CountryProcessor) for p in processor):
+            raise ValueError(
+                "Config declares 'country-processor: true' but an explicit "
+                "CountryProcessor was provided. Please specify only one source of "
+                "CountryProcessor (either via config or explicitly)."
+            )
+        processor.append(
+            CountryProcessor.from_codelist(dsd=dsd, models=dsd.config.processor.country)
         )
 
     if dsd.config.processor.nuts:

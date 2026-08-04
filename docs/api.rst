@@ -13,6 +13,7 @@ API documentation
    api/datastructureconfig
    api/codelist
    api/regionprocessor
+   api/countryprocessor
    api/datavalidator
    api/requireddatavalidator
    api/countries
