@@ -303,15 +303,19 @@ class TimeDomainConfig(BaseModel):
 
     def check_datetime_format(self, df: IamDataFrame) -> None:
         """Validate that datetime values conform to configured format and timezone."""
-        errors = []
-        _datetime = [d for d in df.time if isinstance(d, datetime)]
-        for d in _datetime:
-            # Only check timezone if a specific timezone is required
-            if self.timezone and not d.tzname() == self.timezone:
-                errors.append(TimeDomainError(f"{d} - invalid timezone"))
+
+        # Only check timezone if a specific timezone is required
+        if not self.timezone:
+            return None
+
+        errors = [
+            TimeDomainError(f"{d} - invalid timezone") for d in
+            [d for d in df.time if isinstance(d, datetime)]
+            if d.tzname() != self.timezone
+        ]
         if errors:
             raise TimeDomainErrorGroup(
-                "The following datetime values are invalid:", errors
+                "The following datetime values have an invalid timezone:", errors
             )
 
     def validate_datetime(
@@ -344,8 +348,8 @@ class TimeDomainConfig(BaseModel):
                 raise TimeDomainError(
                     "Invalid time domain - `mixed` found, but not allowed."
                 )
-
             self.check_datetime_format(df)
+
         elif df.time_domain == "datetime":
             if not self.datetime_allowed:
                 raise TimeDomainError(
