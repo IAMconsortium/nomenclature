@@ -1059,7 +1059,7 @@ class RegionCodeList(CodeList):
 
 
 class MetaCodeList(CodeList):
-    """A subclass of CodeList specified for MetaCodes
+    """A subclass of CodeList specified for meta indicators
 
     Attributes
     ----------
