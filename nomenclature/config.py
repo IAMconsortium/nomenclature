@@ -309,9 +309,9 @@ class TimeDomainConfig(BaseModel):
             return None
 
         errors = [
-            TimeDomainError(f"{d} - invalid timezone") for d in
-            [d for d in df.time if isinstance(d, datetime)]
-            if d.tzname() != self.timezone
+            TimeDomainError(f"{time} - invalid timezone") for time in
+            [time for time in df.time if isinstance(time, datetime)]
+            if time.tzname() != self.timezone
         ]
         if errors:
             raise TimeDomainErrorGroup(
