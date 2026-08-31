@@ -21,6 +21,6 @@ configuration for the **nomenclature** package.
 Documentation
 -------------
 
-.. click:: nomenclature:cli
+.. typer:: nomenclature.cli.app
    :prog: nomenclature
-   :nested: full
+   :preferred: html
