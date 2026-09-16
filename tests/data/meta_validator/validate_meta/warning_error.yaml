@@ -1,0 +1,4 @@
+- name: String Meta-Indicator Validation
+  meta: string
+  validation:
+    - value: ["foo"]
