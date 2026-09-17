@@ -341,7 +341,7 @@ class RegionCode(Code):
     def check_countries(cls, v: list[str], info: ValidationInfo) -> list[str]:
         """Verifies that each country name is defined in `nomenclature.countries`."""
         v = to_list(v)
-        if invalid_country_names := set(v) - set(countries.names):
+        if invalid_country_names := set(v) - countries.names:
             raise ValueError(
                 f"Region '{info.data['name']}' uses non-standard country name(s): "
                 + ", ".join(invalid_country_names)

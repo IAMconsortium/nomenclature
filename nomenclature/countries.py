@@ -149,8 +149,8 @@ class Countries(pycountry.ExistingCountries):
         }
 
     @property
-    def names(self) -> list[str]:
-        return [country.name for country in self.objects]
+    def names(self) -> set[str]:
+        return {country.name for country in self.objects}
 
 
 # Initialize `countries` for direct access via API and in codelist module

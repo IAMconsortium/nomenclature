@@ -88,7 +88,7 @@ class CountryProcessor(RegionProcessor):
             )
 
         # Get all countries from the codelist
-        country_names = set(countries.names)
+        country_names = countries.names
         all_countries_in_codelist = dsd.region.filter(name=country_names).values()
 
         # Create native regions for all countries (to keep them in output)
