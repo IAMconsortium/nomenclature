@@ -191,6 +191,7 @@ class DataStructureConfig(BaseModel):
     - scenario
     - region
     - variable
+    - subannual
 
     Each dimension can be configured with its own code list and repository sources.
     """
@@ -198,8 +199,9 @@ class DataStructureConfig(BaseModel):
     scenario: CodeListConfig = Field(default_factory=CodeListConfig)
     region: RegionCodeListConfig = Field(default_factory=RegionCodeListConfig)
     variable: CodeListConfig = Field(default_factory=CodeListConfig)
+    subannual: CodeListConfig = Field(default_factory=CodeListConfig)
 
-    @field_validator("scenario", "region", "variable", mode="before")
+    @field_validator("scenario", "region", "variable", "subannual", mode="before")
     @classmethod
     def add_dimension(cls, v, info: ValidationInfo):
         return {"dimension": info.field_name, **v}
@@ -208,7 +210,7 @@ class DataStructureConfig(BaseModel):
     def repos(self) -> dict[str, list[CodeListFromRepository]]:
         return {
             dimension: getattr(self, dimension).repositories
-            for dimension in ("scenario", "region", "variable")
+            for dimension in ("scenario", "region", "variable", "subannual")
             if getattr(self, dimension).repositories
         }
 
@@ -310,8 +312,8 @@ class TimeDomainConfig(BaseModel):
             return None
 
         errors = [
-            TimeDomainError(f"{time} - invalid timezone") for time in
-            [time for time in df.time if isinstance(time, datetime)]
+            TimeDomainError(f"{time} - invalid timezone")
+            for time in [time for time in df.time if isinstance(time, datetime)]
             if time.tzname() != self.timezone
         ]
         if errors:
