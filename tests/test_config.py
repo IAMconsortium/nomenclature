@@ -111,9 +111,7 @@ def test_config_dimensions():
 def test_invalid_config_dimensions_raises():
     with raises(
         ValueError,
-        match=(
-            "Input should be 'model', .* 'region', 'subannual' or 'meta"
-        ),
+        match=("Input should be 'model', .* 'region', 'subannual' or 'meta"),
     ):
         NomenclatureConfig(dimensions=["year"])
 
