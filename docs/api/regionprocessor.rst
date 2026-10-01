@@ -41,11 +41,15 @@ Minimal configuration
        country: true
 
    processors:
-     country: [Model A, Model B]
+     country-processor:
+        - models: [Model A, Model B]
+          hierarchies: [R5, R9, R10]
 
 In this setup, all country names are added to the region codelist, the R5/R9/R10
 region definitions are imported from ``common-definitions``, and the country
-processor is applied to the listed models.
+processor is applied to the listed models. The ``hierarchies`` field is optional
+and defaults to ``[R5, R9, R10]``; separate model groups can select different
+hierarchies.
 
 Creating a country-to-region processor
 ----------------------------

@@ -28,7 +28,7 @@ class CountryProcessor(RegionProcessor):
         cls,
         dsd: DataStructureDefinition,
         models: list[str],
-        hierarchies: set[str] = {"R5", "R9", "R10"},
+        hierarchies: list[str] = ["R5", "R9", "R10"],
         skip_patterns: list[str] | None = None,
     ):
         """Create a processor for country-to-regional aggregation.
@@ -58,11 +58,10 @@ class CountryProcessor(RegionProcessor):
         ------
             If regions with the specified hierarchies lack constituent country information.
         """
-        models = models or dsd.config.processor.country
         if not models:
             raise ValueError("No models configured for country processor")
         skip_patterns = ["Other (R*)"] + (skip_patterns or [])
-        available_hierarchies = hierarchies & set(dsd.region.hierarchy)
+        available_hierarchies = set(hierarchies) & set(dsd.region.hierarchy)
 
         # Extract regional aggregates from codelist for given hierarchies
         regional_aggregates = {}

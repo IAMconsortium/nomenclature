@@ -10,6 +10,7 @@ from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor import Processor, RegionProcessor
 from nomenclature.processor.country import CountryProcessor
 from nomenclature.processor.nuts import NutsProcessor
+from nomenclature.processor.region import RegionAggregationMapping
 
 logger = logging.getLogger(__name__)
 
@@ -86,8 +87,18 @@ def process(
                 "CountryProcessor was provided. Please specify only one source of "
                 "CountryProcessor (either via config or explicitly)."
             )
+        mappings: dict[str, RegionAggregationMapping] = {}
+        for group in dsd.config.processor.country:
+            group_processor = CountryProcessor.from_codelist(
+                dsd=dsd, models=group.models, hierarchies=group.hierarchies
+            )
+            mappings.update(group_processor.mappings)
         processor.append(
-            CountryProcessor.from_codelist(dsd=dsd, models=dsd.config.processor.country)
+            CountryProcessor(
+                mappings=mappings,
+                region_codelist=dsd.region,
+                variable_codelist=dsd.variable,
+            )
         )
 
     if dsd.config.processor.nuts:
