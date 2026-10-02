@@ -60,7 +60,7 @@ Connections between regions
 ---------------------------
 
 For reporting of connections (e.g., trade flows), "directional regions" can be
-defined using a *>* separator. The region before the separator is the *origin*,
+defined using a `>` separator. The region before the separator is the *origin*,
 the region after the separator is the *destination*.
 
 .. code:: yaml
@@ -77,5 +77,9 @@ For model-specific directional connections, the *prefix* must be added as well.
    - Model A v1.0 [Connection]:
      - Model A v1.0|Region 1>Region 2
 
-Both origin and destination `Model A v1.0|Region 1` and `Model A v1.0|Region 2` must be
-defined in the region codelist.
+Both origin and destination `Model A v1.0|Region 1` and `Model A v1.0|Region 2`
+must be defined in the region codelist.
+
+Region prefixes are *not* advised. For example, using a country name prefix for
+its administrative divisions. This way, it's possible to establish connections
+between countries without assigning one country prefix to another country.
