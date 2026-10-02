@@ -36,8 +36,8 @@ coverage = "^7.3.3"
 ruff = "^0.15.7"
 
 [tool.poetry.group.docs.dependencies]
-sphinx = "^7.2.6"
-sphinxcontrib-typer = "^0.9.1"
+sphinx = "8.2.3"
+sphinxcontrib-typer = "^0.10"
 numpydoc = "^1.6.0"
 
 [tool.ruff]
