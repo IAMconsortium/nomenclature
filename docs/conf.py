@@ -11,12 +11,14 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 # import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
-
-from datetime import datetime
 
 import nomenclature
+import sys
+
+from datetime import datetime
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent / "../nomenclature/cli.py"))
 
 # -- Project information -----------------------------------------------------
 
