@@ -82,4 +82,4 @@ must be defined in the region codelist.
 
 Region prefixes are *not* advised. For example, using a country name prefix for
 its administrative divisions. This way, it's possible to establish connections
-between countries without assigning one country prefix to another country.
+between countries without assigning a country prefix to a different country's region.
