@@ -6,6 +6,8 @@ from pyam.utils import IAMC_IDX
 from conftest import clean_up_external_repos
 
 from nomenclature import DataStructureDefinition
+from nomenclature.config import CountryProcessorConfig, ProcessorConfig
+from nomenclature.core import process
 from nomenclature.processor import CountryProcessor
 
 here = Path(__file__).parent
@@ -156,5 +158,65 @@ def test_country_from_definition_no_models():
             ValueError, match="No models configured for country processor"
         ):
             CountryProcessor.from_codelist(dsd=dsd, models=[])
+    finally:
+        clean_up_external_repos(dsd.config.repositories)
+
+
+def test_country_processor_config_default_hierarchies():
+    """Test that omitted 'hierarchies' defaults to R5/R9/R10."""
+
+    config = CountryProcessorConfig(models=["model_a"])
+    assert config.hierarchies == {"R5", "R9", "R10"}
+
+
+def test_country_processor_config_duplicate_models_raises():
+    """Test that the same model in multiple groups raises an error."""
+
+    with pytest.raises(ValueError, match="Duplicate model.*model_a"):
+        ProcessorConfig(
+            **{
+                "country-processor": [
+                    {"models": ["model_a"]},
+                    {"models": ["model_a", "model_b"], "hierarchies": ["R10"]},
+                ]
+            }
+        )
+
+
+def test_country_processor_per_model_hierarchies():
+    """Test that different model groups can use different region hierarchies."""
+
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", "China", "Primary Energy", "EJ/yr", 10.0, 12.0],
+                ["model_b", "scen_a", "China", "Primary Energy", "EJ/yr", 10.0, 12.0],
+            ],
+            columns=IAMC_IDX + [2005, 2010],
+        )
+    )
+
+    dsd = DataStructureDefinition(COUNTRY_TEST_DIR / "all" / "definitions")
+
+    try:
+        dsd.config.processor.country = [
+            CountryProcessorConfig(models=["model_a"], hierarchies={"R5", "R9"}),
+            CountryProcessorConfig(models=["model_b"]),
+        ]
+
+        result = process(test_df, dsd)
+
+        model_a_regions = set(result.filter(model="model_a").region)
+        model_b_regions = set(result.filter(model="model_b").region)
+
+        # model_a is restricted to R5/R9, so no R10 aggregate should be created
+        assert "Asia (R5)" in model_a_regions
+        assert "China (R9)" in model_a_regions
+        assert "China+ (R10)" not in model_a_regions
+
+        # model_b uses the default hierarchies (R5/R9/R10)
+        assert "Asia (R5)" in model_b_regions
+        assert "China (R9)" in model_b_regions
+        assert "China+ (R10)" in model_b_regions
     finally:
         clean_up_external_repos(dsd.config.repositories)
