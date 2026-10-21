@@ -12,7 +12,7 @@ from nomenclature.exceptions import (
     UnknownVariableError,
     WrongUnitError,
 )
-from nomenclature.processor.required_data import RequiredMeasurand
+from nomenclature.processor.required_data_validator import RequiredMeasurand
 
 REQUIRED_DATA_TEST_DIR = TEST_DATA_DIR / "required_data" / "required_data"
 

@@ -21,10 +21,10 @@ jobs:
     name: py${{ matrix.python-version }}
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
     #----------------------------------------------
@@ -44,7 +44,7 @@ jobs:
       #----------------------------------------------
     - name: Load cached venv
       id: cached-poetry-dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: .venv
         key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}

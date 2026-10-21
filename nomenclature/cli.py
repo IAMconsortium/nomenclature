@@ -75,6 +75,9 @@ def validate_project(
     validate_data: Annotated[
         str | None, typer.Option(help="Name of data validation folder")
     ] = None,
+    validate_meta: Annotated[
+        str | None, typer.Option(help="Name of meta validation folder")
+    ] = None,
     dimensions: Annotated[
         list[str] | None,
         typer.Option("--dimension", help="Dimensions to check (defaults to all)"),
@@ -87,7 +90,7 @@ def validate_project(
     - YAML syntax validation for all files
     - Parsing of codelists in the definitions folder
     - Validation of model mappings against region codelists
-    - Consistency checks for required-data and data-validation criteria
+    - Consistency checks for required-data, data-validation, and meta criteria
 
     \b
     Example:
@@ -95,7 +98,13 @@ def validate_project(
     """
     assert_valid_yaml(path)
     assert_valid_structure(
-        path, definitions, mappings, required_data, validate_data, dimensions
+        path,
+        definitions,
+        mappings,
+        required_data,
+        validate_data,
+        validate_meta,
+        dimensions,
     )
 
 

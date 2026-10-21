@@ -1,0 +1,7 @@
+- name: Number Meta-Indicator Validation
+  meta: [number, number_too]
+  validation:
+    - warning_level: high
+      upper_bound: 1
+    - warning_level: low
+      upper_bound: 0

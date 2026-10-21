@@ -23,3 +23,7 @@ def handle_remove_readonly(func, path, excinfo):
         func(path)
     else:
         raise
+
+
+def single_input_to_list(v):
+    return v if isinstance(v, list) else [v]
