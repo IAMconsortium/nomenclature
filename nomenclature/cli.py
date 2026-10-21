@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 
 import pandas as pd
@@ -193,6 +194,12 @@ def list_missing_variables(
     Example:
       $ nomenclature list-missing-variables input.xlsx --target-file new_vars.yaml
     """
+    warnings.warn(
+        "The 'list-missing-variables' command is deprecated and will be removed in a future version. "
+        "Use 'validate-scenarios' to check for undefined variables instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     codelist_path = workflow_directory / "definitions" / "variable"
     final_target = None if target_file is None else codelist_path / target_file
 
@@ -304,8 +311,7 @@ def parse_model_registration(
     ] = (Path.cwd() / "definitions" / "region"),
     mappings_path: Annotated[
         Path, typer.Option(exists=True, help="Model mappings output folder")
-    ] = Path.cwd()
-    / "mappings",
+    ] = Path.cwd() / "mappings",
 ) -> None:
     """Parse model registration spreadsheet and generate YAML files.
 
