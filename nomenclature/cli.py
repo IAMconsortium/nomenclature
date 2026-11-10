@@ -304,8 +304,7 @@ def parse_model_registration(
     ] = (Path.cwd() / "definitions" / "region"),
     mappings_path: Annotated[
         Path, typer.Option(exists=True, help="Model mappings output folder")
-    ] = Path.cwd()
-    / "mappings",
+    ] = Path.cwd() / "mappings",
 ) -> None:
     """Parse model registration spreadsheet and generate YAML files.
 

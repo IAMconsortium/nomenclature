@@ -339,7 +339,9 @@ class RegionAggregationMapping(BaseModel):
             regions = regions.drop(
                 columns=(c for c in regions.columns if c.startswith("Unnamed: "))
             ).drop(index=0)
-            # Replace nan with None
+            # Cast to object before replacing NaN with None (pandas 3.x disallows
+            # None in string-typed columns).
+            regions = regions.astype(object)
             regions = regions.where(pd.notnull(regions), None)
             native = "Native region (as reported by the model)"
             rename = "Native region (after renaming)"

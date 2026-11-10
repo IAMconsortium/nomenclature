@@ -296,7 +296,7 @@ def test_to_csv():
         "variable", MODULE_TEST_DATA_DIR / "simple_codelist"
     ).to_csv(lineterminator="\n")
 
-    exp = "variable,description,unit,bool\n" "Some Variable,Some basic variable,,True\n"
+    exp = "variable,description,unit,bool\nSome Variable,Some basic variable,,True\n"
     assert obs == exp
 
 
