@@ -81,6 +81,14 @@ def test_definition_general_config_nuts_only():
     assert len([region for region in obs.region if region.startswith("CZ")]) == 14
 
 
+def test_definition_with_units():
+    """Check that DataStructureDefinition can be defined with units"""
+    obs = DataStructureDefinition(
+        TEST_DATA_DIR / "config" / "general-config-with-units" / "definitions"
+    )
+    assert list(obs.unit) == ["EJ/yr"]
+
+
 def test_to_excel(simple_definition, tmpdir):
     """Check writing a DataStructureDefinition to file"""
     file = tmpdir / "testing_export.xlsx"
