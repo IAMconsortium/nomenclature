@@ -138,7 +138,7 @@ class CodeList(BaseModel):
 
         for code in code_list:
             if "{" + tag_name + "}" in code.name:
-                _code_list.extend((code.replace_tag(tag_name, tag) for tag in tags))
+                _code_list.extend(code.replace_tag(tag_name, tag) for tag in tags)
             else:
                 _code_list.append(code)
 
@@ -345,8 +345,9 @@ class CodeList(BaseModel):
             attrs = []
         codelist = pd.read_excel(source, sheet_name=sheet_name, usecols=[col] + attrs)
 
-        # Replace nan with None
-        codelist = codelist.replace(np.nan, None)
+        # Cast to object before replacing NaN with None (pandas 3.x disallows
+        # None in string-typed columns).
+        codelist = codelist.astype(object).replace(np.nan, None)
 
         # Check for duplicates in the codelist
         duplicate_rows = codelist[col].duplicated(keep=False).values
