@@ -371,6 +371,7 @@ class DimensionEnum(str, Enum):
     model = "model"
     scenario = "scenario"
     variable = "variable"
+    unit = "unit"
     region = "region"
     subannual = "subannual"
     meta = "meta"
