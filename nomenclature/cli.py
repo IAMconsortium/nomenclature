@@ -14,6 +14,7 @@ from nomenclature.processor import RegionAggregationMapping, RegionProcessor
 from nomenclature.testing import assert_valid_structure, assert_valid_yaml
 
 app = typer.Typer(no_args_is_help=True, pretty_exceptions_show_locals=False)
+_DEFAULT_CWD = Path.cwd()
 
 
 def _version_callback(value: bool) -> None:
@@ -113,14 +114,14 @@ def check_region_aggregation(
         typer.Option(
             exists=True, help="Workflow directory with codelists and mappings"
         ),
-    ] = Path.cwd(),
+    ] = _DEFAULT_CWD,
     definitions: Annotated[
         str, typer.Option(help="Definitions folder name")
     ] = "definitions",
     mappings: Annotated[str, typer.Option(help="Mappings folder name")] = "mappings",
     processed_data: Annotated[
         Path | None, typer.Option(help="Output file for processed data")
-    ] = (Path.cwd() / "results.xlsx"),
+    ] = _DEFAULT_CWD / "results.xlsx",
     differences: Annotated[
         Path | None, typer.Option(help="Output file for aggregation differences")
     ] = None,
@@ -178,7 +179,7 @@ def list_missing_variables(
     ],
     workflow_directory: Annotated[
         Path, typer.Option(help="Workflow directory with variable codelist")
-    ] = Path.cwd(),
+    ] = _DEFAULT_CWD,
     target_file: Annotated[
         str | None, typer.Option(help="Target YAML file for missing variables")
     ] = None,
@@ -214,7 +215,7 @@ def cli_run_workflow(
     ],
     workflow_file: Annotated[
         Path, typer.Option(exists=True, help="Python workflow file")
-    ] = (Path.cwd() / "workflow.py"),
+    ] = _DEFAULT_CWD / "workflow.py",
     workflow_function: Annotated[
         str, typer.Option(help="Function name in workflow file")
     ] = "main",
@@ -301,10 +302,10 @@ def parse_model_registration(
     ],
     definition_path: Annotated[
         Path, typer.Option(exists=True, help="Region definitions output folder")
-    ] = (Path.cwd() / "definitions" / "region"),
+    ] = _DEFAULT_CWD / "definitions" / "region",
     mappings_path: Annotated[
         Path, typer.Option(exists=True, help="Model mappings output folder")
-    ] = Path.cwd() / "mappings",
+    ] = _DEFAULT_CWD / "mappings",
 ) -> None:
     """Parse model registration spreadsheet and generate YAML files.
 

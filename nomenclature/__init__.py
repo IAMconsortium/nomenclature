@@ -24,7 +24,7 @@ from nomenclature.processor import (  # noqa
 here = Path(__file__).parent
 
 try:
-    __IPYTHON__  # type: ignore
+    _ = __IPYTHON__  # type: ignore
     _in_ipython_session = True
 except NameError:
     _in_ipython_session = False

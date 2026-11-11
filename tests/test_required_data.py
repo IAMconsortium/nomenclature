@@ -43,7 +43,7 @@ def test_RequiredDataValidator_validate_with_definition():
         TEST_DATA_DIR / "required_data" / "definition",
         dimensions=["region", "variable"],
     )
-    required_data_validator.validate_with_definition(dsd) is None
+    assert required_data_validator.validate_with_definition(dsd) is None
 
 
 @pytest.mark.parametrize(

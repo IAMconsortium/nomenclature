@@ -6,7 +6,6 @@ from yaml import parser, scanner
 
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.exceptions import (
-    NoTracebackExceptionGroup,
     ProcessorErrorGroup,
     YamlErrorGroup,
 )
@@ -74,11 +73,11 @@ def _collect_processor_errors(
     processor: type[RequiredDataValidator] | type[DataValidator],
     dsd: DataStructureDefinition,
 ) -> None:
-    errors: list[NoTracebackExceptionGroup] = []
+    errors: list[Exception] = []
     for file in path.iterdir():
         try:
             processor.from_file(file).validate_with_definition(dsd)
-        except Exception as exception:
+        except Exception as exception:  # noqa: BLE001 - collect errors from every file
             errors.append(exception)
     if errors:
         raise ProcessorErrorGroup(f"Error(s) checking '{processor.__name__}'", errors)
@@ -145,7 +144,7 @@ def assert_valid_structure(
 
     dsd = DataStructureDefinition(path / definitions, dimensions)
     if "variable" in dsd.dimensions:
-        dsd.variable.data_validator
+        _ = dsd.variable.data_validator
     _check_mappings(path, dsd, mappings)
     _check_processor_directory(
         path, dsd, RequiredDataValidator, "required_data", required_data

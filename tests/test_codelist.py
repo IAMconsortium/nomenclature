@@ -204,7 +204,7 @@ def test_region_codelist():
     assert code.prefix == ""
     assert not code.is_directional
     with pytest.raises(ValueError, match="Non-directional region does not have a des"):
-        code.destination
+        _ = code.destination
 
     assert "Some Country>World" in regions
     code = regions["Some Country>World"]

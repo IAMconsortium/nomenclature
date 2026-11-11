@@ -21,7 +21,10 @@ runner = CliRunner()
 
 def test_cli_installed():
     result = subprocess.run(
-        [sys.executable, "-m", "nomenclature"], capture_output=True, text=True
+        [sys.executable, "-m", "nomenclature"],
+        capture_output=True,
+        text=True,
+        check=False,
     )
     assert all(
         command in result.stdout
@@ -325,6 +328,7 @@ def test_error_group_rendering():
         ],
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 1
     assert all(
