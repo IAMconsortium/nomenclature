@@ -39,7 +39,7 @@ def test_variable_multiple_units():
 
 def test_variable_wildcard_skip_region_aggregation_required():
     """Test that a VariableCode with wildcard must have skip_region_aggregation: True"""
-    with raises(ValueError, match="Wildcard variable 'Var1\*' must skip region"):
+    with raises(ValueError, match=r"Wildcard variable 'Var1\*' must skip region"):
         VariableCode.from_dict({"Var1*": {"unit": "unit1"}})
 
 
@@ -165,8 +165,8 @@ def test_RegionCode_iso3_code_list_fail():
         "iso3_codes\n"
         "  Value error, Region 'Western Europe' has "
         "invalid ISO3 country code\(s\): DMK, IPL, ATZ, FNL, FRE, DEX, GRE, "  # noqa
-        "IBL, ITL, LIC, MLA, BEG, FRT, ANB, GDR, LXB, MNO, NTD, NRW, PRE, EPA, "  # noqa
-        "SWD, CEW, GTR, SOR"  # noqa
+        "IBL, ITL, LIC, MLA, BEG, FRT, ANB, GDR, LXB, MNO, NTD, NRW, PRE, EPA, "
+        "SWD, CEW, GTR, SOR"
     )
     with raises(ValueError, match=error_pattern):
         RegionCode(name="Western Europe", hierarchy="R5OECD", iso3_codes=iso3_codes)
@@ -176,7 +176,7 @@ def test_RegionCode_iso3_code_str_fail():
     error_pattern = (
         "1 validation error for RegionCode\n"
         "iso3_codes\n"
-        "  Value error, Region 'Austria' has invalid ISO3 country code\(s\): AUTT"
+        r"  Value error, Region 'Austria' has invalid ISO3 country code\(s\): AUTT"
     )
     with raises(ValueError, match=error_pattern):
         RegionCode(name="Austria", hierarchy="country", iso3_codes="AUTT")

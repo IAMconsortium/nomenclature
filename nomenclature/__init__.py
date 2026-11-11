@@ -13,12 +13,12 @@ from nomenclature.countries import countries  # noqa
 from nomenclature.definition import DataStructureDefinition  # noqa
 from nomenclature.nuts import nuts  # noqa
 from nomenclature.processor import (  # noqa
-    RegionAggregationMapping,  # noqa
-    NutsProcessor,
-    RegionProcessor,
     CountryProcessor,
-    RequiredDataValidator,
     DataValidator,
+    NutsProcessor,
+    RegionAggregationMapping,
+    RegionProcessor,
+    RequiredDataValidator,
 )
 
 here = Path(__file__).parent

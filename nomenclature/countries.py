@@ -1,7 +1,7 @@
 """ISO 3166 country database with community naming conventions."""
 
-import os
 import logging
+import os
 
 import pycountry
 

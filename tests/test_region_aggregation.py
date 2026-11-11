@@ -88,7 +88,7 @@ def test_mapping():
         ),
         (
             "illegal_mapping_constituent_native_missing.yaml",
-            "Constituent region\(s\)\n.*\n",
+            "Constituent region\\(s\\)\n.*\n",
         ),
     ],
 )

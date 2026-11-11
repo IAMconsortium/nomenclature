@@ -1,9 +1,9 @@
 import logging
 import re
-
 from pathlib import Path
-from pydantic import validate_call
+
 from pyam.utils import escape_regexp
+from pydantic import validate_call
 
 from nomenclature.countries import countries
 from nomenclature.definition import DataStructureDefinition

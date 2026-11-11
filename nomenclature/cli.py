@@ -1,10 +1,10 @@
 from pathlib import Path
+from typing import Annotated
 
 import pandas as pd
 import typer
 import yaml
 from pyam import IamDataFrame
-from typing_extensions import Annotated
 
 from nomenclature import __version__
 from nomenclature.codelist import CodeList, VariableCodeList

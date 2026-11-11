@@ -19,10 +19,7 @@ REQUIRED_DATA_TEST_DIR = TEST_DATA_DIR / "required_data" / "required_data"
 
 def test_RequiredDataValidator_from_file():
     exp = RequiredDataValidator(
-        **{
-            "description": "Required variables for running MAGICC",
-            "model": ["model_a"],
-            "required_data": [
+        description="Required variables for running MAGICC", model=["model_a"], required_data=[
                 {
                     "measurand": [
                         RequiredMeasurand(variable="Emissions|CO2", unit="Mt CO2/yr")
@@ -30,9 +27,7 @@ def test_RequiredDataValidator_from_file():
                     "region": ["World"],
                     "year": [2020, 2030, 2040, 2050],
                 },
-            ],
-            "file": REQUIRED_DATA_TEST_DIR / "requiredData.yaml",
-        }
+            ], file=REQUIRED_DATA_TEST_DIR / "requiredData.yaml"
     )
 
     obs = RequiredDataValidator.from_file(REQUIRED_DATA_TEST_DIR / "requiredData.yaml")

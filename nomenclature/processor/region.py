@@ -1,6 +1,7 @@
 import logging
 from collections import Counter
 from pathlib import Path
+from typing import Annotated
 
 import numpy as np
 import pandas as pd
@@ -20,7 +21,6 @@ from pydantic import (
     validate_call,
 )
 from pydantic.types import DirectoryPath, FilePath
-from typing_extensions import Annotated
 
 from nomenclature.codelist import RegionCodeList, VariableCodeList
 from nomenclature.definition import DataStructureDefinition

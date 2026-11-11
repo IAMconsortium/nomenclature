@@ -2,7 +2,7 @@ import json
 import re
 from keyword import iskeyword
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 from pyam.utils import to_list
 from pydantic import (
@@ -14,7 +14,6 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-from typing_extensions import Self
 
 from nomenclature.countries import countries
 
@@ -48,7 +47,7 @@ class Code(BaseModel):
     ) -> dict[str, Any]:
         # Check that attributes only contains keys which are valid identifiers
         if illegal_keys := [
-            key for key in v.keys() if not key.isidentifier() or iskeyword(key)
+            key for key in v if not key.isidentifier() or iskeyword(key)
         ]:
             raise ValueError(
                 "Only valid identifiers are allowed as attribute keys. Found "
@@ -146,7 +145,7 @@ class Code(BaseModel):
         def _replace_or_recurse(_attr, _value):
             # If the attribute is a string and contains "{tag}" replace
             if isinstance(_value, str) and "{" + tag_name + "}" in _value:
-                replacement = getattr(tag, _attr, getattr(tag, "name"))
+                replacement = getattr(tag, _attr, tag.name)
                 # If the value is exactly "{tag}", use the target's attribute value directly
                 if _value == "{" + tag_name + "}":
                     return replacement
@@ -291,7 +290,7 @@ class VariableCode(Code):
         """Return aggregation kwargs including region aggregation if applicable."""
 
         return (
-            {**self.pyam_agg_kwargs, **{"region_aggregation": self.region_aggregation}}
+            {**self.pyam_agg_kwargs, "region_aggregation": self.region_aggregation}
             if self.region_aggregation is not None
             else self.pyam_agg_kwargs
         )

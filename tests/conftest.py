@@ -1,8 +1,8 @@
-import shutil
 import os
+import shutil
 import stat
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import pandas as pd
 import pytest
