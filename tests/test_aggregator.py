@@ -100,7 +100,7 @@ def test_aggregator_apply():
     aggregator = Aggregator.from_file(
         TEST_FOLDER_GENERIC_PROCESSOR / "aggregation_mapping.yaml"
     )
-    iamc_args = dict(model="model_a", scenario="scenario_a", region="World")
+    iamc_args = {"model": "model_a", "scenario": "scenario_a", "region": "World"}
 
     df = IamDataFrame(
         pd.DataFrame(

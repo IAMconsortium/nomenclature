@@ -19,8 +19,7 @@ PROCESSOR_TEST_DIR = TEST_DATA_DIR / "processor" / "data_validator"
 
 def test_DataValidator_simple_from_file():
     exp = DataValidator(
-        **{
-            "criteria_items": [
+        criteria_items=[
                 {
                     "name": "Simple Validation",
                     "variable": "Final Energy",
@@ -32,9 +31,7 @@ def test_DataValidator_simple_from_file():
                         }
                     ],
                 }
-            ],
-            "file": DATA_VALIDATION_TEST_DIR / "validation_simple.yaml",
-        }
+            ], file=DATA_VALIDATION_TEST_DIR / "validation_simple.yaml"
     )
     obs = DataValidator.from_file(DATA_VALIDATION_TEST_DIR / "validation_simple.yaml")
     assert obs == exp

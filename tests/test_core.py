@@ -207,7 +207,7 @@ def test_region_processing_complete(directory):
                 ["model_a", "scen_a", "World", "Primary Energy", "EJ/yr", 4, 6],
                 ["model_a", "scen_a", "World", "Emissions|CO2", "Mt CO2", 5, np.nan],
             ],
-            dict(variable="Emissions|CO2", year=2010, keep=False),
+            {"variable": "Emissions|CO2", "year": 2010, "keep": False},
         ),
     ],
 )

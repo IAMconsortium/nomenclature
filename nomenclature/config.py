@@ -101,7 +101,7 @@ class RegionCodeListConfig(CodeListConfig):
     def check_nuts(
         cls, v: dict[str, str | list[str] | bool] | None
     ) -> dict[str, str | list[str] | bool] | None:
-        if v and not all(k in ["nuts-1", "nuts-2", "nuts-3"] for k in v.keys()):
+        if v and not all(k in ["nuts-1", "nuts-2", "nuts-3"] for k in v):
             raise ValueError(
                 "Invalid fields for `nuts` in configuration. "
                 "Allowed values are: 'nuts-1', 'nuts-2' and 'nuts-3'."

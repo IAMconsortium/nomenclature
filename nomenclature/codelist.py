@@ -730,7 +730,7 @@ class VariableCodeList(CodeList):
             else:
                 units.add(to_dimensionless(variable.unit))
 
-        return sorted(list(units))
+        return sorted(units)
 
     @field_validator("mapping")
     @classmethod
@@ -1025,7 +1025,7 @@ class RegionCodeList(CodeList):
         list[str]
 
         """
-        return sorted(list({v.hierarchy for v in self.mapping.values()}))
+        return sorted({v.hierarchy for v in self.mapping.values()})
 
     @classmethod
     def _parse_region_code_dir(

@@ -64,7 +64,7 @@ class Code(BaseModel):
             raise ValueError(f"Code is not a single name-attributes mapping: {mapping}")
 
         # Extract the name of the code
-        name = list(mapping.keys())[0]
+        name = next(iter(mapping.keys()))
         # Overwrite the mapping as just the code content
         mapping = mapping[name]
 
@@ -297,7 +297,7 @@ class VariableCode(Code):
 
     @property
     def has_validation_args(self) -> bool:
-        return True if self.validation_args else False
+        return bool(self.validation_args)
 
     @property
     def validation_args(self) -> dict:
