@@ -130,7 +130,7 @@ def test_region_processor_working(region_processor_path, simple_definition):
         {
             "model": ["model_a"],
             "file": (
-                TEST_FOLDER_REGION_PROCESSING / "regionprocessor_working/mapping_1.yml"
+                TEST_FOLDER_REGION_PROCESSING / "regionprocessor_working/mapping_1.yaml"
             ).relative_to(Path.cwd()),
             "native_regions": [
                 {"name": "World", "rename": None},
@@ -203,7 +203,7 @@ def test_region_processor_wrong_args():
         RegionProcessor.from_directory(
             path=TEST_FOLDER_REGION_PROCESSING
             / "regionprocessor_working"
-            / "mapping_1.yml"
+            / "mapping_1.yaml"
         )
 
 
