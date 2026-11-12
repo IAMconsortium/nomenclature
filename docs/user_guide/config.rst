@@ -128,8 +128,8 @@ By setting *definitions.region.nuts* (optional) in the configuration file:
   definitions:
     region:
       nuts:
-        nuts-1: [ AT, BE, CZ ]
-        nuts-2: [ AT ]
+        nuts-1: [AT, BE, CZ]
+        nuts-2: [AT]
         nuts-3: true
 
 the nomenclature package will add the selected NUTS regions to the *region* codelist.
@@ -219,16 +219,17 @@ NUTS1 → Country → EU27) for those models:
 .. code:: yaml
 
   processors:
-    nuts-processor: [ Model A, Model B ]
+    nuts-processor: [Model A, Model B]
 
 More details on NUTS aggregation can be found here: :ref:`nuts`.
 
 Country processor
 ^^^^^^^^^^^^^^^^^
 
-Setting *processors.country-processor* to a list of model names will
-automatically create a :class:`CountryProcessor` and aggregate country-level
-data to common regional definitions such as R5, R9 and R10 for those models:
+Setting *processors.country-processor* to a list of model groups will
+automatically create a :class:`CountryProcessor`. Each group specifies the
+models it applies to and can optionally select the region hierarchies used for
+country-level aggregation:
 
 .. code:: yaml
 
@@ -245,10 +246,16 @@ data to common regional definitions such as R5, R9 and R10 for those models:
           - hierarchy: [R5, R9, R10]
 
   processors:
-    country-processor: [ Model A, Model B ]
+    country-processor:
+      - models: [Model A, Model B]
+        hierarchies: [R5, R9]
+      - models: [Model C]
+        hierarchies: [R10]
 
-The country processor reads the imported R5/R9/R10 definitions from the region
-codelist and aggregates directly from countries to those regions. If one of
-those hierarchy levels is not present in the codelist, it is skipped.
+The country processor reads the selected definitions from the region codelist
+and aggregates directly from countries to those regions. If *hierarchies* is
+omitted, it defaults to ``[ R5, R9, R10 ]``. If a selected hierarchy is not
+present in the codelist, it is skipped. A model may occur in only one processor
+group.
 
 More details on the processor API can be found here: :doc:`../api/countryprocessor`.
