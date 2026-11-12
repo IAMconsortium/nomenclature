@@ -12,13 +12,13 @@
 #
 # import os
 
-import nomenclature
 import sys
-
 from datetime import datetime
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent / "../nomenclature/__main__.py"))
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+import nomenclature
 
 # -- Project information -----------------------------------------------------
 

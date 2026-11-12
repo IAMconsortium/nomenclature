@@ -21,6 +21,8 @@ configuration for the **nomenclature** package.
 Documentation
 -------------
 
-.. typer:: nomenclature.__main__.app
+.. typer:: nomenclature.cli:app
    :prog: nomenclature
-   :preferred: html
+   :preferred: svg
+   :show-nested:
+   :make-sections:
