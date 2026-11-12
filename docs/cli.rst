@@ -8,8 +8,7 @@ the definitions (i.e., codelists) and model mappings for a project are valid.
 This can be useful to ensure that all yaml files can be parsed correctly
 and that definitions and mappings are internally consistent.
 
-Standard usage
---------------
+**Standard usage**
 
 Run the following in a command line to ensure that a project folder is a valid
 configuration for the **nomenclature** package.
@@ -18,11 +17,15 @@ configuration for the **nomenclature** package.
 
   nomenclature validate-project /project/folder/
 
-Documentation
--------------
+.. toctree::
+   :maxdepth: 1
 
-.. typer:: nomenclature.cli:app
-   :prog: nomenclature
-   :preferred: svg
-   :show-nested:
-   :make-sections:
+   cli/validate-yaml
+   cli/validate-project
+   cli/check-region-aggregation
+   cli/export-definitions
+   cli/list-missing-variables
+   cli/run-workflow
+   cli/validate-scenarios
+   cli/convert-xlsx-codelist-to-yaml
+   cli/parse-model-registration
