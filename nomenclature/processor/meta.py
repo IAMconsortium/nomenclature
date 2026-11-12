@@ -1,7 +1,9 @@
 from pathlib import Path
+
 import pyam
-from nomenclature.processor import Processor
+
 from nomenclature.codelist import MetaCodeList
+from nomenclature.processor import Processor
 
 
 class MetaValidator(Processor):

@@ -1,7 +1,7 @@
 """ISO 3166 country database with community naming conventions."""
 
-import os
 import logging
+import os
 
 import pycountry
 
@@ -31,13 +31,13 @@ PYCOUNTRY_NAME_OVERRIDE = {
     "Virgin Islands, U.S.": "United States Virgin Islands",
 }
 PYCOUNTRY_NAME_ADD = [
-    dict(
-        name="Kosovo",
-        alpha_3="KOS",  # See https://olympics.com/ioc/kosovo
-        alpha_2="XK",  # See https://en.wikipedia.org/wiki/XK_(user_assigned_code)
-        note="Kosovo is recognized under UNSC resolution 1244, "
+    {
+        "name": "Kosovo",
+        "alpha_3": "KOS",  # See https://olympics.com/ioc/kosovo
+        "alpha_2": "XK",  # See https://en.wikipedia.org/wiki/XK_(user_assigned_code)
+        "note": "Kosovo is recognized under UNSC resolution 1244, "
         "using preliminary alpha_3 and alpha_2 codes (ISO-3166-1 not assigned)",
-    ),
+    },
 ]
 
 # The European Commission uses alternative ISO2 codes

@@ -1,12 +1,13 @@
 # tests/test_nuts_aggregation.py
+from pathlib import Path
+
 import pandas as pd
 import pytest
-from pathlib import Path
 from pyam import IamDataFrame, assert_iamframe_equal
 from pyam.utils import IAMC_IDX
 
 from nomenclature import DataStructureDefinition
-from nomenclature.processor.nuts import NutsProcessor, EU27_MIN_COUNTRIES
+from nomenclature.processor.nuts import EU27_MIN_COUNTRIES, NutsProcessor
 
 here = Path(__file__).parent
 TEST_DATA_DIR = here / "data"

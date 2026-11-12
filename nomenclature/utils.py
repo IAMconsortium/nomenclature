@@ -22,4 +22,4 @@ def handle_remove_readonly(func, path, excinfo):
         os.chmod(path, stat.S_IWUSR)
         func(path)
     else:
-        raise
+        raise excinfo[1].with_traceback(excinfo[2])

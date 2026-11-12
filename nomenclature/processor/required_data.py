@@ -80,12 +80,12 @@ class RequiredData(BaseModel):
         errors: list[Exception] = []
 
         # Check for undefined regions and variables
-        if invalid_regions := getattr(dsd, "region").validate_items(
-            getattr(self, "region") or []
+        if invalid_regions := dsd.region.validate_items(
+            self.region or []
         ):
             errors.append(UnknownRegionError(invalid_regions))
-        if invalid_variables := getattr(dsd, "variable").validate_items(
-            getattr(self, "variables") or []
+        if invalid_variables := dsd.variable.validate_items(
+            self.variables or []
         ):
             errors.append(UnknownVariableError(invalid_variables))
         # Check for defined variables with wrong units

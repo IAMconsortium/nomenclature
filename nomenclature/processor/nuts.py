@@ -1,23 +1,23 @@
 import logging
-import pyam
-import pandas as pd
-
 from collections import defaultdict
 from pathlib import Path
+
+import pandas as pd
+import pyam
 from pyam import IamDataFrame
 from pyam.utils import adjust_log_level
 from pydantic import ConfigDict
 
-from nomenclature.codelist import VariableCodeList, RegionCodeList
+from nomenclature.codelist import RegionCodeList, VariableCodeList
+from nomenclature.countries import countries
 from nomenclature.definition import DataStructureDefinition
+from nomenclature.exceptions import UnknownRegionError
+from nomenclature.nuts import nuts
 from nomenclature.processor import Processor
 from nomenclature.processor.region import (
     aggregate_region_with_variable_rules,
     merge_with_preaggregated_data,
 )
-from nomenclature.exceptions import UnknownRegionError
-from nomenclature.countries import countries
-from nomenclature.nuts import nuts
 
 logger = logging.getLogger(__name__)
 

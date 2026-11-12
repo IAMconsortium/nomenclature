@@ -19,8 +19,7 @@ PROCESSOR_TEST_DIR = TEST_DATA_DIR / "processor" / "data_validator"
 
 def test_DataValidator_simple_from_file():
     exp = DataValidator(
-        **{
-            "criteria_items": [
+        criteria_items=[
                 {
                     "name": "Simple Validation",
                     "variable": "Final Energy",
@@ -32,9 +31,7 @@ def test_DataValidator_simple_from_file():
                         }
                     ],
                 }
-            ],
-            "file": DATA_VALIDATION_TEST_DIR / "validation_simple.yaml",
-        }
+            ], file=DATA_VALIDATION_TEST_DIR / "validation_simple.yaml"
     )
     obs = DataValidator.from_file(DATA_VALIDATION_TEST_DIR / "validation_simple.yaml")
     assert obs == exp
@@ -45,8 +42,7 @@ def test_DataValidator_simple_from_file():
 
 def test_DataValidator_structured_from_file():
     exp = DataValidator(
-        **{
-            "criteria_items": [
+        criteria_items=[
                 {
                     "name": "Structured Validation",
                     "variable": "Final Energy",
@@ -63,9 +59,7 @@ def test_DataValidator_structured_from_file():
                         },
                     ],
                 }
-            ],
-            "file": DATA_VALIDATION_TEST_DIR / "validation_structured.yaml",
-        }
+            ], file=DATA_VALIDATION_TEST_DIR / "validation_structured.yaml"
     )
     obs = DataValidator.from_file(
         DATA_VALIDATION_TEST_DIR / "validation_structured.yaml"
@@ -78,8 +72,7 @@ def test_DataValidator_structured_from_file():
 
 def test_DataValidator_from_codelist():
     exp = DataValidator(
-        **{
-            "criteria_items": [
+        criteria_items=[
                 {
                     "variable": "Final Energy",
                     "validation": [{"lower_bound": 0.0}],
@@ -88,9 +81,7 @@ def test_DataValidator_from_codelist():
                     "variable": "Final Energy|Electricity [Share]",
                     "validation": [{"range": (0, 100)}],
                 },
-            ],
-            "file": "definitions",
-        }
+            ], file="definitions"
     )
 
     variable_codelist = VariableCodeList.from_directory(

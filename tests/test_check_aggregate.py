@@ -21,7 +21,7 @@ TEST_DF = IamDataFrame(
         ],
         columns=["variable", "unit", 2005, 2010],
     ),
-    **dict(model="model_a", scenario="scen_a", region="World"),
+    model="model_a", scenario="scen_a", region="World",
 )
 
 
