@@ -1,4 +1,4 @@
-# Highest warning level is assigned as meta indicator
+# Highest warning level is assigned as meta-indicator
  - name: Vetting|Primary Energy [All]
    variable: Primary Energy
    validation:

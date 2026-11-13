@@ -1,0 +1,5 @@
+- name: Number Meta-Indicator Validation
+  meta: not defined
+  validation:
+    - warning_level: high
+      upper_bound: 1
