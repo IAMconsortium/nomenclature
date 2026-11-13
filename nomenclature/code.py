@@ -173,17 +173,22 @@ class Code(BaseModel):
             # If the attribute is a mapping, iterate over the items
             # and replace tags in the values (not the keys)
             elif isinstance(_value, dict):
-                return {_k: _replace_or_recurse(attr, _v) for _k, _v in _value.items()}
+                return {_k: _replace_or_recurse(_attr, _v) for _k, _v in _value.items()}
             # Otherwise, return as is
             else:
                 return _value
 
-        mapping = {}
-        for attr, value in self.flattened_dict.items():
-            mapping[attr] = _replace_or_recurse(attr, value)
-        name = mapping["name"]
-        del mapping["name"]
-        return self.__class__.from_dict({name: mapping})
+        # Build updates by directly accessing model fields instead of using
+        # model_dump() + from_dict() to reduce memory and CPU overhead
+        updates = {
+            field_name: _replace_or_recurse(field_name, getattr(self, field_name))
+            for field_name in self.model_fields_set
+            if field_name != "extra_attributes"
+        }
+        updates["extra_attributes"] = {
+            k: _replace_or_recurse(k, v) for k, v in self.extra_attributes.items()
+        }
+        return self.model_copy(update=updates)
 
     def __getattr__(self, k):
         try:
