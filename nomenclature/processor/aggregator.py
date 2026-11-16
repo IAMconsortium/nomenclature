@@ -89,7 +89,7 @@ class Aggregator(Processor):
     @classmethod
     def validate_components(cls, v, info: ValidationInfo):
         """Check components are unique for creating rename-mapping (component -> target)"""
-        all_components = list()
+        all_components = []
         for item in v:
             all_components.extend(item.components)
         _validate_items(all_components, info.data["file"], "Duplicate component")
@@ -99,7 +99,7 @@ class Aggregator(Processor):
     @classmethod
     def validate_target_vs_components(cls, v, info: ValidationInfo):
         """Guard against having identical target and component"""
-        _codes = list()
+        _codes = []
         for item in v:
             _codes.append(item.name)
             _codes.extend(item.components)
@@ -123,7 +123,7 @@ class Aggregator(Processor):
 
     @property
     def codes(self):
-        _codes = list()
+        _codes = []
         for item in self.aggregate:
             _codes.append(item.name)
             _codes.extend(item.components)
@@ -173,12 +173,12 @@ class Aggregator(Processor):
                         f" found {item} in {get_relative_path(file)}"
                     )
                 aggregate_list.append(
-                    dict(name=list(item)[0], components=list(item.values())[0])
+                    {"name": next(iter(item)), "components": next(iter(item.values()))}
                 )
             rename_list: list[dict[str, list]] = []
             for item in mapping_input.get("rename", []):
                 rename_list.append(
-                    dict(name=list(item)[0], rename=list(item.values())[0])
+                    {"name": next(iter(item)), "rename": next(iter(item.values()))}
                 )
         except Exception as error:
             raise ValueError(f"{error} in {get_relative_path(file)}") from error

@@ -4,10 +4,9 @@ import pandas as pd
 import pyam
 import pydantic
 import pytest
-
-
-from pyam import IamDataFrame
 from conftest import TEST_DATA_DIR
+from pyam import IamDataFrame
+
 from nomenclature import DataStructureDefinition
 from nomenclature.processor import Aggregator
 
@@ -48,19 +47,19 @@ def test_aggregator_from_file():
     [
         (
             "aggregation_mapping_duplicate_target.yaml",
-            "Duplicate target \['Primary Energy'\] in aggregation-mapping in ",
+            r"Duplicate target \['Primary Energy'\] in aggregation-mapping in ",
         ),
         (
             "aggregation_mapping_duplicate_component.yaml",
-            "Duplicate component \['Primary Energy\|Coal'\] in aggregation-mapping in ",
+            r"Duplicate component \['Primary Energy\|Coal'\] in aggregation-mapping in ",
         ),
         (
             "aggregation_mapping_target_component_conflict.yaml",
-            "Non-unique target and component \['Primary Energy'\] in aggregation-",
+            r"Non-unique target and component \['Primary Energy'\] in aggregation-",
         ),
         (
             "aggregation_mapping_rename_conflict.yaml",
-            "Aggregation items in renaming items \['Primary Energy'\] in aggregation-",
+            r"Aggregation items in renaming items \['Primary Energy'\] in aggregation-",
         ),
     ],
 )
@@ -101,7 +100,7 @@ def test_aggregator_apply():
     aggregator = Aggregator.from_file(
         TEST_FOLDER_GENERIC_PROCESSOR / "aggregation_mapping.yaml"
     )
-    iamc_args = dict(model="model_a", scenario="scenario_a", region="World")
+    iamc_args = {"model": "model_a", "scenario": "scenario_a", "region": "World"}
 
     df = IamDataFrame(
         pd.DataFrame(

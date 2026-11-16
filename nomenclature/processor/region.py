@@ -1,6 +1,7 @@
 import logging
 from collections import Counter
 from pathlib import Path
+from typing import Annotated
 
 import numpy as np
 import pandas as pd
@@ -20,7 +21,6 @@ from pydantic import (
     validate_call,
 )
 from pydantic.types import DirectoryPath, FilePath
-from typing_extensions import Annotated
 
 from nomenclature.codelist import RegionCodeList, VariableCodeList
 from nomenclature.definition import DataStructureDefinition
@@ -224,13 +224,12 @@ class RegionAggregationMapping(BaseModel):
     @model_validator(mode="after")
     def check_constituent_regions_in_native_regions(self) -> "RegionAggregationMapping":
         """Check that all constituent regions in common regions are listed as native regions."""
-        if self.common_regions and self.native_regions:
-            if missing := set(
-                [cr for r in self.common_regions for cr in r.constituent_regions]
-            ).difference([r.name for r in self.native_regions] + self.exclude_regions):
-                raise ConstituentsNotNativeError(
-                    {"regions": missing, "file": self.file}
-                )
+        if self.common_regions and self.native_regions and (missing := {
+            cr for r in self.common_regions for cr in r.constituent_regions
+        }.difference([r.name for r in self.native_regions] + self.exclude_regions)):
+            raise ConstituentsNotNativeError(
+                {"regions": missing, "file": self.file}
+            )
         return self
 
     @classmethod
@@ -294,8 +293,8 @@ class RegionAggregationMapping(BaseModel):
                     elif isinstance(native_region, dict):
                         native_region_list.append(
                             {
-                                "name": list(native_region)[0],
-                                "rename": list(native_region.values())[0],
+                                "name": next(iter(native_region)),
+                                "rename": next(iter(native_region.values())),
                             }
                         )
                 mapping_input["native_regions"] = native_region_list
@@ -304,7 +303,7 @@ class RegionAggregationMapping(BaseModel):
             if "common_regions" in mapping_input:
                 common_region_list: list[dict[str, list[dict[str, str]]]] = []
                 for common_region in mapping_input["common_regions"]:
-                    common_region_name = list(common_region)[0]
+                    common_region_name = next(iter(common_region))
                     common_region_list.append(
                         {
                             "name": common_region_name,
@@ -339,7 +338,9 @@ class RegionAggregationMapping(BaseModel):
             regions = regions.drop(
                 columns=(c for c in regions.columns if c.startswith("Unnamed: "))
             ).drop(index=0)
-            # Replace nan with None
+            # Cast to object before replacing NaN with None (pandas 3.x disallows
+            # None in string-typed columns).
+            regions = regions.astype(object)
             regions = regions.where(pd.notnull(regions), None)
             native = "Native region (as reported by the model)"
             rename = "Native region (after renaming)"
@@ -950,7 +951,7 @@ def _aggregate_region(df, var, *regions, **kwargs):
                 f"Could not aggregate '{var}' for region '{regions[0]}' ({kwargs})"
             )
         else:
-            raise error
+            raise
 
 
 def _compare_and_merge(
