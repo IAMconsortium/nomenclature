@@ -270,16 +270,45 @@ class RegionMappingConfig(BaseModel):
         return v
 
 
+class CountryProcessorConfig(BaseModel):
+    """Configuration for a group of models sharing the same region hierarchies."""
+
+    models: list[str] = Field(...)
+    hierarchies: set[str] = {"R5", "R9", "R10"}
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class ProcessorConfig(BaseModel):
     """Configuration for region processor settings."""
 
     nuts: list[str] = Field(default_factory=list, alias="nuts-processor")
-    country: list[str] = Field(default_factory=list, alias="country-processor")
+    country: list[CountryProcessorConfig] = Field(
+        default_factory=list, alias="country-processor"
+    )
     region: bool = Field(default=False, alias="region-processor")
 
     model_config = ConfigDict(
         validate_by_name=True, validate_by_alias=True, extra="forbid"
     )
+
+    @field_validator("country")
+    @classmethod
+    def check_no_duplicate_models(
+        cls, v: list["CountryProcessorConfig"]
+    ) -> list["CountryProcessorConfig"]:
+        seen: set[str] = set()
+        duplicates: set[str] = set()
+        for group in v:
+            models = set(group.models)
+            duplicates |= seen & models
+            seen |= models
+        if duplicates:
+            raise ValueError(
+                "Duplicate model(s) in 'country-processor' configuration: "
+                f"{sorted(duplicates)}"
+            )
+        return v
 
 
 class TimeDomainConfig(BaseModel):
