@@ -128,6 +128,7 @@ class NutsProcessor(Processor):
             If the result contains regions not defined in the region codelist.
         """
         processed_dfs: list[IamDataFrame] = []
+        warned_variables: set[str] = set()
 
         # Check for NUTS regions not listed in the configuration
         all_nuts = {r.code for r in nuts.get(level=[1, 2, 3])}
@@ -149,7 +150,11 @@ class NutsProcessor(Processor):
                 processed_dfs.append(model_df)
             else:
                 logger.info(f"Applying NUTS processing for model '{model}'")
-                processed_dfs.append(self._apply_nuts_processing(model_df)[0])
+                processed_dfs.append(
+                    self._apply_nuts_processing(
+                        model_df, warned_variables=warned_variables
+                    )[0]
+                )
 
         res = pyam.concat(processed_dfs)
         if not_defined_regions := self.region_codelist.validate_items(res.region):
@@ -162,6 +167,7 @@ class NutsProcessor(Processor):
         model_df: IamDataFrame,
         source_regions: list[str],
         parent_prefix_length: int,
+        warned_variables: set[str],
     ) -> IamDataFrame:
         """Aggregate source NUTS regions to their parent region.
 
@@ -173,6 +179,8 @@ class NutsProcessor(Processor):
             List of NUTS region codes to aggregate
         parent_prefix_length : int
             Length of parent region code (4 for NUTS2, 3 for NUTS1, 2 for country)
+        warned_variables : set of str
+            Variables already reported for missing weights in this processing call
 
         Returns
         -------
@@ -200,12 +208,15 @@ class NutsProcessor(Processor):
                 parent,
                 constituents,
                 self.variable_codelist,
+                warned_variables,
             )
             aggregated_data.extend(aggregated)
 
         return IamDataFrame(pd.concat(aggregated_data), meta=model_df.meta)
 
-    def _aggregate_to_eu27(self, df: IamDataFrame) -> list[pd.Series]:
+    def _aggregate_to_eu27(
+        self, df: IamDataFrame, warned_variables: set[str]
+    ) -> list[pd.Series]:
         """Aggregate country-level data to European Union (and United Kingdom).
 
         Aggregation is performed if at least 23 of the 27 EU member states
@@ -221,6 +232,8 @@ class NutsProcessor(Processor):
         ----------
         df : IamDataFrame
             Country-level data (after NUTS aggregation).
+        warned_variables : set of str
+            Variables already reported for missing weights in this processing call.
 
         Returns
         -------
@@ -248,6 +261,7 @@ class NutsProcessor(Processor):
                     "European Union",
                     sorted(available_eu27),
                     self.variable_codelist,
+                    warned_variables,
                 )
             )
 
@@ -264,6 +278,7 @@ class NutsProcessor(Processor):
                     "European Union and United Kingdom",
                     sorted(available_eu27) + [uk_name],
                     self.variable_codelist,
+                    warned_variables,
                 )
             )
 
@@ -274,6 +289,7 @@ class NutsProcessor(Processor):
         model_df: IamDataFrame,
         return_aggregation_difference: bool = False,
         rtol_difference: float = 0.01,
+        warned_variables: set[str] | None = None,
     ):
         """Apply the full NUTS aggregation pipeline for a single model.
 
@@ -286,6 +302,8 @@ class NutsProcessor(Processor):
         rtol_difference : float, optional
             Relative tolerance used when comparing pre-aggregated country data
             against freshly aggregated values.
+        warned_variables : set of str, optional
+            Variables already reported for missing weights in this processing call.
 
         Returns
         -------
@@ -293,6 +311,8 @@ class NutsProcessor(Processor):
             Processed data and (optionally populated) aggregation difference.
         """
         model = model_df.model[0]
+        if warned_variables is None:
+            warned_variables = set()
 
         _df = model_df.copy()
 
@@ -302,19 +322,31 @@ class NutsProcessor(Processor):
             if nuts3_in_data := _df.filter(region={r.code for r in nuts.get(level=3)}):
                 # Keep NUTS3, add aggregated NUTS2
                 _df = pyam.concat(
-                    [_df, self._aggregate_nuts_level(_df, nuts3_in_data.region, 4)]
+                    [
+                        _df,
+                        self._aggregate_nuts_level(
+                            _df, nuts3_in_data.region, 4, warned_variables
+                        ),
+                    ]
                 )
 
             # NUTS2 > NUTS1 aggregation (uses original NUTS2 + aggregated NUTS2)
             if nuts2_in_data := _df.filter(region={r.code for r in nuts.get(level=2)}):
                 # Keep NUTS2, add aggregated NUTS1
                 _df = pyam.concat(
-                    [_df, self._aggregate_nuts_level(_df, nuts2_in_data.region, 3)]
+                    [
+                        _df,
+                        self._aggregate_nuts_level(
+                            _df, nuts2_in_data.region, 3, warned_variables
+                        ),
+                    ]
                 )
 
             # NUTS1 > Country aggregation (uses original NUTS1 + aggregated NUTS1)
             if nuts1_in_data := _df.filter(region={r.code for r in nuts.get(level=1)}):
-                _nuts1_agg = self._aggregate_nuts_level(_df, nuts1_in_data.region, 2)
+                _nuts1_agg = self._aggregate_nuts_level(
+                    _df, nuts1_in_data.region, 2, warned_variables
+                )
 
             # Compare & merge country-level aggregated data with any pre-aggregated
             # country data in the original model input
@@ -335,7 +367,7 @@ class NutsProcessor(Processor):
                 for r in ("European Union", "European Union and United Kingdom")
                 if r in self.region_codelist.mapping
             ]:
-                _eu_aggregated = self._aggregate_to_eu27(_country_df)
+                _eu_aggregated = self._aggregate_to_eu27(_country_df, warned_variables)
                 if _eu_aggregated:
                     _eu_data, _ = merge_with_preaggregated_data(
                         model_df,

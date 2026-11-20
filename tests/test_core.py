@@ -9,10 +9,11 @@ from pandas.testing import assert_frame_equal
 from pyam import IamDataFrame, assert_iamframe_equal
 from pyam.utils import IAMC_IDX
 
+from nomenclature.code import RegionCode
 from nomenclature.core import process
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.exceptions import UnknownRegionError
-from nomenclature.processor.region import RegionProcessor
+from nomenclature.processor.region import CommonRegion, RegionProcessor
 
 
 @pytest.mark.parametrize("model_name", ["model_a", "model_b"])
@@ -200,7 +201,6 @@ def test_region_processing_complete(directory):
             None,
         ),
         # Check that region-aggregation with missing weights passes (inconsistent index)
-        # TODO check the log output
         (
             "weighted_aggregation",
             [
@@ -248,10 +248,60 @@ def test_region_processing_weighted_aggregation(folder, exp_df, args, caplog):
     # Check the logs since the presence of args should cause a warning in the logs
     if args:
         logmsg = (
-            "Could not aggregate 'Price|Carbon' for region 'World' "
-            "({'weight': 'Emissions|CO2'})"
+            "Could not aggregate 'Price|Carbon' for one or more regions "
+            "(first: 'World'; "
+            "aggregation arguments: {'weight': 'Emissions|CO2'})"
         )
         assert logmsg in caplog.text
+
+
+@pytest.mark.parametrize("method", ["apply", "check_region_aggregation"])
+def test_missing_weights_warn_once_per_variable(method, caplog):
+    """Test warning is logged once per variable when aggregation weights are missing."""
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scenario", "region_A", "Price|Carbon", "USD/t CO2", 2],
+                ["model_a", "scenario", "region_B", "Price|Carbon", "USD/t CO2", 2],
+                ["model_a", "scenario", "region_C", "Price|Carbon", "USD/t CO2", 2],
+                ["model_a", "scenario", "region_A", "Emissions|CO2", "Mt CO2", 1],
+                ["model_a", "scenario", "region_C", "Emissions|CO2", "Mt CO2", 1],
+            ],
+            columns=IAMC_IDX + [2005],
+        )
+    )
+
+    dsd = DataStructureDefinition(
+        TEST_DATA_DIR / "region_processing" / "weighted_aggregation" / "dsd"
+    )
+    processor = RegionProcessor.from_directory(
+        TEST_DATA_DIR / "region_processing" / "weighted_aggregation" / "aggregate", dsd
+    )
+    processor.region_codelist.mapping["region_D"] = RegionCode(name="region_D")
+
+    mapping = processor.mappings["model_a"]
+    # Both World and region_D include region_B, which has no emissions data
+    mapping.common_regions.append(
+        CommonRegion(name="region_D", constituent_regions=["region_B", "region_C"])
+    )
+
+    if method == "apply":
+        result = process(test_df, dsd, processor=processor)
+    else:
+        result, _ = processor.check_region_aggregation(test_df)
+
+    assert "Price|Carbon" not in result.variable
+    assert set(result.filter(variable="Emissions|CO2").region) == {"World", "region_D"}
+    warnings = [
+        record.getMessage()
+        for record in caplog.records
+        if "'Price|Carbon'" in record.getMessage() and record.levelname == "WARNING"
+    ]
+    assert len(warnings) == 1  # Only one warning is logged
+    assert "'Price|Carbon'" in warnings[0]
+    assert (
+        "'World'" in warnings[0]
+    )  # The warning mentions "World", not "region_D", the second region checked
 
 
 def test_region_processing_skip_aggregation():
