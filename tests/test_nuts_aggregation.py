@@ -173,6 +173,45 @@ def test_eu27_uk_aggregation_with_uk():
     assert (eu_uk_data.data["value"] == eu_value + 1.0).all()
 
 
+def test_missing_weights_warn_once(caplog):
+    """Test variable weight warning is logged once across EU aggregates."""
+    countries = EU27_NAMES[:EU27_MIN_COUNTRIES] + [UK_NAME]
+    test_df = IamDataFrame(
+        pd.DataFrame(
+            [
+                ["model_a", "scen_a", country, "Price|Carbon", "USD/t CO2", 2]
+                for country in countries
+            ]
+            + [
+                ["model_a", "scen_a", country, "Emissions|CO2", "Mt CO2", 1]
+                for country in countries[1:]
+            ],
+            columns=IAMC_IDX + [2005],
+        )
+    )
+
+    dsd = DataStructureDefinition(NUTS_TEST_DIR / "definitions")
+    weighted_dsd = DataStructureDefinition(
+        TEST_DATA_DIR / "region_processing" / "weighted_aggregation" / "dsd"
+    )
+    # Add weighted aggregation mapping to definition for Price|Carbon
+    dsd.variable.mapping.update(weighted_dsd.variable.mapping)
+    processor = NutsProcessor.from_definition(dsd)
+
+    result = processor.apply(test_df)
+
+    targets = {"European Union", "European Union and United Kingdom"}
+    assert targets <= set(result.filter(variable="Emissions|CO2").region)
+    assert not targets & set(result.filter(variable="Price|Carbon").region)
+    warnings = [
+        record.getMessage()
+        for record in caplog.records
+        if "'Price|Carbon'" in record.getMessage() and record.levelname == "WARNING"
+    ]
+    assert len(warnings) == 1
+    assert "'European Union'" in warnings[0]
+
+
 def test_eu27_aggregation_without_uk():
     """Test only EU27 (not EU27+UK) is produced when UK is absent."""
     countries = EU27_NAMES[:EU27_MIN_COUNTRIES]
