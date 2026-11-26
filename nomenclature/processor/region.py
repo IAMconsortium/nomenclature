@@ -993,8 +993,8 @@ def _compare_and_merge(
     if not return_aggregation_difference:
         logger.info(
             "Please refer to the user guide of the nomenclature package: "
-            "https://nomenclature-iamc.readthedocs.io/en/stable/user_guide"
-            "/model-mapping.html#computing-differences-between-original-and"
+            "https://docs.ece.iiasa.ac.at/user-guide/nomenclature/"
+            "model-mappings.html#computing-differences-between-original-and"
             "-aggregated-data for obtaining the differences as "
             "dataframe or file."
         )
