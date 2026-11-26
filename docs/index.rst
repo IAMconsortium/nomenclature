@@ -51,7 +51,19 @@ The **nomenclature** package supports three main use cases:
   "common regions" (i.e., regions that are used for scenario comparison in a project).
 
 The codelists and mappings are stored as yaml files.
-Refer to the :ref:`user_guide` for more information.
+The ECE documentation covers the
+`project directory structure <https://docs.ece.iiasa.ac.at/user-guide/nomenclature/directory-structure.html>`_,
+`codelists <https://docs.ece.iiasa.ac.at/user-guide/nomenclature/codelist.html>`_,
+`variable codelists <https://docs.ece.iiasa.ac.at/user-guide/nomenclature/variable-codelist.html>`_,
+`region codelists <https://docs.ece.iiasa.ac.at/user-guide/nomenclature/region-codelist.html>`_,
+`project configuration <https://docs.ece.iiasa.ac.at/user-guide/nomenclature/config.html>`_,
+`model mappings <https://docs.ece.iiasa.ac.at/user-guide/nomenclature/model-mappings.html>`_,
+`scenario workflows <https://docs.ece.iiasa.ac.at/user-guide/nomenclature/scenario-workflow.html>`_,
+`local processing <https://docs.ece.iiasa.ac.at/user-guide/advanced/local-processing.html>`_,
+and `model registration <https://docs.ece.iiasa.ac.at/user-guide/preparing-scenario-submissions/model-registration.html>`_.
+See the
+`Scenario processing and validation guide <https://docs.ece.iiasa.ac.at/user-guide/nomenclature.html>`_
+for an overview.
 
 Utility for country names and abbreviations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -67,7 +79,6 @@ Table of Contents
    :maxdepth: 2
 
    installation
-   user_guide
    api
    cli
 

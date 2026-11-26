@@ -66,8 +66,10 @@ Alternatively, it can also be installed directly from source:
 pip install -e git+https://github.com/IAMconsortium/nomenclature#egg=nomenclature-iamc
 ```
 
-See the [User Guide](https://nomenclature-iamc.readthedocs.io/en/latest/user_guide.html)
-for the main use cases of this package.
+See the [Scenario processing and validation guide](https://docs.ece.iiasa.ac.at/user-guide/nomenclature.html)
+for codelists, project configuration, and region processing. The ECE documentation also
+covers [local processing](https://docs.ece.iiasa.ac.at/user-guide/advanced/local-processing.html)
+and [model registration](https://docs.ece.iiasa.ac.at/user-guide/preparing-scenario-submissions/model-registration.html).
 
 ## Acknowledgement
 
