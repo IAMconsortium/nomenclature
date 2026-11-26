@@ -627,6 +627,7 @@ class RegionProcessor(Processor):
             * If the region-processing results in an empty **IamDataFrame**.
         """
         processed_dfs: list[IamDataFrame] = []
+        warned_variables: set[str] = set()
 
         for model in df.model:
             model_df = df.filter(model=model)
@@ -644,7 +645,11 @@ class RegionProcessor(Processor):
                 logger.info(
                     f"Applying region-processing for model '{model}' from '{file}'"
                 )
-                processed_dfs.append(self._apply_region_processing(model_df)[0])
+                processed_dfs.append(
+                    self._apply_region_processing(
+                        model_df, warned_variables=warned_variables
+                    )[0]
+                )
 
         res = pyam.concat(processed_dfs)
         if not_defined_regions := self.region_codelist.validate_items(res.region):
@@ -671,11 +676,13 @@ class RegionProcessor(Processor):
             IamDataFrame containing aggregation results and pandas dataframe containing
             the differences
         """
+        warned_variables: set[str] = set()
         region_processing_results = [
             self._apply_region_processing(
                 df.filter(model=model),
                 rtol_difference=rtol_difference,
                 return_aggregation_difference=True,
+                warned_variables=warned_variables,
             )
             for model in set(df.model) & set(self.mappings)
         ]
@@ -688,6 +695,7 @@ class RegionProcessor(Processor):
         model_df: IamDataFrame,
         return_aggregation_difference: bool = False,
         rtol_difference: float = 0.01,
+        warned_variables: set[str] | None = None,
     ) -> tuple[IamDataFrame, pd.DataFrame]:
         """Apply region processing for a single model"""
         if len(model_df.model) != 1:
@@ -695,6 +703,8 @@ class RegionProcessor(Processor):
                 f"Must be called for a unique model, found: {model_df.model}"
             )
         model = model_df.model[0]
+        if warned_variables is None:
+            warned_variables = set()
 
         self.mappings[model].check_unexpected_regions(model_df)
 
@@ -741,6 +751,7 @@ class RegionProcessor(Processor):
                         common_region.name,
                         common_region.constituent_regions,
                         self.variable_codelist,
+                        warned_variables,
                     )
                     _processed_data.extend(aggregated)
 
@@ -825,6 +836,7 @@ def aggregate_region_with_variable_rules(
     target_region: str,
     constituent_regions: list[str],
     variable_codelist: VariableCodeList,
+    warned_variables: set[str] | None = None,
 ) -> list[pd.Series]:
     """
     Core region aggregation logic with variable-specific rules.
@@ -846,6 +858,8 @@ def aggregate_region_with_variable_rules(
         Regions to aggregate from
     variable_codelist : VariableCodeList
         Variable definitions with aggregation rules
+    warned_variables : set of str, optional
+        Variables already reported for missing weights in this processing call
 
     Returns
     -------
@@ -854,6 +868,8 @@ def aggregate_region_with_variable_rules(
     """
     aggregated_data = []
     regions = [target_region, constituent_regions]
+    if warned_variables is None:
+        warned_variables = set()
 
     # Simple aggregation (default sum)
     simple_vars = [var for var in variable_codelist.vars_default_agg_args(df.variable)]
@@ -866,14 +882,26 @@ def aggregate_region_with_variable_rules(
     for var in variable_codelist.vars_special_agg_kwargs(df.variable):
         if var.region_aggregation is None:
             # Standard weighted aggregation
-            _df = _aggregate_region(df, var.name, *regions, **var.pyam_agg_kwargs)
+            _df = _aggregate_region(
+                df,
+                var.name,
+                *regions,
+                warned_variables=warned_variables,
+                **var.pyam_agg_kwargs,
+            )
             if _df is not None and not _df.empty:
                 aggregated_data.append(_df._data)
         else:
             # Aggregation with variable renaming
             for rename_var in var.region_aggregation:
                 for _rename, _kwargs in rename_var.items():
-                    _df = _aggregate_region(df, var.name, *regions, **_kwargs)
+                    _df = _aggregate_region(
+                        df,
+                        var.name,
+                        *regions,
+                        warned_variables=warned_variables,
+                        **_kwargs,
+                    )
                     if _df is not None and not _df.empty:
                         aggregated_data.append(
                             _df.rename(variable={var.name: _rename})._data
@@ -941,15 +969,25 @@ def merge_with_preaggregated_data(
     return _data, difference
 
 
-def _aggregate_region(df, var, *regions, **kwargs):
+def _aggregate_region(
+    df: IamDataFrame,
+    var: str | list[str],
+    *regions: str,
+    warned_variables: set[str],
+    **kwargs,
+):
     """Perform region aggregation with kwargs catching inconsistent-index errors"""
     try:
         return df.aggregate_region(var, *regions, **kwargs)
     except ValueError as error:
         if str(error).startswith("Missing weights for the following data"):
-            logger.warning(
-                f"Could not aggregate '{var}' for region '{regions[0]}' ({kwargs})"
-            )
+            if var not in warned_variables:
+                logger.warning(
+                    f"Could not aggregate '{var}' for one or more regions "
+                    f"(first: '{regions[0]}'; "
+                    f"aggregation arguments: {kwargs})"
+                )
+                warned_variables.add(var)
         else:
             raise
 
