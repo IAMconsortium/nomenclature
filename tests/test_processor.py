@@ -1,6 +1,6 @@
-from pydantic import ValidationError
 import pytest
 from pyam import IamDataFrame
+from pydantic import ValidationError
 
 from nomenclature.processor import Processor
 

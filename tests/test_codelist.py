@@ -204,7 +204,7 @@ def test_region_codelist():
     assert code.prefix == ""
     assert not code.is_directional
     with pytest.raises(ValueError, match="Non-directional region does not have a des"):
-        code.destination
+        _ = code.destination
 
     assert "Some Country>World" in regions
     code = regions["Some Country>World"]
@@ -296,7 +296,7 @@ def test_to_csv():
         "variable", MODULE_TEST_DATA_DIR / "simple_codelist"
     ).to_csv(lineterminator="\n")
 
-    exp = "variable,description,unit,bool\n" "Some Variable,Some basic variable,,True\n"
+    exp = "variable,description,unit,bool\nSome Variable,Some basic variable,,True\n"
     assert obs == exp
 
 

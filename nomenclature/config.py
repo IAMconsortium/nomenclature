@@ -1,11 +1,11 @@
-import logging
 import gc
+import logging
 import re
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any
 from shutil import rmtree
+from typing import Any
 
 import yaml
 from git import Repo
@@ -101,7 +101,7 @@ class RegionCodeListConfig(CodeListConfig):
     def check_nuts(
         cls, v: dict[str, str | list[str] | bool] | None
     ) -> dict[str, str | list[str] | bool] | None:
-        if v and not all(k in ["nuts-1", "nuts-2", "nuts-3"] for k in v.keys()):
+        if v and not all(k in ["nuts-1", "nuts-2", "nuts-3"] for k in v):
             raise ValueError(
                 "Invalid fields for `nuts` in configuration. "
                 "Allowed values are: 'nuts-1', 'nuts-2' and 'nuts-3'."
@@ -176,10 +176,10 @@ class Repository(BaseModel):
                 config = yaml.safe_load(f)
             if config.get("repositories"):
                 raise ValueError(
-                    (
+                    
                         "External repos cannot again refer to external repos, "
                         f"found in nomenclature.yaml in '{self.url}'"
-                    )
+                    
                 )
 
 
@@ -309,7 +309,7 @@ class TimeDomainConfig(BaseModel):
 
         # Only check timezone if a specific timezone is required
         if not self.timezone:
-            return None
+            return
 
         errors = [
             TimeDomainError(f"{time} - invalid timezone")
@@ -320,7 +320,7 @@ class TimeDomainConfig(BaseModel):
             raise TimeDomainErrorGroup(
                 "The following datetime items have an invalid timezone:", errors
             )
-        return None
+        return
 
     def validate_datetime(
         self, df: IamDataFrame, dimensions: list[str] | None = None
@@ -414,7 +414,7 @@ class NomenclatureConfig(BaseModel):
         for use, repositories in repos.items():
             repository_names = [repository.name for repository in repositories]
             if unknown_repos := repository_names - self.repositories.keys():
-                raise ValueError((f"Unknown repository {unknown_repos} in '{use}'."))
+                raise ValueError(f"Unknown repository {unknown_repos} in '{use}'.")
         return self
 
     @model_validator(mode="after")

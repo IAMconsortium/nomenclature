@@ -4,8 +4,8 @@ from pathlib import Path
 import pytest
 from pyam import IamDataFrame
 
-from nomenclature.definition import DataStructureDefinition
 from nomenclature import process
+from nomenclature.definition import DataStructureDefinition
 from nomenclature.exceptions import DataValidationError
 from nomenclature.processor import Processor
 

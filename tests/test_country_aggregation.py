@@ -1,9 +1,10 @@
+from pathlib import Path
+
 import pandas as pd
 import pytest
-from pathlib import Path
+from conftest import clean_up_external_repos
 from pyam import IamDataFrame, assert_iamframe_equal
 from pyam.utils import IAMC_IDX
-from conftest import clean_up_external_repos
 
 from nomenclature import DataStructureDefinition
 from nomenclature.processor import CountryProcessor

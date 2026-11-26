@@ -6,10 +6,20 @@ from conftest import TEST_DATA_DIR
 from git import Repo
 from pytest import raises
 
-
 from nomenclature.config import MappingRepository, NomenclatureConfig, Repository
+from nomenclature.utils import handle_remove_readonly
 
 MODULE_TEST_DATA_DIR = TEST_DATA_DIR / "config"
+
+
+def test_handle_remove_readonly_reraises_original_error(tmp_path, monkeypatch):
+    error = PermissionError("removal failed")
+    monkeypatch.setattr("os.access", lambda path, mode: True)
+
+    with raises(PermissionError, match="removal failed") as exc:
+        handle_remove_readonly(lambda path: None, tmp_path, (type(error), error, None))
+
+    assert exc.value is error
 
 
 def test_hash_and_release_raises():
@@ -111,9 +121,7 @@ def test_config_dimensions():
 def test_invalid_config_dimensions_raises():
     with raises(
         ValueError,
-        match=(
-            "Input should be 'model', .* 'region', 'subannual' or 'meta"
-        ),
+        match=("Input should be 'model', .* 'region', 'subannual' or 'meta"),
     ):
         NomenclatureConfig(dimensions=["year"])
 

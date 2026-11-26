@@ -12,6 +12,7 @@ from nomenclature.processor.country import CountryProcessor
 from nomenclature.processor.nuts import NutsProcessor
 
 logger = logging.getLogger(__name__)
+_DEFAULT_WORKFLOW_FILE = Path.cwd() / "workflow.py"
 
 
 @validate_call(config={"arbitrary_types_allowed": True})
@@ -133,7 +134,7 @@ def process(
 
 def run_workflow(
     df: IamDataFrame,
-    workflow_file: Path = (Path.cwd() / "workflow.py"),
+    workflow_file: Path = _DEFAULT_WORKFLOW_FILE,
     workflow_function: str = "main",
 ) -> IamDataFrame:
 
