@@ -13,18 +13,18 @@ from nomenclature.countries import countries  # noqa
 from nomenclature.definition import DataStructureDefinition  # noqa
 from nomenclature.nuts import nuts  # noqa
 from nomenclature.processor import (  # noqa
-    RegionAggregationMapping,  # noqa
-    NutsProcessor,
-    RegionProcessor,
     CountryProcessor,
-    RequiredDataValidator,
     DataValidator,
+    NutsProcessor,
+    RegionAggregationMapping,
+    RegionProcessor,
+    RequiredDataValidator,
 )
 
 here = Path(__file__).parent
 
 try:
-    __IPYTHON__  # type: ignore
+    _ = __IPYTHON__  # type: ignore
     _in_ipython_session = True
 except NameError:
     _in_ipython_session = False

@@ -19,8 +19,8 @@ Release v\ |version|.
 .. |ruff| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json
    :target: https://github.com/astral-sh/ruff
 
-.. |pytest| image:: https://img.shields.io/github/actions/workflow/status/iamconsortium/nomenclature/pytest.yml
-   :target: https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yml
+.. |pytest| image:: https://img.shields.io/github/actions/workflow/status/iamconsortium/nomenclature/pytest.yaml
+   :target: https://github.com/IAMconsortium/nomenclature/actions/workflows/pytest.yaml
 
 .. |rtd| image:: https://readthedocs.org/projects/nomenclature-iamc/badge
    :target: https://nomenclature-iamc.readthedocs.io

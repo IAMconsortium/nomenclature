@@ -273,7 +273,7 @@ class DataValidator(Processor):
         for item in content:
             # Simple case where filter and criteria args are all given at top level
             if "validation" not in item:
-                item["validation"] = [dict()]
+                item["validation"] = [{}]
 
             # If some criteria args are given at top-level, add to "validation" list
             criteria = [
@@ -351,7 +351,7 @@ class DataValidator(Processor):
                 error_list.append(error)
             if self.output_path:
                 pd.concat(output_list).to_excel(self.output_path, index=False)
-            fail_msg = "(file %s):\n" % get_relative_path(self.file)
+            fail_msg = f"(file {get_relative_path(self.file)}):\n"
             if any(error_list):
                 raise DataValidationError(fail_list, self.file)
             if fail_list:

@@ -1,9 +1,9 @@
 import logging
 import re
-
 from pathlib import Path
-from pydantic import validate_call
+
 from pyam.utils import escape_regexp
+from pydantic import validate_call
 
 from nomenclature.countries import countries
 from nomenclature.definition import DataStructureDefinition
@@ -28,7 +28,7 @@ class CountryProcessor(RegionProcessor):
         cls,
         dsd: DataStructureDefinition,
         models: list[str],
-        hierarchies: set[str] = {"R5", "R9", "R10"},
+        hierarchies: set[str] | None = None,
         skip_patterns: list[str] | None = None,
     ):
         """Create a processor for country-to-regional aggregation.
@@ -58,6 +58,8 @@ class CountryProcessor(RegionProcessor):
         ------
             If regions with the specified hierarchies lack constituent country information.
         """
+        if hierarchies is None:
+            hierarchies = {"R5", "R9", "R10"}
         models = models or dsd.config.processor.country
         if not models:
             raise ValueError("No models configured for country processor")

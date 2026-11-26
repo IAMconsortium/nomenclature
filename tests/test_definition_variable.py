@@ -1,8 +1,8 @@
 import pytest
-from pydantic import ValidationError
-from nomenclature import DataStructureDefinition
-
 from conftest import TEST_DATA_DIR
+from pydantic import ValidationError
+
+from nomenclature import DataStructureDefinition
 
 TEST_FOLDER_VARIABLE = TEST_DATA_DIR / "codelist" / "failing_variable_codelist"
 
